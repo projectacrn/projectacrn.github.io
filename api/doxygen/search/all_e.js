@@ -1,0 +1,20 @@
+var searchData=
+[
+  ['reg',['reg',['../group__acrn__hypercall.html#af589874f0283c655839d6f8f7ea7b584',1,'pci_request']]],
+  ['remote_5fgpa',['remote_gpa',['../group__acrn__hypercall.html#aba2e60b5a779ea62b7cb8dbf92033216',1,'vm_set_memmap']]],
+  ['req_5fbuf',['req_buf',['../group__acrn__hypercall.html#a9d8df33021c9a03f0ad14fc2a872d5f4',1,'acrn_set_ioreq_buffer']]],
+  ['req_5fmmio',['REQ_MMIO',['../acrn__common_8h.html#a111f7e783389a0276c664561cf0daf8f',1,'acrn_common.h']]],
+  ['req_5fpcicfg',['REQ_PCICFG',['../acrn__common_8h.html#aea0cb80811e248706f02096a24f63976',1,'acrn_common.h']]],
+  ['req_5fportio',['REQ_PORTIO',['../acrn__common_8h.html#aa4c778b63a2fa7af21ee52767031c368',1,'acrn_common.h']]],
+  ['req_5fstate_5ffailed',['REQ_STATE_FAILED',['../acrn__common_8h.html#a5a3efe30f8cb04841214866a9b902dd6',1,'acrn_common.h']]],
+  ['req_5fstate_5fpending',['REQ_STATE_PENDING',['../acrn__common_8h.html#a747893bc9d3cd3b9d0542b96000eb780',1,'acrn_common.h']]],
+  ['req_5fstate_5fprocessing',['REQ_STATE_PROCESSING',['../acrn__common_8h.html#a655f9be346e4d41bd9e65915faaa04b5',1,'acrn_common.h']]],
+  ['req_5fstate_5fsuccess',['REQ_STATE_SUCCESS',['../acrn__common_8h.html#a3fd17cda4011c32a5a1445935b97d91a',1,'acrn_common.h']]],
+  ['req_5fwp',['REQ_WP',['../acrn__common_8h.html#af734dfc6c0d62a8cca3e64f9823bfe26',1,'acrn_common.h']]],
+  ['reqs',['reqs',['../group__acrn__hypercall.html#a3505cf01f6fdc05751f2f4ef6c2aed2a',1,'vhm_request']]],
+  ['request_5fread',['REQUEST_READ',['../acrn__common_8h.html#a7c059c5ec2ddfd2f3c0a75588cec5659',1,'acrn_common.h']]],
+  ['request_5fwrite',['REQUEST_WRITE',['../acrn__common_8h.html#a81f73b2fda27b1e94cbd6cb0e88d1401',1,'acrn_common.h']]],
+  ['reserved',['reserved',['../group__acrn__hypercall.html#a6068a4375866ddd11ca232cefe1c94e4',1,'mmio_request::reserved()'],['../group__acrn__hypercall.html#ac3f904d7697bab25b57aadd7486e8ec5',1,'pio_request::reserved()'],['../group__acrn__hypercall.html#a9102ebef6413b1a5899ea4bdfbfb10b0',1,'pci_request::reserved()'],['../group__acrn__hypercall.html#a49f3daa44e3780ee6651aacd42f9420a',1,'acrn_create_vm::reserved()'],['../group__acrn__hypercall.html#a5a7ab9ebc1cf6ab5aec7249f32bf1b89',1,'acrn_irqline::reserved()'],['../group__acrn__hypercall.html#a9c8d1e9f1fd92d6d8ecae6a88c9c4b0f',1,'acrn_vm_pci_msix_remap::reserved()'],['../group__acrn__hypercall.html#a406bc2a701de551aaa9c19b1783a6186',1,'vm_set_memmap::reserved()']]],
+  ['reset',['reset',['../structvirtio__ops.html#a2f1937d6b9f77bba4c970c7e34357127',1,'virtio_ops']]],
+  ['ring',['ring',['../group__acrn__virtio.html#a845ec95d0216b3a59cfed8864dd7fc0a',1,'vring_avail::ring()'],['../group__acrn__virtio.html#af88a1d4e0582d41b9ef34c5a1d0107e9',1,'vring_used::ring()']]]
+];
