@@ -290,12 +290,10 @@ platform tested with these setup instructions.</p>
 <ul class="simple">
 <li>NUC: <a class="reference external" href="https://www.intel.com/content/www/us/en/products/boards-kits/nuc/kits/nuc6cayh.html">NUC Kit
 NUC6CAYH</a></li>
+<li><a class="reference external" href="https://downloadcenter.intel.com/product/95062/Intel-NUC-Kit-NUC6CAYH">UEFI BIOS (version 0047)</a>.</li>
 <li>Memory: 8G DDR3</li>
 <li>SSD: 120G SATA</li>
 </ul>
-<p>In the software setup, we’ll ensure the NUC is running the latest
-(version 0047)
-<a class="reference external" href="https://downloadcenter.intel.com/product/95062/Intel-NUC-Kit-NUC6CAYH">UEFI BIOS</a>.</p>
 </div>
 <div class="section" id="software-setup">
 <h2>Software setup<a class="headerlink" href="#software-setup" title="Permalink to this headline">¶</a></h2>
@@ -308,8 +306,8 @@ for downloading and flashing an updated BIOS for the NUC.</p>
 <div class="section" id="set-up-a-clear-linux-operating-system">
 <h3>Set up a Clear Linux Operating System<a class="headerlink" href="#set-up-a-clear-linux-operating-system" title="Permalink to this headline">¶</a></h3>
 <p>Currently, an installable version of ARCN does not exist. Therefore, we
-need to setup a base Clear Linux OS to bootstrap ACRN. ACRN requires
-Clear Linux version 21260 or newer.</p>
+need to setup a base Clear Linux OS to bootstrap ACRN.
+<strong>ACRN requires Clear Linux version 21260 or newer.</strong></p>
 <ol class="arabic">
 <li><p class="first">Follow this <a class="reference external" href="https://clearlinux.org/documentation/clear-linux/get-started/bare-metal-install">Clear Linux installation guide</a>
 as a starting point for installing Clear Linux onto your NUC.</p>
@@ -356,6 +354,9 @@ autoupdate, issue this command:</p>
 </div>
 </li>
 <li><p class="first">Use the <code class="docutils literal"><span class="pre">swupd</span> <span class="pre">bundle-add</span></code> command and add these Clear Linux bundles:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span># swupd bundle-add vim curl network-basic service-os kernel-pk
+</pre></div>
+</div>
 <table border="1" class="colwidths-auto docutils" id="cl-bundles">
 <caption><span class="caption-number">Table 2 </span><span class="caption-text">Clear Linux bundles</span><a class="headerlink" href="#cl-bundles" title="Permalink to this table">¶</a></caption>
 <thead valign="bottom">
@@ -381,14 +382,8 @@ Service OS kernel</td>
 <td>Run the Intel “PK” kernel(product kernel source)
 and enterprise-style kernel with backports</td>
 </tr>
-<tr class="row-odd"><td>os-clr-on-clr-dev</td>
-<td>Install dependent packages and libs</td>
-</tr>
 </tbody>
 </table>
-<div class="highlight-none"><div class="highlight"><pre><span></span># swupd bundle-add vim curl network-basic service-os kernel-pk os-clr-on-clr-dev
-</pre></div>
-</div>
 </li>
 </ol>
 </div>
@@ -409,8 +404,9 @@ loaderx64.efi
 </pre></div>
 </div>
 </li>
-<li><p class="first">Copy the <code class="docutils literal"><span class="pre">acrn.efi</span></code> hypervisor application to the EFI partition.</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span># cp /usr/share/acrn.efi /mnt/EFI/org.clearlinux
+<li><p class="first">Copy the <code class="docutils literal"><span class="pre">acrn.efi</span></code> hypervisor application (included in the Clear
+Linux release) to the EFI partition.</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span># cp /usr/share/acrn/demo/acrn.efi /mnt/EFI/org.clearlinux
 </pre></div>
 </div>
 </li>
@@ -438,7 +434,8 @@ loaderx64.efi
 </tbody>
 </table>
 <p>A sample <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/tree/master/bsp/uefi/clearlinux/acrn.conf">acrn.conf</a>
-is available in the acrn-hypervisor GitHub repo (in the bsp/uefi/clearlinux
+is included in the Clear Linux release, and is also available in the
+acrn-hypervisor GitHub repo (in the bsp/uefi/clearlinux
 folder) as shown here:</p>
 <div class="literal-block-wrapper docutils container" id="id1">
 <div class="code-block-caption"><span class="caption-number">Code Block 1 </span><span class="caption-text">acrn-hypervisor/bsp/uefi/clearlinux/acrn.conf</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
@@ -448,10 +445,13 @@ folder) as shown here:</p>
 </pre></div>
 </div>
 </div>
-<p>You can download <code class="docutils literal"><span class="pre">acrn.conf</span></code> and copy it to
-<code class="docutils literal"><span class="pre">/mnt/loader/entries/acrn.conf</span></code> and use it directly.  If you’re following
+<p>Copy the <code class="docutils literal"><span class="pre">acrn.conf</span></code> file to the EFI partition we mounted earlier:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span># cp /usr/share/acrn/demo/acrn.conf /mnt/loader/entries/
+</pre></div>
+</div>
+<p>If you’re following
 the instructions above, the partition (<code class="docutils literal"><span class="pre">root=/dev/sda3</span></code>) and image
-locatations will match.</p>
+locations used in the <code class="docutils literal"><span class="pre">arcn.conf</span></code> file will match.</p>
 </li>
 <li><p class="first">Add a timeout period for Systemd-Boot to wait, otherwise it will not
 present the boot menu and will always boot the base Clear Linux
@@ -484,7 +484,8 @@ automatically by default, as shown in <a class="reference internal" href="#gsg-s
 <p>Without a network bridge, the SOS and UOS are not able to talk to each
 other.</p>
 <p>A sample <a class="reference external" href="https://github.com/projectacrn/acrn-devicemodel/tree/master/samples/bridge.sh">bridge.sh</a>
-is available in the acrn-devicemodel GitHub repo (in the samples
+is included in the Clear Linux release, and
+is also available in the acrn-devicemodel GitHub repo (in the samples
 folder) as shown here:</p>
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-number">Code Block 2 </span><span class="caption-text">acrn-devicemodel/samples/bridge.sh</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
@@ -544,9 +545,10 @@ brctl addif acrn-br0 acrn_tap0
 </pre></div>
 </div>
 </div>
-<p>You can download <code class="docutils literal"><span class="pre">bridge.sh</span></code>, copy it to your root home
-directory, and use it directly by making it executable and running it:</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span># chmod +x ./bridge.sh
+<p>By default, it is located in the <code class="docutils literal"><span class="pre">/usr/share/acrn/demo/</span></code>
+directory. Use it directly by making it executable and running it:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span># cd /usr/share/acrn/demo/
+# chmod +x ./bridge.sh
 # ./bridge.sh
 </pre></div>
 </div>
@@ -574,9 +576,10 @@ directory, and use it directly by making it executable and running it:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Create the launch_uos.sh script and run it to launch the UOS.
+<li><p class="first">Run the launch_uos.sh script to launch the UOS.
 A sample <a class="reference external" href="https://github.com/projectacrn/acrn-devicemodel/tree/master/samples/launch_uos.sh">launch_uos.sh</a>
-is available in the acrn-devicemodel GitHub repo (in the samples
+is included in the Clear Linux release, and
+is also available in the acrn-devicemodel GitHub repo (in the samples
 folder) as shown here:</p>
 <div class="literal-block-wrapper docutils container" id="id3">
 <div class="code-block-caption"><span class="caption-number">Code Block 3 </span><span class="caption-text">acrn-devicemodel/samples/launch_uos.sh</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
@@ -614,9 +617,10 @@ launch_clear <span class="m">2</span> <span class="m">1</span> <span class="s2">
 </pre></div>
 </div>
 </div>
-<p>You can download <code class="docutils literal"><span class="pre">launch_uos.sh</span></code>, copy it to your root home
-directory, and use it directly by making it executable and running it:</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span># chmod +x ./launch_uos.sh
+<p>By default, it is located in the <code class="docutils literal"><span class="pre">/usr/share/acrn/demo/</span></code>
+directory. Use it directly by making it executable and running it:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span># cd /usr/share/acrn/demo/
+# chmod +x ./launch_uos.sh
 # ./launch_uos.sh
 </pre></div>
 </div>
@@ -677,7 +681,7 @@ from your build.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Mar 11, 2018.
+      Last updated on Mar 12, 2018.
 
     </p>
   </div> 
