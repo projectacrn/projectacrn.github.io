@@ -315,11 +315,16 @@ need to setup a base Clear Linux OS to bootstrap ACRN on the NUC. You’ll
 need a network connection for your NUC to complete this setup.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">ACRN requires Clear Linux version 21260 or newer.</p>
+<p class="last">ACRN requires Clear Linux version 21260 or newer. The instructions below
+have been validated with version 21260 and need some adjustment to work
+with newer versions. You will see a note when the instruction needs to be
+adjusted.</p>
 </div>
 <ol class="arabic">
 <li><p class="first">Follow this <a class="reference external" href="https://clearlinux.org/documentation/clear-linux/get-started/bare-metal-install">Clear Linux installation guide</a>
-as a starting point for installing Clear Linux onto your NUC.</p>
+as a starting point for installing Clear Linux onto your NUC. Download the
+<code class="docutils literal"><span class="pre">clear-21260-installer.img.xz</span></code> from the <a class="reference external" href="https://download.clearlinux.org/releases/21260/clear/">https://download.clearlinux.org/releases/21260/clear/</a>
+folder to get Clear Linux version 21260.</p>
 </li>
 <li><p class="first">At the “Choose Installation Type” screen, choose the “&lt; Automatic &gt;”
 option. This will install the minimum Clear Linux components.</p>
@@ -363,7 +368,7 @@ it to autoupdate, issue this command:</p>
 </div>
 </li>
 <li><p class="first">Use the <code class="docutils literal"><span class="pre">swupd</span> <span class="pre">bundle-add</span></code> command and add these Clear Linux bundles:</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span># swupd bundle-add vim curl network-basic service-os kernel-pk
+<div class="highlight-none"><div class="highlight"><pre><span></span># swupd bundle-add vim network-basic service-os kernel-pk
 </pre></div>
 </div>
 <table border="1" class="colwidths-auto docutils" id="cl-bundles">
@@ -377,17 +382,14 @@ it to autoupdate, issue this command:</p>
 <tr class="row-even"><td>vim</td>
 <td>vim text editor</td>
 </tr>
-<tr class="row-odd"><td>curl</td>
-<td>Provide the curl command-line utility</td>
-</tr>
-<tr class="row-even"><td>network-basic</td>
+<tr class="row-odd"><td>network-basic</td>
 <td>Run network utilities and modify network settings</td>
 </tr>
-<tr class="row-odd"><td>service-os</td>
+<tr class="row-even"><td>service-os</td>
 <td>Add the acrn hypervisor, the acrn devicemodel and
 Service OS kernel</td>
 </tr>
-<tr class="row-even"><td>kernel-pk</td>
+<tr class="row-odd"><td>kernel-pk</td>
 <td>Run the Intel “PK” kernel(product kernel source)
 and enterprise-style kernel with backports</td>
 </tr>
@@ -404,18 +406,22 @@ partition. Follow these steps:</p>
 <li><p class="first">Mount the EFI partition and verify you have the following files:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span># mount /dev/sda1 /mnt
 
-# ls /mnt/EFI/org.clearlinux
+# ls -1 /mnt/EFI/org.clearlinux
 bootloaderx64.efi
 kernel-org.clearlinux.native.4.15.7-536
 kernel-org.clearlinux.pk414-sos.4.14.23-19
 kernel-org.clearlinux.pk414-standard.4.14.23-19
 loaderx64.efi
+
+.. note::
+   Take note of the exact kernel versions (``*-sos`` and ``*-standard``)
+   as you will need them later.
 </pre></div>
 </div>
 </li>
 <li><p class="first">Copy the <code class="docutils literal"><span class="pre">acrn.efi</span></code> hypervisor application (included in the Clear
 Linux release) to the EFI partition.</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span># cp /usr/share/acrn/demo/acrn.efi /mnt/EFI/org.clearlinux
+<div class="highlight-none"><div class="highlight"><pre><span></span># cp /usr/share/acrn/acrn.efi /mnt/EFI/org.clearlinux
 </pre></div>
 </div>
 </li>
@@ -461,6 +467,11 @@ folder) as shown here:</p>
 <p>If you’re following
 the instructions above, the partition (<code class="docutils literal"><span class="pre">root=/dev/sda3</span></code>) and image
 locations used in the <code class="docutils literal"><span class="pre">arcn.conf</span></code> file will match.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Please make sure that the kernel version and root filesystem image (<code class="docutils literal"><span class="pre">clear-&lt;version&gt;-kvm.img</span></code>)
+match your set-up.</p>
+</div>
 </li>
 <li><p class="first">Add a timeout period for Systemd-Boot to wait, otherwise it will not
 present the boot menu and will always boot the base Clear Linux
@@ -477,14 +488,19 @@ kernel.</p>
 <p class="caption"><span class="caption-number">Figure 11 </span><span class="caption-text">ACRN Hypervisor Boot menu</span></p>
 </div>
 </li>
-<li><p class="first">After booting up the ACRN hypervisor, the Service OS be launched
+<li><p class="first">After booting up the ACRN hypervisor, the Service OS will be launched
 automatically by default, as shown in <a class="reference internal" href="#gsg-sos-console"><span class="std std-numref">Figure 12</span></a>:</p>
 <div class="figure align-center" id="gsg-sos-console">
 <img alt="../_images/gsg-sos-console.png" src="../_images/gsg-sos-console.png" />
 <p class="caption"><span class="caption-number">Figure 12 </span><span class="caption-text">Service OS Console</span></p>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You may need to hit <code class="docutils literal"><span class="pre">Enter</span></code> to get a clean login prompt</p>
+</div>
 </li>
-<li><p class="first">From here you can login as root and set the first-time root password.</p>
+<li><p class="first">From here you can login as root using the password you set previously when
+you installed Clear Linux.</p>
 </li>
 </ol>
 </div>
@@ -555,11 +571,10 @@ brctl addif acrn-br0 acrn_tap0
 </div>
 </div>
 <p>By default, the script is located in the <code class="docutils literal"><span class="pre">/usr/share/acrn/demo/</span></code>
-directory. Use it directly by making it executable and run it to create
-a network bridge:</p>
+directory. Run it to create a network bridge:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span># cd /usr/share/acrn/demo/
-# chmod +x ./bridge.sh
 # ./bridge.sh
+# cd
 </pre></div>
 </div>
 </div>
@@ -567,8 +582,14 @@ a network bridge:</p>
 <h3>Set up Reference UOS<a class="headerlink" href="#set-up-reference-uos" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p class="first">Download the pre-built reference Clear Linux UOS image.</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span># curl -O https://download.clearlinux.org/image/clear-21260-kvm.img.xz
+<div class="highlight-none"><div class="highlight"><pre><span></span># curl -O https://download.clearlinux.org/releases/21260/clear/clear-21260-kvm.img.xz
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In case you want to use or try out a newer version of Clear Linux as the UOS, you can
+download the latest from <a class="reference external" href="http://download.clearlinux.org/image">http://download.clearlinux.org/image</a>. Make sure to adjust the steps
+described below accordingly (image file name and kernel modules version).</p>
 </div>
 </li>
 <li><p class="first">Uncompress it.</p>
@@ -579,7 +600,7 @@ a network bridge:</p>
 <li><p class="first">Deploy the UOS kernel modules to UOS virtual disk image</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span># losetup -f -P --show /root/clear-21260-kvm.img
 # ls /dev/loop0*
-# mount /dev/**loop0p3** /mnt
+# mount /dev/loop0p3 /mnt
 # cp -r /usr/lib/modules/4.14.23-19.pk414-standard /mnt/lib/modules/
 # umount /mnt
 # sync
@@ -614,10 +635,10 @@ folder) as shown here:</p>
 acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s <span class="m">0</span>:0,hostbridge -s <span class="m">1</span>:0,lpc -l com1,stdio <span class="se">\</span>
   -s <span class="m">5</span>,virtio-console,@pty:pty_port <span class="se">\</span>
   -s <span class="m">6</span>,virtio-hyper_dmabuf <span class="se">\</span>
-  -s <span class="m">3</span>,virtio-blk,/root/clear-21180-kvm.img <span class="se">\</span>
-  -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
-  -k /usr/lib/kernel/org.clearlinux.pk414-standard.4.14.23-19 <span class="se">\</span>
-  -B <span class="s2">&quot;root=/dev/vda3 rw rootwait noxsave maxcpus=</span><span class="nv">$2</span><span class="s2"> nohpet console=tty0 console=hvc0 \</span>
+<span class="hll">  -s <span class="m">3</span>,virtio-blk,/root/clear-21260-kvm.img <span class="se">\</span>
+</span>  -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
+<span class="hll">  -k /usr/lib/kernel/org.clearlinux.pk414-standard.4.14.23-19 <span class="se">\</span>
+</span>  -B <span class="s2">&quot;root=/dev/vda3 rw rootwait noxsave maxcpus=</span><span class="nv">$2</span><span class="s2"> nohpet console=tty0 console=hvc0 \</span>
 <span class="s2">  console=ttyS0 no_timer_check ignore_loglevel log_buf_len=16M \</span>
 <span class="s2">  consoleblank=0 tsc=reliable i915.avail_planes_per_pipe=</span><span class="nv">$4</span><span class="s2"> \</span>
 <span class="s2">  i915.enable_hangcheck=0 i915.nuclear_pageflip=1&quot;</span> <span class="nv">$vm_name</span>
@@ -627,17 +648,24 @@ launch_clear <span class="m">2</span> <span class="m">1</span> <span class="s2">
 </pre></div>
 </div>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In case you have downloaded a different Clear Linux image than the one above
+(<code class="docutils literal"><span class="pre">clear-21260-kvm.img.xz</span></code>), you will need to modify the Clear Linux file name
+and version number highlighted above (the <code class="docutils literal"><span class="pre">-s</span> <span class="pre">3,virtio-blk</span></code> argument) to match
+what you have downloaded above. Likewise, you may need to adjust the kernel file
+name on the second line highlighted (check the exact name to be used using:
+<code class="docutils literal"><span class="pre">ls</span> <span class="pre">/usr/lib/kernel/org.clearlinux*-standard*</span></code>).</p>
+</div>
 <p>By default, the script is located in the <code class="docutils literal"><span class="pre">/usr/share/acrn/demo/</span></code>
-directory. Use it directly by making it executable and run it to
-launch the User OS:</p>
+directory. Run it directly to launch the User OS:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span># cd /usr/share/acrn/demo/
-# chmod +x ./launch_uos.sh
 # ./launch_uos.sh
 </pre></div>
 </div>
 </li>
-<li><p class="first">At this point, you’ve successfully booted the ACRN system,
-hypervisor, SOS, and UOS:</p>
+<li><p class="first">At this point, you’ve successfully booted the ACRN hypervisor,
+SOS, and UOS:</p>
 <div class="figure align-center" id="gsg-successful-boot">
 <img alt="../_images/gsg-successful-boot.png" src="../_images/gsg-successful-boot.png" />
 </div>
@@ -727,7 +755,7 @@ from your build.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Mar 15, 2018.
+      Last updated on Mar 19, 2018.
 
     </p>
   </div>
