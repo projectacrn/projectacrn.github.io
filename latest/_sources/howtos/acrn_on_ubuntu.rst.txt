@@ -1,0 +1,254 @@
+.. _acrn-ubuntu-grub:
+
+Booting ACRN on Ubuntu using Grub
+#################################
+
+
+#. Download Ubuntu 16.04.4 LTS from
+   https://www.ubuntu.com/download/desktop to your host computer's
+   ``~/Downloads`` folder.
+
+#. Follow the `Create a USB stick`_ instructions for creating a
+   bootable USB stick (2GB or larger) on Ubuntu, Windows*, or macOS*
+   systems.
+
+.. _Create a USB stick: https://tutorials.ubuntu.com/tutorial-create-a-usb-stick-on-ubuntu
+
+   Alternatively, on a Linux system, connect the USB stick and use
+   the ``lsblk`` command to verify its device name (typically
+   ``/dev/sdb``) before burning the image to the device using ``dd``.
+
+   .. note:: The ``dd`` command will completely erase the contents
+      of the drive, so verify the destination (``of=/dev/sdb``) carefully:
+
+   .. code-block:: bash
+
+      sudo dd if=~/Downloads/ubuntu-16.04.4-desktop-amd64.iso of=/dev/sdb
+
+   This ``dd`` command will take about 10 minutes to complete (much faster if
+   you use a USB3 stick).
+
+#. Power on the NUC and press F2 to enter the Visual BIOS setup.
+
+   In Boot Order, drag **UEFI: Built-in EFI shell** to the top of the
+   list
+
+   In Advance => Boot Secure Boot, uncheck **Secure Boot**
+
+   In Advance => Boot => Boot Configuration => Boot Devices, check **Internal UEFI shell**
+
+   Press :kbd:`F10` to save the changes and exit from the BIOS setup.
+
+#. Boot the NUC to the EFI shell and start up ``grub`` using these EFI
+   shell commands:
+
+   .. code-block:: bash
+
+      fs0:
+      cd efi
+      cd boot
+      grubx64.efi
+
+#. From the grub menu choose **Install Ubuntu**
+   Install Ubuntu 16.04.4 on NUC system
+
+#. After Ubuntu installation, you change the boot order in the BIOS setup.
+
+   Press :kbd:`F2` to enter BIOS setup; from Boot Order, choose **UEFI: SATA:
+   PORT2: ubuntu:PORT 0: OS Bootloader**
+
+   Press :kbd:`F10` to save change and exit from BIOS setup. 
+
+   After rebooting, boot Ubuntu from the grub menu.
+
+#. Next, if you need to set up a proxy to access the internet follow
+   these Ubuntu setup steps.  (If you don't need a proxy, skip this step):
+
+   System settings => Network => Network proxy Method => choose Manual
+   HTTP Proxy: YourProxy.com YourProxyPort
+   HTTPS Proxy: YourProxy.com YourProxyPort
+   FTP Proxy: YourProxy.com YourProxyPort
+   Socks Host: YourProxy.com YourProxyPort
+
+   (Replace YourProxy and YourProxyPort with your own settings)
+   Click on the **Apply system wide** button
+
+#. If you want to use ssh to remotely access your NUC, follow these steps:
+
+   .. code-block:: bash
+
+      sudo apt-get install openssh-server
+      sudo service ssh status
+
+   Edit ``/etc/ssh/sshd_config`` and change ``PermitRootLogin`` from
+   ``prohibit-password`` to ``yes``
+
+   .. code-block:: bash
+
+      sudo service ssh restart
+
+
+#. Install the following packages:
+
+   .. code-block:: bash
+
+      sudo apt-get update
+      sudo apt-get install git libpciaccess-dev gnu-efi \
+         uuid-dev libssl-dev vim
+
+#. Check out source code from the project ACRN GitHub repository:
+
+   .. code-block:: bash
+
+      git clone https://github.com/projectacrn/acrn-devicemodel
+      git clone https://github.com/projectacrn/acrn-hypervisor
+
+#. Build the device model from source trees:
+
+   .. code-block:: bash
+
+      cd acrn-devicemodel
+      make
+
+   You will find the device model binary acrn-dm in the build folder.
+
+#. Modify hypervisor source code:
+
+   * If your platform uses 0x3f8 serial port:
+
+     In ``acrn-hypervisor/bsp/sbl/include/bsp/bsp_cfg.h`` file
+     replace::
+
+        #define CONFIG_SERIAL_MMIO_BASE 0xfc000000
+
+     with::
+
+        #define CONFIG_SERIAL_MMIO_BASE 0x3f8
+
+     Replace::
+
+        #define CONFIG_LOW_RAM_START    0x00001000
+
+     with::
+
+        #define CONFIG_LOW_RAM_START    0x0
+
+     Add the following macros::
+
+        #define CONFIG_DMAR_PARSE_ENABLED       1
+        #define CONFIG_GPU_SBDF         0x00000010      /* 0000:00:02.0 */
+        #define CONFIG_RETPOLINE
+
+   * ``acrn-hypervisor/common/vm_load.c``
+
+     Change the snprintf parameter to ``2048``:
+
+     .. code-block:: c
+
+        snprintf(dyn_bootargs, 100, " cma=%dM@0x%llx\n",
+                                    (e820_mem.max_ram_blk_size >> 20),
+                                    e820_mem.max_ram_blk_base);)
+        // change to ===>
+
+        snprintf(dyn_bootargs, 100, " cma=%dM@0x%llx\n",
+                                    2048,
+                                    e820_mem.max_ram_blk_base);)
+
+#. Build the acrn-hypervisor
+
+   .. code-block:: bash
+
+      cd acrn-hypervisor
+      make
+
+   You will find the generated binary ``acrn.32.out`` in the build directory.
+
+#. Prepare SOS kernel (replacing YourFolder with your settings):
+
+   .. code-block:: bash
+
+      wget https://cdn.download.clearlinux.org/current/x86_64/os/Packages/linux-pk414-sos-4.14.23-21.x86_64.rpm
+      sudo apt-get install rpm2cpio
+      rpm2cpio linux-pk414-sos-4.14.23-21.x86_64.rpm | cpio -idmv
+      sudo cp -r /YourFolder/usr/lib/modules/4.14.23-21.pk414-sos/ /lib/modules/
+
+#. Copy acrn.32.out and clearlinux to /boot/acrn/ (replaceing YourFolder
+   with your settings)
+
+   .. code-block:: bash
+
+      sudo mkdir /boot/acrn/
+      sudo cp /YourFolder/acrn-hypervisor/build/acrn.32.out /boot/acrn/.
+      sudo cp /YourFolder/usr/lib/kernel/org.clearlinux.pk414-sos.4.14.23-21 /boot/acrn/.
+
+#. Use grub custom file (``/etc/grub.d/40_custom``) to create a new grub entry
+
+   Add the following to the end of grub file::
+
+      menuentry 'ACRN SOS' {
+        recordfail
+        load_video
+        insmod gzio
+        insmod part_gpt
+        insmod ext2
+        set root='hd0,gpt2'
+        multiboot /boot/acrn/acrn.32.out
+        module /boot/acrn/org.clearlinux.pk414-sos.4.14.23-21 noxsave maxcpus=1 console=tty0 console=ttyS0 i915.nuclear_pageflip=1 root=/dev/sda2 rw rootwait clocksource=hpet ignore_loglevel no_timer_check consoleblank=0 i915.tsd_init=7 i915.tsd_delay=2000 i915.avail_planes_per_pipe=0x00000F i915.domain_plane_owners=0x011111110000 i915.enable_guc_loading=0 i915.enable_guc_submission=0 i915.enable_preemption=1 i915.context_priority_mode=2 i915.enable_gvt=1 hvlog=2M@0x1FE00000
+        }
+
+#. Update grub and reboot
+
+   .. code-block:: bash
+
+      sudo update-grub
+      sudo reboot 
+
+   (Reboot and select)
+
+#. Running SOS
+
+   Reboot system and choose **ACRN SOS** from grub menu
+
+   Login to ACRN SOS.
+
+#. Prepare UOS
+
+   .. code-block:: bash
+
+      sudo apt-get install curl
+      curl -O https://download.clearlinux.org/releases/21260/clear/clear-21260-kvm.img.xz
+      unxz clear-21260-kvm.img.xz
+
+      wget https://cdn.download.clearlinux.org/current/x86_64/os/Packages/linux-pk414-standard-4.14.23-21.x86_64.rpm
+      rpm2cpio linux-pk414-standard-4.14.23-21.x86_64.rpm | cpio -idmv
+
+   * Use the following steps to update clearlinux kernel (replacing
+     YourFolder with your settings)::
+
+        losetup -f -P --show /YourFolder/clear-21260-kvm.img
+        ls /dev/loop0*    (find your loop device)
+        sudo mount /dev/loop0p3 /mnt
+        sudo cp -r /usr/lib/modules/4.14.23-21.pk414-standard /mnt/lib/modules/
+        sudo umount /mnt
+        sync
+
+
+#. Fix the permission issue:
+
+   .. code-block:: bash
+
+      sudo chmod 777 /dev/acrn_vhm
+
+#. Install the missing package.
+
+   .. code-block:: bash
+
+      sudo apt-get install iasl
+      sudo cp /usr/bin/iasl /usr/sbin/iasl
+
+#. Run the ``launch_uos.sh`` script to launch the UOS.
+
+   A sample ``launch_uos.sh`` is included in the Clear Linux release, and is
+   also available in the acrn-devicemodel GitHub repo (in the samples folder).
+   Modify the filename and location according to your own settings.
+

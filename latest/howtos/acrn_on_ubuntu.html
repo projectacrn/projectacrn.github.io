@@ -1,0 +1,606 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Booting ACRN on Ubuntu using Grub &mdash; Project ACRN™ v 0.1-rc4 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/ACRN-favicon-32x32.png"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ACRN documentation generation" href="docbuild.html" />
+    <link rel="prev" title="How-Tos" href="index.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Project ACRN™
+          
+
+          
+            
+            <img src="../_static/ACRN_Logo_300w.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                latest
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction to Project ACRN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#automotive-use-case-example">Automotive Use Case Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-device-model-service-os-and-user-os">ACRN Device Model, Service OS, and User OS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-hypervisor-architecture">ACRN Hypervisor Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#device-pass-through">Device pass through</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hardware-support-for-device-passthrough">Hardware support for device passthrough</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor support for device passthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-i-o-mediator">ACRN I/O mediator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#virtio-framework-architecture">Virtio framework architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../hardware.html">Supported Hardware</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../hardware.html#intel-apollo-lake-nuc">Intel Apollo Lake NUC</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started/index.html#hardware-setup">Hardware setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started/index.html#software-setup">Software setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started/index.html#firmware-update-on-the-nuc">Firmware update on the NUC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started/index.html#set-up-a-clear-linux-operating-system">Set up a Clear Linux Operating System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started/index.html#add-the-acrn-hypervisor-to-the-efi-partition">Add the ACRN hypervisor to the EFI Partition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started/index.html#create-a-network-bridge">Create a Network Bridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started/index.html#set-up-reference-uos">Set up Reference UOS</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../getting_started/index.html#build-acrn-from-source">Build ACRN from Source</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started/index.html#install-build-tools-and-dependencies">Install build tools and dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting_started/index.html#build-the-hypervisor-and-device-model">Build the hypervisor and device model</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../primer/index.html">Developer Primer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#source-tree-structure">Source Tree Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#acrn-hypervisor-source-tree">ACRN hypervisor source tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#acrn-device-model-source-tree">ACRN Device Model source tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#acrn-documentation-source-tree">ACRN documentation source tree</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#cpu-virtualization">CPU virtualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#host-gdt">Host GDT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#host-idt">Host IDT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#guest-smp-booting">Guest SMP Booting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#vmx-configuration">VMX configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#cpuid-and-guest-tsc-calibration">CPUID and Guest TSC calibration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#rdtsc-rdtscp">RDTSC/RDTSCP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#cr-register-virtualization">CR Register virtualization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#msr-bitmap">MSR BITMAP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#i-o-bitmap">I/O BITMAP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#exceptions">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#memory-virtualization">Memory virtualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#physical-memory-layout">Physical Memory Layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#pv-mmu-memory-mapping-in-the-hypervisor">PV (MMU) Memory Mapping in the Hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#pv-mmu-memory-mapping-in-vms">PV (MMU) Memory Mapping in VMs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#host-guest-ept-memory-mapping">Host-Guest (EPT) Memory Mapping</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#graphic-mediation">Graphic mediation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#i-o-emulation">I/O emulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#device-assignment-management">Device Assignment Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#pio-mmio-trap-flow">PIO/MMIO trap Flow</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#virtual-interrupt">Virtual interrupt</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#virtual-lapic">Virtual LAPIC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#virtual-ioapic">Virtual IOAPIC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#virtual-pic">Virtual PIC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#virtual-interrupt-injection">Virtual Interrupt Injection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#vt-x-and-vt-d">VT-x and VT-d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#hypercall">Hypercall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#device-emulation">Device emulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../primer/index.html#virtio-devices">Virtio Devices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#virtio-rnd">Virtio-rnd</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#virtio-blk">Virtio-blk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#virtio-net">Virtio-net</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer/index.html#virtio-console">Virtio-console</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">How-Tos</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#technical-notes">Technical Notes</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Booting ACRN on Ubuntu using Grub</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#process-notes">Process Notes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="docbuild.html">ACRN documentation generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="docbuild.html#documentation-overview">Documentation overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="docbuild.html#set-up-the-documentation-working-folders">Set up the documentation working folders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="docbuild.html#installing-the-documentation-tools">Installing the documentation tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="docbuild.html#documentation-presentation-theme">Documentation presentation theme</a></li>
+<li class="toctree-l4"><a class="reference internal" href="docbuild.html#running-the-documentation-processors">Running the documentation processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="docbuild.html#publishing-content">Publishing content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="docbuild.html#filtering-expected-warnings">Filtering expected warnings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../release_notes.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes.html#version-0-1-release-march-2018">Version 0.1 release (March 2018)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contribution Guidelines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#developer-certification-of-origin-dco">Developer Certification of Origin (DCO)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute.html#dco-sign-off-methods">DCO Sign-Off Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#repository-layout">Repository layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#submitting-issues">Submitting Issues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#contribution-tools-and-git-setup">Contribution Tools and Git Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute.html#signed-off-by">Signed-off-by</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#coding-style">Coding Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#contribution-workflow">Contribution Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contribute.html#commit-guidelines">Commit Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute.html#commit-message-body">Commit Message Body</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contribute.html#other-commit-expectations">Other Commit Expectations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contribute.html#identifying-contribution-origin">Identifying Contribution Origin</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/hypercall_api.html">Hypercall APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/devicemodel_api.html">Device Model APIs</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Project ACRN™</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">How-Tos</a> &raquo;</li>
+        
+      <li>Booting ACRN on Ubuntu using Grub</li>
+    
+    
+
+<li class="wy-breadcrumbs-aside">
+   <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+      <span class="rst-current-version" data-toggle="rst-current-version">
+         <span class="fa fa-book"> Project ACRN</span>
+         version: latest
+         <span class="fa fa-caret-down"></span>
+      </span>
+      <div class="rst-other-versions">
+         <dl>
+            <dt>Versions</dt>
+               
+               <dd><a href="/latest/">latest</a></dd>
+              
+               <dd><a href="/0.1-rc4/">0.1-rc4</a></dd>
+              
+         </dl>
+      </div>
+   </div>
+</li>
+
+
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="booting-acrn-on-ubuntu-using-grub">
+<span id="acrn-ubuntu-grub"></span><h1>Booting ACRN on Ubuntu using Grub<a class="headerlink" href="#booting-acrn-on-ubuntu-using-grub" title="Permalink to this headline">¶</a></h1>
+<ol class="arabic simple">
+<li>Download Ubuntu 16.04.4 LTS from
+<a class="reference external" href="https://www.ubuntu.com/download/desktop">https://www.ubuntu.com/download/desktop</a> to your host computer’s
+<code class="docutils literal"><span class="pre">~/Downloads</span></code> folder.</li>
+<li>Follow the <a class="reference external" href="https://tutorials.ubuntu.com/tutorial-create-a-usb-stick-on-ubuntu">Create a USB stick</a> instructions for creating a
+bootable USB stick (2GB or larger) on Ubuntu, Windows*, or macOS*
+systems.</li>
+</ol>
+<blockquote>
+<div><p>Alternatively, on a Linux system, connect the USB stick and use
+the <code class="docutils literal"><span class="pre">lsblk</span></code> command to verify its device name (typically
+<code class="docutils literal"><span class="pre">/dev/sdb</span></code>) before burning the image to the device using <code class="docutils literal"><span class="pre">dd</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="docutils literal"><span class="pre">dd</span></code> command will completely erase the contents
+of the drive, so verify the destination (<code class="docutils literal"><span class="pre">of=/dev/sdb</span></code>) carefully:</p>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo dd <span class="k">if</span><span class="o">=</span>~/Downloads/ubuntu-16.04.4-desktop-amd64.iso <span class="nv">of</span><span class="o">=</span>/dev/sdb
+</pre></div>
+</div>
+<p>This <code class="docutils literal"><span class="pre">dd</span></code> command will take about 10 minutes to complete (much faster if
+you use a USB3 stick).</p>
+</div></blockquote>
+<ol class="arabic">
+<li><p class="first">Power on the NUC and press F2 to enter the Visual BIOS setup.</p>
+<p>In Boot Order, drag <strong>UEFI: Built-in EFI shell</strong> to the top of the
+list</p>
+<p>In Advance =&gt; Boot Secure Boot, uncheck <strong>Secure Boot</strong></p>
+<p>In Advance =&gt; Boot =&gt; Boot Configuration =&gt; Boot Devices, check <strong>Internal UEFI shell</strong></p>
+<p>Press <code class="kbd docutils literal"><span class="pre">F10</span></code> to save the changes and exit from the BIOS setup.</p>
+</li>
+<li><p class="first">Boot the NUC to the EFI shell and start up <code class="docutils literal"><span class="pre">grub</span></code> using these EFI
+shell commands:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>fs0:
+<span class="nb">cd</span> efi
+<span class="nb">cd</span> boot
+grubx64.efi
+</pre></div>
+</div>
+</li>
+<li><p class="first">From the grub menu choose <strong>Install Ubuntu</strong>
+Install Ubuntu 16.04.4 on NUC system</p>
+</li>
+<li><p class="first">After Ubuntu installation, you change the boot order in the BIOS setup.</p>
+<p>Press <code class="kbd docutils literal"><span class="pre">F2</span></code> to enter BIOS setup; from Boot Order, choose <strong>UEFI: SATA:
+PORT2: ubuntu:PORT 0: OS Bootloader</strong></p>
+<p>Press <code class="kbd docutils literal"><span class="pre">F10</span></code> to save change and exit from BIOS setup.</p>
+<p>After rebooting, boot Ubuntu from the grub menu.</p>
+</li>
+<li><p class="first">Next, if you need to set up a proxy to access the internet follow
+these Ubuntu setup steps.  (If you don’t need a proxy, skip this step):</p>
+<p>System settings =&gt; Network =&gt; Network proxy Method =&gt; choose Manual
+HTTP Proxy: YourProxy.com YourProxyPort
+HTTPS Proxy: YourProxy.com YourProxyPort
+FTP Proxy: YourProxy.com YourProxyPort
+Socks Host: YourProxy.com YourProxyPort</p>
+<p>(Replace YourProxy and YourProxyPort with your own settings)
+Click on the <strong>Apply system wide</strong> button</p>
+</li>
+<li><p class="first">If you want to use ssh to remotely access your NUC, follow these steps:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install openssh-server
+sudo service ssh status
+</pre></div>
+</div>
+<p>Edit <code class="docutils literal"><span class="pre">/etc/ssh/sshd_config</span></code> and change <code class="docutils literal"><span class="pre">PermitRootLogin</span></code> from
+<code class="docutils literal"><span class="pre">prohibit-password</span></code> to <code class="docutils literal"><span class="pre">yes</span></code></p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo service ssh restart
+</pre></div>
+</div>
+</li>
+<li><p class="first">Install the following packages:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get update
+sudo apt-get install git libpciaccess-dev gnu-efi <span class="se">\</span>
+   uuid-dev libssl-dev vim
+</pre></div>
+</div>
+</li>
+<li><p class="first">Check out source code from the project ACRN GitHub repository:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>git clone https://github.com/projectacrn/acrn-devicemodel
+git clone https://github.com/projectacrn/acrn-hypervisor
+</pre></div>
+</div>
+</li>
+<li><p class="first">Build the device model from source trees:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">cd</span> acrn-devicemodel
+make
+</pre></div>
+</div>
+<p>You will find the device model binary acrn-dm in the build folder.</p>
+</li>
+<li><p class="first">Modify hypervisor source code:</p>
+<ul>
+<li><p class="first">If your platform uses 0x3f8 serial port:</p>
+<p>In <code class="docutils literal"><span class="pre">acrn-hypervisor/bsp/sbl/include/bsp/bsp_cfg.h</span></code> file
+replace:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define CONFIG_SERIAL_MMIO_BASE 0xfc000000</span>
+</pre></div>
+</div>
+<p>with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define CONFIG_SERIAL_MMIO_BASE 0x3f8</span>
+</pre></div>
+</div>
+<p>Replace:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define CONFIG_LOW_RAM_START    0x00001000</span>
+</pre></div>
+</div>
+<p>with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define CONFIG_LOW_RAM_START    0x0</span>
+</pre></div>
+</div>
+<p>Add the following macros:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#define CONFIG_DMAR_PARSE_ENABLED       1</span>
+<span class="c1">#define CONFIG_GPU_SBDF         0x00000010      /* 0000:00:02.0 */</span>
+<span class="c1">#define CONFIG_RETPOLINE</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">acrn-hypervisor/common/vm_load.c</span></code></p>
+<p>Change the snprintf parameter to <code class="docutils literal"><span class="pre">2048</span></code>:</p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="n">snprintf</span><span class="p">(</span><span class="n">dyn_bootargs</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s">&quot; cma=%dM@0x%llx</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+                            <span class="p">(</span><span class="n">e820_mem</span><span class="p">.</span><span class="n">max_ram_blk_size</span> <span class="o">&gt;&gt;</span> <span class="mi">20</span><span class="p">),</span>
+                            <span class="n">e820_mem</span><span class="p">.</span><span class="n">max_ram_blk_base</span><span class="p">);)</span>
+<span class="c1">// change to ===&gt;</span>
+
+<span class="n">snprintf</span><span class="p">(</span><span class="n">dyn_bootargs</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s">&quot; cma=%dM@0x%llx</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+                            <span class="mi">2048</span><span class="p">,</span>
+                            <span class="n">e820_mem</span><span class="p">.</span><span class="n">max_ram_blk_base</span><span class="p">);)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">Build the acrn-hypervisor</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">cd</span> acrn-hypervisor
+make
+</pre></div>
+</div>
+<p>You will find the generated binary <code class="docutils literal"><span class="pre">acrn.32.out</span></code> in the build directory.</p>
+</li>
+<li><p class="first">Prepare SOS kernel (replacing YourFolder with your settings):</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>wget https://cdn.download.clearlinux.org/current/x86_64/os/Packages/linux-pk414-sos-4.14.23-21.x86_64.rpm
+sudo apt-get install rpm2cpio
+rpm2cpio linux-pk414-sos-4.14.23-21.x86_64.rpm <span class="p">|</span> cpio -idmv
+sudo cp -r /YourFolder/usr/lib/modules/4.14.23-21.pk414-sos/ /lib/modules/
+</pre></div>
+</div>
+</li>
+<li><p class="first">Copy acrn.32.out and clearlinux to /boot/acrn/ (replaceing YourFolder
+with your settings)</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo mkdir /boot/acrn/
+sudo cp /YourFolder/acrn-hypervisor/build/acrn.32.out /boot/acrn/.
+sudo cp /YourFolder/usr/lib/kernel/org.clearlinux.pk414-sos.4.14.23-21 /boot/acrn/.
+</pre></div>
+</div>
+</li>
+<li><p class="first">Use grub custom file (<code class="docutils literal"><span class="pre">/etc/grub.d/40_custom</span></code>) to create a new grub entry</p>
+<p>Add the following to the end of grub file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">menuentry</span> <span class="s1">&#39;ACRN SOS&#39;</span> <span class="p">{</span>
+  <span class="n">recordfail</span>
+  <span class="n">load_video</span>
+  <span class="n">insmod</span> <span class="n">gzio</span>
+  <span class="n">insmod</span> <span class="n">part_gpt</span>
+  <span class="n">insmod</span> <span class="n">ext2</span>
+  <span class="nb">set</span> <span class="n">root</span><span class="o">=</span><span class="s1">&#39;hd0,gpt2&#39;</span>
+  <span class="n">multiboot</span> <span class="o">/</span><span class="n">boot</span><span class="o">/</span><span class="n">acrn</span><span class="o">/</span><span class="n">acrn</span><span class="o">.</span><span class="mf">32.</span><span class="n">out</span>
+  <span class="n">module</span> <span class="o">/</span><span class="n">boot</span><span class="o">/</span><span class="n">acrn</span><span class="o">/</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">.</span><span class="n">pk414</span><span class="o">-</span><span class="n">sos</span><span class="o">.</span><span class="mf">4.14</span><span class="o">.</span><span class="mi">23</span><span class="o">-</span><span class="mi">21</span> <span class="n">noxsave</span> <span class="n">maxcpus</span><span class="o">=</span><span class="mi">1</span> <span class="n">console</span><span class="o">=</span><span class="n">tty0</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS0</span> <span class="n">i915</span><span class="o">.</span><span class="n">nuclear_pageflip</span><span class="o">=</span><span class="mi">1</span> <span class="n">root</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">sda2</span> <span class="n">rw</span> <span class="n">rootwait</span> <span class="n">clocksource</span><span class="o">=</span><span class="n">hpet</span> <span class="n">ignore_loglevel</span> <span class="n">no_timer_check</span> <span class="n">consoleblank</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_init</span><span class="o">=</span><span class="mi">7</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_delay</span><span class="o">=</span><span class="mi">2000</span> <span class="n">i915</span><span class="o">.</span><span class="n">avail_planes_per_pipe</span><span class="o">=</span><span class="mh">0x00000F</span> <span class="n">i915</span><span class="o">.</span><span class="n">domain_plane_owners</span><span class="o">=</span><span class="mh">0x011111110000</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_loading</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_submission</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_preemption</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">context_priority_mode</span><span class="o">=</span><span class="mi">2</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_gvt</span><span class="o">=</span><span class="mi">1</span> <span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="nd">@0x1FE00000</span>
+  <span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Update grub and reboot</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo update-grub
+sudo reboot
+</pre></div>
+</div>
+<p>(Reboot and select)</p>
+</li>
+<li><p class="first">Running SOS</p>
+<p>Reboot system and choose <strong>ACRN SOS</strong> from grub menu</p>
+<p>Login to ACRN SOS.</p>
+</li>
+<li><p class="first">Prepare UOS</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install curl
+curl -O https://download.clearlinux.org/releases/21260/clear/clear-21260-kvm.img.xz
+unxz clear-21260-kvm.img.xz
+
+wget https://cdn.download.clearlinux.org/current/x86_64/os/Packages/linux-pk414-standard-4.14.23-21.x86_64.rpm
+rpm2cpio linux-pk414-standard-4.14.23-21.x86_64.rpm <span class="p">|</span> cpio -idmv
+</pre></div>
+</div>
+<ul>
+<li><p class="first">Use the following steps to update clearlinux kernel (replacing
+YourFolder with your settings):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">losetup</span> <span class="o">-</span><span class="n">f</span> <span class="o">-</span><span class="n">P</span> <span class="o">--</span><span class="n">show</span> <span class="o">/</span><span class="n">YourFolder</span><span class="o">/</span><span class="n">clear</span><span class="o">-</span><span class="mi">21260</span><span class="o">-</span><span class="n">kvm</span><span class="o">.</span><span class="n">img</span>
+<span class="n">ls</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">loop0</span><span class="o">*</span>    <span class="p">(</span><span class="n">find</span> <span class="n">your</span> <span class="n">loop</span> <span class="n">device</span><span class="p">)</span>
+<span class="n">sudo</span> <span class="n">mount</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">loop0p3</span> <span class="o">/</span><span class="n">mnt</span>
+<span class="n">sudo</span> <span class="n">cp</span> <span class="o">-</span><span class="n">r</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">modules</span><span class="o">/</span><span class="mf">4.14</span><span class="o">.</span><span class="mi">23</span><span class="o">-</span><span class="mf">21.</span><span class="n">pk414</span><span class="o">-</span><span class="n">standard</span> <span class="o">/</span><span class="n">mnt</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">modules</span><span class="o">/</span>
+<span class="n">sudo</span> <span class="n">umount</span> <span class="o">/</span><span class="n">mnt</span>
+<span class="n">sync</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">Fix the permission issue:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo chmod <span class="m">777</span> /dev/acrn_vhm
+</pre></div>
+</div>
+</li>
+<li><p class="first">Install the missing package.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install iasl
+sudo cp /usr/bin/iasl /usr/sbin/iasl
+</pre></div>
+</div>
+</li>
+<li><p class="first">Run the <code class="docutils literal"><span class="pre">launch_uos.sh</span></code> script to launch the UOS.</p>
+<p>A sample <code class="docutils literal"><span class="pre">launch_uos.sh</span></code> is included in the Clear Linux release, and is
+also available in the acrn-devicemodel GitHub repo (in the samples folder).
+Modify the filename and location according to your own settings.</p>
+</li>
+</ol>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Project ACRN.
+      Last updated on Apr 26, 2018.
+
+    </p>
+  </div>
+    <p class="extrafooter">Documentation licensed under <a rel="license"
+    href="http://creativecommons.org/licenses/by/4.0/">(CC BY 4.0) <img
+    alt="Creative Commons License" style="border-width:0"
+    src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a></p>
+     
+
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v 0.1-rc4',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script> 
+
+</body>
+</html>
