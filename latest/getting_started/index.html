@@ -126,6 +126,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#build-acrn-from-source">Build ACRN from Source</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#install-build-tools-and-dependencies">Install build tools and dependencies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#build-the-hypervisor-device-model-and-tools">Build the hypervisor, device model and tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generate-the-hypervisor-configurations">Generate the hypervisor configurations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#modify-the-hypervisor-configurations">Modify the hypervisor configurations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-a-new-default-configuration">Create a new default configuration</a></li>
 </ul>
 </li>
 </ul>
@@ -623,7 +626,7 @@ as shown here:</p>
 <div class="code-block-caption"><span class="caption-number">Code Block 1 </span><span class="caption-text">hypervisor/bsp/uefi/clearlinux/acrn.conf</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">title</span> <span class="n">The</span> <span class="n">ACRN</span> <span class="n">Service</span> <span class="n">OS</span>
 <span class="n">linux</span>   <span class="o">/</span><span class="n">EFI</span><span class="o">/</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">/</span><span class="n">kernel</span><span class="o">-</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">.</span><span class="n">pk414</span><span class="o">-</span><span class="n">sos</span><span class="o">.</span><span class="mf">4.14</span><span class="o">.</span><span class="mi">23</span><span class="o">-</span><span class="mi">19</span>
-<span class="n">options</span> <span class="n">pci_devices_ignore</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">2</span><span class="p">)</span> <span class="n">maxcpus</span><span class="o">=</span><span class="mi">1</span> <span class="n">console</span><span class="o">=</span><span class="n">tty0</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS0</span> <span class="n">i915</span><span class="o">.</span><span class="n">nuclear_pageflip</span><span class="o">=</span><span class="mi">1</span> <span class="n">root</span><span class="o">=</span><span class="n">PARTUUID</span><span class="o">=&lt;</span><span class="n">UUID</span> <span class="n">of</span> <span class="n">rootfs</span> <span class="n">partition</span><span class="o">&gt;</span> <span class="n">rw</span> <span class="n">rootwait</span> <span class="n">ignore_loglevel</span> <span class="n">no_timer_check</span> <span class="n">consoleblank</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_init</span><span class="o">=</span><span class="mi">7</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_delay</span><span class="o">=</span><span class="mi">2000</span> <span class="n">i915</span><span class="o">.</span><span class="n">avail_planes_per_pipe</span><span class="o">=</span><span class="mh">0x00000F</span> <span class="n">i915</span><span class="o">.</span><span class="n">domain_plane_owners</span><span class="o">=</span><span class="mh">0x011111110000</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_loading</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_submission</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_preemption</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">context_priority_mode</span><span class="o">=</span><span class="mi">2</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_gvt</span><span class="o">=</span><span class="mi">1</span> <span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="nd">@0x1FE00000</span>
+<span class="n">options</span> <span class="n">pci_devices_ignore</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">2</span><span class="p">)</span> <span class="n">maxcpus</span><span class="o">=</span><span class="mi">1</span> <span class="n">console</span><span class="o">=</span><span class="n">tty0</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS0</span> <span class="n">i915</span><span class="o">.</span><span class="n">nuclear_pageflip</span><span class="o">=</span><span class="mi">1</span> <span class="n">root</span><span class="o">=</span><span class="n">PARTUUID</span><span class="o">=&lt;</span><span class="n">UUID</span> <span class="n">of</span> <span class="n">rootfs</span> <span class="n">partition</span><span class="o">&gt;</span> <span class="n">rw</span> <span class="n">rootwait</span> <span class="n">ignore_loglevel</span> <span class="n">no_timer_check</span> <span class="n">consoleblank</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_init</span><span class="o">=</span><span class="mi">7</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_delay</span><span class="o">=</span><span class="mi">2000</span> <span class="n">i915</span><span class="o">.</span><span class="n">avail_planes_per_pipe</span><span class="o">=</span><span class="mh">0x01010F</span> <span class="n">i915</span><span class="o">.</span><span class="n">domain_plane_owners</span><span class="o">=</span><span class="mh">0x011111110000</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_loading</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_submission</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_preemption</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">context_priority_mode</span><span class="o">=</span><span class="mi">2</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_gvt</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_initial_modeset</span><span class="o">=</span><span class="mi">1</span> <span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="nd">@0x1FE00000</span>
 </pre></div>
 </div>
 </div>
@@ -737,18 +740,19 @@ folder) as shown here:</p>
 <span class="nb">echo</span> <span class="m">1024</span> &gt; /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
 <span class="hll">acrn-dm -T -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s <span class="m">0</span>:0,hostbridge -s <span class="m">1</span>:0,lpc -l com1,stdio <span class="se">\</span>
-</span>  -s <span class="m">5</span>,virtio-console,@pty:pty_port <span class="se">\</span>
-<span class="hll">  -s <span class="m">6</span>,virtio-hyper_dmabuf <span class="se">\</span>
-</span>  -s <span class="m">3</span>,virtio-blk,/root/clear-21260-kvm.img <span class="se">\</span>
+</span>  -s <span class="m">2</span>,pci-gvt -G <span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span> <span class="se">\</span>
+<span class="hll">  -s <span class="m">5</span>,virtio-console,@pty:pty_port <span class="se">\</span>
+</span>  -s <span class="m">6</span>,virtio-hyper_dmabuf <span class="se">\</span>
+  -s <span class="m">3</span>,virtio-blk,/root/clear-21260-kvm.img <span class="se">\</span>
   -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
   -k /usr/lib/kernel/org.clearlinux.pk414-standard.4.14.23-19 <span class="se">\</span>
   -B <span class="s2">&quot;root=/dev/vda3 rw rootwait maxcpus=</span><span class="nv">$2</span><span class="s2"> nohpet console=tty0 console=hvc0 \</span>
 <span class="s2">  console=ttyS0 no_timer_check ignore_loglevel log_buf_len=16M \</span>
 <span class="s2">  consoleblank=0 tsc=reliable i915.avail_planes_per_pipe=</span><span class="nv">$4</span><span class="s2"> \</span>
-<span class="s2">  i915.enable_hangcheck=0 i915.nuclear_pageflip=1&quot;</span> <span class="nv">$vm_name</span>
+<span class="s2">  i915.enable_hangcheck=0 i915.nuclear_pageflip=1 i915.enable_initial_modeset=1&quot;</span> <span class="nv">$vm_name</span>
 <span class="o">}</span>
 
-launch_clear <span class="m">2</span> <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x00000C clear
+launch_clear <span class="m">2</span> <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00 clear
 </pre></div>
 </div>
 </div>
@@ -825,12 +829,19 @@ follow these steps.</p>
 <h3>Install build tools and dependencies<a class="headerlink" href="#install-build-tools-and-dependencies" title="Permalink to this headline">¶</a></h3>
 <p>ARCN development is supported on popular Linux distributions,
 each with their own way to install development tools:</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">ACRN uses <code class="docutils literal notranslate"><span class="pre">menuconfig</span></code>, a python3 text-based user interface (TUI) for
+configuring hypervisor options and using python’s <code class="docutils literal notranslate"><span class="pre">kconfiglib</span></code> library.</p>
+</div>
+</div></blockquote>
 <ul>
 <li><p class="first">On a Clear Linux development system, install the <code class="docutils literal notranslate"><span class="pre">os-clr-on-clr</span></code> bundle to get
 the necessary tools:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> sudo swupd bundle-add os-clr-on-clr
-<span class="gp">$</span> sudo swupd bundle-add python-basic
-<span class="gp">$</span> sudo pip install kconfiglib
+<span class="gp">$</span> sudo swupd bundle-add python3-basic
+<span class="gp">$</span> sudo pip3 install kconfiglib
 </pre></div>
 </div>
 </li>
@@ -844,9 +855,9 @@ the necessary tools:</p>
      libevent-dev <span class="se">\</span>
      libxml2-dev <span class="se">\</span>
      libusb-1.0-0-dev <span class="se">\</span>
-     python <span class="se">\</span>
-     python-pip
-<span class="gp">$</span> sudo pip install kconfiglib
+     python3 <span class="se">\</span>
+     python3-pip
+<span class="gp">$</span> sudo pip3 install kconfiglib
 </pre></div>
 </div>
 <div class="admonition note">
@@ -865,9 +876,9 @@ as indicated above.</p>
      libxml2-devel <span class="se">\</span>
      libevent-devel <span class="se">\</span>
      libusbx-devel <span class="se">\</span>
-     python <span class="se">\</span>
-     python-pip
-<span class="gp">$</span> sudo pip install kconfiglib
+     python3 <span class="se">\</span>
+     python3-pip
+<span class="gp">$</span> sudo pip3 install kconfiglib
 </pre></div>
 </div>
 </li>
@@ -881,10 +892,17 @@ as indicated above.</p>
         libxml2-devel <span class="se">\</span>
         libevent-devel <span class="se">\</span>
         libusbx-devel <span class="se">\</span>
-        python <span class="se">\</span>
-        python-pip
-<span class="gp">$</span> sudo pip install kconfiglib
+        python34 <span class="se">\</span>
+        python34-pip
+<span class="gp">$</span> sudo pip3 install kconfiglib
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You may need to install <a class="reference external" href="https://fedoraproject.org/wiki/EPEL">EPEL</a> for
+installing python3 via yum for CentOS 7. For CentOS 6 you need to install
+pip manually. Please refer to <a class="reference external" href="https://pip.pypa.io/en/stable/installing">https://pip.pypa.io/en/stable/installing</a> for
+details.</p>
 </div>
 </li>
 </ul>
@@ -939,6 +957,78 @@ and are using it as the current working directory.</p>
 <p>Follow the same instructions to boot and test the images you created
 from your build.</p>
 </div>
+<div class="section" id="generate-the-hypervisor-configurations">
+<h3>Generate the hypervisor configurations<a class="headerlink" href="#generate-the-hypervisor-configurations" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor leverages Kconfig to manage configurations, powered by
+Kconfiglib. A default configuration is generated based on the platform you have
+selected via the <code class="docutils literal notranslate"><span class="pre">PLATFORM=</span></code> command line parameter. You can make further
+changes to that default configuration to adjust to your specific
+requirements.</p>
+<p>To generate hypervisor configurations, you need to build the hypervisor
+individually. The following steps generate a default but complete configuration,
+based on the platform selected, assuming that you are under the top-level
+directory of acrn-hypervisor. The configuration file, named <code class="docutils literal notranslate"><span class="pre">.config</span></code>, can be
+found under the target folder of your build.</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> hypervisor
+<span class="gp">$</span> make defconfig <span class="nv">PLATFORM</span><span class="o">=</span>uefi
+</pre></div>
+</div>
+</div></blockquote>
+<p>The PLATFORM specified is used to select a defconfig under
+<code class="docutils literal notranslate"><span class="pre">arch/x86/configs/</span></code>. The other command-line based options (e.g. <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code>)
+take no effects when generating a defconfig.</p>
+</div>
+<div class="section" id="modify-the-hypervisor-configurations">
+<h3>Modify the hypervisor configurations<a class="headerlink" href="#modify-the-hypervisor-configurations" title="Permalink to this headline">¶</a></h3>
+<p>To modify the hypervisor configurations, you can either edit <code class="docutils literal notranslate"><span class="pre">.config</span></code>
+manually, or invoke a TUI-based menuconfig, powered by kconfiglib, by executing
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code>. As an example, the following commands, assuming that you
+are under the top-level directory of acrn-hypervisor, generate a default
+configuration file for UEFI, allow you to modify some configurations and build
+the hypervisor using the updated <code class="docutils literal notranslate"><span class="pre">.config</span></code>.</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> hypervisor
+<span class="gp">$</span> make defconfig <span class="nv">PLATFORM</span><span class="o">=</span>uefi
+<span class="gp">$</span> make menuconfig              <span class="c1"># Modify the configurations per your needs</span>
+<span class="gp">$</span> make                         <span class="c1"># Build the hypervisor with the new .config</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Menuconfig is python3 only.</p>
+</div>
+</div></blockquote>
+<p>Refer to the help on menuconfig for a detailed guide on the interface.</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> pydoc3 menuconfig
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="create-a-new-default-configuration">
+<h3>Create a new default configuration<a class="headerlink" href="#create-a-new-default-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Currently the ACRN hypervisor looks for default configurations under
+<code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/&lt;PLATFORM&gt;.config</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;PLATFORM&gt;</span></code> is the
+specified platform. The following steps allow you to create a defconfig for
+another platform based on a current one.</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> hypervisor
+<span class="gp">$</span> make defconfig <span class="nv">PLATFORM</span><span class="o">=</span>uefi
+<span class="gp">$</span> make menuconfig         <span class="c1"># Modify the configurations</span>
+<span class="gp">$</span> make savedefconfig      <span class="c1"># The minimized config reside at build/defconfig</span>
+<span class="gp">$</span> cp build/defconfig arch/x86/configs/xxx.config
+</pre></div>
+</div>
+</div></blockquote>
+<p>Then you can re-use that configuration by passing the name (<code class="docutils literal notranslate"><span class="pre">xxx</span></code> in the
+example above) to ‘PLATFORM=’:</p>
+<blockquote>
+<div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> make defconfig <span class="nv">PLATFORM</span><span class="o">=</span>xxx
+</pre></div>
+</div>
+</div></blockquote>
+</div>
 </div>
 </div>
 
@@ -954,7 +1044,7 @@ from your build.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Jun 14, 2018.
+      Last updated on Jun 20, 2018.
 
     </p>
   </div> 
