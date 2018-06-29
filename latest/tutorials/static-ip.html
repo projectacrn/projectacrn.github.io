@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tutorials &mdash; Project ACRN™ v 0.1-rc5 documentation</title>
+  <title>Using a static IP address &mdash; Project ACRN™ v 0.1-rc5 documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ACRN documentation generation" href="docbuild.html" />
-    <link rel="prev" title="Documentation Guidelines" href="../developer-guides/doc_guidelines.html" /> 
+    <link rel="next" title="Release Notes" href="../release_notes.html" />
+    <link rel="prev" title="Drawings using graphviz" href="graphviz.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -290,7 +290,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="docbuild.html">ACRN documentation generation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="docbuild.html#documentation-overview">Documentation overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="docbuild.html#set-up-the-documentation-working-folders">Set up the documentation working folders</a></li>
@@ -308,10 +308,10 @@
 <li class="toctree-l3"><a class="reference internal" href="graphviz.html#finite-state-machine">Finite-State Machine</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="static-ip.html">Using a static IP address</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="static-ip.html#acrn-network-setup">ACRN Network Setup</a></li>
-<li class="toctree-l3"><a class="reference internal" href="static-ip.html#setting-up-the-static-ip-address">Setting up the static IP address</a></li>
-<li class="toctree-l3"><a class="reference internal" href="static-ip.html#activate-the-new-configuration">Activate the new configuration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Using a static IP address</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#acrn-network-setup">ACRN Network Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-up-the-static-ip-address">Setting up the static IP address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#activate-the-new-configuration">Activate the new configuration</a></li>
 </ul>
 </li>
 </ul>
@@ -365,7 +365,9 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Tutorials</li>
+          <li><a href="index.html">Tutorials</a> &raquo;</li>
+        
+      <li>Using a static IP address</li>
     
     
 
@@ -396,16 +398,62 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="tutorials">
-<span id="id1"></span><h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this headline">¶</a></h1>
-<p>Here are some technical notes that help explain how you can use
-and work with ACRN capabilities and its development environment.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="docbuild.html">ACRN documentation generation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="graphviz.html">Drawings using graphviz</a></li>
-<li class="toctree-l1"><a class="reference internal" href="static-ip.html">Using a static IP address</a></li>
-</ul>
+  <div class="section" id="using-a-static-ip-address">
+<span id="static-ip"></span><h1>Using a static IP address<a class="headerlink" href="#using-a-static-ip-address" title="Permalink to this headline">¶</a></h1>
+<p>When you install ACRN on your system following the <a class="reference internal" href="../getting-started/index.html#getting-started"><span class="std std-ref">Getting Started Guides</span></a>, a
+bridge called <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> will be created and attached to the Ethernet network
+interface of the platform. By default, the bridge gets its network configuration
+using DHCP. This guide will explain how to modify the system to use a static IP
+address. You need <code class="docutils literal notranslate"><span class="pre">root</span></code> privileges to make these changes to the system.</p>
+<div class="section" id="acrn-network-setup">
+<h2>ACRN Network Setup<a class="headerlink" href="#acrn-network-setup" title="Permalink to this headline">¶</a></h2>
+<p>The ACRN Service OS is based on <a class="reference external" href="https://clearlinux.org">Clear Linux</a> and it uses <a class="reference external" href="https://www.freedesktop.org/software/systemd/man/systemd-networkd.service.html">systemd-networkd</a>
+to set up the Service OS networking. A few files are responsible for setting up the
+ACRN bridge (<code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code>), the TAP device (<code class="docutils literal notranslate"><span class="pre">acrn_tap0</span></code>), and how these are all
+connected. Those files are installed in <code class="docutils literal notranslate"><span class="pre">/usr/lib/systemd/network</span></code>
+on the target device and can also be found under <code class="docutils literal notranslate"><span class="pre">tools/acrnbridge</span></code> in the source code.</p>
+</div>
+<div class="section" id="setting-up-the-static-ip-address">
+<h2>Setting up the static IP address<a class="headerlink" href="#setting-up-the-static-ip-address" title="Permalink to this headline">¶</a></h2>
+<p>You can set up a static IP address by modifying the
+<code class="docutils literal notranslate"><span class="pre">/usr/lib/systemd/network/50-eth.network</span></code> file, and more specifically the <code class="docutils literal notranslate"><span class="pre">[Network]</span></code>
+section. This is the content of the file used in ACRN by default.</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-number">Code Block 3 </span><span class="caption-text">tools/acrnbridge/eth.network</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Match</span><span class="p">]</span>
+<span class="n">Name</span><span class="o">=</span><span class="n">acrn</span><span class="o">-</span><span class="n">br0</span>
+
+<span class="p">[</span><span class="n">Network</span><span class="p">]</span>
+<span class="hll"><span class="n">DHCP</span><span class="o">=</span><span class="n">ipv4</span>
+</span></pre></div>
+</div>
+</div>
+<p>Edit the file to remove the line highlighted above and add your network settings in
+that <code class="docutils literal notranslate"><span class="pre">[Network]</span></code> section. You will typically need to add the <code class="docutils literal notranslate"><span class="pre">Address=</span></code>, <code class="docutils literal notranslate"><span class="pre">Gateway=</span></code>
+and <code class="docutils literal notranslate"><span class="pre">DNS=</span></code> parameters in there. There are many more parameters that can be used and
+detailing them is beyond the scope of this document. For an extensive list of those,
+please visit the official <a class="reference external" href="https://www.freedesktop.org/software/systemd/man/systemd.network.html">systemd-network</a> page.</p>
+<p>This is an example of what a typical <code class="docutils literal notranslate"><span class="pre">[Network]</span></code> section would look like, specifying
+a static IP address:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[Network]
+Address=192.168.1.87/24
+Gateway=192.168.1.254
+DNS=192.168.1.254
+</pre></div>
+</div>
+</div>
+<div class="section" id="activate-the-new-configuration">
+<h2>Activate the new configuration<a class="headerlink" href="#activate-the-new-configuration" title="Permalink to this headline">¶</a></h2>
+<p>You do not need to reboot the machine after making the changes to the system, the
+following steps that restart the <code class="docutils literal notranslate"><span class="pre">systemd-networkd</span></code> service will suffice (run as <code class="docutils literal notranslate"><span class="pre">root</span></code>):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">systemctl daemon-reload</span>
+<span class="go">systemctl restart systemd-networkd</span>
+</pre></div>
+</div>
+<p>If you encounter connectivity issues after following this guide, please contact us on the
+<a class="reference external" href="https://lists.projectacrn.org/g/acrn-users">ACRN-users mailing list</a> or file an issue in <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/issues">ACRN hypervisor issues</a>. Provide the details
+of the configuration you are trying to set up, the modifications you have made to your system, and
+the output of <code class="docutils literal notranslate"><span class="pre">journalctl</span> <span class="pre">-b</span> <span class="pre">-u</span> <span class="pre">systemd-networkd</span></code> so we can best assist you.</p>
 </div>
 </div>
 
