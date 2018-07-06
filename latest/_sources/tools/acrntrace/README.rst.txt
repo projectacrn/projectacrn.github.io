@@ -17,9 +17,12 @@ output to trace file under ``/tmp/acrntrace`` with raw (binary) data format.
 
 Options:
 
--h			print this message
--t period		specify polling interval in milliseconds [1-999]
--c			clear the buffered old data
+-h                      print this message
+-i period               specify polling interval in milliseconds [1-999]
+-t max_time             max time to capture trace data (in second)
+-c                      clear the buffered old data
+-r free_space           amount of free space (in MB) remaining on the disk
+                        before acrntrace stops
 
 The ``acrntrace_format.py`` is a offline tool for parsing trace data (as output
 by acrntrace) to human-readable formats based on given format.
@@ -53,7 +56,7 @@ An example *formats_file* is available in the acrn_hypervisor repo in
 ``hypervisor/tools/acrntrace/scripts/formats``.
 
 The ``acrnalyze.py`` is a offline tool to analyze trace data (as output by
-acrntrace) based on given analyser, such as ``vm_exit`` or ``irq``.
+acrntrace) based on given analyzer, such as ``vm_exit`` or ``irq``.
 
 Options:
 
@@ -88,6 +91,10 @@ data to your linux system, and running the analysis tool.
    .. code-block:: none
 
       # acrntrace
+
+   512MB storage space will be reserved by default. This ensures that acrntrace
+   will exit automatically when the free storage space on the disk is less than
+   reserved space. Reserved space on the disk is configurable through '-r'.
 
    Trace files are created under ``/tmp/acrntrace/``, with a
    date-time-based directory name such as ``20171115-101605``
