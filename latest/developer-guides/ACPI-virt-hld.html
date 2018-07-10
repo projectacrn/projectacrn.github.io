@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Drawings using graphviz &mdash; Project ACRN™ v 0.1-rc5 documentation</title>
+  <title>ACPI Virtualization High Level Design &mdash; Project ACRN™ v 0.1-rc5 documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tutorials" href="../tutorials/index.html" />
-    <link rel="prev" title="Documentation Guidelines" href="doc_guidelines.html" /> 
+    <link rel="next" title="API Documentation" href="../api/index.html" />
+    <link rel="prev" title="Virtio High Level Design" href="virtio-hld.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -293,10 +293,10 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="ACPI-virt-hld.html">ACPI Virtualization High Level Design</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ACPI-virt-hld.html#acpi-introduction">ACPI introduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="ACPI-virt-hld.html#acpi-virtualization">ACPI virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ACPI-virt-hld.html#partitioning">Partitioning</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ACPI Virtualization High Level Design</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#acpi-introduction">ACPI introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#acpi-virtualization">ACPI virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#partitioning">Partitioning</a></li>
 </ul>
 </li>
 </ul>
@@ -324,7 +324,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2 current"><a class="reference internal" href="index.html#contributing-to-the-project">Contributing to the project</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#contributing-to-the-project">Contributing to the project</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="contribute_guidelines.html">Contribution Guidelines</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="contribute_guidelines.html#licensing">Licensing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="contribute_guidelines.html#developer-certification-of-origin-dco">Developer Certification of Origin (DCO)</a></li>
@@ -350,11 +350,11 @@
 <li class="toctree-l4"><a class="reference internal" href="doc_guidelines.html#drawings">Drawings</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Drawings using graphviz</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#simple-directed-graph">Simple directed graph</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#adding-edge-labels">Adding edge labels</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#tables">Tables</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#finite-state-machine">Finite-State Machine</a></li>
+<li class="toctree-l3"><a class="reference internal" href="graphviz.html">Drawings using graphviz</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphviz.html#simple-directed-graph">Simple directed graph</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphviz.html#adding-edge-labels">Adding edge labels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphviz.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphviz.html#finite-state-machine">Finite-State Machine</a></li>
 </ul>
 </li>
 </ul>
@@ -442,7 +442,7 @@
         
           <li><a href="index.html">Developer Guides</a> &raquo;</li>
         
-      <li>Drawings using graphviz</li>
+      <li>ACPI Virtualization High Level Design</li>
     
     
 
@@ -473,160 +473,360 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="drawings-using-graphviz">
-<span id="graphviz-examples"></span><h1>Drawings using graphviz<a class="headerlink" href="#drawings-using-graphviz" title="Permalink to this headline">¶</a></h1>
-<p>We support using the Sphinx <a class="reference external" href="http://graphviz.gitlab.io">graphviz extension</a> for creating simple
-graphs and line drawings using the dot language.  The advantage of using
-graphviz for drawings is that source for a drawing is a text file that
-can be edited and maintained in the repo along with the documentation.</p>
-<p>These source <code class="docutils literal notranslate"><span class="pre">.dot</span></code> files are generally kept separate from the document itself,
-and included by using a graphviz directive:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.. graphviz:: images/boot-flow.dot
-   :name: boot-flow-example
-   :align: center
-   :caption: ACRN Hypervisor Boot Flow
+  <div class="section" id="acpi-virtualization-high-level-design">
+<span id="acpi-virt-hld"></span><h1>ACPI Virtualization High Level Design<a class="headerlink" href="#acpi-virtualization-high-level-design" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="acpi-introduction">
+<h2>ACPI introduction<a class="headerlink" href="#acpi-introduction" title="Permalink to this headline">¶</a></h2>
+<p>Advanced Configuration and Power Interface (ACPI) provides an open
+standard that operating systems can use to discover and configure
+computer hardware components to perform power management for example, by
+monitoring status and putting unused components to sleep.</p>
+<p>Functions implemented by ACPI include:</p>
+<ul class="simple">
+<li>System/Device/Processor power management</li>
+<li>Device/Processor performance management</li>
+<li>Configuration / Plug and Play</li>
+<li>System event</li>
+<li>Battery management</li>
+<li>Thermal management</li>
+</ul>
+<p>ACPI enumerates and lists the different DMA engines in the platform, and
+device scope relationships between PCI devices and which DMA engine
+controls them. All critical functions depend on ACPI tables. Here’s an
+example on an Apollo Lake platform (APL) with Linux installed:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>root@:Dom0 ~ $ ls /sys/firmware/acpi/tables/
+APIC  data  DMAR  DSDT  dynamic  FACP  FACS  HPET  MCFG  NHLT  TPM2
 </pre></div>
 </div>
-<p>Where the boot-flow.dot file contains the drawing commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">digraph</span> <span class="n">G</span> <span class="p">{</span>
-   <span class="n">rankdir</span><span class="o">=</span><span class="n">LR</span><span class="p">;</span>
-   <span class="n">bgcolor</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">;</span>
-   <span class="n">UEFI</span> <span class="o">-&gt;</span> <span class="s2">&quot;acrn.efi&quot;</span> <span class="o">-&gt;</span> <span class="s2">&quot;OS</span><span class="se">\n</span><span class="s2">Bootloader&quot;</span> <span class="o">-&gt;</span>
-     <span class="s2">&quot;SOS</span><span class="se">\n</span><span class="s2">Kernel&quot;</span> <span class="o">-&gt;</span> <span class="s2">&quot;ACRN</span><span class="se">\n</span><span class="s2">Device Model&quot;</span> <span class="o">-&gt;</span> <span class="s2">&quot;Virtual</span><span class="se">\n</span><span class="s2">Bootloader&quot;</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>and the generated output would appear as this:</p>
-<div class="figure align-center" id="boot-flow-example">
-<img src="../_images/graphviz-48c6066ca27bb426e74c19722e9a7fdffe363ffe.png" alt="digraph G {
-   rankdir=LR;
-   bgcolor=&quot;transparent&quot;;
-   UEFI -&gt; &quot;acrn.efi&quot; -&gt; &quot;OS\nBootloader&quot; -&gt;
-     &quot;SOS\nKernel&quot; -&gt; &quot;ACRN\nDevice Model&quot; -&gt; &quot;Virtual\nBootloader&quot;;
-}" />
-<p class="caption"><span class="caption-number">Figure 44 </span><span class="caption-text">ACRN Hypervisor Boot Flow</span><a class="headerlink" href="#boot-flow-example" title="Permalink to this image">¶</a></p>
-</div>
-<p>Let’s look at some more examples and then we’ll get into more details
-about the dot language and drawing options.</p>
-<div class="section" id="simple-directed-graph">
-<h2>Simple directed graph<a class="headerlink" href="#simple-directed-graph" title="Permalink to this headline">¶</a></h2>
-<p>For simple drawings with shapes and lines, you can put the graphviz
-commands in the content block for the directive. For example for a
-simple directed graph (digraph) with two nodes connected by an arrow,
-you can write:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.. graphviz::
+<p>These tables provide different information and functions:</p>
+<ul class="simple">
+<li>Advanced Programmable Interrupt Controller (APIC) for Symmetric
+Multiprocessor systems (SMP),</li>
+<li>DMA remapping (DMAR) for Intel® Virtualization Technology for
+Directed I/O (VT-d),</li>
+<li>Non-HD Audio Link Table (NHLT) for supporting audio device,</li>
+<li>and Differentiated System Description Table (DSDT) for system
+configuration info. DSDT is a major ACPI table used to describe what
+peripherals the machine has, and information on PCI IRQ mappings and
+power management</li>
+</ul>
+<p>Most of the ACPI functionality is provided in ACPI Machine Language
+(AML) bytecode stored in the ACPI tables. To make use of these tables,
+Linux implements an interpreter for the AML bytecode. At BIOS
+development time, the AML bytecode is compiled from the ASL (ACPI Source
+Language) code.  The <code class="docutils literal notranslate"><span class="pre">iasl</span></code> command is used to disassemble the ACPI table
+and display its contents:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>root@:Dom0 ~ $ cp /sys/firmware/acpi/tables/DMAR .
+root@:Dom0 ~ $ iasl -d DMAR
 
-   digraph {
-      &quot;a&quot; -&gt; &quot;b&quot;
-   }
-</pre></div>
-</div>
-<p>and get this:</p>
-<img src="../_images/graphviz-1fd9a89f0a59aec0b0b316fd1e560460c41dc502.png" alt="digraph {
-   &quot;a&quot; -&gt; &quot;b&quot;
-}" />
-<p>You can change the graph layout (from top-to-bottom to left-to-right), node
-shapes (rectangles, circles, house, star, etc.), style (filled, rounded),
-and colors, along with the text displayed in the node, and the resulting
-image placement on the page (centered):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">digraph</span> <span class="p">{</span>
-   <span class="n">bgcolor</span><span class="o">=</span><span class="s2">&quot;transparent&quot;</span><span class="p">;</span> <span class="n">rankdir</span><span class="o">=</span><span class="n">LR</span><span class="p">;</span>
-   <span class="p">{</span> <span class="n">a</span> <span class="p">[</span><span class="n">shape</span><span class="o">=</span><span class="n">circle</span> <span class="n">height</span><span class="o">=</span><span class="s2">&quot;1&quot;</span> <span class="n">style</span><span class="o">=</span><span class="n">filled</span> <span class="n">color</span><span class="o">=</span><span class="n">AntiqueWhite</span>
-        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Circle</span><span class="se">\n</span><span class="s2">Label&quot;</span><span class="p">]</span>
-     <span class="n">b</span> <span class="p">[</span><span class="n">shape</span><span class="o">=</span><span class="n">box</span> <span class="n">height</span><span class="o">=</span><span class="s2">&quot;1&quot;</span> <span class="n">width</span><span class="o">=</span><span class="s2">&quot;1&quot;</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;rounded,filled&quot;</span>
-        <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#F080F0&quot;</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Square</span><span class="se">\n</span><span class="s2">Label&quot;</span><span class="p">]</span>
-   <span class="p">}</span>
-   <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<div align="center" class="align-center"><img src="../_images/graphviz-577cc7591227050c4c161c3da809f2b62daee28a.png" alt="digraph {
-   bgcolor=&quot;transparent&quot;; rankdir=LR;
-   { a [shape=circle height=&quot;1&quot; style=filled color=AntiqueWhite
-        label=&quot;Circle\nLabel&quot;]
-     b [shape=box height=&quot;1&quot; width=&quot;1&quot; style=&quot;rounded,filled&quot;
-        color=&quot;#F080F0&quot; label=&quot;Square\nLabel&quot;]
-   }
-   a -&gt; b
-}" />
-</div>
-<p>You can use the <a class="reference external" href="https://www.w3schools.com/colors/colors_hex.asp">standard HTML color names</a> or use RGB values for
-colors, as shown.</p>
-</div>
-<div class="section" id="adding-edge-labels">
-<h2>Adding edge labels<a class="headerlink" href="#adding-edge-labels" title="Permalink to this headline">¶</a></h2>
-<p>Here’s an example of a drawing with labels on the edges (arrows)
-between nodes. We also show how to change the default attributes for all
-nodes and edges within this graph:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">digraph</span> <span class="p">{</span>
-   <span class="n">bgcolor</span><span class="o">=</span><span class="n">transparent</span><span class="p">;</span> <span class="n">rankdir</span><span class="o">=</span><span class="n">LR</span><span class="p">;</span>
-   <span class="n">node</span> <span class="p">[</span><span class="n">shape</span><span class="o">=</span><span class="s2">&quot;rectangle&quot;</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;filled&quot;</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightblue&quot;</span><span class="p">]</span>
-   <span class="n">edge</span> <span class="p">[</span><span class="n">fontsize</span><span class="o">=</span><span class="s2">&quot;12&quot;</span> <span class="n">fontcolor</span><span class="o">=</span><span class="s2">&quot;grey&quot;</span><span class="p">]</span>
+Intel ACPI Component Architecture
+ASL+ Optimizing Compiler/Disassembler version 20170728
+Copyright (c) 2000 - 2017 Intel Corporation
+Input file DMAR, Length 0xB0 (176) bytes
+ACPI: DMAR 0x0000000000000000 0000B0 (v01 INTEL  BDW      00000001 INTL 00000001)
+Acpi Data Table [DMAR] decoded
+Formatted output:  DMAR.dsl - 5286 bytes
 
-   <span class="s2">&quot;acrnprobe&quot;</span> <span class="o">-&gt;</span> <span class="s2">&quot;telemetrics-client&quot;</span> <span class="p">[</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;crashlog</span><span class="se">\n</span><span class="s2">path&quot;</span><span class="p">]</span>
-   <span class="s2">&quot;telemetrics-client&quot;</span> <span class="o">-&gt;</span> <span class="s2">&quot;backend&quot;</span>   <span class="p">[</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;log</span><span class="se">\n</span><span class="s2">content&quot;</span><span class="p">]</span>
-<span class="p">}</span>
+root@:Dom0 ~ $ cat DMAR.dsl
+[000h 0000   4]                    Signature : &quot;DMAR&quot;    [DMA Remapping table]
+[004h 0004   4]                 Table Length : 000000B0
+[008h 0008   1]                     Revision : 01
+...
+[030h 0048   2]                Subtable Type : 0000 [Hardware Unit Definition]
+[032h 0050   2]                       Length : 0018
+[034h 0052   1]                        Flags : 00
+[035h 0053   1]                     Reserved : 00
+[036h 0054   2]           PCI Segment Number : 0000
+[038h 0056   8]        Register Base Address : 00000000FED64000
 </pre></div>
 </div>
-<div align="center" class="align-center"><img src="../_images/graphviz-2547e4236089d417837cfb123c045733763597ef.png" alt="digraph {
-   bgcolor=transparent; rankdir=LR;
-   node [shape=&quot;rectangle&quot; style=&quot;filled&quot; color=&quot;lightblue&quot;]
-   edge [fontsize=&quot;12&quot; fontcolor=&quot;grey&quot;]
+<p>From the displayed ASL, we can see some generic table fields, such as
+the version information, and one VTd remapping engine description with
+FED64000 as base address.</p>
+<p>We can modify DMAR.dsl and assemble it again to AML:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>root@:Dom0 ~ $ iasl DMAR.dsl
+Intel ACPI Component Architecture
+ASL+ Optimizing Compiler/Disassembler version 20170728
+Copyright (c) 2000 - 2017 Intel Corporation
+Table Input:   DMAR.dsl - 113 lines, 5286 bytes, 72 fields
+Binary Output: DMAR.aml - 176 bytes
+Compilation complete. 0 Errors, 0 Warnings, 0 Remarks
+</pre></div>
+</div>
+<p>We can see the new AML file <code class="docutils literal notranslate"><span class="pre">DMAR.aml</span></code> is created.</p>
+<p>There are many ACPI tables in the system, linked together via table
+pointers.  In all ACPI-compatible system, the OS can enumerate all
+needed tables starting with the Root System Description Pointer (RSDP)
+provided at a known place in the system low address space, and pointing
+to  an XSDT (Extended System Description Table). The following picture
+shows a typical ACPI table layout in an Intel APL platform:</p>
+<div class="figure align-center" id="acpi-layout">
+<a class="reference internal image-reference" href="../_images/acpi-image1.png"><img alt="../_images/acpi-image1.png" src="../_images/acpi-image1.png" style="width: 700px;" /></a>
+<p class="caption"><span class="caption-number">Figure 39 </span><span class="caption-text">Typical ACPI table layout in an Intel APL platform</span></p>
+</div>
+</div>
+<div class="section" id="acpi-virtualization">
+<h2>ACPI virtualization<a class="headerlink" href="#acpi-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>Most modern OSes requires ACPI, so ACRN provides ACPI virtualization to
+emulate an ACPI-capable virtual platform for the guest OS. To achieve
+this, there are two options, depending on physical device and ACPI
+resources are abstracted: Partitioning and Emulation.</p>
+<div class="section" id="partitioning">
+<h3>Partitioning<a class="headerlink" href="#partitioning" title="Permalink to this headline">¶</a></h3>
+<p>One option is to assign and partition physical devices and ACPI
+resources among all guest OSes. That means each guest OS owns specific
+devices with passthrough, such as shown below:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>PCI Devices</td>
+<td>VM0(Cluster VM)</td>
+<td>VM1(IVI VM)</td>
+</tr>
+<tr class="row-even"><td>I2C</td>
+<td>I2C3, I2C0</td>
+<td>I2C1, I2C2, I2C4, I2C5,
+I2C6, I2C7</td>
+</tr>
+<tr class="row-odd"><td>SPI</td>
+<td>SPI1</td>
+<td>SPI0, SPI2</td>
+</tr>
+<tr class="row-even"><td>USB</td>
+<td>&#160;</td>
+<td>USB-Host (xHCI) and
+USB-Device (xDCI)</td>
+</tr>
+<tr class="row-odd"><td>SDIO</td>
+<td>&#160;</td>
+<td>SDIO</td>
+</tr>
+<tr class="row-even"><td>IPU</td>
+<td>&#160;</td>
+<td>IPU</td>
+</tr>
+<tr class="row-odd"><td>Ethernet</td>
+<td>Ethernet</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>WIFI</td>
+<td>&#160;</td>
+<td>WIFI</td>
+</tr>
+<tr class="row-odd"><td>Bluetooth</td>
+<td>&#160;</td>
+<td>Bluetooth</td>
+</tr>
+<tr class="row-even"><td>Audio</td>
+<td>&#160;</td>
+<td>Audio</td>
+</tr>
+<tr class="row-odd"><td>GPIO</td>
+<td>GPIO</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>UART</td>
+<td>UART</td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+<p>In an early ACRN development phase, partitioning was used for
+simplicity. To implement partitioning, we need to hack the PCI logic to
+make different VMs see a different subset of devices, and create one
+copy of the ACPI tables for each of them, as shown in the following
+picture:</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/acpi-image3.png"><img alt="../_images/acpi-image3.png" src="../_images/acpi-image3.png" style="width: 900px;" /></a>
+</div>
+<p>For each VM, its ACPI tables are standalone copies and not related to
+other VMs. Opregion also needs to be copied for different VM.</p>
+<p>For each table, we make modifications, based on the physical table, to
+reflect the assigned devices to a particular VM. In the picture below,
+we can see keep SP2(0:19.1) for VM0, and SP1(0:19.0)/SP3(0:19.2) for
+VM1. Any time a partition policy changes, we need to modify both tables
+again, including dissembling, modification, and assembling, which is
+tricky and bug-prone.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/acpi-image2.png"><img alt="../_images/acpi-image2.png" src="../_images/acpi-image2.png" style="width: 900px;" /></a>
+</div>
+<div class="section" id="emulation">
+<h4>Emulation<a class="headerlink" href="#emulation" title="Permalink to this headline">¶</a></h4>
+<p>A second option is for the SOS (VM0) to “own” all devices and emulate a
+set of virtual devices for each of the UOS (VM1). This is the most
+popular model for virtualization, as show below. ACRN currently uses
+device emulation plus some device passthrough for UOS.</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="../_images/acpi-image5.png"><img alt="../_images/acpi-image5.png" src="../_images/acpi-image5.png" style="width: 400px;" /></a>
+</div>
+<p>Regarding ACPI virtualization in ACRN, different policy are used for
+different components:</p>
+<ul class="simple">
+<li>Hypervisor - ACPI is transparent to the Hypervisor, which has no
+knowledge of ACPI at all.</li>
+<li>SOS - All ACPI resources are physically owned by the SOS, which
+enumerates all ACPI tables and devices.</li>
+<li>UOS - Virtual ACPI resources exposed by the device model are owned by
+UOS.</li>
+</ul>
+<p>Source for the ACPI emulation code for the device model is found in
+<code class="docutils literal notranslate"><span class="pre">hw/platform/acpi/acpi.c</span></code>.</p>
+<p>Each entry in <code class="docutils literal notranslate"><span class="pre">basl_ftables</span></code> is related to each virtual ACPI table,
+including following elements:</p>
+<ul class="simple">
+<li>wsect - output handler to write related ACPI table contents to
+specific file</li>
+<li>offset - related ACPI table offset in the memory</li>
+<li>valid - dynamically indicate if this table is needed</li>
+</ul>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="k">struct</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">wsect</span><span class="p">)(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="k">struct</span> <span class="n">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">);</span>
+    <span class="kt">uint64_t</span>  <span class="n">offset</span><span class="p">;</span>
+    <span class="kt">bool</span>    <span class="n">valid</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">basl_ftables</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_rsdp</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>       <span class="nb">true</span>  <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_rsdt</span><span class="p">,</span> <span class="n">RSDT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_xsdt</span><span class="p">,</span> <span class="n">XSDT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_madt</span><span class="p">,</span> <span class="n">MADT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_fadt</span><span class="p">,</span> <span class="n">FADT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_hpet</span><span class="p">,</span> <span class="n">HPET_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_mcfg</span><span class="p">,</span> <span class="n">MCFG_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_facs</span><span class="p">,</span> <span class="n">FACS_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_nhlt</span><span class="p">,</span> <span class="n">NHLT_OFFSET</span><span class="p">,</span> <span class="nb">false</span> <span class="p">},</span> <span class="cm">/*valid with audio ptdev*/</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_dsdt</span><span class="p">,</span> <span class="n">DSDT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">}</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The main function to create virtual ACPI tables is <code class="docutils literal notranslate"><span class="pre">acpi_build</span></code> that
+calls <code class="docutils literal notranslate"><span class="pre">basl_compile</span></code> for each table and performs the following:</p>
+<ol class="arabic simple">
+<li>create two temp files: infile and outfile</li>
+<li>with output handler, write table contents stream to infile</li>
+<li>use <code class="docutils literal notranslate"><span class="pre">iasl</span></code> tool to assemble infile into outfile</li>
+<li>load outfile contents to the required memory offset</li>
+</ol>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">int</span>
+<span class="nf">basl_compile</span><span class="p">(</span><span class="k">struct</span> <span class="n">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span>
+        <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">fwrite_section</span><span class="p">)(</span><span class="kt">FILE</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="n">vmctx</span> <span class="o">*</span><span class="p">),</span>
+        <span class="kt">uint64_t</span> <span class="n">offset</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="n">basl_fio</span> <span class="n">io</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+    <span class="k">static</span> <span class="kt">char</span> <span class="n">iaslbuf</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">MAXPATHLEN</span> <span class="o">+</span> <span class="mi">10</span><span class="p">];</span>
+    <span class="kt">int</span> <span class="n">err</span><span class="p">;</span>
 
-   &quot;acrnprobe&quot; -&gt; &quot;telemetrics-client&quot; [label=&quot;crashlog\npath&quot;]
-   &quot;telemetrics-client&quot; -&gt; &quot;backend&quot;   [label=&quot;log\ncontent&quot;]
-}" />
+    <span class="n">err</span> <span class="o">=</span> <span class="n">basl_start</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">fwrite_section</span><span class="p">)(</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">fp</span><span class="p">,</span> <span class="n">ctx</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span> <span class="p">{</span>
+            <span class="cm">/*</span>
+<span class="cm">             * iasl sends the results of the compilation to</span>
+<span class="cm">             * stdout. Shut this down by using the shell to</span>
+<span class="cm">             * redirect stdout to /dev/null, unless the user</span>
+<span class="cm">             * has requested verbose output for debugging</span>
+<span class="cm">             * purposes</span>
+<span class="cm">             */</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">basl_verbose_iasl</span><span class="p">)</span>
+                <span class="n">snprintf</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">),</span>
+                     <span class="s">&quot;%s -p %s %s&quot;</span><span class="p">,</span>
+                     <span class="n">ASL_COMPILER</span><span class="p">,</span>
+                     <span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">f_name</span><span class="p">,</span> <span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">f_name</span><span class="p">);</span>
+            <span class="k">else</span>
+                <span class="n">snprintf</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">),</span>
+                     <span class="s">&quot;/bin/sh -c </span><span class="se">\&quot;</span><span class="s">%s -p %s %s</span><span class="se">\&quot;</span><span class="s"> 1&gt; /dev/null&quot;</span><span class="p">,</span>
+                     <span class="n">ASL_COMPILER</span><span class="p">,</span>
+                     <span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">f_name</span><span class="p">,</span> <span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">f_name</span><span class="p">);</span>
+
+            <span class="n">err</span> <span class="o">=</span> <span class="n">system</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">);</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span> <span class="p">{</span>
+                <span class="cm">/*</span>
+<span class="cm">                 * Copy the aml output file into guest</span>
+<span class="cm">                 * memory at the specified location</span>
+<span class="cm">                 */</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="n">basl_load</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">fd</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+            <span class="p">}</span> <span class="k">else</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="n">basl_end</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+    <span class="p">}</span>
+</pre></div>
 </div>
-</div>
-<div class="section" id="tables">
-<h2>Tables<a class="headerlink" href="#tables" title="Permalink to this headline">¶</a></h2>
-<p>For nodes with a <code class="docutils literal notranslate"><span class="pre">record</span></code> shape attribute, the text of the label is
-presented in a table format:  a vertical bar <code class="docutils literal notranslate"><span class="pre">|</span></code> starts a new row or
-column and curly braces <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">...</span> <span class="pre">}</span></code> specify a new row (if you’re in a
-column) or a new column (if you’re in a row).  For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">digraph</span> <span class="p">{</span>
-   <span class="n">a</span> <span class="p">[</span><span class="n">shape</span><span class="o">=</span><span class="n">record</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;left | {above|middle|below} | &lt;f1&gt;right&quot;</span><span class="p">]</span>
-   <span class="n">b</span> <span class="p">[</span><span class="n">shape</span><span class="o">=</span><span class="n">record</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;{row1\l|row2</span><span class="se">\r</span><span class="s2">|{row3</span><span class="se">\n</span><span class="s2">left|&lt;f2&gt;row3</span><span class="se">\n</span><span class="s2">right}|row4}&quot;</span><span class="p">]</span>
+<p>After processing each entry, the virtual ACPI tables are present in UOS
+memory.</p>
+<p>For pass-through devices in UOS, we likely need to add some ACPI
+description in the UOS virtual DSDT table. There is one hook
+(<code class="docutils literal notranslate"><span class="pre">passthrough_write_dsdt</span></code>) in <code class="docutils literal notranslate"><span class="pre">hw/pci/passthrough.c</span></code> for it. The following
+source code shows calls to different functions to add different contents
+for each vendor and device id.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span>
+<span class="nf">passthru_write_dsdt</span><span class="p">(</span><span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="n">dev</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="n">passthru_dev</span> <span class="o">*</span><span class="n">ptdev</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">passthru_dev</span> <span class="o">*</span><span class="p">)</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">arg</span><span class="p">;</span>
+    <span class="kt">uint32_t</span> <span class="n">vendor</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="n">vendor</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">ptdev</span><span class="o">-&gt;</span><span class="n">phys_dev</span><span class="p">,</span> <span class="n">PCIR_VENDOR</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">vendor</span> <span class="o">!=</span> <span class="mh">0x8086</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">;</span>
+
+    <span class="n">device</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">ptdev</span><span class="o">-&gt;</span><span class="n">phys_dev</span><span class="p">,</span> <span class="n">PCIR_DEVICE</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+
+    <span class="cm">/* Provides ACPI extra info */</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5aaa</span><span class="p">)</span>
+        <span class="cm">/* XDCI @ 00:15.1 to enable ADB */</span>
+        <span class="n">write_dsdt_xhci</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5ab4</span><span class="p">)</span>
+        <span class="cm">/* HDAC @ 00:17.0 as codec */</span>
+        <span class="n">write_dsdt_hdac</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5a98</span><span class="p">)</span>
+        <span class="cm">/* HDAS @ 00:e.0 */</span>
+        <span class="n">write_dsdt_hdas</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5aac</span><span class="p">)</span>
+        <span class="cm">/* i2c @ 00:16.0 for ipu */</span>
+        <span class="n">write_dsdt_ipu_i2c</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5abc</span><span class="p">)</span>
+        <span class="cm">/* URT1 @ 00:18.0 for bluetooth*/</span>
+        <span class="n">write_dsdt_urt1</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
+
 <span class="p">}</span>
 </pre></div>
 </div>
-<div align="center" class="align-center"><img src="../_images/graphviz-af666fdeda1945dc060245922a8ef167021055c6.png" alt="digraph {
-   a [shape=record label=&quot;left | {above|middle|below} | &lt;f1&gt;right&quot;]
-   b [shape=record label=&quot;{row1\l|row2\r|{row3\nleft|&lt;f2&gt;row3\nright}|row4}&quot;]
-}" />
-</div>
-<p>Note that you can also specify the horizontal alignment of text using escape
-sequences <code class="docutils literal notranslate"><span class="pre">\n</span></code>, <code class="docutils literal notranslate"><span class="pre">\l</span></code> and <code class="docutils literal notranslate"><span class="pre">\r</span></code> that divide the label into lines, centered,
-left-justified, and right-justified, respectively.</p>
-</div>
-<div class="section" id="finite-state-machine">
-<h2>Finite-State Machine<a class="headerlink" href="#finite-state-machine" title="Permalink to this headline">¶</a></h2>
-<p>Here’s an example of using graphviz for definine a finite-state machine
-for pumping gas:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">digraph</span> <span class="n">gaspump</span> <span class="p">{</span>
-        <span class="n">rankdir</span><span class="o">=</span><span class="n">LR</span><span class="p">;</span>
-        <span class="n">node</span> <span class="p">[</span><span class="n">shape</span> <span class="o">=</span> <span class="n">circle</span><span class="p">;];</span>
-        <span class="n">edge</span> <span class="p">[</span><span class="n">color</span> <span class="o">=</span> <span class="n">grey</span><span class="p">;</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">];</span>
-        <span class="n">S0</span> <span class="o">-&gt;</span> <span class="n">S1</span> <span class="p">[</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Lift Nozzle&quot;</span> <span class="p">]</span>
-        <span class="n">S1</span> <span class="o">-&gt;</span> <span class="n">S0</span> <span class="p">[</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Replace Nozzle&quot;</span> <span class="p">]</span>
-        <span class="n">S1</span> <span class="o">-&gt;</span> <span class="n">S2</span> <span class="p">[</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Authorize Pump&quot;</span> <span class="p">]</span>
-        <span class="n">S2</span> <span class="o">-&gt;</span> <span class="n">S0</span> <span class="p">[</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Replace Nozzle&quot;</span> <span class="p">]</span>
-        <span class="n">S2</span> <span class="o">-&gt;</span> <span class="n">S3</span> <span class="p">[</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Pull Trigger&quot;</span> <span class="p">]</span>
-        <span class="n">S3</span> <span class="o">-&gt;</span> <span class="n">S2</span> <span class="p">[</span> <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Release Trigger&quot;</span> <span class="p">]</span>
+<p>For instance, <code class="docutils literal notranslate"><span class="pre">write_dsdt_urt1</span></code> provides ACPI contents for Bluetooth
+UART device when pass-throughed to the UOS. It provides virtual PCI
+device/function as <code class="docutils literal notranslate"><span class="pre">_ADR</span></code>, with other descriptions possible for Bluetooth
+UART enumeration.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span>
+<span class="nf">write_dsdt_urt1</span><span class="p">(</span><span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="n">dev</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;write virt-%x:%x.%x in dsdt for URT1 @ 00:18.0</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+           <span class="n">dev</span><span class="o">-&gt;</span><span class="n">bus</span><span class="p">,</span>
+           <span class="n">dev</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">,</span>
+           <span class="n">dev</span><span class="o">-&gt;</span><span class="n">func</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;Device (URT1)&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;{&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_ADR, 0x%04X%04X)&quot;</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">func</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_DDN, </span><span class="se">\&quot;</span><span class="s">Intel(R) HS-UART Controller #1</span><span class="se">\&quot;</span><span class="s">)&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_UID, One)&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (RBUF, ResourceTemplate ()&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    {&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    })&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Method (_CRS, 0, NotSerialized)&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    {&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;        Return (RBUF)&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    }&quot;</span><span class="p">);</span>
+    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;}&quot;</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div align="center" class="align-center"><img src="../_images/graphviz-216314a5079d51c5ae3fcb3997f6a577bc549719.png" alt="digraph gaspump {
-        rankdir=LR;
-        node [shape = circle;];
-        edge [color = grey; fontsize=10];
-        S0 -&gt; S1 [ label = &quot;Lift Nozzle&quot; ]
-        S1 -&gt; S0 [ label = &quot;Replace Nozzle&quot; ]
-        S1 -&gt; S2 [ label = &quot;Authorize Pump&quot; ]
-        S2 -&gt; S0 [ label = &quot;Replace Nozzle&quot; ]
-        S2 -&gt; S3 [ label = &quot;Pull Trigger&quot; ]
-        S3 -&gt; S2 [ label = &quot;Release Trigger&quot; ]
-}" />
+<p>This document introduces basic ACPI virtualization. Other topics such as
+power management virtualization, adds more requirement for ACPI, and
+will be discussed in the power management documentation.</p>
+</div>
 </div>
 </div>
 </div>
