@@ -10,7 +10,7 @@
  */
 
 
-/* Non-minified version JS is _stemmer.js if file is provided */ 
+/* Non-minified version JS is _stemmer.js if file is provided */
 /**
  * Porter Stemmer
  */
@@ -546,9 +546,16 @@ var Search = {
           $.ajax({url: DOCUMENTATION_OPTIONS.URL_ROOT + '_sources/' + item[5] + (item[5].slice(-suffix.length) === suffix ? '' : suffix),
                   dataType: "text",
                   complete: function(jqxhr, textstatus) {
+                    //var data = jqxhr.responseText;
                     var data = jqxhr.responseText;
                     if (data !== '' && data !== undefined) {
-                      listItem.append(Search.makeSearchSummary(data, searchterms, hlterms));
+                      // strip off much of the ReST syntax:
+                      //  .. directivename::   .. _lablehere:
+                      //  :rolename:`name`
+                      //  runs of 3+ (title) underlines (#*+-_)
+                      //  stuff between angle brackets (e.g.,in link definitions)
+                      //  stray backticks
+                      listItem.append(Search.makeSearchSummary(data.replace(/(\.\..*:[:]*)|(:[^:]+:`[^`]+`)|([#\*=\-_+]{3,})|(\<[^\>]+\>)|(`_*)/ig,""), searchterms, hlterms));
                     }
                     Search.output.append(listItem);
                     listItem.slideDown(5, function() {

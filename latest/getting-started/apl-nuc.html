@@ -297,6 +297,18 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/APL_GVT-g-hld.html#acrn-gt">ACRN-GT</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/uart-virtualization.html">UART Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/uart-virtualization.html#architecture">Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/GVT-G-porting.html">GVT-G Enabling and Porting Guide</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/GVT-G-porting.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/GVT-G-porting.html#purpose-of-this-document">Purpose of this document</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/GVT-G-porting.html#overall-components">Overall Components</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/GVT-G-porting.html#core-scenario-interaction-sequences">Core scenario interaction sequences</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/GVT-G-porting.html#api-details">API details</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../developer-guides/index.html#contributing-to-the-project">Contributing to the project</a><ul>
@@ -430,28 +442,12 @@
       <li>Getting started guide for Intel NUC</li>
     
     
-
-<li class="wy-breadcrumbs-aside">
-   <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
-      <span class="rst-current-version" data-toggle="rst-current-version">
-         <span class="fa fa-book"> Project ACRN</span>
-         version: latest
-         <span class="fa fa-caret-down"></span>
-      </span>
-      <div class="rst-other-versions">
-         <dl>
-            <dt>Versions</dt>
-               
-               <dd><a href="/latest/">latest</a></dd>
-              
-               <dd><a href="/0.1/">0.1</a></dd>
-              
-         </dl>
-      </div>
-   </div>
-</li>
-
-
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
   </ul>
 
   
@@ -811,6 +807,17 @@ acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s
 <span class="s2">  i915.enable_guc_submission=0&quot;</span> <span class="nv">$vm_name</span>
 <span class="o">}</span>
 
+<span class="c1"># offline SOS CPUs except BSP before launch UOS</span>
+<span class="k">for</span> i in <span class="sb">`</span>ls -d /sys/devices/system/cpu/cpu<span class="o">[</span><span class="m">1</span>-99<span class="o">]</span><span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
+        <span class="nv">online</span><span class="o">=</span><span class="sb">`</span>cat <span class="nv">$i</span>/online<span class="sb">`</span>
+        <span class="nv">idx</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="nv">$i</span> <span class="p">|</span> tr -cd <span class="s2">&quot;[1-99]&quot;</span><span class="sb">`</span>
+        <span class="nb">echo</span> cpu<span class="nv">$idx</span> <span class="nv">online</span><span class="o">=</span><span class="nv">$online</span>
+        <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$online</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+                <span class="nb">echo</span> <span class="m">0</span> &gt; <span class="nv">$i</span>/online
+                <span class="nb">echo</span> <span class="nv">$idx</span> &gt; /sys/class/vhm/acrn_vhm/offline_cpu
+        <span class="k">fi</span>
+<span class="k">done</span>
+
 launch_clear <span class="m">2</span> <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00 clear
 </pre></div>
 </div>
@@ -1098,7 +1105,7 @@ example above) to ‘PLATFORM=’:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Jul 24, 2018.
+      Last updated on Jul 26, 2018.
 
     </p>
   </div> 
@@ -1112,7 +1119,32 @@ example above) to ‘PLATFORM=’:</p>
 
   </div>
   
-
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Project ACRN</span>
+      v: latest
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/0.1/">0.1</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>On projectacrn.org</dt>
+          <dd>
+            <a href="https://www.projectacrn.org/">Project Home</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/projectacrn/acrn-hypervisor/wiki">Wiki</a>
+          </dd>
+      </dl>
+    </div>
+  </div>
 
   
 
