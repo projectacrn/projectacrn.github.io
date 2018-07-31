@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Trusty TEE on ACRN &mdash; Project ACRN™ v 0.2-unstable documentation</title>
+  <title>Virtio-Console High-Level design &mdash; Project ACRN™ v 0.2-unstable documentation</title>
   
 
   
@@ -30,7 +30,9 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="UART Virtualization" href="uart-virtualization.html" />
+    <link rel="prev" title="Virtio high-level design" href="virtio-hld.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -86,7 +88,7 @@
               
             
             
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction to Project ACRN</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#automotive-use-case-example">Automotive Use Case Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#licensing">Licensing</a></li>
@@ -196,7 +198,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="index.html">Developer Guides</a><ul>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Guides</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="primer.html">Developer Primer</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="primer.html#source-tree-structure">Source Tree Structure</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="primer.html#acrn-hypervisor-source-tree">ACRN hypervisor source tree</a></li>
@@ -268,7 +270,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../reference/kconfig/index.html#supported-options">Supported Options</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#high-level-design-guides">High-Level Design Guides</a><ul>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#high-level-design-guides">High-Level Design Guides</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="memmgt-hld.html">Memory Management high-level design</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="memmgt-hld.html#overview">Overview</a></li>
 <li class="toctree-l4"><a class="reference internal" href="memmgt-hld.html#hypervisor-memory-management">Hypervisor Memory Management</a></li>
@@ -281,8 +283,8 @@
 <li class="toctree-l4"><a class="reference internal" href="virtio-hld.html#virtio-device">Virtio Device</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="virtio-console.html">Virtio-Console High-Level design</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="virtio-console.html#console-backend-use-cases">Console Backend Use Cases</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Virtio-Console High-Level design</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#console-backend-use-cases">Console Backend Use Cases</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="uart-virtualization.html">UART Virtualization</a><ul>
@@ -439,7 +441,9 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>Trusty TEE on ACRN</li>
+          <li><a href="index.html">Developer Guides</a> &raquo;</li>
+        
+      <li>Virtio-Console High-Level design</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -456,224 +460,198 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="trusty-tee-on-acrn">
-<span id="trusty-tee"></span><h1>Trusty TEE on ACRN<a class="headerlink" href="#trusty-tee-on-acrn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="https://source.android.com/security/trusty/">Trusty</a> is a set of software components supporting a Trusted Execution Environment (TEE).
-TEE is commonly known as an isolated processing environment in which applications can be
-securely executed irrespective of the rest of the system. For more information about TEE,
-please visit the <a class="reference external" href="https://en.wikipedia.org/wiki/Trusted_execution_environment">Trusted Execution Environment wiki page</a>.
-Trusty consists of:</p>
-<ol class="arabic simple">
-<li>An operating system (the Trusty OS) that runs on a processor intended to provide a TEE</li>
-<li>Drivers for the Android kernel (Linux) to facilitate communication with applications
-running under the Trusty OS</li>
-<li>A set of libraries for Android/Linux systems software to facilitate communication with
-trusted applications executed within the Trusty OS using the kernel drivers</li>
-</ol>
-<p>LK (<a class="reference external" href="https://github.com/littlekernel/lk">Little Kernel</a>) is a tiny operating system suited for small embedded devices, bootloaders,
-and other environments where OS primitives such as threads, mutexes, and timers are needed, but
-there’s a desire to keep things small and lightweight. LK has been chosen as the Trusty OS kernel.</p>
+  <div class="section" id="virtio-console-high-level-design">
+<h1>Virtio-Console High-Level design<a class="headerlink" href="#virtio-console-high-level-design" title="Permalink to this headline">¶</a></h1>
+<p>The Virtio-console is a simple device for data input and output.  The
+console’s virtio device ID is <code class="docutils literal notranslate"><span class="pre">3</span></code> and can have from 1 to 16 ports.
+Each port has a pair of input and output virtqueues used to communicate
+information between the Front End (FE) and Back end (BE) drivers.
+Currently the size of each virtqueue is 64 (configurable in the source
+code).  The FE driver will place empty buffers for incoming data onto
+the receiving virtqueue, and enqueue outgoing characters onto the
+transmitting virtqueue.</p>
+<p>A Virtio-console device has a pair of control IO virtqueues as well. The
+control virtqueues are used to communicate information between the
+device and the driver, including: ports being opened and closed on
+either side of the connection, indication from the host about whether a
+particular port is a console port, adding new ports, port
+hot-plug/unplug, indication from the guest about whether a port or a
+device was successfully added, or a port opened or closed.</p>
+<p>The virtio-console architecture diagram in ACRN is shown below.</p>
+<div class="figure align-center" id="virtio-console-arch">
+<a class="reference internal image-reference" href="../_images/virtio-console-arch.png"><img alt="../_images/virtio-console-arch.png" src="../_images/virtio-console-arch.png" style="width: 700px;" /></a>
+<p class="caption"><span class="caption-number">Figure 38 </span><span class="caption-text">Virtio-console architecture diagram</span></p>
 </div>
-<div class="section" id="trusty-architecture">
-<h2>Trusty Architecture<a class="headerlink" href="#trusty-architecture" title="Permalink to this headline">¶</a></h2>
-<div class="figure align-center" id="trusty-architectural-diagram">
-<a class="reference internal image-reference" href="../_images/trusty-arch.png"><img alt="../_images/trusty-arch.png" src="../_images/trusty-arch.png" style="width: 800px;" /></a>
+<p>Virtio-console is implemented as a virtio legacy device in the ACRN device
+model (DM), and is registered as a PCI virtio device to the guest OS. No changes
+are required in the frontend Linux virtio-console except that the guest
+(UOS) kernel should be built with <code class="docutils literal notranslate"><span class="pre">CONFIG_VIRTIO_CONSOLE=y</span></code>.</p>
+<p>Currently the feature bits supported by the BE device are:</p>
+<table border="1" class="colwidths-given docutils" id="id1">
+<caption><span class="caption-number">Table 5 </span><span class="caption-text">Feature bits supported by BE drivers</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="38%" />
+<col width="63%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>VTCON_F_SIZE(bit 0)</td>
+<td>configuration columns and rows are valid.</td>
+</tr>
+<tr class="row-even"><td>VTCON_F_MULTIPORT(bit 1)</td>
+<td>device supports multiple ports, and control virtqueues will be used.</td>
+</tr>
+<tr class="row-odd"><td>VTCON_F_EMERG_WRITE(bit 2)</td>
+<td>device supports emergency write.</td>
+</tr>
+</tbody>
+</table>
+<p>Virtio-console supports redirecting guest output to various backend
+devices. Currently the following backend devices are supported in ACRN
+device model: STDIO, TTY, PTY and regular file.</p>
+<p>The device model configuration command syntax for virtio-console is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,[</span><span class="o">@</span><span class="p">]</span><span class="n">stdio</span><span class="o">|</span><span class="n">tty</span><span class="o">|</span><span class="n">pty</span><span class="o">|</span><span class="n">file</span><span class="p">:</span><span class="n">portname</span><span class="p">[</span><span class="o">=</span><span class="n">portpath</span><span class="p">]</span>\
+   <span class="p">[,[</span><span class="o">@</span><span class="p">]</span><span class="n">stdio</span><span class="o">|</span><span class="n">tty</span><span class="o">|</span><span class="n">pty</span><span class="o">|</span><span class="n">file</span><span class="p">:</span><span class="n">portname</span><span class="p">[</span><span class="o">=</span><span class="n">portpath</span><span class="p">]]</span>
+</pre></div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Trusty OS is running in Secure World in the architecture drawing above.</p>
+<ul>
+<li><p class="first">Preceding with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> marks the port as a console port, otherwise it is a
+normal virtio serial port</p>
+</li>
+<li><p class="first">The <code class="docutils literal notranslate"><span class="pre">portpath</span></code> can be omitted when backend is stdio or pty</p>
+</li>
+<li><p class="first">The <code class="docutils literal notranslate"><span class="pre">stdio/tty/pty</span></code> is tty capable, which means <kbd class="kbd docutils literal notranslate">TAB</kbd> and
+<kbd class="kbd docutils literal notranslate">BACKSPACE</kbd> are supported, as on a regular terminal</p>
+</li>
+<li><p class="first">When tty is used, please make sure the redirected tty is sleeping,
+(e.g., by <code class="docutils literal notranslate"><span class="pre">sleep</span> <span class="pre">2d</span></code> command), and will not read input from stdin before it
+is used by virtio-console to redirect guest output.</p>
+</li>
+<li><p class="first">Claiming multiple virtio serial ports as consoles is supported,
+however the guest Linux OS will only use one of them, through the
+<code class="docutils literal notranslate"><span class="pre">console=hvcN</span></code> kernel parameter. For example, the following command
+defines two backend ports, which are both console ports, but the frontend
+driver will only use the second port named <code class="docutils literal notranslate"><span class="pre">pty_port</span></code> as its hvc
+console (specified by <code class="docutils literal notranslate"><span class="pre">console=hvc1</span></code> in the kernel command
+line):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">n</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,</span><span class="nd">@tty</span><span class="p">:</span><span class="n">tty_port</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span><span class="p">,</span><span class="nd">@pty</span><span class="p">:</span><span class="n">pty_port</span> \
+<span class="o">-</span><span class="n">B</span> <span class="s2">&quot;root=/dev/vda2 rw rootwait maxcpus=$2 nohpet console=hvc1 console=ttyS0 ...&quot;</span>
+</pre></div>
 </div>
-</div>
-<div class="section" id="trusty-specific-hypercalls">
-<h2>Trusty specific Hypercalls<a class="headerlink" href="#trusty-specific-hypercalls" title="Permalink to this headline">¶</a></h2>
-<p>There are a few <a class="reference internal" href="../api/hypercall_api.html#hypercall-apis"><span class="std std-ref">Hypercall APIs</span></a> that are related to Trusty.</p>
-<dl class="function">
-<dt id="_CPPv318hcall_world_switchP4vcpu">
-<span id="_CPPv218hcall_world_switchP4vcpu"></span><span id="hcall_world_switch__vcpuP"></span><span class="target" id="group__trusty__hypercall_1gadb1b00a3be6fd1937d0853a1a631c094"></span>int32_t <code class="descname">hcall_world_switch</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv318hcall_world_switchP4vcpu" title="hcall_world_switch::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv318hcall_world_switchP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Switch vCPU state between Normal/Secure World. </p>
-<p><ul class="simple">
-<li>The hypervisor uses this hypercall to do the world switch</li>
-<li>The hypervisor needs to:<ul>
-<li>save current world vCPU contexts, and load the next world vCPU contexts</li>
-<li>update <code class="docutils literal notranslate"><span class="pre">rdi</span></code>, <code class="docutils literal notranslate"><span class="pre">rsi</span></code>, <code class="docutils literal notranslate"><span class="pre">rdx</span></code>, <code class="docutils literal notranslate"><span class="pre">rbx</span></code> to next world vCPU contexts</li>
-</ul>
 </li>
 </ul>
-</p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>0 on success, non-zero on error. </dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to VCPU data structure</li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv323hcall_initialize_trustyP4vcpu8uint64_t">
-<span id="_CPPv223hcall_initialize_trustyP4vcpu8uint64_t"></span><span id="hcall_initialize_trusty__vcpuP.uint64_t"></span><span class="target" id="group__trusty__hypercall_1gab4fd345a58bf5248f223108a0f0bf8df"></span>int32_t <code class="descname">hcall_initialize_trusty</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv323hcall_initialize_trustyP4vcpu8uint64_t" title="hcall_initialize_trusty::vcpu">vcpu</a> *<em>vcpu</em>, uint64_t <em>param</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv323hcall_initialize_trustyP4vcpu8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Initialize environment for Trusty-OS on a vCPU. </p>
-<p><ul class="simple">
-<li>It is used by the User OS bootloader (<code class="docutils literal notranslate"><span class="pre">UOS_Loader</span></code>) to request ACRN to initialize Trusty</li>
-<li>The Trusty memory region range, entry point must be specified</li>
-<li>The hypervisor needs to save current vCPU contexts (Normal World)</li>
-</ul>
-</p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>0 on success, non-zero on error. </dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU data structure </li>
-<li><code class="docutils literal notranslate"><span class="pre">param</span></code>: guest physical address. This gpa points to <a class="reference internal" href="../api/hypercall_api.html#structtrusty__boot__param"><span class="std std-ref">trusty_boot_param</span></a> structure</li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
+<div class="section" id="console-backend-use-cases">
+<h2>Console Backend Use Cases<a class="headerlink" href="#console-backend-use-cases" title="Permalink to this headline">¶</a></h2>
+<p>The following sections elaborate on each backend.</p>
+<div class="section" id="stdio">
+<h3>STDIO<a class="headerlink" href="#stdio" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">Add a pci slot to the device model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>) command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">n</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,</span><span class="nd">@stdio</span><span class="p">:</span><span class="n">stdio_port</span>
+</pre></div>
 </div>
-<div class="section" id="trusty-boot-flow">
-<h2>Trusty Boot flow<a class="headerlink" href="#trusty-boot-flow" title="Permalink to this headline">¶</a></h2>
-<p>By design, the User OS bootloader (<code class="docutils literal notranslate"><span class="pre">UOS_Loader</span></code>) will trigger the Trusty boot process. The complete boot flow is illustrated below.</p>
-<div class="figure align-center" id="id1">
-<img src="../_images/graphviz-769dcdb720b9772d39547e1c1ff889769e4357da.png" alt="digraph G {
-   rankdir=LR;
-   rank=same;
-   bgcolor=&quot;transparent&quot;;
-   uosl1 [label=&quot;UOS_Loader&quot;]
-   acrn_init [shape=box style=&quot;rounded,filled&quot; label=&quot;ACRN&quot;]
-   acrn_switch [shape=box style=&quot;rounded,filled&quot; label=&quot;ACRN&quot;]
-   uosl2 [label=&quot;UOS_Loader&quot;]
-   uosl1 -&gt; acrn_init -&gt; &quot;Trusty&quot; -&gt; acrn_switch -&gt; uosl2;
-}" />
-<p class="caption"><span class="caption-text">Trusty Boot Flow</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</li>
+<li><p class="first">Add the <code class="docutils literal notranslate"><span class="pre">console</span></code> parameter to the guest OS kernel command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">console</span><span class="o">=</span><span class="n">hvc0</span>
+</pre></div>
 </div>
-<p>As shown in the above figure, here are some details about the Trusty boot flow processing:</p>
-<ol class="arabic simple">
-<li>UOS_Loader<ol class="loweralpha">
-<li>Load and verify Trusty image from virtual disk</li>
-<li>Allocate runtime memory for trusty</li>
-<li>Do ELF relocation of trusty image and get entry address</li>
-<li>Call <code class="docutils literal notranslate"><span class="pre">hcall_initialize_trusty</span></code> with trusty memory base and entry address</li>
-</ol>
-</li>
-<li>ACRN (<code class="docutils literal notranslate"><span class="pre">hcall_initialize_trusty</span></code>)<ol class="loweralpha">
-<li>Save World context for Normal World</li>
-<li>Init World context for Secure World (RIP, RSP, EPT, etc.)</li>
-<li>Resume to Secure World</li>
-</ol>
-</li>
-<li>Trusty<ol class="loweralpha">
-<li>Booting up</li>
-<li>Call <code class="docutils literal notranslate"><span class="pre">hcall_world_switch</span></code> to switch back to Normal World if boot completed</li>
-</ol>
-</li>
-<li>ACRN (<code class="docutils literal notranslate"><span class="pre">hcall_world_switch</span></code>)<ol class="loweralpha">
-<li>Save World context for the World which caused this <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> (Secure World)</li>
-<li>Restore World context for next World (Normal World (UOS_Loader))</li>
-<li>Resume to next World (UOS_Loader)</li>
-</ol>
-</li>
-<li>UOS_Loader<ol class="loweralpha">
-<li>Continue to boot</li>
-</ol>
 </li>
 </ol>
 </div>
-<div class="section" id="ept-hierarchy">
-<h2>EPT Hierarchy<a class="headerlink" href="#ept-hierarchy" title="Permalink to this headline">¶</a></h2>
-<p>As per the Trusty design, Trusty can access Normal World’s memory, but Normal World cannot
-access Secure World’s memory. Hence it means Secure World EPTP page table hierarchy
-must contain normal world GPA address space, while Trusty world’s GPA address space
-must be removed from the Normal world EPTP page table hierarchy.</p>
-<div class="section" id="design">
-<h3>Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h3>
-<p>Put Secure World’s GPA to very high position: 511 GB - 512 GB. The PML4/PDPT for Trusty
-World are separated from Normal World. PD/PT for low memory (&lt; 511 GB) are shared in
-both Trusty World’s EPT and Normal World’s EPT. PD/PT for high memory (&gt;= 511 GB) are
-valid for Trusty World’s EPT only.</p>
+<div class="section" id="pty">
+<h3>PTY<a class="headerlink" href="#pty" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">Add a pci slot to the device model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>) command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">n</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,</span><span class="nd">@pty</span><span class="p">:</span><span class="n">pty_port</span>
+</pre></div>
 </div>
-<div class="section" id="benefit">
-<h3>Benefit<a class="headerlink" href="#benefit" title="Permalink to this headline">¶</a></h3>
-<p>This design will benefit the EPT changes of Normal World. There are requirement to
-modify Normal World’s EPT during runtime such as increasing memory, changing attributes,
-etc. If such behavior happened, only PD and PT for Normal World need to
-be updated.</p>
-<div class="figure align-center" id="id2">
-<a class="reference internal image-reference" href="../_images/ept-hierarchy.png"><img alt="../_images/ept-hierarchy.png" src="../_images/ept-hierarchy.png" style="width: 800px;" /></a>
+</li>
+<li><p class="first">Add the <code class="docutils literal notranslate"><span class="pre">console</span></code> parameter to the guest os kernel command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">console</span><span class="o">=</span><span class="n">hvc0</span>
+</pre></div>
 </div>
+<p>One line of information, such as shown below, will be printed in the terminal
+after <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> is launched (<code class="docutils literal notranslate"><span class="pre">/dev/pts/0</span></code> may be different,
+depending on your use case):</p>
+</li>
+<li><p class="first">Use a terminal emulator, such as minicom or screen, to connect to the
+tty node:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">minicom</span> <span class="o">-</span><span class="n">D</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span>
+</pre></div>
 </div>
-<div class="section" id="api">
-<h3>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h3>
-<dl class="function">
-<dt id="_CPPv323create_secure_world_eptP2vm8uint64_t8uint64_t8uint64_t">
-<span id="_CPPv223create_secure_world_eptP2vm8uint64_t8uint64_t8uint64_t"></span><span id="create_secure_world_ept__vmP.uint64_t.uint64_t.uint64_t"></span><span class="target" id="group__trusty__apis_1gac2efd070a5e5c6cd8bf5ec05740ae994"></span><em class="property">static</em> void <code class="descname">create_secure_world_ept</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv323create_secure_world_eptP2vm8uint64_t8uint64_t8uint64_t" title="create_secure_world_ept::vm">vm</a> *<em>vm</em>, uint64_t <em>gpa_orig</em>, uint64_t <em>size</em>, uint64_t <em>gpa_rebased</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv323create_secure_world_eptP2vm8uint64_t8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Create Secure World EPT hierarchy. </p>
-<p>Create Secure World EPT hierarchy, construct new PML4/PDPT, reuse PD/PT parse from vm-&gt;arch_vm-&gt;ept</p>
-<p><dl class="docutils">
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to a VM with 2 Worlds </li>
-<li><code class="docutils literal notranslate"><span class="pre">gpa_orig</span></code>: original gpa allocated from vSBL </li>
-<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: LK size (16M by default) </li>
-<li><code class="docutils literal notranslate"><span class="pre">gpa_rebased</span></code>: gpa rebased to offset xxx (511G_OFFSET) </li>
+<p>or</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">screen</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="tty">
+<h3>TTY<a class="headerlink" href="#tty" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">Identify your tty that will be used as the UOS console:</p>
+<ul>
+<li><p class="first">If you’re connected to your device over the network via ssh, use
+the linux <code class="docutils literal notranslate"><span class="pre">tty</span></code> command, and it will report the node (may be
+different in your use case):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span>
+<span class="n">sleep</span> <span class="mi">2</span><span class="n">d</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">If you do not have network access to your device, use screen
+to create a new tty:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">screen</span>
+<span class="n">tty</span>
+</pre></div>
+</div>
+<p>you will see (depending on your use case):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>Prevent the tty from responding by sleeping:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sleep</span> <span class="mi">2</span><span class="n">d</span>
+</pre></div>
+</div>
+<p>and detach the tty by pressing <kbd class="kbd docutils literal notranslate">CTRL-A</kbd> <kbd class="kbd docutils literal notranslate">d</kbd>.</p>
+</li>
 </ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv320destroy_secure_worldP2vm">
-<span id="_CPPv220destroy_secure_worldP2vm"></span><span id="destroy_secure_world__vmP"></span><span class="target" id="group__trusty__apis_1ga8ec57b720e8ab15f8229e377fb8f66b8"></span>void <code class="descname">destroy_secure_world</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv320destroy_secure_worldP2vm" title="destroy_secure_world::vm">vm</a> *<em>vm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320destroy_secure_worldP2vm" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv314save_world_ctxP11run_context">
-<span id="_CPPv214save_world_ctxP11run_context"></span><span id="save_world_ctx__run_contextP"></span><span class="target" id="group__trusty__apis_1ga3189200a071649305b5107d45effb945"></span><em class="property">static</em> void <code class="descname">save_world_ctx</code><span class="sig-paren">(</span><em class="property">struct</em> run_context *<em>context</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314save_world_ctxP11run_context" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv314load_world_ctxP11run_context">
-<span id="_CPPv214load_world_ctxP11run_context"></span><span id="load_world_ctx__run_contextP"></span><span class="target" id="group__trusty__apis_1ga067c92f0edff8129353c9b639adf9eb5"></span><em class="property">static</em> void <code class="descname">load_world_ctx</code><span class="sig-paren">(</span><em class="property">struct</em> run_context *<em>context</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314load_world_ctxP11run_context" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv314copy_smc_paramP11run_contextP11run_context">
-<span id="_CPPv214copy_smc_paramP11run_contextP11run_context"></span><span id="copy_smc_param__run_contextP.run_contextP"></span><span class="target" id="group__trusty__apis_1gaa5b4ec1325f9b6c4b79d906c75c9634d"></span><em class="property">static</em> void <code class="descname">copy_smc_param</code><span class="sig-paren">(</span><em class="property">struct</em> run_context *<em>prev_ctx</em>, <em class="property">struct</em> run_context *<em>next_ctx</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314copy_smc_paramP11run_contextP11run_context" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv312switch_worldP4vcpui">
-<span id="_CPPv212switch_worldP4vcpui"></span><span id="switch_world__vcpuP.i"></span><span class="target" id="group__trusty__apis_1gaee349b665914077627623867ec162266"></span>void <code class="descname">switch_world</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv312switch_worldP4vcpui" title="switch_world::vcpu">vcpu</a> *<em>vcpu</em>, int <em>next_world</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv312switch_worldP4vcpui" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv317setup_trusty_infoP4vcpu8uint32_t8uint64_t">
-<span id="_CPPv217setup_trusty_infoP4vcpu8uint32_t8uint64_t"></span><span id="setup_trusty_info__vcpuP.uint32_t.uint64_t"></span><span class="target" id="group__trusty__apis_1gaa270b41b3f1edb4872d88588532ac04a"></span><em class="property">static</em> bool <code class="descname">setup_trusty_info</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv317setup_trusty_infoP4vcpu8uint32_t8uint64_t" title="setup_trusty_info::vcpu">vcpu</a> *<em>vcpu</em>, uint32_t <em>mem_size</em>, uint64_t <em>mem_base_hpa</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317setup_trusty_infoP4vcpu8uint32_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv321init_secure_world_envP4vcpu8uint64_t8uint64_t8uint32_t">
-<span id="_CPPv221init_secure_world_envP4vcpu8uint64_t8uint64_t8uint32_t"></span><span id="init_secure_world_env__vcpuP.uint64_t.uint64_t.uint32_t"></span><span class="target" id="group__trusty__apis_1gac0f55a3e9ac9e3d1b731c82dc11d371e"></span><em class="property">static</em> bool <code class="descname">init_secure_world_env</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv321init_secure_world_envP4vcpu8uint64_t8uint64_t8uint32_t" title="init_secure_world_env::vcpu">vcpu</a> *<em>vcpu</em>, uint64_t <em>entry_gpa</em>, uint64_t <em>base_hpa</em>, uint32_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv321init_secure_world_envP4vcpu8uint64_t8uint64_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv317initialize_trustyP4vcpu8uint64_t">
-<span id="_CPPv217initialize_trustyP4vcpu8uint64_t"></span><span id="initialize_trusty__vcpuP.uint64_t"></span><span class="target" id="group__trusty__apis_1gad0ace0e2d240ab605e1cbc8eb8c96e33"></span>bool <code class="descname">initialize_trusty</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv317initialize_trustyP4vcpu8uint64_t" title="initialize_trusty::vcpu">vcpu</a> *<em>vcpu</em>, uint64_t <em>param</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317initialize_trustyP4vcpu8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="_CPPv316trusty_set_dseedPv7uint8_t">
-<span id="_CPPv216trusty_set_dseedPv7uint8_t"></span><span id="trusty_set_dseed__voidP.uint8_t"></span><span class="target" id="group__trusty__apis_1ga9b3421f998c0530eacd59f391739745f"></span>void <code class="descname">trusty_set_dseed</code><span class="sig-paren">(</span>void *<em>dseed</em>, uint8_t <em>dseed_num</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316trusty_set_dseedPv7uint8_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
-
+</li>
+<li><p class="first">Add a pci slot to the device model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>)  command line
+(changing the <code class="docutils literal notranslate"><span class="pre">dev/pts/X</span></code> to match your use case):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">n</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,</span><span class="nd">@tty</span><span class="p">:</span><span class="n">tty_port</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="n">X</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Add the console parameter to the guest OS kernel command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">console</span><span class="o">=</span><span class="n">hvc0</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Go back to the previous tty.  For example, if you’re using
+<code class="docutils literal notranslate"><span class="pre">screen</span></code>, use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">screen</span> <span class="o">-</span><span class="n">ls</span>
+<span class="n">screen</span> <span class="o">-</span><span class="n">r</span> <span class="o">&lt;</span><span class="n">pid_of_your_tty</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="file">
+<h3>FILE<a class="headerlink" href="#file" title="Permalink to this headline">¶</a></h3>
+<p>The File backend only supports console output to a file (no input).</p>
+<ol class="arabic">
+<li><p class="first">Add a pci slot to the device model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>) command line,
+adjusting the <code class="docutils literal notranslate"><span class="pre">&lt;/path/to/file&gt;</span></code> to your use case:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">n</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,</span><span class="nd">@file</span><span class="p">:</span><span class="n">file_port</span><span class="o">=&lt;/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">file</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Add the console parameter to the guest OS kernel command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">console</span><span class="o">=</span><span class="n">hvc0</span>
+</pre></div>
+</div>
+</li>
+</ol>
 </div>
 </div>
 </div>

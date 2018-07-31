@@ -283,6 +283,14 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/virtio-hld.html#virtio-device">Virtio Device</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/virtio-console.html">Virtio-Console High-Level design</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/virtio-console.html#console-backend-use-cases">Console Backend Use Cases</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/uart-virtualization.html">UART Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/uart-virtualization.html#architecture">Architecture</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/ACPI-virt-hld.html">ACPI Virtualization high-level design</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/ACPI-virt-hld.html#acpi-introduction">ACPI introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/ACPI-virt-hld.html#acpi-virtualization">ACPI virtualization</a></li>
@@ -295,10 +303,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/APL_GVT-g-hld.html#high-level-architecture">High Level Architecture</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/APL_GVT-g-hld.html#key-techniques">Key Techniques</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/APL_GVT-g-hld.html#acrn-gt">ACRN-GT</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../developer-guides/uart-virtualization.html">UART Virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../developer-guides/uart-virtualization.html#architecture">Architecture</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/GVT-G-porting.html">GVT-G Enabling and Porting Guide</a><ul>
@@ -911,21 +915,21 @@ int <code class="descname">unmap_guest_phys</code><span class="sig-paren">(</spa
 <p><strong>Return</strong></p>
 <p>0 on success, &lt;0 for error.</p>
 <dl class="function">
-<dt id="c.set_mmio_map">
-int <code class="descname">set_mmio_map</code><span class="sig-paren">(</span>unsigned long<em>&nbsp;vmid</em>, unsigned long<em>&nbsp;guest_gpa</em>, unsigned long<em>&nbsp;host_gpa</em>, unsigned long<em>&nbsp;len</em>, unsigned int<em>&nbsp;mem_type</em>, unsigned int<em>&nbsp;mem_access_right</em><span class="sig-paren">)</span><a class="headerlink" href="#c.set_mmio_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>map mmio EPT mapping between UOS gpa and SOS gpa</p>
+<dt id="c.add_memory_region">
+int <code class="descname">add_memory_region</code><span class="sig-paren">(</span>unsigned long<em>&nbsp;vmid</em>, unsigned long<em>&nbsp;gpa</em>, unsigned long<em>&nbsp;host_gpa</em>, unsigned long<em>&nbsp;size</em>, unsigned int<em>&nbsp;mem_type</em>, unsigned int<em>&nbsp;mem_access_right</em><span class="sig-paren">)</span><a class="headerlink" href="#c.add_memory_region" title="Permalink to this definition">¶</a></dt>
+<dd><p>add a guest memory region</p>
 </dd></dl>
 
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">vmid</span></code></dt>
 <dd>guest vmid</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">guest_gpa</span></code></dt>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">gpa</span></code></dt>
 <dd>gpa of UOS</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">host_gpa</span></code></dt>
 <dd>gpa of SOS</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">len</span></code></dt>
-<dd>memory mapped length</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">size</span></code></dt>
+<dd>memory region size</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">mem_type</span></code></dt>
 <dd>memory mapping type. Possible value could be:
 MEM_TYPE_WB
@@ -943,53 +947,36 @@ MEM_ACCESS_RWX</dd>
 <p><strong>Return</strong></p>
 <p>0 on success, &lt;0 for error.</p>
 <dl class="function">
-<dt id="c.unset_mmio_map">
-int <code class="descname">unset_mmio_map</code><span class="sig-paren">(</span>unsigned long<em>&nbsp;vmid</em>, unsigned long<em>&nbsp;guest_gpa</em>, unsigned long<em>&nbsp;host_gpa</em>, unsigned long<em>&nbsp;len</em><span class="sig-paren">)</span><a class="headerlink" href="#c.unset_mmio_map" title="Permalink to this definition">¶</a></dt>
-<dd><p>unmap mmio mapping between UOS gpa and SOS gpa</p>
+<dt id="c.del_memory_region">
+int <code class="descname">del_memory_region</code><span class="sig-paren">(</span>unsigned long<em>&nbsp;vmid</em>, unsigned long<em>&nbsp;gpa</em>, unsigned long<em>&nbsp;size</em><span class="sig-paren">)</span><a class="headerlink" href="#c.del_memory_region" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete a guest memory region</p>
 </dd></dl>
 
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">vmid</span></code></dt>
 <dd>guest vmid</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">guest_gpa</span></code></dt>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">gpa</span></code></dt>
 <dd>gpa of UOS</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">host_gpa</span></code></dt>
-<dd>gpa of SOS</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">len</span></code></dt>
-<dd>memory mapped length</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">size</span></code></dt>
+<dd>memory region size</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>0 on success, &lt;0 for error.</p>
 <dl class="function">
-<dt id="c.update_memmap_attr">
-int <code class="descname">update_memmap_attr</code><span class="sig-paren">(</span>unsigned long<em>&nbsp;vmid</em>, unsigned long<em>&nbsp;guest_gpa</em>, unsigned long<em>&nbsp;host_gpa</em>, unsigned long<em>&nbsp;len</em>, unsigned int<em>&nbsp;mem_type</em>, unsigned int<em>&nbsp;mem_access_right</em><span class="sig-paren">)</span><a class="headerlink" href="#c.update_memmap_attr" title="Permalink to this definition">¶</a></dt>
-<dd><p>update mmio EPT mapping between UOS gpa and SOS gpa</p>
+<dt id="c.write_protect_page">
+int <code class="descname">write_protect_page</code><span class="sig-paren">(</span>unsigned long<em>&nbsp;vmid</em>, unsigned long<em>&nbsp;gpa</em>, unsigned char<em>&nbsp;set</em><span class="sig-paren">)</span><a class="headerlink" href="#c.write_protect_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>change one page write protection</p>
 </dd></dl>
 
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">vmid</span></code></dt>
 <dd>guest vmid</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">guest_gpa</span></code></dt>
-<dd>gpa of UOS</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">host_gpa</span></code></dt>
-<dd>gpa of SOS</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">len</span></code></dt>
-<dd>memory mapped length</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">mem_type</span></code></dt>
-<dd>memory mapping type. Possible value could be:
-MEM_TYPE_WB
-MEM_TYPE_WT
-MEM_TYPE_UC
-MEM_TYPE_WC
-MEM_TYPE_WP</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">mem_access_right</span></code></dt>
-<dd>memory mapping access. Possible value could be:
-MEM_ACCESS_READ
-MEM_ACCESS_WRITE
-MEM_ACCESS_EXEC
-MEM_ACCESS_RWX</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">gpa</span></code></dt>
+<dd>gpa in guest vmid</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">char</span> <span class="pre">set</span></code></dt>
+<dd>set or clear page write protection</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>0 on success, &lt;0 for error.</p>
@@ -1498,7 +1485,7 @@ N.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Jul 26, 2018.
+      Last updated on Jul 31, 2018.
 
     </p>
   </div> 
