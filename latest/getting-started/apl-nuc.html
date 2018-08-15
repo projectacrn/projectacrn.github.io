@@ -702,6 +702,19 @@ present the boot menu and will always boot the base Clear Linux</p>
 </pre></div>
 </div>
 </li>
+<li><p class="first">Add new user</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> useradd cl-sos
+<span class="gp">#</span> passwd cl-sos
+<span class="gp">#</span> usermod -G wheel -a cl-sos
+</pre></div>
+</div>
+</li>
+<li><p class="first">Enable weston service</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> systemctl <span class="nb">enable</span> weston@cl-sos
+<span class="gp">#</span> systemctl start weston@cl-sos
+</pre></div>
+</div>
+</li>
 <li><p class="first">Reboot and select “The ACRN Service OS” to boot, as shown below:</p>
 <div class="literal-block-wrapper docutils container" id="id2">
 <div class="code-block-caption"><span class="caption-number">Code Block 2 </span><span class="caption-text">ACRN Service OS Boot Menu</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
@@ -798,22 +811,19 @@ folder) as shown here:</p>
 <span class="k">fi</span>
 
 <span class="c1">#for memsize setting</span>
-<span class="nv">mem_size</span><span class="o">=</span>1000M
-
-<span class="c1"># make sure there is enough 2M hugepages in the pool</span>
-<span class="nb">echo</span> <span class="m">1024</span> &gt; /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+<span class="nv">mem_size</span><span class="o">=</span>2048M
 
 acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s <span class="m">0</span>:0,hostbridge -s <span class="m">1</span>:0,lpc -l com1,stdio <span class="se">\</span>
   -s <span class="m">2</span>,pci-gvt -G <span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span> <span class="se">\</span>
   -s <span class="m">5</span>,virtio-console,@pty:pty_port <span class="se">\</span>
   -s <span class="m">6</span>,virtio-hyper_dmabuf <span class="se">\</span>
-<span class="hll">  -s <span class="m">3</span>,virtio-blk,/root/clear-23690-kvm.img <span class="se">\</span>
-</span>  -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
-<span class="hll">  -k /usr/lib/kernel/org.clearlinux.pk414-standard.4.14.52-63 <span class="se">\</span>
-</span>  -B <span class="s2">&quot;root=/dev/vda3 rw rootwait maxcpus=</span><span class="nv">$2</span><span class="s2"> nohpet console=tty0 console=hvc0 \</span>
-<span class="s2">  console=ttyS0 no_timer_check ignore_loglevel log_buf_len=16M \</span>
-<span class="s2">  consoleblank=0 tsc=reliable i915.avail_planes_per_pipe=</span><span class="nv">$4</span><span class="s2"> \</span>
-<span class="s2">  i915.enable_hangcheck=0 i915.nuclear_pageflip=1 i915.enable_guc_loading=0 \</span>
+  -s <span class="m">3</span>,virtio-blk,/root/clear-23690-kvm.img <span class="se">\</span>
+  -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
+  -k /usr/lib/kernel/org.clearlinux.pk414-standard.4.14.52-63 <span class="se">\</span>
+<span class="hll">  -B <span class="s2">&quot;root=/dev/vda3 rw rootwait maxcpus=</span><span class="nv">$2</span><span class="s2"> nohpet console=tty0 console=hvc0 \</span>
+</span><span class="s2">  console=ttyS0 no_timer_check ignore_loglevel log_buf_len=16M \</span>
+<span class="hll"><span class="s2">  consoleblank=0 tsc=reliable i915.avail_planes_per_pipe=</span><span class="nv">$4</span><span class="s2"> \</span>
+</span><span class="s2">  i915.enable_hangcheck=0 i915.nuclear_pageflip=1 i915.enable_guc_loading=0 \</span>
 <span class="s2">  i915.enable_guc_submission=0&quot;</span> <span class="nv">$vm_name</span>
 <span class="o">}</span>
 
@@ -828,7 +838,7 @@ acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s
         <span class="k">fi</span>
 <span class="k">done</span>
 
-launch_clear <span class="m">2</span> <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00 clear
+launch_clear <span class="m">1</span> <span class="m">3</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00 clear
 </pre></div>
 </div>
 </div>
@@ -1121,7 +1131,7 @@ example above) to ‘PLATFORM=’:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Aug 08, 2018.
+      Last updated on Aug 15, 2018.
 
     </p>
   </div> 
