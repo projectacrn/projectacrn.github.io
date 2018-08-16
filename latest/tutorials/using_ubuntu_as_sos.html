@@ -381,6 +381,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#install-the-service-os-kernel">Install the Service OS kernel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#prepare-the-user-os-uos">Prepare the User OS (UOS)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#start-the-user-os-uos">Start the User OS (UOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enabling-network-sharing">Enabling network sharing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enabling-usb-keyboard-and-mouse">Enabling USB keyboard and mouse</a></li>
 </ul>
 </li>
 </ul>
@@ -528,7 +530,7 @@ make PLATFORM=uefi
 sudo make install
 </pre></div>
 </div>
-<p>For more details, please refer to the <a class="reference internal" href="../getting-started/index.html#getting-started"><span class="std std-ref">Getting Started Guides</span></a>.</p>
+<p>For more details, please refer to the <a class="reference internal" href="../getting-started/apl-nuc.html#getting-started-apl-nuc"><span class="std std-ref">Getting started guide for Intel NUC</span></a>.</p>
 </li>
 <li><p class="first">Install the hypervisor</p>
 <p>The ACRN devicemodel and tools were installed as part of the previous step.
@@ -559,12 +561,23 @@ sudo cp ~/acrn-hypervisor/build/hypervisor/acrn.efi /mnt/EFI/acrn
 <li><p class="first">Configure the EFI firmware to boot the ACRN hypervisor by default</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/sda -p 1 \
        -L &quot;ACRN Hypervisor&quot; -u &quot;bootloader=\EFI\ubuntu\grubx64.efi&quot;
-# Verify that the &quot;ACRN Hypervisor&quot; will be booted first
-sudo efibootmgr -v
 </pre></div>
 </div>
-<p>You can change the boot order at any time using <code class="docutils literal notranslate"><span class="pre">efibootmgr</span>
+</li>
+<li><p class="first">Verify that the “ACRN Hypervisor” is added and make sure it will be booted first</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo efibootmgr -v
+</pre></div>
+</div>
+</li>
+<li><p class="first">You can change the boot order at any time using <code class="docutils literal notranslate"><span class="pre">efibootmgr</span>
 <span class="pre">-o</span> <span class="pre">XXX,XXX,XXX</span></code></p>
+</li>
+</ol>
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo efibootmgr -o xxx,xxx,xxx
+</pre></div>
+</div>
+</div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">By default, the “ACRN Hypervisor” you have just added should be
@@ -573,29 +586,32 @@ by entering the EFI firmware at boot (using <kbd class="kbd docutils literal not
 </div>
 </li>
 </ol>
-</li>
-</ol>
 </div>
 <div class="section" id="install-the-service-os-kernel">
 <h2>Install the Service OS kernel<a class="headerlink" href="#install-the-service-os-kernel" title="Permalink to this headline">¶</a></h2>
 <p>You can download latest Service OS kernel from
-<a class="reference external" href="https://download.clearlinux.org/releases/current/clear/x86_64/os/Packages/">https://download.clearlinux.org/releases/current/clear/x86_64/os/Packages/</a>
-(<strong>We need to update the URL to one that is known to work, and matches the
-tag/release we use above!!!</strong>). We will extract it and install it in the next
-few steps.</p>
-<ol class="loweralpha">
-<li><p class="first">Download and extract the Service OS kernel</p>
+<a class="reference external" href="https://download.clearlinux.org/releases/current/clear/x86_64/os/Packages/">https://download.clearlinux.org/releases/current/clear/x86_64/os/Packages/</a></p>
+<ol class="arabic">
+<li><p class="first">The latest Service OS kernel from the latest Clear Linux release
+from this area:
+<a class="reference external" href="https://download.clearlinux.org/releases/current/clear/x86_64/os/Packages">https://download.clearlinux.org/releases/current/clear/x86_64/os/Packages</a>.  Look for an
+<code class="docutils literal notranslate"><span class="pre">.rpm</span></code> file named <code class="docutils literal notranslate"><span class="pre">linux-pk414-sos-&lt;kernel-version&gt;-&lt;build-version&gt;.x86_64.rpm</span></code>.</p>
+<p>While we recommend using the “current” (latest) release of Clear Linux, you can download
+a specific Clear Linux release from an area with that release number, e.g.:
+<a class="reference external" href="https://download.clearlinux.org/releases/24040/clear/x86_64/os/linux-pk414-sos-4.14.57-69.x86_64.rpm">https://download.clearlinux.org/releases/24040/clear/x86_64/os/linux-pk414-sos-4.14.57-69.x86_64.rpm</a></p>
+</li>
+<li><p class="first">Download and extract the latest Service OS kernel(this guide is based on 24040 as the current example)</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mkdir ~/kernel-build
 cd ~/kernel-build
-wget  https://download.clearlinux.org/releases/current/clear/x86_64/os/Packages/linux-pk414-sos-4.14.41-39.x86_64.rpm
+wget  https://download.clearlinux.org/releases/24040/clear/x86_64/os/Packages/linux-pk414-sos-4.14.57-69.x86_64.rpm
 sudo apt-get install rpm2cpio
-rpm2cpio linux-pk414-sos-4.14.41-39.x86_64.rpm | cpio -idmv
+rpm2cpio linux-pk414-sos-4.14.57-69.x86_64.rpm | cpio -idmv
 </pre></div>
 </div>
 </li>
 <li><p class="first">Install the SOS kernel and its drivers (modules)</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo cp -r ~/kernel-build/usr/lib/modules/4.14.41-39.pk414-sos/ /lib/modules/
-sudo cp ~/kernel-build/usr/lib/kernel/org.clearlinux.pk414-sos.4.14.41-39 /boot/acrn/
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo cp -r ~/kernel-build/usr/lib/modules/4.14.57-69.pk414-sos/ /lib/modules/
+sudo cp ~/kernel-build/usr/lib/kernel/org.clearlinux.pk414-sos.4.14.57-69 /boot/acrn/
 </pre></div>
 </div>
 </li>
@@ -608,15 +624,13 @@ will boot the SOS kernel.</p>
         load_video
         insmod gzio
         insmod part_gpt
-        insmod ext4
-        linux /boot/acrn/org.clearlinux.pk414-sos.4.14.41-39 pci_devices_ignore=(0:18:1) maxcpus=1 console=tty0 console=ttyS0
-        i915.nuclear_pageflip=1 root=PARTUUID=&lt;ID of rootfs partition&gt; rw rootwait ignore_loglevel no_timer_check consoleblank=0
-        i915.tsd_init=7 i915.tsd_delay=2000 i915.avail_planes_per_pipe=0x00000F i915.domain_plane_owners=0x011111110000
-        i915.enable_guc_loading=0 i915.enable_guc_submission=0 i915.enable_preemption=1 i915.context_priority_mode=2
-        i915.enable_gvt=1 hvlog=2M@0x1FE00000
+        insmod ext2
+        linux  /EFI/org.clearlinux/kernel-org.clearlinux.pk414-sos.4.14.57-69 pci_devices_ignore=(0:18:1)  console=tty0 console=ttyS0 i915.nuclear_pageflip=1 root=PARTUUID=&lt;UUID of rootfs partition&gt; rw rootwait ignore_loglevel no_timer_check consoleblank=0 i915.tsd_init=7 i915.tsd_delay=2000 i915.avail_planes_per_pipe=0x01010F i915.domain_plane_owners=0x011111110000 i915.enable_guc_loading=0 i915.enable_guc_submission=0 i915.enable_preemption=1 i915.context_priority_mode=2 i915.enable_gvt=1 i915.enable_initial_modeset=1 hvlog=2M@0x1FE00000
 }
 </pre></div>
 </div>
+</li>
+</ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">You need to adjust this to use your partition UUID (<code class="docutils literal notranslate"><span class="pre">PARTUUID</span></code>) for
@@ -627,7 +641,12 @@ the <code class="docutils literal notranslate"><span class="pre">root=</span></c
 <p class="last">You will also need to adjust the kernel name if you used a different
 RPM file as the source of your Service OS kernel.</p>
 </div>
-</li>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The command line for the kernel in /etc/grub.d/40_custom should be all
+as a single line, not as multiple lines. Otherwise the kernel will fail to boot</p>
+</div>
+<ul>
 <li><p class="first">Update Grub on your system</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo update-grub
 </pre></div>
@@ -646,6 +665,17 @@ set timeout = 10
 <p>Reboot system. You should see the Grub menu with the new “ACRN ubuntu SOS”
 entry. Select it and proceed to booting the platform. The system will start
 the Ubuntu Desktop and you can now log in (as before).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you don’t see the Grub menu after rebooting the system (and you’re
+not booting into the ACRN hypervisor), you’ll need to enter the
+EFI firmware at boot (using <kbd class="kbd docutils literal notranslate">F10</kbd>) and manually select <code class="docutils literal notranslate"><span class="pre">ACRN</span> <span class="pre">Hypervisor</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you see a black screen on the first-time reboot after installing the ACRN Hypervisor,
+wait a few moments and the Ubuntu desktop will be displayed.</p>
+</div>
 <p>To check if the hypervisor is effectively running, check <code class="docutils literal notranslate"><span class="pre">dmesg</span></code>. The
 typical output of a successful installation will look like this:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dmesg | grep ACRN
@@ -658,25 +688,25 @@ typical output of a successful installation will look like this:</p>
 </div>
 <div class="section" id="prepare-the-user-os-uos">
 <h2>Prepare the User OS (UOS)<a class="headerlink" href="#prepare-the-user-os-uos" title="Permalink to this headline">¶</a></h2>
-<p>We are using a User OS based on <a class="reference external" href="https://clearlinux.org">Clear Linux</a>.</p>
+<p>For the User OS, we are using the same <a class="reference external" href="https://clearlinux.org">Clear Linux</a> release version as the Service OS.</p>
 <ul>
 <li><p class="first">Download the Clear Linux image from <a class="reference external" href="https://download.clearlinux.org">https://download.clearlinux.org</a></p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
-wget https://download.clearlinux.org/releases/22780/clear/clear-22780-kvm.img.xz
-unxz clear-22780-kvm.img.xz
+wget https://download.clearlinux.org/releases/24040/clear/clear-24040-kvm.img.xz
+unxz clear-24040-kvm.img.xz
 </pre></div>
 </div>
 </li>
 <li><p class="first">Download the Production Kenrel (PK) kernel</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>wget https://download.clearlinux.org/releases/22780/clear/x86_64/os/Packages/linux-pk414-standard-4.14.47-44.x86_64.rpm
-rpm2cpio linux-pk414-standard-4.14.47-44.x86_64.rpm | cpio -idmv
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>wget https://download.clearlinux.org/releases/24040/clear/x86_64/os/Packages/linux-pk414-standard-4.14.57-69.x86_64.rpm
+rpm2cpio linux-pk414-standard-4.14.57-69.x86_64.rpm | cpio -idmv
 </pre></div>
 </div>
 </li>
 <li><p class="first">Update the UOS kernel modules</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo losetup -f -P --show /root/clear-22789-kvm.img
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo losetup -f -P --show /root/clear-24040-kvm.img
 sudo mount /dev/loop0p3 /mnt
-sudo cp -r /root/usr/lib/modules/4.14.47-44.pk414-standard /mnt/lib/modules/
+sudo cp -r /root/usr/lib/modules/4.14.57-69.pk414-standard /mnt/lib/modules/
 sudo cp -r /root/usr/lib/kernel /lib/modules/
 sudo umount /mnt
 sync
@@ -696,8 +726,8 @@ sudo cp /usr/bin/iasl /usr/sbin/iasl
 <li><p class="first">Adjust <code class="docutils literal notranslate"><span class="pre">launch_uos.sh</span></code></p>
 <p>You need to adjust the <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_uos.sh</span></code> script
 to match your installation. These are the couple of lines you need to modify:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-s 3,virtio-blk,/root/clear-22780-kvm.img
--k /lib/modules/kernel/org.clearlinux.pk414-standard.4.14.47-44
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-s 3,virtio-blk,/root/clear-24040-kvm.img
+-k /lib/modules/kernel/org.clearlinux.pk414-standard.4.14.57-69
 </pre></div>
 </div>
 </li>
@@ -706,10 +736,53 @@ to match your installation. These are the couple of lines you need to modify:</p
 <div class="section" id="start-the-user-os-uos">
 <h2>Start the User OS (UOS)<a class="headerlink" href="#start-the-user-os-uos" title="Permalink to this headline">¶</a></h2>
 <p>You are now all set to start the User OS (UOS)</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo /usr/share/acrn/samples/nuc/launch_uos.sh
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo /usr/share/acrn/samples/nuc/launch_uos.sh
 </pre></div>
 </div>
+</div></blockquote>
 <p><strong>Congratulations</strong>, you are now watching the User OS booting up!</p>
+</div>
+<div class="section" id="enabling-network-sharing">
+<h2>Enabling network sharing<a class="headerlink" href="#enabling-network-sharing" title="Permalink to this headline">¶</a></h2>
+<p>After booting up the SOS and UOS, network sharing must be enabled to give network
+access to the UOS by enabling the TAP and networking bridge in the SOS.  The following
+script example shows how to set this up (verified in Ubuntu 14.04 and 16.04 as the SOS).</p>
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>#!/bin/bash
+#setup bridge for uos network
+br=$(brctl show | grep acrn-br0)
+br=${br-:0:6}
+ip tuntap add dev acrn_tap0 mode tap
+
+taps=$(ifconfig | grep acrn_ | awk &#39;{print $1}&#39;)
+
+# if bridge not existed
+if [ &quot;$br&quot;x != &quot;acrn-br0&quot;x ]; then
+#setup bridge for uos network
+brctl addbr acrn-br0
+brctl addif acrn-br0 enp3s0
+ifconfig enp3s0 0
+dhclient acrn-br0
+# add existing tap devices under the bridge
+  for tap in $taps; do
+    ip tuntap add dev acrn_$tap mode tap
+    brctl addif acrn-br0 $tap
+    ip link set dev $tap down
+    ip link set dev $tap up
+  done
+fi
+
+brctl addif acrn-br0 acrn_tap0
+ip link set dev acrn_tap0 up
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="enabling-usb-keyboard-and-mouse">
+<h2>Enabling USB keyboard and mouse<a class="headerlink" href="#enabling-usb-keyboard-and-mouse" title="Permalink to this headline">¶</a></h2>
+<p>Please refer to <a class="reference internal" href="../getting-started/apl-nuc.html#getting-started-apl-nuc"><span class="std std-ref">Getting started guide for Intel NUC</span></a> for enabling the
+USB keyboard and mouse for the UOS.</p>
 </div>
 </div>
 
@@ -725,7 +798,7 @@ to match your installation. These are the couple of lines you need to modify:</p
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Aug 15, 2018.
+      Last updated on Aug 16, 2018.
 
     </p>
   </div> 
