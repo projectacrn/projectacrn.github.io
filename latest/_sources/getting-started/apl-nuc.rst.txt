@@ -62,6 +62,12 @@ complete this setup.
 
       # swupd autoupdate --disable
 
+   .. note::
+      The Clear Linux installer will automatically check for updates and install the
+      latest version available on your system. If you wish to use a specific version
+      (such as 25130), you can achieve that after the installation has completed using
+      ``swupd verify --fix --picky -m 25130``
+
 #. If you have an older version of Clear Linux already installed
    on your hardware, use this command to upgrade Clear Linux
    to version 25130 (or newer):
@@ -74,8 +80,8 @@ complete this setup.
 
    .. code-block:: none
 
-      # swupd bundle-add vim network-basic service-os kernel-pk \
-        desktop openssh-server software-defined-cockpit
+      # swupd bundle-add vim sudo network-basic service-os kernel-pk \
+          openssh-server software-defined-cockpit
 
    .. table:: Clear Linux bundles
       :widths: auto
@@ -86,6 +92,8 @@ complete this setup.
       +====================+===================================================+
       | vim                | vim text editor                                   |
       +--------------------+---------------------------------------------------+
+      | sudo               | sudo command                                      |
+      +--------------------+---------------------------------------------------+
       | network-basic      | Run network utilities and modify network settings |
       +--------------------+---------------------------------------------------+
       | service-os         | Add the acrn hypervisor, the acrn devicemodel and |
@@ -94,15 +102,12 @@ complete this setup.
       | kernel-pk          | Run the Intel "PK" kernel(product kernel source)  |
       |                    | and enterprise-style kernel with backports        |
       +--------------------+---------------------------------------------------+
-      | desktop            | Graphical desktop application, with Weston        |
-      |                    | compositing window manager included               |
-      +--------------------+---------------------------------------------------+
       | openssh-server     | Server-side support for secure connectivity and   |
       |                    | remote login using the SSH protocol               |
       +--------------------+---------------------------------------------------+
-      |software-defined    + Run the automotive software defined cockpit       +
-      |-cockpit            + which has graphic, media, sound and connectivity  +
-      |                    +                                                   +
+      | software-defined   | Run the automotive software defined cockpit       |
+      | -cockpit           | which has graphic, media, sound and connectivity  |
+      |                    |                                                   |
       +--------------------+---------------------------------------------------+
 
 Add the ACRN hypervisor to the EFI Partition
@@ -219,7 +224,7 @@ partition. Follow these steps:
 
    You will need to edit this file to adjust the kernel version (``linux`` section),
    insert the ``PARTUUID`` of your ``/dev/sda3`` partition
-   (``root=PARTUUID=<><UUID of rootfs partition>``) in the ``options`` section, and
+   (``root=PARTUUID=<UUID of rootfs partition>``) in the ``options`` section, and
    add the ``hugepagesz=1G hugepages=2`` at end of the ``options`` section.
 
    Use ``blkid`` to find out what your ``/dev/sda3`` ``PARTUUID`` value is.
@@ -237,7 +242,7 @@ partition. Follow these steps:
 
 #. Add new user
 
-   .. code-block:: console
+   .. code-block:: none
 
       # useradd cl_sos
       # passwd cl_sos
@@ -245,7 +250,7 @@ partition. Follow these steps:
 
 #. Enable weston service
 
-   .. code-block:: console
+   .. code-block:: none
 
       # systemctl enable weston@cl_sos
       # systemctl start weston@cl_sos
@@ -280,6 +285,18 @@ partition. Follow these steps:
 
 #. From here you can login as root using the password you set previously when
    you installed Clear Linux.
+
+#. (**Optional**) The ``software-defined-cockpit`` bundle installs the
+   ``ioc-cbc-tools`` on the system and activates three ``systemd`` services.
+   Those services do not work on off-the-shelf platforms such as NUCs, UP2.
+   You can disable them as shown here:
+
+   .. code-block:: none
+
+      # systemctl mask cbc_attach
+      # systemctl mask cbc_lifecycle
+      # systemctl mask cbc_thermald
+
 
 ACRN Network Bridge
 ===================
@@ -333,7 +350,7 @@ Set up Reference UOS
    .. literalinclude:: ../../devicemodel/samples/nuc/launch_uos.sh
       :caption: devicemodel/samples/nuc/launch_uos.sh
       :language: bash
-      :emphasize-lines: 26,28
+      :emphasize-lines: 23,25
 
    .. note::
       In case you have downloaded a different Clear Linux image than the one above
@@ -508,6 +525,9 @@ The build results are found in the ``build`` directory.
    if you wish to use a different target folder for the build
    artefacts, set the ``O`` (that is capital letter 'O') to the
    desired value. Example: ``make O=build-uefi PLATFORM=uefi``.
+
+Generating the documentation is decribed in details in the :ref:`acrn_doc`
+tutorial.
 
 You can also build these components individually. The following
 steps assume that you have already cloned the ``acrn-hypervisor`` repository
