@@ -211,10 +211,18 @@
 <li class="toctree-l3"><a class="reference internal" href="hld-overview.html">Overview</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html#acrn-supported-use-cases">ACRN Supported Use Cases</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html#hardware-requirements">Hardware Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#acrn-architecture">ACRN Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#hypervisor">Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#sos">SOS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#uos">UOS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#freedom-from-interference">Freedom From Interference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#boot-flow">Boot Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#power-management">Power Management</a></li>
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="static-core-hld.html">Static CPU Partitioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-startup.html">Hypervisor Startup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-cpu-virt.html">CPU Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="memmgt-hld.html">Memory management</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">Interrupt management</a></li>
 </ul>
@@ -533,7 +541,7 @@
 the ACRN hypervisor.</p>
 <p>The ACRN hypervisor implements a simple but fully functional framework
 to manage interrupts and exceptions, as show in
-<a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 24</span></a>. In its native layer, it configures
+<a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 42</span></a>. In its native layer, it configures
 the physical PIC, IOAPIC, and LAPIC to support different interrupt
 sources from local timer/IPI to external INTx/MSI. In its virtual guest
 layer, it emulates virtual PIC, virtual IOAPIC and virtual LAPIC, and
@@ -541,9 +549,9 @@ provides full APIs allowing virtual interrupt injection from emulated or
 pass-thru devices.</p>
 <div class="figure align-center" id="interrupt-modules-overview">
 <a class="reference internal image-reference" href="../../_images/interrupt-image3.png"><img alt="../../_images/interrupt-image3.png" src="../../_images/interrupt-image3.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 24 </span><span class="caption-text">ACRN Interrupt Modules Overview</span></p>
+<p class="caption"><span class="caption-number">Figure 42 </span><span class="caption-text">ACRN Interrupt Modules Overview</span></p>
 </div>
-<p>In the software modules view shown in <a class="reference internal" href="#interrupt-sw-modules"><span class="std std-numref">Figure 25</span></a>,
+<p>In the software modules view shown in <a class="reference internal" href="#interrupt-sw-modules"><span class="std std-numref">Figure 43</span></a>,
 the ACRN hypervisor sets up the physical interrupt in its basic
 interrupt modules (e.g., IOAPIC/LAPIC/IDT).  It dispatches the interrupt
 in the hypervisor interrupt flow control layer to the corresponding
@@ -553,7 +561,7 @@ interfaces based on vPIC, vIOAPIC, and vMSI modules, to inject the
 necessary virtual interrupt into the specific VM</p>
 <div class="figure align-center" id="interrupt-sw-modules">
 <a class="reference internal image-reference" href="../../_images/interrupt-image2.png"><img alt="../../_images/interrupt-image2.png" src="../../_images/interrupt-image2.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 25 </span><span class="caption-text">ACRN Interrupt SW Modules Overview</span></p>
+<p class="caption"><span class="caption-number">Figure 43 </span><span class="caption-text">ACRN Interrupt SW Modules Overview</span></p>
 </div>
 </div>
 <div class="section" id="hypervisor-physical-interrupt-management">
@@ -597,13 +605,13 @@ send_single_ipi.</p>
 <h4>PIC/IOAPIC<a class="headerlink" href="#pic-ioapic" title="Permalink to this headline">¶</a></h4>
 <p>The ACRN hypervisor masks all interrupts from PIC, so all the
 legacy interrupts from PIC (&lt;16) are linked to IOAPIC, as shown in
-<a class="reference internal" href="#interrupt-pic-pin"><span class="std std-numref">Figure 26</span></a>.</p>
+<a class="reference internal" href="#interrupt-pic-pin"><span class="std std-numref">Figure 44</span></a>.</p>
 <p>ACRN will pre-allocate vectors and mask them for these legacy interrupts
 in IOAPIC RTE. For others (&gt;= 16) ACRN will mask them with vector 0 in
 RTE, and the vector will be dynamically allocated on demand.</p>
 <div class="figure align-center" id="interrupt-pic-pin">
 <a class="reference internal image-reference" href="../../_images/interrupt-image5.png"><img alt="../../_images/interrupt-image5.png" src="../../_images/interrupt-image5.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 26 </span><span class="caption-text">PIC &amp; IOAPIC Pin Connection</span></p>
+<p class="caption"><span class="caption-number">Figure 44 </span><span class="caption-text">PIC &amp; IOAPIC Pin Connection</span></p>
 </div>
 </div>
 <div class="section" id="irq-desc">
@@ -635,17 +643,17 @@ vector 0xEF, then the arrays mentioned above will be set to:</p>
 mode, the interrupt is triggered from the standard native irq flow:
 interrupt gate to irq handler. However, if the CPU is running under VMX
 non-root mode, an external interrupt will trigger a VM exit for reason
-“external-interrupt”. See <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 27</span></a>.</p>
+“external-interrupt”. See <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 45</span></a>.</p>
 <div class="figure align-center" id="interrupt-handle-flow">
 <a class="reference internal image-reference" href="../../_images/interrupt-image4.png"><img alt="../../_images/interrupt-image4.png" src="../../_images/interrupt-image4.png" style="width: 800px;" /></a>
-<p class="caption"><span class="caption-number">Figure 27 </span><span class="caption-text">ACRN Hypervisor Interrupt Handle Flow</span></p>
+<p class="caption"><span class="caption-number">Figure 45 </span><span class="caption-text">ACRN Hypervisor Interrupt Handle Flow</span></p>
 </div>
 <p>After an interrupt happens (in either case noted above), the ACRN
 hypervisor jumps to <code class="docutils literal notranslate"><span class="pre">dispatch_interrupt</span></code>. This function will check
 which vector caused this interrupt, and the corresponding <code class="docutils literal notranslate"><span class="pre">irq_desc</span></code>
 structure’s <code class="docutils literal notranslate"><span class="pre">irq_handler</span></code> will be called for the service.</p>
 <p>There are several irq_handler’s defined in the ACRN hypervisor, as shown
-in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 27</span></a>, designed for different uses.  For
+in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 45</span></a>, designed for different uses.  For
 example, <code class="docutils literal notranslate"><span class="pre">quick_handler_nolock</span></code> is used when no critical data needs
 protection in the action handlers; the VCPU notification IPI and local
 timer are good example of this use case.</p>
@@ -726,7 +734,7 @@ by an MSI address entry.</td>
 <div class="section" id="softirq">
 <h3>Softirq<a class="headerlink" href="#softirq" title="Permalink to this headline">¶</a></h3>
 <p>ACRN hypervisor implements a simple bottom-half softirq to execute the
-interrupt handler, as showed in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 27</span></a>.
+interrupt handler, as showed in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 45</span></a>.
 The softirq is executed when an interrupt is enabled. Several APIs for softirq
 are defined including enable_softirq, disable_softirq, raise_softirq,
 and exec_softirq.</p>
@@ -768,7 +776,7 @@ event (ACRN_REQUEST_EVENT), external interrupt from vPIC
 <p>The <code class="docutils literal notranslate"><span class="pre">vcpu_make_request</span></code> is necessary for a virtual interrupt
 injection.  If the target VCPU is running under VMX non-root mode, it
 will send an IPI to kick it out and results in an external-interrupt
-VM-Exit.  The flow of <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 27</span></a> could be executed
+VM-Exit.  The flow of <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 45</span></a> could be executed
 to complete the injection of a virtual interrupt.</p>
 <p>There are some cases that do not need to send an IPI when making a
 request because the CPU making the request is the target VCPU.  For
@@ -845,9 +853,9 @@ PIC/IOAPIC it is identified by the pin number.</li>
 </ul>
 <div class="figure align-center" id="interrupt-pass-thru">
 <a class="reference internal image-reference" href="../../_images/interrupt-image7.png"><img alt="../../_images/interrupt-image7.png" src="../../_images/interrupt-image7.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 28 </span><span class="caption-text">Pass-thru Device Entry Assignment</span></p>
+<p class="caption"><span class="caption-number">Figure 46 </span><span class="caption-text">Pass-thru Device Entry Assignment</span></p>
 </div>
-<p>As shown in <a class="reference internal" href="#interrupt-pass-thru"><span class="std std-numref">Figure 28</span></a> above, a UOS will assign its
+<p>As shown in <a class="reference internal" href="#interrupt-pass-thru"><span class="std std-numref">Figure 46</span></a> above, a UOS will assign its
 pass-thru device entry by the DM, and it will fill its entry info from:</p>
 <ul class="simple">
 <li>vPIC/vIOAPIC interrupt mask/unmask</li>
@@ -878,12 +886,12 @@ it will have only a minimal effect on the performance of the Service OS.</p>
 </div>
 <div class="section" id="interrupt-exception-injection-process">
 <h3>Interrupt/Exception Injection Process<a class="headerlink" href="#interrupt-exception-injection-process" title="Permalink to this headline">¶</a></h3>
-<p>As shown in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 27</span></a>, the ACRN hypervisor injects
+<p>As shown in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 45</span></a>, the ACRN hypervisor injects
 virtual interrupt/exception to the guest before its VM-Entry.</p>
 <p>This is done by updating the VMX_ENTRY_INT_INFO_FIELD of the VCPU’s
 VMCS. As this field is unique, the interrupt/exception injection must
 follow a priority rule to handle one-by-one.</p>
-<p><a class="reference internal" href="#interrupt-injection"><span class="std std-numref">Figure 29</span></a> below shows the rules about how to inject
+<p><a class="reference internal" href="#interrupt-injection"><span class="std std-numref">Figure 47</span></a> below shows the rules about how to inject
 virtual interrupt/exception one-by-one. If a high priority
 interrupt/exception was already injected, the next pending
 interrupt/exception will enable an interrupt window where the next
@@ -891,7 +899,7 @@ injection will be done by the following VM-Exit, triggered by the
 interrupt window.</p>
 <div class="figure align-center" id="interrupt-injection">
 <a class="reference internal image-reference" href="../../_images/interrupt-image6.png"><img alt="../../_images/interrupt-image6.png" src="../../_images/interrupt-image6.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 29 </span><span class="caption-text">ACRN Hypervisor Interrupt/Exception Injection Process</span></p>
+<p class="caption"><span class="caption-number">Figure 47 </span><span class="caption-text">ACRN Hypervisor Interrupt/Exception Injection Process</span></p>
 </div>
 </div>
 </div>
@@ -909,7 +917,7 @@ interrupt window.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 18, 2018.
+      Last updated on Oct 19, 2018.
 
     </p>
   </div> 

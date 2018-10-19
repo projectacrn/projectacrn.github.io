@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Static CPU Partitioning &mdash; Project ACRN™ v 0.3-unstable documentation</title>
+  <title>Hypervisor Startup &mdash; Project ACRN™ v 0.3-unstable documentation</title>
   
 
   
@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Memory Management high-level design" href="memmgt-hld.html" />
+    <link rel="next" title="CPU Virtualization" href="hv-cpu-virt.html" />
     <link rel="prev" title="Hypervisor high-level design" href="hld-hypervisor.html" /> 
 
   
@@ -211,10 +211,18 @@
 <li class="toctree-l3"><a class="reference internal" href="hld-overview.html">Overview</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html#acrn-supported-use-cases">ACRN Supported Use Cases</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html#hardware-requirements">Hardware Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#acrn-architecture">ACRN Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#hypervisor">Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#sos">SOS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#uos">UOS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#freedom-from-interference">Freedom From Interference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#boot-flow">Boot Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#power-management">Power Management</a></li>
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Static CPU Partitioning</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Hypervisor Startup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-cpu-virt.html">CPU Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="memmgt-hld.html">Memory management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="interrupt-hld.html">Interrupt management</a></li>
 </ul>
@@ -508,7 +516,7 @@
         
           <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
         
-      <li>Static CPU Partitioning</li>
+      <li>Hypervisor Startup</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -525,120 +533,189 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="static-cpu-partitioning">
-<h1>Static CPU Partitioning<a class="headerlink" href="#static-cpu-partitioning" title="Permalink to this headline">¶</a></h1>
-<p>CPU partitioning is a policy for mapping a virtual
-CPU (VCPU) to a physical CPU. The current ACRN implementation forces a
-static 1:1 mapping between VCPUs and physical CPUs and does
-not support multiple VCPUs running on a physical CPU and does not
-support VCPU migration from one physical CPU to another.</p>
-<p>This section describes the static CPU partitioning implementation in
-ACRN.</p>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>ACRN forces a fixed 1:1 mapping between a VCPU and a physical CPU when
-creating a VCPU for the guest Operating System. This makes the VCPU
-management code much simpler.</p>
-<p>An array is used to track the physical CPU allocation information. When
-a VCPU is created, we query, allocate, and update the array to map the
-VCPU to an available physical CPU.</p>
-<p>The physical CPU number assignment for each guest is pre-defined. For
-example, on a platform with four CPU cores, one physical CPU is assigned
-to run the Service Operating System (SOS) and other three physical CPUs
-are assigned to run the User Operating System (UOS) instances.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">To improvement SOS boot time, all physical CPUs are assigned to the SOS
-during the SOS boot. Afterward, the physical CPUs defined for the UOS
-are allocated by the Device Model (DM) by running the launch_uos.sh
-script.</p>
+  <div class="section" id="hypervisor-startup">
+<span id="hv-startup"></span><h1>Hypervisor Startup<a class="headerlink" href="#hypervisor-startup" title="Permalink to this headline">¶</a></h1>
+<p>This section is an overview of the ACRN hypervisor startup.
+The ACRN hypervisor
+compiles to a 32-bit multiboot-compliant ELF file.
+The bootloader (ABL or SBL) loads the hypervisor according to the
+addresses specified in the ELF header. The BSP starts the hypervisor
+with an initial state compliant to multiboot 1 specification, after the
+bootloader prepares full configurations including ACPI, E820, etc.</p>
+<p>The HV startup has two parts: the native startup followed by
+VM startup.</p>
+<div class="section" id="native-startup">
+<h2>Native Startup<a class="headerlink" href="#native-startup" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="hvstart-nativeflow">
+<img alt="../../_images/hld-image107.png" src="../../_images/hld-image107.png" />
+<p class="caption"><span class="caption-number">Figure 24 </span><span class="caption-text">Hypervisor Native Startup Flow</span></p>
 </div>
+<p>Native startup sets up a baseline environment for HV, including basic
+memory and interrupt initialization as shown in
+<a class="reference internal" href="#hvstart-nativeflow"><span class="std std-numref">Figure 24</span></a>. Here is a short
+description for the flow:</p>
+<ul class="simple">
+<li><strong>BSP Startup:</strong> The starting point for bootstrap processor.</li>
+<li><strong>Relocation</strong>: relocate the hypervisor image if the hypervisor image
+is not placed at the assumed base address.</li>
+<li><strong>UART Init:</strong> Initialize a pre-configured UART device used
+as the base physical console for HV and Service OS.</li>
+<li><strong>Shell Init:</strong> Start a command shell for HV accessible via the UART.</li>
+<li><strong>Memory Init:</strong> Initialize memory type and cache policy, and creates
+MMU page table mapping for HV.</li>
+<li><strong>Interrupt Init:</strong> Initialize interrupt and exception for native HV
+including IDT and <code class="docutils literal notranslate"><span class="pre">do_IRQ</span></code> infrastructure; a timer interrupt
+framework is then built. The native/physical interrupts will go
+through this <code class="docutils literal notranslate"><span class="pre">do_IRQ</span></code> infrastructure then distribute to special
+targets (HV or VMs).</li>
+<li><strong>Start AP:</strong> BSP kicks <code class="docutils literal notranslate"><span class="pre">INIT-SIPI-SIPI</span></code> IPI sequence to start other
+native APs (application processor). Each AP will initialize its
+own memory and interrupts, notifies the BSP on completion and
+enter the default idle loop.</li>
+</ul>
+<p>Symbols in the hypervisor are placed with an assumed base address, but
+the bootloader may not place the hypervisor at that specified base. In
+such case the hypervisor will relocate itself to where the bootloader
+loads it.</p>
+<p>Here is a summary of CPU and memory initial states that are set up after
+native startup.</p>
+<dl class="docutils">
+<dt>CPU</dt>
+<dd><p class="first">ACRN hypervisor brings all physical processors to 64-bit IA32e
+mode, with the assumption that the BSP starts in protection mode where
+segmentation and paging sets an identical mapping of the first 4G
+addresses without permission restrictions. The control registers and
+some MSRs are set as follows:</p>
+<ul class="last simple">
+<li>cr0: The following features are enabled: paging, write protection,
+protection mode, numeric error and co-processor monitoring.</li>
+<li>cr3: refer to the initial state of memory.</li>
+<li>cr4: The following features are enabled: physical address extension,
+machine-check, FXSAVE/FXRSTOR, SMEP, VMX operation and unmask
+SIMD FP exception. The other features are disabled.</li>
+<li>MSR_IA32_EFER: only IA32e mode is enabled.</li>
+<li>MSR_IA32_FS_BASE: the address of stack canary, used for detecting
+stack smashing.</li>
+<li>MSR_IA32_TSC_AUX: a unique logical ID is set for each physical
+processor.</li>
+<li>stack: each physical processor has a separate stack.</li>
+</ul>
+</dd>
+<dt>Memory</dt>
+<dd>All physical processors are in 64-bit IA32e mode after
+startup. The GDT holds four entries, one unused, one for code and
+another for data, both of which have a base of all 0’s and a limit of
+all 1’s, and the other for 64-bit TSS. The TSS only holds three stack
+pointers (for machine-check, double fault and stack fault) in the
+interrupt stack table (IST) which are different across physical
+processors. LDT is disabled.</dd>
+</dl>
+<p>Refer to section 3.5.2 for a detailed description of interrupt-related
+initial states, including IDT and physical PICs.</p>
+<p>After BSP detects that all APs are up, BSP will start creating the first
+VM, i.e. SOS, as explained in the next section.</p>
 </div>
-<div class="section" id="cpu-management-in-sos">
-<h2>CPU management in SOS<a class="headerlink" href="#cpu-management-in-sos" title="Permalink to this headline">¶</a></h2>
-<p>With ACRN, all ACPI table entries are pass-thru to the SOS, including
-the Multiple Interrupt Controller Table (MADT). The SOS sees all
-physical CPUs by parsing the MADT when the SOS  kernel boots. All
-physical CPUs are initially assigned to the SOS by creating the same
-number of virtual CPUs.</p>
-<p>When the SOS boot is finished, it releases the physical CPUs intended
-for UOS use.</p>
-<p>Here is an example flow of CPU allocation on a multi-core platform.</p>
-<div class="figure align-center" id="static-core-cpu-allocation">
-<a class="reference internal image-reference" href="../../_images/static-core-image2.png"><img alt="../../_images/static-core-image2.png" src="../../_images/static-core-image2.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 15 </span><span class="caption-text">CPU allocation on a multi-core platform</span></p>
+<div class="section" id="vm-startup">
+<h2>VM Startup<a class="headerlink" href="#vm-startup" title="Permalink to this headline">¶</a></h2>
+<p>SOS is created and launched on the physical BSP after the hypervisor
+initializes itself.  Meanwhile, the APs enter the default idle loop
+(refer to <a class="reference internal" href="hv-cpu-virt.html#vcpu-lifecycle"><span class="std std-ref">vCPU Lifecycle</span></a> for details), waiting for any vCPU to be
+scheduled to them.</p>
+<p><a class="reference internal" href="#hvstart-vmflow"><span class="std std-numref">Figure 25</span></a> illustrates a high-level execution flow of
+creating and launching a VM, applicable to both SOS and UOS. One major
+difference in the creation of SOS and UOS is that SOS is created by the
+hypervisor, while the creation of UOSes is triggered by the DM in SOS.
+The main steps include:</p>
+<ul class="simple">
+<li><strong>Create VM</strong>: A VM structure is allocated and initialized. A unique
+VM ID is picked, EPT is created, I/O bitmap is set up, I/O
+emulation handlers initialized and registered and virtual CPUID
+entries filled. For SOS an addition e820 table is prepared.</li>
+<li><strong>Create vCPUs:</strong> Create the vCPUs, assign the physical processor it
+is pinned to, a unique-per-VM vCPU ID and a globally unique VPID,
+and initializes its virtual lapic and MTRR. For SOS one vCPU is
+created for each physical CPU on the platform. For UOS the DM
+determines the number of vCPUs to be created.</li>
+<li><strong>SW Load:</strong> The BSP of a VM also prepares for each VM’s SW
+configuration including kernel entry address, ramdisk address,
+bootargs, zero page etc. This is done by the hypervisor for SOS
+while by DM for UOS.</li>
+<li><strong>Schedule vCPUs:</strong> The vCPUs are scheduled to the corresponding
+physical processors for execution.</li>
+<li><strong>Init VMCS:</strong> Initialize vCPU’s VMCS for its host state, guest
+state, execution control, entry control and exit control. It’s
+the last configuration before vCPU runs.</li>
+<li><strong>vCPU thread:</strong> vCPU kicks out to run. For “Primary CPU” it will
+start running into kernel image which SW Load is configured; for
+“Non-Primary CPU” it will wait for INIT-SIPI-SIPI IPI sequence
+trigger from its “Primary CPU”.</li>
+</ul>
+<div class="figure align-center" id="hvstart-vmflow">
+<img alt="../../_images/hld-image104.png" src="../../_images/hld-image104.png" />
+<p class="caption"><span class="caption-number">Figure 25 </span><span class="caption-text">Hypervisor VM Startup Flow</span></p>
 </div>
-</div>
-<div class="section" id="cpu-management-in-uos">
-<h2>CPU management in UOS<a class="headerlink" href="#cpu-management-in-uos" title="Permalink to this headline">¶</a></h2>
-<p>From the UOS point of view, CPU management is very simple, using a
-hypercall to create the virtual CPUs. Here’s an example from from the DM
-code:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">vm_create_vcpu</span><span class="p">(</span><span class="k">struct</span> <span class="n">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span> <span class="kt">uint16_t</span> <span class="n">vcpu_id</span><span class="p">)</span>
-<span class="p">{</span>
-   <span class="k">struct</span> <span class="n">acrn_create_vcpu</span> <span class="n">cv</span><span class="p">;</span>
-   <span class="kt">int</span> <span class="n">error</span><span class="p">;</span>
-
-   <span class="n">bzero</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cv</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">acrn_create_vcpu</span><span class="p">));</span>
-   <span class="n">cv</span><span class="p">.</span><span class="n">vcpu_id</span> <span class="o">=</span> <span class="n">vcpu_id</span><span class="p">;</span>
-   <span class="n">error</span> <span class="o">=</span> <span class="n">ioctl</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">fd</span><span class="p">,</span> <span class="n">IC_CREATE_VCPU</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cv</span><span class="p">);</span>
-   <span class="k">return</span> <span class="n">error</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The VHM will respond to the ioctl:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">case</span> <span class="nl">IC_CREATE_VCPU</span><span class="p">:</span> <span class="p">{</span>
-   <span class="k">struct</span> <span class="n">acrn_create_vcpu</span> <span class="n">cv</span><span class="p">;</span>
-
-   <span class="k">if</span> <span class="p">(</span><span class="n">copy_from_user</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cv</span><span class="p">,</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">ioctl_param</span><span class="p">,</span>
-                      <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">acrn_create_vcpu</span><span class="p">)))</span>
-      <span class="k">return</span> <span class="o">-</span><span class="n">EFAULT</span><span class="p">;</span>
-
-   <span class="n">ret</span> <span class="o">=</span> <span class="n">acrn_hypercall2</span><span class="p">(</span><span class="n">HC_CREATE_VCPU</span><span class="p">,</span> <span class="n">vm</span><span class="o">-&gt;</span><span class="n">vmid</span><span class="p">,</span>
-                         <span class="n">virt_to_phys</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cv</span><span class="p">));</span>
-   <span class="k">if</span> <span class="p">(</span><span class="n">ret</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;vhm: failed to create vcpu %d!</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span>
-              <span class="n">cv</span><span class="p">.</span><span class="n">vcpu_id</span><span class="p">);</span>
-      <span class="k">return</span> <span class="o">-</span><span class="n">EFAULT</span><span class="p">;</span>
-   <span class="p">}</span>
-
-   <span class="n">atomic_inc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vcpu_num</span><span class="p">);</span>
-   <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>The hypercall <code class="docutils literal notranslate"><span class="pre">HC_CREATE_VCPU</span></code> is handled in the hypervisor with
-the parameter:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">acrn_create_vcpu</span> <span class="p">{</span>
-   <span class="cm">/** the virtual CPU ID for the VCPU created */</span>
-   <span class="kt">uint16_t</span> <span class="n">vcpu_id</span><span class="p">;</span>
-   <span class="cm">/** the physical CPU ID for the VCPU created */</span>
-   <span class="kt">uint16_t</span> <span class="n">pcpu_id</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="cpu-assignment-management-in-hv">
-<h2>CPU assignment management in HV<a class="headerlink" href="#cpu-assignment-management-in-hv" title="Permalink to this headline">¶</a></h2>
-<p>When we create a VCPU in the hypervisor, an available physical CPU is
-picked and marked as used. When we destroy the VCPU, we mark the
-physical CPU as available again.</p>
-<div class="figure align-center" id="static-core-cpu-assign">
-<a class="reference internal image-reference" href="../../_images/static-core-image1.png"><img alt="../../_images/static-core-image1.png" src="../../_images/static-core-image1.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 16 </span><span class="caption-text">HV CPU Assignment Management</span></p>
-</div>
-<ol class="arabic simple">
-<li><code class="docutils literal notranslate"><span class="pre">allocate_pcpu()</span></code> queries the physical CPU allocation info to get an
-available physical CPU and marks physical CPU as not available</li>
-<li>Physical CPU info is passed to <code class="docutils literal notranslate"><span class="pre">create_vcpu()</span></code> and a mapping is built
-between the physical CPU and virtual CPU</li>
-<li>When the VCPU is destroyed VCPU, the physical CPU is passed to the
-<code class="docutils literal notranslate"><span class="pre">free_pcpu()</span></code> function</li>
-<li><code class="docutils literal notranslate"><span class="pre">free_pcpu()</span></code> marks the physical CPU available again.</li>
-</ol>
-<p>Currently, the ACRN hypervisor does not support virtual CPU migration to
-different physical CPUs. This means no changes to the virtual CPU to
-physical CPU can happen without first calling destroy_vcpu.</p>
+<p>SW configuration for Service OS (VM0):</p>
+<ul class="simple">
+<li><strong>ACPI</strong>: HV passes the entire ACPI table from bootloader to Service
+OS directly. Legacy mode is currently supported as the ACPI table
+is loaded at F-Segment.</li>
+<li><strong>E820</strong>: HV passes e820 table from bootloader through multi-boot
+information after the HV reserved memory (32M for example) is
+filtered out.</li>
+<li><strong>Zero Page</strong>: HV prepares the zero page at the high end of Service
+OS memory which is determined by VM0 guest FIT binary build. The
+zero page includes configuration for ramdisk, bootargs and e820
+entries. The zero page address will be set to “Primary CPU” RSI
+register before VCPU gets run.</li>
+<li><strong>Entry address</strong>: HV will copy Service OS kernel image to 0x1000000
+as entry address for VM0’s “Primary CPU”. This entry address will
+be set to “Primary CPU” RIP register before VCPU gets run.</li>
+</ul>
+<p>SW configuration for User OS (VMx):</p>
+<ul class="simple">
+<li><strong>ACPI</strong>: the virtual ACPI table is built by DM and put at VMx’s
+F-Segment. Refer to <a class="reference internal" href="hld-emulated-devices.html#hld-emulated-devices"><span class="std std-ref">Emulated Devices high-level design</span></a> for details.</li>
+<li><strong>E820</strong>: the virtual E820 table is built by the DM then passed to
+the zero page. Refer to <a class="reference internal" href="hld-emulated-devices.html#hld-emulated-devices"><span class="std std-ref">Emulated Devices high-level design</span></a> for details.</li>
+<li><strong>Zero Page</strong>: the DM prepares the zero page at location of
+“lowmem_top - 4K” in VMx. This location is set into VMx’s
+“Primary CPU” RSI register in <strong>SW Load</strong>.</li>
+<li><strong>Entry address</strong>: the DM will copy User OS kernel image to 0x1000000
+as entry address for VMx’s “Primary CPU”. This entry address will
+be set to “Primary CPU” RIP register before VCPU gets run.</li>
+</ul>
+<p>Here is initial mode of vCPUs:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="27%" />
+<col width="52%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head" colspan="2">VM and Processor Type</th>
+<th class="head">Initial Mode</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td rowspan="2">SOS</td>
+<td>BSP</td>
+<td>Same as physical BSP</td>
+</tr>
+<tr class="row-odd"><td>AP</td>
+<td>Real Mode</td>
+</tr>
+<tr class="row-even"><td rowspan="2">UOS</td>
+<td>BSP</td>
+<td>Real Mode</td>
+</tr>
+<tr class="row-odd"><td>AP</td>
+<td>Real Mode</td>
+</tr>
+</tbody>
+</table>
+<p>Note that SOS is started with the same number of vCPUs as the physical
+CPUs to boost the boot-up. SOS will offline the APs right before it
+starts any UOS.</p>
 </div>
 </div>
 
@@ -654,7 +731,7 @@ physical CPU can happen without first calling destroy_vcpu.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 18, 2018.
+      Last updated on Oct 19, 2018.
 
     </p>
   </div> 
