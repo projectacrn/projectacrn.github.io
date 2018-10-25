@@ -156,6 +156,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#building">Building</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#enabling-disabling">Enabling/Disabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#usage">Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#source-code">Source Code</a></li>
 </ul>
@@ -414,6 +415,12 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/static-ip.html#activate-the-new-configuration">Activate the new configuration</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html">Using partition mode on UP2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#build-kernel-and-modules-for-partition-mode-guest">Build kernel and modules for partition mode guest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#enabling-partition-mode">Enabling partition mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#playing-with-acrn-hypervisor-with-partition-mode">Playing with ACRN hypervisor with partition mode</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-ubuntu-natively">Install Ubuntu (natively)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-acrn">Install ACRN</a></li>
@@ -545,10 +552,10 @@ virtio drivers, the hypervisor  provides the virtio backend service
 device in the hypervisor.</p>
 <p>The virtio APIs can be divided into 3 groups: DM APIs, virtio backend
 service (VBS) APIs, and virtqueue (VQ) APIs, as shown in
-<a class="reference internal" href="#be-interface"><span class="std std-numref">Figure 74</span></a>.</p>
+<a class="reference internal" href="#be-interface"><span class="std std-numref">Figure 75</span></a>.</p>
 <div class="figure align-center" id="be-interface">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image0.png"><img alt="../../_images/virtio-hld-image0.png" src="../../_images/virtio-hld-image0.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 74 </span><span class="caption-text">ACRN Virtio Backend Service Interface</span></p>
+<p class="caption"><span class="caption-number">Figure 75 </span><span class="caption-text">ACRN Virtio Backend Service Interface</span></p>
 </div>
 <ul class="simple">
 <li><strong>DM APIs</strong> are exported by the DM, and are mainly used during the
@@ -629,7 +636,7 @@ possible. This will give an efficient implementation for
 performance-critical devices.</dd>
 <dt>Standard: virtqueue</dt>
 <dd><p class="first">All virtio devices share a standard ring buffer and descriptor
-mechanism, called a virtqueue, shown in <a class="reference internal" href="#virtqueue"><span class="std std-numref">Figure 75</span></a>. A virtqueue is a
+mechanism, called a virtqueue, shown in <a class="reference internal" href="#virtqueue"><span class="std std-numref">Figure 76</span></a>. A virtqueue is a
 queue of scatter-gather buffers. There are three important methods on
 virtqueues:</p>
 <ul class="simple">
@@ -649,7 +656,7 @@ OS for more details about the virtqueue implementation.)</p>
 </dl>
 <div class="figure align-center" id="virtqueue">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image2.png"><img alt="../../_images/virtio-hld-image2.png" src="../../_images/virtio-hld-image2.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 75 </span><span class="caption-text">Virtqueue</span></p>
+<p class="caption"><span class="caption-number">Figure 76 </span><span class="caption-text">Virtqueue</span></p>
 </div>
 <dl class="docutils">
 <dt>Extensible: feature bits</dt>
@@ -692,7 +699,7 @@ introduce ACRN specific implementations of the virtio framework.</p>
 <div class="section" id="architecture">
 <h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
 <p>Virtio adopts a frontend-backend
-architecture, as shown in <a class="reference internal" href="#virtio-arch"><span class="std std-numref">Figure 76</span></a>. Basically the FE and BE driver
+architecture, as shown in <a class="reference internal" href="#virtio-arch"><span class="std std-numref">Figure 77</span></a>. Basically the FE and BE driver
 communicate with each other through shared memory, via the
 virtqueues. The FE driver talks to the BE driver in the same way it
 would talk to a real PCIe device. The BE driver handles requests
@@ -700,17 +707,17 @@ from the FE driver, and notifies the FE driver if the request has been
 processed.</p>
 <div class="figure align-center" id="virtio-arch">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image1.png"><img alt="../../_images/virtio-hld-image1.png" src="../../_images/virtio-hld-image1.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 76 </span><span class="caption-text">Virtio Architecture</span></p>
+<p class="caption"><span class="caption-number">Figure 77 </span><span class="caption-text">Virtio Architecture</span></p>
 </div>
 <p>In addition to virtio’s frontend-backend architecture, both FE and BE
 drivers follow a layered architecture, as shown in
-<a class="reference internal" href="#virtio-fe-be"><span class="std std-numref">Figure 77</span></a>. Each
+<a class="reference internal" href="#virtio-fe-be"><span class="std std-numref">Figure 78</span></a>. Each
 side has three layers: transports, core models, and device types.
 All virtio devices share the same virtio infrastructure, including
 virtqueues, feature mechanisms, configuration space, and buses.</p>
 <div class="figure align-center" id="virtio-fe-be">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image4.png"><img alt="../../_images/virtio-hld-image4.png" src="../../_images/virtio-hld-image4.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 77 </span><span class="caption-text">Virtio Frontend/Backend Layered Architecture</span></p>
+<p class="caption"><span class="caption-number">Figure 78 </span><span class="caption-text">Virtio Frontend/Backend Layered Architecture</span></p>
 </div>
 </div>
 <div class="section" id="virtio-framework-considerations">
@@ -733,7 +740,7 @@ framework.</p>
 <div class="section" id="user-land-virtio-framework">
 <h3>User-Land Virtio Framework<a class="headerlink" href="#user-land-virtio-framework" title="Permalink to this headline">¶</a></h3>
 <p>The architecture of ACRN user-land virtio framework (VBS-U) is shown in
-<a class="reference internal" href="#virtio-userland"><span class="std std-numref">Figure 78</span></a>.</p>
+<a class="reference internal" href="#virtio-userland"><span class="std std-numref">Figure 79</span></a>.</p>
 <p>The FE driver talks to the BE driver as if it were talking with a PCIe
 device. This means for “control plane”, the FE driver could poke device
 registers through PIO or MMIO, and the device will interrupt the FE
@@ -749,13 +756,13 @@ remote memory map APIs and notification APIs. VBS-U accesses the
 virtqueue through the user-level vring service API helpers.</p>
 <div class="figure align-center" id="virtio-userland">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image3.png"><img alt="../../_images/virtio-hld-image3.png" src="../../_images/virtio-hld-image3.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 78 </span><span class="caption-text">ACRN User-Land Virtio Framework</span></p>
+<p class="caption"><span class="caption-number">Figure 79 </span><span class="caption-text">ACRN User-Land Virtio Framework</span></p>
 </div>
 </div>
 <div class="section" id="kernel-land-virtio-framework">
 <h3>Kernel-Land Virtio Framework<a class="headerlink" href="#kernel-land-virtio-framework" title="Permalink to this headline">¶</a></h3>
 <p>The architecture of ACRN kernel-land virtio framework (VBS-K) is shown
-in <a class="reference internal" href="#virtio-kernelland"><span class="std std-numref">Figure 79</span></a>.</p>
+in <a class="reference internal" href="#virtio-kernelland"><span class="std std-numref">Figure 80</span></a>.</p>
 <p>VBS-K provides acceleration for performance critical devices emulated by
 VBS-U modules by handling the “data plane” of the devices directly in
 the kernel. When VBS-K is enabled for certain device, the kernel-land
@@ -775,7 +782,7 @@ in the VBS-U or VBS-K model. This saves engineering effort regarding FE
 driver development.</p>
 <div class="figure align-center" id="virtio-kernelland">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image6.png"><img alt="../../_images/virtio-hld-image6.png" src="../../_images/virtio-hld-image6.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 79 </span><span class="caption-text">ACRN Kernel-Land Virtio Framework</span></p>
+<p class="caption"><span class="caption-number">Figure 80 </span><span class="caption-text">ACRN Kernel-Land Virtio Framework</span></p>
 </div>
 </div>
 </div>
@@ -788,7 +795,7 @@ these APIs.</p>
 <div class="section" id="vbs-u-key-data-structures">
 <h3>VBS-U Key Data Structures<a class="headerlink" href="#vbs-u-key-data-structures" title="Permalink to this headline">¶</a></h3>
 <p>The key data structures for VBS-U are listed as following, and their
-relationships are shown in <a class="reference internal" href="#vbs-u-data"><span class="std std-numref">Figure 80</span></a>.</p>
+relationships are shown in <a class="reference internal" href="#vbs-u-data"><span class="std std-numref">Figure 81</span></a>.</p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">pci_virtio_blk</span></code></dt>
 <dd>An example virtio device, such as virtio-blk.</dd>
@@ -807,7 +814,7 @@ of device.</dd>
 </dl>
 <div class="figure align-center" id="vbs-u-data">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image5.png"><img alt="../../_images/virtio-hld-image5.png" src="../../_images/virtio-hld-image5.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 80 </span><span class="caption-text">VBS-U Key Data Structures</span></p>
+<p class="caption"><span class="caption-number">Figure 81 </span><span class="caption-text">VBS-U Key Data Structures</span></p>
 </div>
 <p>Each virtio device is a PCIe device. In addition, each virtio device
 could have none or multiple virtqueues, depending on the device type.
@@ -819,7 +826,7 @@ device owner.</p>
 <div class="section" id="vbs-k-key-data-structures">
 <h3>VBS-K Key Data Structures<a class="headerlink" href="#vbs-k-key-data-structures" title="Permalink to this headline">¶</a></h3>
 <p>The key data structures for VBS-K are listed as follows, and their
-relationships are shown in <a class="reference internal" href="#vbs-k-data"><span class="std std-numref">Figure 81</span></a>.</p>
+relationships are shown in <a class="reference internal" href="#vbs-k-data"><span class="std std-numref">Figure 82</span></a>.</p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">vbs_k_rng</span></code></dt>
 <dd>In-kernel VBS-K component handling data plane of a
@@ -841,7 +848,7 @@ to be synchronized from VBS-U to VBS-K kernel module.</dd>
 </dl>
 <div class="figure align-center" id="vbs-k-data">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image8.png"><img alt="../../_images/virtio-hld-image8.png" src="../../_images/virtio-hld-image8.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 81 </span><span class="caption-text">VBS-K Key Data Structures</span></p>
+<p class="caption"><span class="caption-number">Figure 82 </span><span class="caption-text">VBS-K Key Data Structures</span></p>
 </div>
 <p>In VBS-K, the struct vbs_k_xxx represents the in-kernel component
 handling a virtio device’s data plane. It presents a char device for VBS-U
@@ -1016,7 +1023,7 @@ supported in ACRN.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 19, 2018.
+      Last updated on Oct 25, 2018.
 
     </p>
   </div> 

@@ -156,6 +156,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../README.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../README.html#building">Building</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../README.html#enabling-disabling">Enabling/Disabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../README.html#usage">Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../README.html#source-code">Source Code</a></li>
 </ul>
@@ -414,6 +415,12 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../tutorials/static-ip.html#activate-the-new-configuration">Activate the new configuration</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../../tutorials/using_partition_mode_on_up2.html">Using partition mode on UP2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../tutorials/using_partition_mode_on_up2.html#build-kernel-and-modules-for-partition-mode-guest">Build kernel and modules for partition mode guest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tutorials/using_partition_mode_on_up2.html#enabling-partition-mode">Enabling partition mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../tutorials/using_partition_mode_on_up2.html#playing-with-acrn-hypervisor-with-partition-mode">Playing with ACRN hypervisor with partition mode</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../tutorials/using_ubuntu_as_sos.html#install-ubuntu-natively">Install Ubuntu (natively)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../tutorials/using_ubuntu_as_sos.html#install-acrn">Install ACRN</a></li>
@@ -579,19 +586,12 @@ client notifies server and the server will clean up.</p>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>The server is launched automatically at boot, and the client is configured in
-<code class="docutils literal notranslate"><span class="pre">core_pattern</span></code> or <code class="docutils literal notranslate"><span class="pre">coredump-wrapper</span></code>. In <code class="docutils literal notranslate"><span class="pre">prepare.service</span></code>, it will
-check the content of <code class="docutils literal notranslate"><span class="pre">/proc/sys/kernel/core_pattern</span></code>. If there is
-<code class="docutils literal notranslate"><span class="pre">coredump-wrapper</span></code>, which means that <code class="docutils literal notranslate"><span class="pre">core_pattern</span></code> has been set in
-<code class="docutils literal notranslate"><span class="pre">systemd</span></code>, no need to do it again. Otherwise, the content should be
-changed by:</li>
-</ul>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ echo &quot;|/usr/bin/usercrash_c %p %e %s&quot; &gt; /proc/sys/kernel/core_pattern
-</pre></div>
-</div>
-<p>That means client will be triggered once userspace crash occurs. Then the
-event will be sent to server from client.</p>
-<ul class="simple">
+<li>The server is launched automatically at boot after this tool is enabled with
+instruction <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">crashlogctl</span> <span class="pre">enable</span></code>, and the client is configured in
+<code class="docutils literal notranslate"><span class="pre">usercrash-wrapper</span></code>, which is set as the app of <code class="docutils literal notranslate"><span class="pre">core_pattern</span></code>. In
+<code class="docutils literal notranslate"><span class="pre">usercrash-wrapper</span></code>, it will collect and reorder the parameters of the
+client and default app. Once a crash occurs in user space, the client and
+default app will be invoked separately.</li>
 <li>The <code class="docutils literal notranslate"><span class="pre">debugger</span></code> is an independent tool to dump the debug information of the
 specific process, including backtrace, stack, opened files, registers value,
 memory content around registers, and etc.</li>
@@ -634,7 +634,7 @@ is responsible for creating the crashfile and handle the events from client.</li
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 19, 2018.
+      Last updated on Oct 25, 2018.
 
     </p>
   </div> 

@@ -156,6 +156,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#building">Building</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#enabling-disabling">Enabling/Disabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#usage">Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#source-code">Source Code</a></li>
 </ul>
@@ -414,6 +415,12 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/static-ip.html#activate-the-new-configuration">Activate the new configuration</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html">Using partition mode on UP2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#build-kernel-and-modules-for-partition-mode-guest">Build kernel and modules for partition mode guest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#enabling-partition-mode">Enabling partition mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#playing-with-acrn-hypervisor-with-partition-mode">Playing with ACRN hypervisor with partition mode</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-ubuntu-natively">Install Ubuntu (natively)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-acrn">Install ACRN</a></li>
@@ -538,21 +545,29 @@
 <p>This document describes memory management for the ACRN hypervisor.</p>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The hypervisor (HV) virtualizes real physical memory so an unmodified OS
+(such as Linux or Android) running in a virtual machine, has the view of
+managing its own contiguous physical memory.  HV uses virtual-processor
+identifiers (VPIDs) and the extended page-table mechanism (EPT) to
+translate guest-physical address into host-physical address. HV enables
+EPT and VPID hardware virtualization features, establishes EPT page
+tables for SOS/UOS, and provides EPT page tables operation interfaces to
+others.</p>
 <p>In the ACRN hypervisor system, there are few different memory spaces to
 consider.  From the hypervisor’s point of view there are:</p>
 <ul class="simple">
-<li>Host Physical Address (HPA): the native physical address space, and</li>
-<li>Host Virtual Address (HVA): the native virtual address space based on
-a MMU. A page table is used to do the translation between HPA and HVA
+<li><strong>Host Physical Address (HPA)</strong>: the native physical address space, and</li>
+<li><strong>Host Virtual Address (HVA)</strong>: the native virtual address space based on
+a MMU. A page table is used to translate between HPA and HVA
 spaces.</li>
 </ul>
-<p>And from the Guest OS running on a hypervisor there are:</p>
+<p>From the Guest OS running on a hypervisor there are:</p>
 <ul class="simple">
-<li>Guest Physical Address (GPA): the guest physical address space from a
+<li><strong>Guest Physical Address (GPA)</strong>: the guest physical address space from a
 virtual machine.  GPA to HPA transition is usually based on a
 MMU-like hardware module (EPT in X86), and associated with a page
 table</li>
-<li>Guest Virtual Address (GVA): the guest virtual address space from a
+<li><strong>Guest Virtual Address (GVA)</strong>: the guest virtual address space from a
 virtual machine based on a vMMU</li>
 </ul>
 <div class="figure align-center" id="mem-overview">
@@ -575,49 +590,552 @@ inside the hypervisor and from a VM:</p>
 <li>How ACRN hypervisor &amp; SOS DM manage UOS guest memory (HPA/GPA)</li>
 </ul>
 </div>
-<div class="section" id="hypervisor-memory-management">
-<h2>Hypervisor Memory Management<a class="headerlink" href="#hypervisor-memory-management" title="Permalink to this headline">¶</a></h2>
-<p>The ACRN hypervisor is the primary owner to manage system
-memory. Typically the boot firmware (e.g., EFI) passes the platform physical
-memory layout - E820 table to the hypervisor. The ACRN hypervisor does its memory
-management based on this table.</p>
-<div class="section" id="physical-memory-layout-e820">
-<h3>Physical Memory Layout - E820<a class="headerlink" href="#physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
-<p>The boot firmware (e.g., EFI) passes the E820 table through a multiboot protocol.
-This table contains the original memory layout for the platform.</p>
+<div class="section" id="hypervisor-physical-memory-management">
+<h2>Hypervisor Physical Memory Management<a class="headerlink" href="#hypervisor-physical-memory-management" title="Permalink to this headline">¶</a></h2>
+<p>In the ACRN, the HV initializes MMU page tables to manage all physical
+memory and then switches to the new MMU page tables. After MMU page
+tables are initialized at the platform initialization stage, no updates
+are made for MMU page tables.</p>
+<div class="section" id="hypervisor-physical-memory-layout-e820">
+<h3>Hypervisor Physical Memory Layout - E820<a class="headerlink" href="#hypervisor-physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor is the primary owner to manage system memory.
+Typically the boot firmware (e.g., EFI) passes the platform physical
+memory layout - E820 table to the hypervisor. The ACRN hypervisor does
+its memory management based on this table using 4-level paging.</p>
+<p>The BIOS/bootloader firmware (e.g., EFI) passes the E820 table through a
+multiboot protocol.  This table contains the original memory layout for
+the platform.</p>
 <div class="figure align-center" id="mem-layout">
 <a class="reference internal image-reference" href="../../_images/mem-image1.png"><img alt="../../_images/mem-image1.png" src="../../_images/mem-image1.png" style="width: 900px;" /></a>
 <p class="caption"><span class="caption-number">Figure 36 </span><span class="caption-text">Physical Memory Layout Example</span></p>
 </div>
 <p><a class="reference internal" href="#mem-layout"><span class="std std-numref">Figure 36</span></a> is an example of the physical memory layout based on a simple
-platform E820 table. The following sections demonstrate different memory
-space management by referencing it.</p>
+platform E820 table.</p>
 </div>
-<div class="section" id="physical-to-virtual-mapping">
-<h3>Physical to Virtual Mapping<a class="headerlink" href="#physical-to-virtual-mapping" title="Permalink to this headline">¶</a></h3>
-<p>ACRN hypervisor is running under paging mode, so after receiving
-the platform E820 table, ACRN hypervisor creates its MMU page table
-based on it. This is done by the function init_paging() for all
-physical CPUs.</p>
-<p>The memory mapping policy here is:</p>
+<div class="section" id="hypervisor-memory-initialization">
+<h3>Hypervisor Memory Initialization<a class="headerlink" href="#hypervisor-memory-initialization" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor runs under paging mode. After the bootstrap
+processor (BSP) gets the platform E820 table, BSP creates its MMU page
+table based on it. This is done by the function <em>init_paging()</em> and
+<em>smep()</em>. After the application processor (AP) receives IPI CPU startup
+interrupt, it uses the MMU page tables created by BSP and enable SMEP.
+<a class="reference internal" href="#hv-mem-init"><span class="std std-numref">Figure 37</span></a>  describes the hypervisor memory initialization for BSP
+and APs.</p>
+<div class="figure align-center" id="hv-mem-init">
+<img alt="../../_images/mem-image8.png" src="../../_images/mem-image8.png" />
+<p class="caption"><span class="caption-number">Figure 37 </span><span class="caption-text">Hypervisor Memory Initialization</span></p>
+</div>
+<p>The memory mapping policy used is:</p>
 <ul class="simple">
-<li>Identical mapping for each physical CPU (ACRN hypervisor’s memory
-could be relocatable in a future implementation)</li>
+<li>Identical mapping (ACRN hypervisor memory could be relocatable in
+the future)</li>
 <li>Map all memory regions with UNCACHED type</li>
 <li>Remap RAM regions to WRITE-BACK type</li>
 </ul>
-<div class="figure align-center" id="vm-layout">
-<a class="reference internal image-reference" href="../../_images/mem-image4.png"><img alt="../../_images/mem-image4.png" src="../../_images/mem-image4.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 37 </span><span class="caption-text">Hypervisor Virtual Memory Layout</span></p>
+<div class="figure align-center" id="hv-mem-vm-init">
+<img alt="../../_images/mem-image69.png" src="../../_images/mem-image69.png" />
+<p class="caption"><span class="caption-number">Figure 38 </span><span class="caption-text">Hypervisor Virtual Memory Layout</span></p>
 </div>
-<p><a class="reference internal" href="#vm-layout"><span class="std std-numref">Figure 37</span></a> shows:</p>
+<p><a class="reference internal" href="#hv-mem-vm-init"><span class="std std-numref">Figure 38</span></a> above shows:</p>
 <ul class="simple">
-<li>Hypervisor can access all of system memory</li>
-<li>Hypervisor has an UNCACHED MMIO/PCI hole reserved for devices, such
-as for LAPIC/IOAPIC access</li>
+<li>Hypervisor has a view of and can access all system memory</li>
+<li>Hypervisor has UNCACHED MMIO/PCI hole reserved for devices such as
+LAPIC/IOAPIC accessing</li>
 <li>Hypervisor has its own memory with WRITE-BACK cache type for its
-code and data (&lt; 1M part is for secondary CPU reset code)</li>
+code/data (&lt; 1M part is for secondary CPU reset code)</li>
 </ul>
+<p>The hypervisor should use minimum memory pages to map from virtual
+address space into physical address space.</p>
+<ul class="simple">
+<li>If 1GB hugepage can be used
+for virtual address space mapping, the corresponding PDPT entry shall be
+set for this 1GB hugepage.</li>
+<li>If 1GB hugepage can’t be used for virtual
+address space mapping and 2MB hugepage can be used, the corresponding
+PDT entry shall be set for this 2MB hugepage.</li>
+<li>If both of 1GB hugepage
+and 2MB hugepage can’t be used for virtual address space mapping, the
+corresponding PT entry shall be set.</li>
+</ul>
+<p>If memory type or access rights of a page is updated, or some virtual
+address space is deleted, it will lead to splitting of the corresponding
+page. The hypervisor will still keep using minimum memory pages to map from
+virtual address space into physical address space.</p>
+</div>
+<div class="section" id="memory-pages-pool-functions">
+<h3>Memory Pages Pool Functions<a class="headerlink" href="#memory-pages-pool-functions" title="Permalink to this headline">¶</a></h3>
+<p>Memory pages pool functions provide dynamic management of multiple
+4KB page-size memory blocks, used by the hypervisor to store internal
+data.  Through these functions, the hypervisor can allocate and
+deallocate pages.</p>
+</div>
+<div class="section" id="data-flow-design">
+<h3>Data Flow Design<a class="headerlink" href="#data-flow-design" title="Permalink to this headline">¶</a></h3>
+<p>The physical memory management unit provides MMU 4-level page tables
+creating and updating services, MMU page tables switching service, SMEP
+enable service, and HPA/HVA retrieving service to other units.
+<a class="reference internal" href="#mem-data-flow-physical"><span class="std std-numref">Figure 39</span></a> shows the data flow diagram
+of physical memory management.</p>
+<div class="figure align-center" id="mem-data-flow-physical">
+<img alt="../../_images/mem-image45.png" src="../../_images/mem-image45.png" />
+<p class="caption"><span class="caption-number">Figure 39 </span><span class="caption-text">Data Flow of Hypervisor Physical Memory Management</span></p>
+</div>
+</div>
+<div class="section" id="data-structure-design">
+<h3>Data Structure Design<a class="headerlink" href="#data-structure-design" title="Permalink to this headline">¶</a></h3>
+<p>The page tables operation type:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="n">_page_table_type</span> <span class="p">{</span>
+
+   <span class="n">PTT_HOST</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>           <span class="cm">/* Operations for MMU page tables */</span>
+   <span class="n">PTT_EPT</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>           <span class="cm">/* Operations for EPT page tables */</span>
+   <span class="n">PAGETABLE_TYPE_UNKNOWN</span><span class="p">,</span> <span class="cm">/* Page tables operation type is unknown */</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interfaces-design">
+<h3>Interfaces Design<a class="headerlink" href="#interfaces-design" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="mmu-initialization">
+<h4>MMU Initialization<a class="headerlink" href="#mmu-initialization" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>void enable_smep(void)</td>
+<td>Supervisor-mode execution prevention (SMEP) enable</td>
+</tr>
+<tr class="row-odd"><td>void enable_paging(uint64_t pml64_base_addr)</td>
+<td>MMU paging enable</td>
+</tr>
+<tr class="row-even"><td>void init_paging(void)</td>
+<td>MMU page tables initialization</td>
+</tr>
+<tr class="row-odd"><td>uint64_t get_paging_pml4(void)</td>
+<td>Page map level 4 (PML4) table start address getting</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="page-allocation">
+<h4>Page Allocation<a class="headerlink" href="#page-allocation" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>void * alloc_paging_struct(void)</td>
+<td>Allocate one page from memory page pool</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="address-space-translation">
+<h4>Address Space Translation<a class="headerlink" href="#address-space-translation" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>HPA2HVA(x)</td>
+<td>Translate host-physical address to host-virtual address</td>
+</tr>
+<tr class="row-odd"><td>HVA2HPA(x)</td>
+<td>Translate host-virtual address to host-physical address</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="section" id="hypervisor-memory-virtualization">
+<h2>Hypervisor Memory Virtualization<a class="headerlink" href="#hypervisor-memory-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>The hypervisor provides a contiguous region of physical memory for SOS
+and each UOS. It also guarantees that the SOS and UOS can not access
+code and internal data in the hypervisor, and each UOS can not access
+code and internal data of the SOS and other UOSs.</p>
+<p>The hypervisor:</p>
+<ul class="simple">
+<li>enables EPT and VPID hardware virtualization features,</li>
+<li>establishes EPT page tables for SOS/UOS,</li>
+<li>provides EPT page tables operations services,</li>
+<li>virtualizes MTRR for SOS/UOS,</li>
+<li>provides VPID operations services,</li>
+<li>provides services for address spaces translation between GPA and HPA, and</li>
+<li>provides services for data transfer between hypervisor and virtual machine.</li>
+</ul>
+<div class="section" id="memory-virtualization-capability-checking">
+<h3>Memory Virtualization Capability Checking<a class="headerlink" href="#memory-virtualization-capability-checking" title="Permalink to this headline">¶</a></h3>
+<p>In the hypervisor, memory virtualization provides EPT/VPID capability
+checking service and EPT hugepage supporting checking service. Before HV
+enables memory virtualization and uses EPT hugepage, these service need
+to be invoked by other units.</p>
+</div>
+<div class="section" id="data-transfer-between-different-address-spaces">
+<h3>Data Transfer between Different Address Spaces<a class="headerlink" href="#data-transfer-between-different-address-spaces" title="Permalink to this headline">¶</a></h3>
+<p>In ACRN, different memory space management is used in the hypervisor,
+Service OS, and User OS to achieve spatial isolation. Between memory
+spaces, there are different kinds of data transfer, such as a SOS/UOS
+may hypercall to request hypervisor services which includes data
+transferring, or when the hypervisor does instruction emulation: the HV
+needs to access the guest instruction pointer register to fetch guest
+instruction data.</p>
+<div class="section" id="access-gpa-from-hypervisor">
+<h4>Access GPA from Hypervisor<a class="headerlink" href="#access-gpa-from-hypervisor" title="Permalink to this headline">¶</a></h4>
+<p>When hypervisor need access GPA for data transfer, the caller from guest
+must make sure this memory range’s GPA is continuous. But for HPA in
+hypervisor, it could be dis-continuous (especially for UOS under hugetlb
+allocation mechanism).  For example, a 4M GPA range may map to 2
+different 2M huge host-physical pages. The ACRN hypervisor must take
+care of this kind of data transfer by doing EPT page walking based on
+its HPA.</p>
+</div>
+<div class="section" id="access-gva-from-hypervisor">
+<h4>Access GVA from Hypervisor<a class="headerlink" href="#access-gva-from-hypervisor" title="Permalink to this headline">¶</a></h4>
+<p>When hypervisor needs to access GVA for data transfer, it’s likely both
+GPA and HPA could be address dis-continuous. The ACRN hypervisor must
+watch for this kind of data transfer, and handle it by doing page
+walking based on both its GPA and HPA.</p>
+</div>
+</div>
+<div class="section" id="ept-page-tables-operations">
+<h3>EPT Page Tables Operations<a class="headerlink" href="#ept-page-tables-operations" title="Permalink to this headline">¶</a></h3>
+<p>The hypervisor should use a minimum of memory pages to map from
+guest-physical address (GPA) space into host-physical address (HPA)
+space.</p>
+<ul class="simple">
+<li>If 1GB hugepage can be used for GPA space mapping, the
+corresponding EPT PDPT entry shall be set for this 1GB hugepage.</li>
+<li>If 1GB hugepage can’t be used for GPA space mapping and 2MB hugepage can be
+used, the corresponding EPT PDT entry shall be set for this 2MB
+hugepage.</li>
+<li>If both 1GB hugepage and 2MB hugepage can’t be used for GPA
+space mapping, the corresponding EPT PT entry shall be set.</li>
+</ul>
+<p>If memory type or access rights of a page is updated or some GPA space
+is deleted, it will lead to the corresponding EPT page being split. The
+hypervisor should still keep to using minimum EPT pages to map from GPA
+space into HPA space.</p>
+<p>The hypervisor provides EPT guest-physical mappings adding service, EPT
+guest-physical mappings modifying/deleting service, EPT page tables
+deallocation, and EPT guest-physical mappings invalidation service.</p>
+</div>
+</div>
+<div class="section" id="virtual-mtrr">
+<h2>Virtual MTRR<a class="headerlink" href="#virtual-mtrr" title="Permalink to this headline">¶</a></h2>
+<p>In ACRN, the hypervisor only virtualizes MTRRs fixed range (0~1MB).
+The HV sets MTRRs of the fixed range as Write-Back for UOS, and the SOS reads
+native MTRRs of the fixed range set by BIOS.</p>
+<p>If the guest physical address is not in the fixed range (0~1MB), the
+hypervisor uses the default memory type in the MTRR (Write-Back).</p>
+<p>When the guest disables MTRRs, the HV sets the guest address memory type
+as UC.</p>
+<p>If the guest physical address is in fixed range (0~1MB), the HV sets
+memory type according to the fixed virtual MTRRs.</p>
+<p>When the guest enable MTRRs, MTRRs have no effect on the memory type
+used for access to GPA. The HV first intercepts MTRR MSR registers
+access through MSR access VM exit and updates EPT memory type field in EPT
+PTE according to the memory type selected by MTRRs.  This combines with
+PAT entry in the PAT MSR (which is determined by PAT, PCD, and PWT bits
+from the guest paging structures) to determine the effective memory
+type.</p>
+<div class="section" id="vpid-operations">
+<h3>VPID operations<a class="headerlink" href="#vpid-operations" title="Permalink to this headline">¶</a></h3>
+<p>Virtual-processor identifier (VPID) is a hardware feature to optimize
+TLB management. When VPID is enable, hardware will add a tag for TLB of
+a logical processor and cache information for multiple linear-address
+spaces. VMX transitions may retain cached information and the logical
+processor switches to a different address space, avoiding unnecessary
+TLB flushes.</p>
+<p>In ACRN, an unique VPID must be allocated for each virtual CPU
+when a virtual CPU is created. The logical processor invalidates linear
+mappings and combined mapping associated with all VPIDs (except VPID
+0000H), and with all PCIDs when the logical processor launches the virtual
+CPU. The logical processor invalidates all linear mapping and combined
+mappings associated with the specified VPID when the interrupt pending
+request handling needs to invalidate cached mapping of the specified
+VPID.</p>
+</div>
+<div class="section" id="id1">
+<h3>Data Flow Design<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>The memory virtualization unit includes address space translation
+functions, data transferring functions, VM EPT operations functions,
+VPID operations functions, VM exit hanging about EPT violation and EPT
+misconfiguration, and MTRR virtualization functions. This unit handles
+guest-physical mapping updates by creating or updating related EPT page
+tables. It virtualizes MTRR for guest OS by updating related EPT page
+tables. It handles address translation from GPA to HPA by walking EPT
+page tables. It copies data from VM into the HV or from the HV to VM by
+walking guest MMU page tables and EPT page tables. It provides services
+to allocate VPID for each virtual CPU and TLB invalidation related VPID.
+It handles VM exit about EPT violation and EPT misconfiguration. The
+following <a class="reference internal" href="#mem-flow-mem-virt"><span class="std std-numref">Figure 40</span></a> describes the data flow diagram of
+the memory virtualization unit.</p>
+<div class="figure align-center" id="mem-flow-mem-virt">
+<img alt="../../_images/mem-image84.png" src="../../_images/mem-image84.png" />
+<p class="caption"><span class="caption-number">Figure 40 </span><span class="caption-text">Data Flow of Hypervisor Memory Virtualization</span></p>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Data Structure Design<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>EPT Memory Type Data Definition:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* EPT memory type is specified in bits 5:3 of the last EPT</span>
+<span class="cm"> * paging-structure entry */</span>
+<span class="cp">#define EPT_MT_SHIFT 3U</span>
+
+<span class="cm">/* EPT memory type is uncacheable  */</span>
+<span class="cp">#define EPT_UNCACHED (0UL &lt;&lt; EPT_MT_SHIFT)</span>
+
+<span class="cm">/* EPT memory type is write combining  */</span>
+<span class="cp">#define EPT_WC (1UL &lt;&lt; EPT_MT_SHIFT)</span>
+
+<span class="cm">/* EPT memory type is write through */</span>
+<span class="cp">#define EPT_WT (4UL &lt;&lt; EPT_MT_SHIFT)</span>
+
+<span class="cm">/* EPT memory type is write protected  */</span>
+<span class="cp">#define EPT_WP (5UL &lt;&lt; EPT_MT_SHIFT)</span>
+
+<span class="cm">/* EPT memory type is write back */</span>
+<span class="cp">#define EPT_WB (6UL &lt;&lt; EPT_MT_SHIFT)</span>
+</pre></div>
+</div>
+<p>EPT Memory Access Right Definition:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* EPT memory access right is read-only */</span>
+<span class="cp">#define EPT_RD (1UL &lt;&lt; 0U)</span>
+
+<span class="cm">/* EPT memory access right is read/write */</span>
+<span class="cp">#define EPT_WR (1UL &lt;&lt; 1U)</span>
+
+<span class="cm">/* EPT memory access right is executable */</span>
+<span class="cp">#define EPT_EXE (1UL &lt;&lt; 2U)</span>
+
+<span class="cm">/* EPT memory access right is read/write and executable */</span>
+<span class="n">define</span> <span class="n">EPT_RWX</span> <span class="p">(</span><span class="n">EPT_RD</span> <span class="o">|</span> <span class="n">EPT_WR</span> <span class="o">|</span> <span class="n">EPT_EXE</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h3>Interfaces Design<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>The memory virtualization unit interacts with external units through VM
+exit and APIs.</p>
+</div>
+<div class="section" id="vm-exit-about-ept">
+<h3>VM Exit about EPT<a class="headerlink" href="#vm-exit-about-ept" title="Permalink to this headline">¶</a></h3>
+<p>There are two VM exit handlers for EPT violation and EPT
+misconfiguration in the hypervisor. EPT page tables are
+always configured correctly for SOS and UOS. If EPT misconfiguration is
+detected, a fatal error is reported by HV. The hypervisor
+uses EPT violation to intercept MMIO access to do device emulation. EPT
+violation handling data flow is described in the
+<a class="reference internal" href="hv-cpu-virt.html#instruction-emulation"><span class="std std-ref">Instruction Emulation</span></a>.</p>
+</div>
+<div class="section" id="memory-virtualization-apis">
+<h3>Memory Virtualization APIs<a class="headerlink" href="#memory-virtualization-apis" title="Permalink to this headline">¶</a></h3>
+<p>Here is a list of major memory related APIs in HV:</p>
+<div class="section" id="ept-vpid-capability-checking">
+<h4>EPT/VPID Capability Checking<a class="headerlink" href="#ept-vpid-capability-checking" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>int check_vmx_mmu_cap(void)</td>
+<td>EPT and VPID capability checking</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="gb-hugepage-supporting-checking">
+<h4>1GB Hugepage Supporting Checking<a class="headerlink" href="#gb-hugepage-supporting-checking" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>bool check_mmu_1gb_support(enum _page_table_type page_table_type)</td>
+<td>1GB page supporting capability checking</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="data-transferring-between-hypervisor-and-vm">
+<h4>Data Transferring between hypervisor and VM<a class="headerlink" href="#data-transferring-between-hypervisor-and-vm" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>int copy_from_gpa(const struct vm *vm, void *h_ptr, uint64_t gpa, uint32_t size)</td>
+<td>Copy data from VM GPA space to HV address space</td>
+</tr>
+<tr class="row-odd"><td>int copy_to_gpa(const struct vm *vm, void *h_ptr, uint64_t gpa, uint32_t size)</td>
+<td>Copy data from HV address space to VM GPA space</td>
+</tr>
+<tr class="row-even"><td>int copy_from_gva(struct vcpu *vcpu, void *h_ptr, uint64_t gva,
+uint32_t size, uint32_t *err_code, uint64_t *fault_addr)</td>
+<td>Copy data from VM GVA space to HV address space</td>
+</tr>
+<tr class="row-odd"><td>int copy_to_gva(struct vcpu *vcpu, void *h_ptr, uint64_t gva,
+uint32_t size, uint32_t *err_code, uint64_t *fault_addr)</td>
+<td>Copy data from HV address space to VM GVA space</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id4">
+<h4>Address Space Translation<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>uint64_t gpa2hpa(const struct vm *vm, uint64_t gpa)</td>
+<td>Translating from guest-physical address to host-physical address</td>
+</tr>
+<tr class="row-odd"><td>uint64_t hpa2gpa(const struct vm *vm, uint64_t hpa)</td>
+<td>Translating from host-physical address to guest-physical address</td>
+</tr>
+<tr class="row-even"><td>bool check_continuous_hpa(struct vm *vm, uint64_t gpa_arg, uint64_t size_arg)</td>
+<td>Host-physical address continuous checking</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="ept">
+<h4>EPT<a class="headerlink" href="#ept" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>int ept_mr_add(const struct vm *vm, uint64_t hpa_arg, uint64_t gpa_arg,
+uint64_t size, uint32_t prot_arg)</td>
+<td>Guest-physical memory region mapping</td>
+</tr>
+<tr class="row-odd"><td>int ept_mr_del(const struct vm *vm, uint64_t *pml4_page, uint64_t gpa,
+uint64_t size)</td>
+<td>Guest-physical memory region unmapping</td>
+</tr>
+<tr class="row-even"><td>int ept_mr_modify(const struct vm *vm, uint64_t *pml4_page, uint64_t gpa,
+uint64_t size, uint64_t prot_set, uint64_t prot_clr)</td>
+<td>Guest-physical memory page access right or memory type updating</td>
+</tr>
+<tr class="row-odd"><td>void destroy_ept(struct vm *vm)</td>
+<td>EPT page tables destroy</td>
+</tr>
+<tr class="row-even"><td>void free_ept_mem(void *pml4_addr)</td>
+<td>EPT page tables free</td>
+</tr>
+<tr class="row-odd"><td>void invept(struct vcpu *vcpu)</td>
+<td>Guest-physical mappings and combined mappings invalidation</td>
+</tr>
+<tr class="row-even"><td>int ept_violation_vmexit_handler(struct vcpu *vcpu)</td>
+<td>EPT violation handling</td>
+</tr>
+<tr class="row-odd"><td>int ept_misconfig_vmexit_handler(__unused struct vcpu *vcpu)</td>
+<td>EPT misconfiguration handling</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id5">
+<h4>Virtual MTRR<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>void init_mtrr(struct vcpu *vcpu)</td>
+<td>Virtual MTRR initialization</td>
+</tr>
+<tr class="row-odd"><td>void mtrr_wrmsr(struct vcpu *vcpu, uint32_t msr, uint64_t value)</td>
+<td>Virtual MTRR MSR write</td>
+</tr>
+<tr class="row-even"><td>uint64_t mtrr_rdmsr(struct vcpu *vcpu, uint32_t msr)</td>
+<td>Virtual MTRR MSR read</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="vpid">
+<h4>VPID<a class="headerlink" href="#vpid" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>uint16_t allocate_vpid(void)</td>
+<td>VPID allocation</td>
+</tr>
+<tr class="row-odd"><td>void flush_vpid_single(uint16_t vpid)</td>
+<td>Specified VPID flush</td>
+</tr>
+<tr class="row-even"><td>void flush_vpid_global(void)</td>
+<td>All VPID flush</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 <div class="section" id="service-os-memory-management">
@@ -636,15 +1154,14 @@ after filtering out its own part. So from Service OS’s view, it sees
 almost all the system memory as shown here:</p>
 <div class="figure align-center" id="sos-mem-layout">
 <a class="reference internal image-reference" href="../../_images/mem-image3.png"><img alt="../../_images/mem-image3.png" src="../../_images/mem-image3.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 38 </span><span class="caption-text">SOS Physical Memory Layout</span></p>
+<p class="caption"><span class="caption-number">Figure 41 </span><span class="caption-text">SOS Physical Memory Layout</span></p>
 </div>
 </div>
 <div class="section" id="host-to-guest-mapping">
 <h3>Host to Guest Mapping<a class="headerlink" href="#host-to-guest-mapping" title="Permalink to this headline">¶</a></h3>
 <p>ACRN hypervisor creates Service OS’s host (HPA) to guest (GPA) mapping
-(EPT mapping) through the function
-<code class="docutils literal notranslate"><span class="pre">prepare_vm0_memmap_and_e820()</span></code> when it creates the SOS VM. It follows
-these rules:</p>
+(EPT mapping) through the function <code class="docutils literal notranslate"><span class="pre">prepare_vm0_memmap_and_e820()</span></code>
+when it creates the SOS VM. It follows these rules:</p>
 <ul class="simple">
 <li>Identical mapping</li>
 <li>Map all memory range with UNCACHED type</li>
@@ -659,85 +1176,14 @@ serving for vLAPIC/vIOAPIC’s emulation in the hypervisor for Service OS
 VM.</p>
 </div>
 </div>
-<div class="section" id="user-os-memory-management">
-<h2>User OS Memory Management<a class="headerlink" href="#user-os-memory-management" title="Permalink to this headline">¶</a></h2>
-<p>User OS VM is created by the DM (Device Model) application running in
-the Service OS. DM is responsible for the memory allocation for a User
-or Guest OS VM.</p>
-<div class="section" id="id1">
-<h3>Guest Physical Memory Layout - E820<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>DM will create the E820 table for a User OS VM based on these simple
-rules:</p>
-<ul class="simple">
-<li>If requested VM memory size &lt; low memory limitation (defined in DM,
-as 2GB), then low memory range = [0, requested VM memory size]</li>
-<li>If requested VM memory size &gt; low memory limitation (defined in DM,
-as 2GB), then low memory range = [0, 2GB], high memory range = [4GB,
-4GB + requested VM memory size - 2GB]</li>
-</ul>
-<div class="figure align-center" id="uos-mem-layout">
-<a class="reference internal image-reference" href="../../_images/mem-image6.png"><img alt="../../_images/mem-image6.png" src="../../_images/mem-image6.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 39 </span><span class="caption-text">UOS Physical Memory Layout</span></p>
-</div>
-<p>DM is doing UOS memory allocation based on hugeTLB mechanism by
-default. The real memory mapping
-may be scattered in SOS physical memory space, as shown below:</p>
-<div class="figure align-center" id="uos-mem-layout-hugetlb">
-<a class="reference internal image-reference" href="../../_images/mem-image5.png"><img alt="../../_images/mem-image5.png" src="../../_images/mem-image5.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 40 </span><span class="caption-text">UOS Physical Memory Layout Based on Hugetlb</span></p>
-</div>
-</div>
-<div class="section" id="id2">
-<h3>Host to Guest Mapping<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>A User OS VM’s memory is allocated by the Service OS DM application, and
-may come from different huge pages in the Service OS as shown in
-<a class="reference internal" href="#uos-mem-layout-hugetlb"><span class="std std-ref">UOS Physical Memory Layout Based on Hugetlb</span></a>.</p>
-<p>As Service OS has the full information of these huge pages size,
-SOS-GPA and UOS-GPA, it works with the hypervisor to complete UOS’s host
-to guest mapping using this pseudo code:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">x</span> <span class="n">in</span> <span class="n">allocated</span> <span class="n">huge</span> <span class="n">pages</span> <span class="k">do</span>
-   <span class="n">x</span><span class="p">.</span><span class="n">hpa</span> <span class="o">=</span> <span class="n">gpa2hpa_for_sos</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="n">sos_gpa</span><span class="p">)</span>
-   <span class="n">host2guest_map_for_uos</span><span class="p">(</span><span class="n">x</span><span class="p">.</span><span class="n">hpa</span><span class="p">,</span> <span class="n">x</span><span class="p">.</span><span class="n">uos_gpa</span><span class="p">,</span> <span class="n">x</span><span class="p">.</span><span class="n">size</span><span class="p">)</span>
-<span class="n">end</span>
-</pre></div>
-</div>
-</div>
 <div class="section" id="trusty">
-<h3>Trusty<a class="headerlink" href="#trusty" title="Permalink to this headline">¶</a></h3>
-<p>For an Android User OS, there is a secure world called “trusty world
-support”, whose memory needs are taken care by the ACRN hypervisor for
-security consideration. From the memory management’s view, the trusty
-memory space should not be accessible by SOS or UOS normal world.</p>
-<div class="figure align-center" id="uos-mem-layout-trusty">
-<a class="reference internal image-reference" href="../../_images/mem-image7.png"><img alt="../../_images/mem-image7.png" src="../../_images/mem-image7.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 41 </span><span class="caption-text">UOS Physical Memory Layout with Trusty</span></p>
-</div>
-</div>
-</div>
-<div class="section" id="memory-interaction">
-<h2>Memory Interaction<a class="headerlink" href="#memory-interaction" title="Permalink to this headline">¶</a></h2>
-<p>Previous sections described different memory spaces management in the
-ACRN hypervisor, Service OS, and User OS. Among these memory spaces,
-there are different kinds of interaction, for example, a VM may do a
-hypercall to the hypervisor that includes a data transfer, or an
-instruction emulation in the hypervisor may need to access the Guest
-instruction pointer register to fetch instruction data.</p>
-<div class="section" id="access-gpa-from-hypervisor">
-<h3>Access GPA from Hypervisor<a class="headerlink" href="#access-gpa-from-hypervisor" title="Permalink to this headline">¶</a></h3>
-<p>When a hypervisor needs access to the GPA for data transfers, the caller
-from the Guest must make sure this memory range’s GPA is address
-continuous. But for HPA in the hypervisor, it could be address
-dis-continuous (especially for UOS under hugetlb allocation mechanism).
-For example, a 4MB GPA range may map to 2 different 2MB huge pages. The
-ACRN hypervisor needs to take care of this kind of data transfer by
-doing EPT page walking based on its HPA.</p>
-</div>
-<div class="section" id="access-gva-from-hypervisor">
-<h3>Access GVA from Hypervisor<a class="headerlink" href="#access-gva-from-hypervisor" title="Permalink to this headline">¶</a></h3>
-<p>Likely, when hypervisor need to access GVA for data transfer, both GPA
-and HPA could be address dis-continuous. The ACRN hypervisor must pay
-attention to this kind of data transfer, and handle it by doing page
-walking based on both its GPA and HPA.</p>
+<h2>Trusty<a class="headerlink" href="#trusty" title="Permalink to this headline">¶</a></h2>
+<p>For an Android User OS, there is a secure world named trusty world
+support, whose memory must be secured by the ACRN hypervisor and
+must not be accessible by SOS and UOS normal world.</p>
+<div class="figure align-center" id="id6">
+<img alt="../../_images/mem-image18.png" src="../../_images/mem-image18.png" />
+<p class="caption"><span class="caption-number">Figure 42 </span><span class="caption-text">UOS Physical Memory Layout with Trusty</span></p>
 </div>
 </div>
 </div>
@@ -754,7 +1200,7 @@ walking based on both its GPA and HPA.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 19, 2018.
+      Last updated on Oct 25, 2018.
 
     </p>
   </div> 

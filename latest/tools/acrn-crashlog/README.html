@@ -156,6 +156,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#building">Building</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#enabling-disabling">Enabling/Disabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#usage">Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#source-code">Source Code</a></li>
 </ul>
@@ -414,6 +415,12 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/static-ip.html#activate-the-new-configuration">Activate the new configuration</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html">Using partition mode on UP2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#build-kernel-and-modules-for-partition-mode-guest">Build kernel and modules for partition mode guest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#enabling-partition-mode">Enabling partition mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#playing-with-acrn-hypervisor-with-partition-mode">Playing with ACRN hypervisor with partition mode</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-ubuntu-natively">Install Ubuntu (natively)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-acrn">Install ACRN</a></li>
@@ -535,13 +542,13 @@
 <h1>ACRN-Crashlog<a class="headerlink" href="#acrn-crashlog" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">ACRN-Crashlog</span></code> is a joint name for the tools (<code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code>,
-<code class="docutils literal notranslate"><span class="pre">usercrash_s</span></code>, <code class="docutils literal notranslate"><span class="pre">usercrash_c</span></code>, <code class="docutils literal notranslate"><span class="pre">debugger</span></code>, and more). Together
-these tools collect logs and information after each crash or event on an
-ACRN platform, including the hypervisor, Service OS (SOS), and Android
-as a Guest (AaaG). <code class="docutils literal notranslate"><span class="pre">ACRN-Crashlog</span></code> provides a flexible way to
-configure which events are of interest, by using an XML configuration
-file.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ACRN-Crashlog</span></code> is a collective name for various tools (<code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code>,
+<code class="docutils literal notranslate"><span class="pre">usercrash_s</span></code>, <code class="docutils literal notranslate"><span class="pre">usercrash_c</span></code>, <code class="docutils literal notranslate"><span class="pre">debugger</span></code>, and more) and a overall
+control utility called <code class="docutils literal notranslate"><span class="pre">crashlogctl</span></code>. Together these tools collect logs
+and information after each crash or event on an ACRN platform, including
+the hypervisor, Service OS (SOS), and Android as a Guest (AaaG).
+<code class="docutils literal notranslate"><span class="pre">ACRN-Crashlog</span></code> provides a flexible way to configure which events are
+of interest, by using an XML configuration file.</p>
 </div>
 <div class="section" id="building">
 <h2>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h2>
@@ -582,6 +589,80 @@ $ make clean
 <p>To install the build:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd acrn-crashlog
 $ sudo make install
+</pre></div>
+</div>
+</div>
+<div class="section" id="enabling-disabling">
+<h2>Enabling/Disabling<a class="headerlink" href="#enabling-disabling" title="Permalink to this headline">¶</a></h2>
+<p>To enable this tool:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo crashlogctl enable
+</pre></div>
+</div>
+<p>Then it will show:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">... Backup core pattern to /var/log/crashlog/default_core_pattern</span>
+<span class="go">&#39;/usr/share/defaults/telemetrics/telemetrics.conf&#39; -&gt;</span>
+<span class="go">&#39;/etc/telemetrics/telemetrics.conf&#39;</span>
+<span class="go">... Set server_delivery_enabled=false in /etc/telemetrics/telemetrics.conf</span>
+<span class="go">... Set record_retention_enabled=true in /etc/telemetrics/telemetrics.conf</span>
+<span class="go">&#39;/usr/share/acrn/crashlog/40-watchdog.conf&#39; -&gt;</span>
+<span class="go">&#39;/etc/systemd/system.conf.d/40-watchdog.conf&#39;</span>
+<span class="go">&#39;/usr/share/acrn/crashlog/80-coredump.conf&#39; -&gt;</span>
+<span class="go">&#39;/etc/sysctl.d/80-coredump.conf&#39;</span>
+<span class="go">Created symlink /etc/systemd/system/hprobe.timer → /dev/null.</span>
+<span class="go">Created symlink /etc/systemd/system/telemd-update-trigger.service →</span>
+<span class="go">/dev/null.</span>
+<span class="go">Created symlink /etc/systemd/system/pstore-clean.service → /dev/null.</span>
+<span class="go">Created symlink /etc/systemd/system/pstore-probe.service → /dev/null.</span>
+<span class="go">Created symlink /etc/systemd/system/oops-probe.service → /dev/null.</span>
+<span class="go">Created symlink /etc/systemd/system/klogscanner.service → /dev/null.</span>
+<span class="go">Created symlink /etc/systemd/system/journal-probe.service → /dev/null.</span>
+<span class="go">Created symlink /etc/systemd/system/bert-probe.service → /dev/null.</span>
+<span class="go">Created symlink /etc/systemd/system/multi-user.target.wants/acrnprobe.service</span>
+<span class="go">→ /usr/lib/systemd/system/acrnprobe.service.</span>
+<span class="go">Created symlink /etc/systemd/system/multi-user.target.wants/usercrash.service</span>
+<span class="go">→ /usr/lib/systemd/system/usercrash.service.</span>
+<span class="go">*** Please reboot your system. ***</span>
+</pre></div>
+</div>
+<p>Follow the hints to reboot the system:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo reboot
+</pre></div>
+</div>
+<p>To disable this tool:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo crashlogctl disable
+</pre></div>
+</div>
+<p>Then it will show:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Removed /etc/systemd/system/multi-user.target.wants/acrnprobe.service.</span>
+<span class="go">Removed /etc/systemd/system/multi-user.target.wants/usercrash.service.</span>
+<span class="go">Removed /etc/systemd/system/hprobe.timer.</span>
+<span class="go">Removed /etc/systemd/system/telemd-update-trigger.service.</span>
+<span class="go">Removed /etc/systemd/system/pstore-clean.service.</span>
+<span class="go">Removed /etc/systemd/system/pstore-probe.service.</span>
+<span class="go">Removed /etc/systemd/system/oops-probe.service.</span>
+<span class="go">Removed /etc/systemd/system/klogscanner.service.</span>
+<span class="go">Removed /etc/systemd/system/journal-probe.service.</span>
+<span class="go">Removed /etc/systemd/system/bert-probe.service.</span>
+<span class="go">removed &#39;/etc/sysctl.d/80-coredump.conf&#39;</span>
+<span class="go">removed &#39;/etc/systemd/system.conf.d/40-watchdog.conf&#39;</span>
+<span class="go">... Set server_delivery_enabled=true in /etc/telemetrics/telemetrics.conf</span>
+<span class="go">... Set record_retention_enabled=false in /etc/telemetrics/telemetrics.conf</span>
+<span class="go">*** Please reboot your system. ***</span>
+</pre></div>
+</div>
+<p>Follow the hints to reboot the system:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo reboot
+</pre></div>
+</div>
+<p>To check the status of this tool:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo crashlogctl is-active
+</pre></div>
+</div>
+<p>It will show the status of the related services like:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">telemprobd : active</span>
+<span class="go">telempostd : active</span>
+<span class="go">acrnprobe  : inactive</span>
+<span class="go">usercrash  : inactive</span>
 </pre></div>
 </div>
 </div>
@@ -690,7 +771,7 @@ For more detail on <code class="docutils literal notranslate"><span class="pre">
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 19, 2018.
+      Last updated on Oct 25, 2018.
 
     </p>
   </div> 
