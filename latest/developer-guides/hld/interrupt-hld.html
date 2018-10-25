@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Interrupt Management high-level design &mdash; Project ACRN™ v 0.3-unstable documentation</title>
+  <title>Physical Interrupt high-level design &mdash; Project ACRN™ v 0.3-unstable documentation</title>
   
 
   
@@ -226,7 +226,7 @@
 <li class="toctree-l4"><a class="reference internal" href="hv-cpu-virt.html">CPU Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="memmgt-hld.html">Memory management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-io-emulation.html">I/O Emulation</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Interrupt management</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Physical Interrupt</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-devicemodel.html">Device Model</a><ul>
@@ -524,7 +524,7 @@
         
           <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
         
-      <li>Interrupt Management high-level design</li>
+      <li>Physical Interrupt high-level design</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -541,12 +541,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="interrupt-management-high-level-design">
-<span id="interrupt-hld"></span><h1>Interrupt Management high-level design<a class="headerlink" href="#interrupt-management-high-level-design" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="physical-interrupt-high-level-design">
+<span id="interrupt-hld"></span><h1>Physical Interrupt high-level design<a class="headerlink" href="#physical-interrupt-high-level-design" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>This document describes the interrupt management high-level design for
-the ACRN hypervisor.</p>
 <p>The ACRN hypervisor implements a simple but fully functional framework
 to manage interrupts and exceptions, as show in
 <a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 47</span></a>. In its native layer, it configures
@@ -571,343 +569,403 @@ necessary virtual interrupt into the specific VM</p>
 <a class="reference internal image-reference" href="../../_images/interrupt-image2.png"><img alt="../../_images/interrupt-image2.png" src="../../_images/interrupt-image2.png" style="width: 600px;" /></a>
 <p class="caption"><span class="caption-number">Figure 48 </span><span class="caption-text">ACRN Interrupt SW Modules Overview</span></p>
 </div>
+<p>The hypervisor implements the following functionalities for handling
+physical interrupts:</p>
+<ul class="simple">
+<li>Configure interrupt-related hardware including IDT, PIC, LAPIC, and
+IOAPIC on startup.</li>
+<li>Provide APIs to manipulate the registers of LAPIC and IOAPIC.</li>
+<li>Acknowledge physical interrupts.</li>
+<li>Set up a callback mechanism for the other components in the
+hypervisor to request for an interrupt vector and register a
+handler for that interrupt.</li>
+</ul>
+<p>HV owns all native physical interrupts and manages 256 vectors per CPU.
+All physical interrupts are first handled in VMX root-mode.  The
+“external-interrupt exiting” bit in VM-Execution controls field is set
+to support this. The ACRN hypervisor also initializes all the interrupt
+related modules like IDT, PIC, IOAPIC, and LAPIC.</p>
+<p>HV does not own any host devices (except UART). All devices are by
+default assigned to SOS. Any interrupts received by Guest VM (SOS or
+UOS) device drivers are virtual interrupts injected by HV (via vLAPIC).
+HV manages a Host-to-Guest mapping. When a native IRQ/interrupt occurs,
+HV decides whether this IRQ/interrupt should be forwarded to a VM and
+which VM to forward to (if any). Refer to section 3.7.6 for virtual
+interrupt injection and section 3.9.6 for the management of interrupt
+remapping.</p>
+<p>HV does not own any exceptions. Guest VMCS are configured so no VM Exit
+happens, with some exceptions such as #INT3 and #MC.  This is to
+simplify the design as HV does not support any exception handling
+itself. HV supports only static memory mapping, so there should be no
+#PF or #GP. If HV receives an exception indicating an error, an assert
+function is then executed with an error message print out, and the
+system then halts.</p>
+<p>Native interrupts could be generated from one of the following
+sources:</p>
+<ul class="simple">
+<li>GSI interrupts<ul>
+<li>PIC or Legacy devices IRQ (0~15)</li>
+<li>IOAPIC pin</li>
+</ul>
+</li>
+<li>PCI MSI/MSI-X vectors</li>
+<li>Inter CPU IPI</li>
+<li>LAPIC timer</li>
+</ul>
 </div>
-<div class="section" id="hypervisor-physical-interrupt-management">
-<h2>Hypervisor Physical Interrupt Management<a class="headerlink" href="#hypervisor-physical-interrupt-management" title="Permalink to this headline">¶</a></h2>
-<p>The ACRN hypervisor is responsible for all the physical interrupt
-handling. All physical interrupts are first handled in VMX root-mode.
-The “external-interrupt exiting” bit in the VM-Execution controls field
-is set to support this. The ACRN hypervisor also initializes all the
-interrupt related modules such as IDT, PIC, IOAPIC, and LAPIC.</p>
-<p>Only a few physical interrupts (such as TSC-Deadline timer and IOMMU)
-are fully serviced in the hypervisor. Most interrupts come from pass-thru
-devices whose interrupt are remapped to a virtual INTx/MSI source and
-injected to the SOS or UOS, according to the pass-thru device
-configuration.</p>
-<p>The ACRN hypervisor does handle exceptions and any exception coming from
-the VMX root-mode will lead to the CPU halting. For guest exception, the
-hypervisor only traps #MC (machine check), prints a warning message, and
-injects the exception back into the guest OS.</p>
 <div class="section" id="physical-interrupt-initialization">
-<h3>Physical Interrupt Initialization<a class="headerlink" href="#physical-interrupt-initialization" title="Permalink to this headline">¶</a></h3>
-<p>After the ACRN hypervisor get control from the bootloader, it
-initializes all physical interrupt-related modules for all the CPUs. The
-ACRN hypervisor creates a framework to manage the physical interrupt for
-hypervisor-local devices, pass-thru devices, and IPI between CPUs.</p>
-<div class="section" id="idt">
-<h4>IDT<a class="headerlink" href="#idt" title="Permalink to this headline">¶</a></h4>
-<p>The ACRN hypervisor builds its native Interrupt Descriptor Table (IDT) during
-interrupt initialization. For exceptions, it links to function
-<code class="docutils literal notranslate"><span class="pre">dispatch_exception</span></code>, and for external interrupts it links to function
-<code class="docutils literal notranslate"><span class="pre">dispatch_interrupt</span></code>. Please refer to <code class="docutils literal notranslate"><span class="pre">arch/x86/idt.S</span></code> for more details.</p>
+<h2>Physical Interrupt Initialization<a class="headerlink" href="#physical-interrupt-initialization" title="Permalink to this headline">¶</a></h2>
+<p>After ACRN hypervisor gets control from the bootloader, it
+initializes all physical interrupt-related modules for all the CPUs. ACRN
+hypervisor creates a framework to manage the physical interrupt for
+hypervisor local devices, pass-thru devices, and IPI between CPUs, as
+shown in <a class="reference internal" href="#hv-interrupt-init"><span class="std std-numref">Figure 49</span></a>:</p>
+<div class="figure align-center" id="hv-interrupt-init">
+<img alt="../../_images/interrupt-image66.png" src="../../_images/interrupt-image66.png" />
+<p class="caption"><span class="caption-number">Figure 49 </span><span class="caption-text">Physical Interrupt Initialization</span></p>
 </div>
-<div class="section" id="lapic">
-<h4>LAPIC<a class="headerlink" href="#lapic" title="Permalink to this headline">¶</a></h4>
-<p>The ACRN hypervisor resets LAPIC for each CPU, and provides basic APIs
-used, for example, by the local timer (TSC Deadline)
-program and IPI notification program.  These APIs include
-write_laipic_reg32, send_lapic_eoi, send_startup_ipi, and
-send_single_ipi.</p>
+<div class="section" id="idt-initialization">
+<h3>IDT Initialization<a class="headerlink" href="#idt-initialization" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor builds its native IDT (interrupt descriptor table)
+during interrupt initialization and set up the following handlers:</p>
+<ul class="simple">
+<li>On an exception, the hypervisor dumps its context and halts the current
+physical processor (because physical exceptions are not expected).</li>
+<li>For external interrupts, HV may mask the interrupt (depending on the
+trigger mode), followed by interrupt acknowledgement and dispatch
+to the registered handler, if any.</li>
+</ul>
+<p>Most interrupts and exceptions are handled without a stack switch,
+except for machine-check, double fault, and stack fault exceptions which
+have their own stack set in TSS.</p>
 </div>
-<div class="section" id="pic-ioapic">
-<h4>PIC/IOAPIC<a class="headerlink" href="#pic-ioapic" title="Permalink to this headline">¶</a></h4>
-<p>The ACRN hypervisor masks all interrupts from PIC, so all the
-legacy interrupts from PIC (&lt;16) are linked to IOAPIC, as shown in
-<a class="reference internal" href="#interrupt-pic-pin"><span class="std std-numref">Figure 49</span></a>.</p>
-<p>ACRN will pre-allocate vectors and mask them for these legacy interrupts
-in IOAPIC RTE. For others (&gt;= 16) ACRN will mask them with vector 0 in
-RTE, and the vector will be dynamically allocated on demand.</p>
-<div class="figure align-center" id="interrupt-pic-pin">
-<a class="reference internal image-reference" href="../../_images/interrupt-image5.png"><img alt="../../_images/interrupt-image5.png" src="../../_images/interrupt-image5.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 49 </span><span class="caption-text">PIC &amp; IOAPIC Pin Connection</span></p>
+<div class="section" id="pic-ioapic-initialization">
+<h3>PIC/IOAPIC Initialization<a class="headerlink" href="#pic-ioapic-initialization" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor masks all interrupts from the PIC. All legacy interrupts
+from PIC (&lt;16) will be linked to IOAPIC, as shown in the connections in
+<a class="reference internal" href="#hv-pic-config"><span class="std std-numref">Figure 50</span></a>.</p>
+<p>ACRN will pre-allocate vectors and mask them for these legacy interrupt
+in IOAPIC RTE. For others (&gt;= 16), ACRN will mask them with vector 0 in
+RTE, and the vector will be dynamically allocate on demand.</p>
+<p>All external IOAPIC pins are categorized as GSI interrupt according to
+ACPI definition. HV supports multiple IOAPIC components. IRQ PIN to GSI
+mappings are maintained internally to determine GSI source IOAPIC.
+Native PIC is not used in the system.</p>
+<div class="figure align-center" id="hv-pic-config">
+<img alt="../../_images/interrupt-image46.png" src="../../_images/interrupt-image46.png" />
+<p class="caption"><span class="caption-number">Figure 50 </span><span class="caption-text">HV PIC/IOAPIC/LAPIC configuration</span></p>
 </div>
 </div>
-<div class="section" id="irq-desc">
-<h4>Irq Desc<a class="headerlink" href="#irq-desc" title="Permalink to this headline">¶</a></h4>
-<p>The ACRN hypervisor maintains a global <code class="docutils literal notranslate"><span class="pre">irq_desc[]</span></code> array shared among the
-CPUs and uses a flat mode to manage the interrupts.  The same
-vector is linked to the same IRQ number for all CPUs.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">irq_desc[]</span></code> array is indexed by the IRQ number. An
-<code class="docutils literal notranslate"><span class="pre">irq_handler</span></code> field can be set to a common edge, level, or quick
-handler called from <code class="docutils literal notranslate"><span class="pre">interrupt_dispatch</span></code>. The <code class="docutils literal notranslate"><span class="pre">irq_desc</span></code> structure
-also contains the <code class="docutils literal notranslate"><span class="pre">dev_list</span></code> field to maintain this IRQ’s action
-handler list.</p>
-<p>The global array <code class="docutils literal notranslate"><span class="pre">vector_to_irq[]</span></code> is used to manage the vector
-resource. This array is initialized with value <code class="docutils literal notranslate"><span class="pre">IRQ_INVALID</span></code> for all
-vectors, and will be set to a valid IRQ number after the corresponding
-vector is registered.</p>
-<p>For example, if the local timer registers interrupt with IRQ number 271 and
-vector 0xEF, then the arrays mentioned above will be set to:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">]</span><span class="o">.</span><span class="n">irq</span> <span class="o">=</span> <span class="mi">271</span><span class="p">;</span>
-<span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">]</span><span class="o">.</span><span class="n">vector</span> <span class="o">=</span> <span class="mh">0xEF</span><span class="p">;</span>
-<span class="n">vector_to_irq</span><span class="p">[</span><span class="mh">0xEF</span><span class="p">]</span> <span class="o">=</span> <span class="mi">271</span><span class="p">;</span>
+<div class="section" id="lapic-initialization">
+<h3>LAPIC Initialization<a class="headerlink" href="#lapic-initialization" title="Permalink to this headline">¶</a></h3>
+<p>Physical LAPICs are in xAPIC mode in ACRN hypervisor. The hypervisor
+initializes LAPIC for each physical CPU by masking all interrupts in the
+local vector table (LVT), clearing all ISRs, and enabling LAPIC.</p>
+<p>APIs are provided to access LAPIC for the other components in the
+hypervisor, aiming for further usage of local timer (TSC Deadline)
+program, IPI notification program, etc. See <a class="reference internal" href="#hv-interrupt-data-api"><span class="std std-ref">Data structures and interfaces</span></a>
+for a complete list.</p>
+</div>
+<div class="section" id="hv-interrupt-vectors-and-delivery-mode">
+<h3>HV Interrupt Vectors and Delivery Mode<a class="headerlink" href="#hv-interrupt-vectors-and-delivery-mode" title="Permalink to this headline">¶</a></h3>
+<p>The interrupt vectors are assigned as shown here:</p>
+<dl class="docutils">
+<dt><strong>Vector 0-0x1F</strong></dt>
+<dd>are exceptions that are not handled by HV. If
+such an exception does occur, the system then halts.</dd>
+<dt><strong>Vector: 0x20-0x2F</strong></dt>
+<dd>are allocated statically for legacy IRQ0-15.</dd>
+<dt><strong>Vector: 0x30-0xDF</strong></dt>
+<dd>are dynamically allocated vectors for PCI devices
+INTx or MSI/MIS-X usage. According to different interrupt delivery mode
+(FLAT or PER_CPU mode), an interrupt will be assigned to a vector for
+all the CPUs or a particular CPU.</dd>
+<dt><strong>Vector: 0xE0-0xFE</strong></dt>
+<dd>are high priority vectors reserved by HV for
+dedicated purposes. For example, 0xEF is used for timer, 0xF0 is used
+for IPI.</dd>
+</dl>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Vectors</th>
+<th class="head">Usage</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0x0-0x13</td>
+<td>Exceptions: NMI, INT3, page dault, GP, debug.</td>
+</tr>
+<tr class="row-odd"><td>0x14-0x1F</td>
+<td>Reserved</td>
+</tr>
+<tr class="row-even"><td>0x20-0x2F</td>
+<td>Statically allocated for external IRQ (IRQ0-IRQ15)</td>
+</tr>
+<tr class="row-odd"><td>0x30-0xDF</td>
+<td>Dynamically allocated for IOAPIC IRQ from PCI INTx/MSI</td>
+</tr>
+<tr class="row-even"><td>0xE0-0xFE</td>
+<td>Static allocated for HV</td>
+</tr>
+<tr class="row-odd"><td>0xEF</td>
+<td>Timer</td>
+</tr>
+<tr class="row-even"><td>0xF0</td>
+<td>IPI</td>
+</tr>
+<tr class="row-odd"><td>0xFF</td>
+<td>SPURIOUS_APIC_VECTOR</td>
+</tr>
+</tbody>
+</table>
+<p>Interrupts from either IOAPIC or MSI can be delivered to a target CPU.
+By default they are configured as Lowest Priority (FLAT mode), i.e. they
+are delivered to a CPU core that is currently idle or executing lowest
+priority ISR. There is no guarantee a device’s interrupt will be
+delivered to a specific Guest’s CPU. Timer interrupts are an exception -
+these are always delivered to the CPU which programs the LAPIC timer.</p>
+<p>There are two interrupt delivery modes: FLAT mode and PER_CPU mode. ACRN
+uses FLAT MODE where the interrupt/irq to vector mapping is the same on all CPUs. Every
+CPU receives same interrupts. IOAPIC and LAPIC MSI delivery mode are
+configured to Lowest Priority.</p>
+<p>Vector allocation for CPUs is shown here:</p>
+<div class="figure align-center" id="id1">
+<img alt="../../_images/interrupt-image89.png" src="../../_images/interrupt-image89.png" />
+<p class="caption"><span class="caption-number">Figure 51 </span><span class="caption-text">FLAT mode vector allocation</span></p>
+</div>
+</div>
+<div class="section" id="irq-descriptor-table">
+<h3>IRQ Descriptor Table<a class="headerlink" href="#irq-descriptor-table" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor maintains a global IRQ Descriptor Table shared among the
+physical CPUs. ACRN use FLAT MODE to manage the interrupts so the
+same vector will link to same the IRQ number for all CPUs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">need to reference API doc for irq_desc</p>
+</div>
+<p>The <em>irq_desc[]</em> array’s index represents IRQ number. An <em>irq_handler</em>
+field could be set to common edge/level/quick handler which will be
+called from <em>interrupt_dispatch</em>. The <em>irq_desc</em> structure also
+contains the <em>dev_list</em> field to maintain this IRQ’s action handler
+list.</p>
+<p>Another reverse mapping from vector to IRQ is used in addition to the
+IRQ descriptor table which maintains the mapping from IRQ to vector.</p>
+<p>On initialization, the descriptor of the legacy IRQs are initialized with
+proper vectors and the corresponding reverse mapping is set up.
+The descriptor of other IRQs are filled with an invalid
+vector which will be updated on IRQ allocation.</p>
+<p>For example, if local timer registers an interrupt with IRQ number 271 and
+vector 0xEF, then this date will be set up:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">].</span><span class="n">irq</span> <span class="o">=</span> <span class="mi">271</span>
+<span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">].</span><span class="n">vector</span> <span class="o">=</span> <span class="mh">0xEF</span>
+<span class="n">vector_to_irq</span><span class="p">[</span><span class="mh">0xEF</span><span class="p">]</span> <span class="o">=</span> <span class="mi">271</span>
 </pre></div>
 </div>
 </div>
 </div>
-<div class="section" id="physical-interrupt-flow">
-<h3>Physical Interrupt Flow<a class="headerlink" href="#physical-interrupt-flow" title="Permalink to this headline">¶</a></h3>
-<p>When an physical interrupt occurs, and the CPU is running under VMX root
-mode, the interrupt is triggered from the standard native irq flow:
-interrupt gate to irq handler. However, if the CPU is running under VMX
-non-root mode, an external interrupt will trigger a VM exit for reason
-“external-interrupt”. See <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 50</span></a>.</p>
-<div class="figure align-center" id="interrupt-handle-flow">
-<a class="reference internal image-reference" href="../../_images/interrupt-image4.png"><img alt="../../_images/interrupt-image4.png" src="../../_images/interrupt-image4.png" style="width: 800px;" /></a>
-<p class="caption"><span class="caption-number">Figure 50 </span><span class="caption-text">ACRN Hypervisor Interrupt Handle Flow</span></p>
+<div class="section" id="external-interrupt-handling">
+<h2>External Interrupt Handling<a class="headerlink" href="#external-interrupt-handling" title="Permalink to this headline">¶</a></h2>
+<p>CPU runs under VMX non-root mode and inside Guest VMs.
+<code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_PINBASED_CTLS.bit[0]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_EXIT_CTLS.bit[15]</span></code> are set to allow vCPU VM Exit to HV
+whenever there are interrupts to that physical CPU under
+non-root mode. HV ACKs the interrupts in VMX non-root and saves the
+interrupt vector to the relevant VM Exit field for HV IRQ processing.</p>
+<p>Note that as discussed above, an external interrupt causing vCPU VM Exit
+to HV does not mean that the interrupt belongs to that Guest VM. When
+CPU executes VM Exit into root-mode, interrupt handling will be enabled
+and the interrupt will be delivered and processed as quickly as possible
+inside HV. HV may emulate a virtual interrupt and inject to Guest if
+necessary.</p>
+<p>When an physical interrupt happened on a CPU, this CPU could be running
+under VMX root mode or non-root mode. If the CPU is running under VMX
+root mode, the interrupt is triggered from standard native IRQ flow -
+interrupt gate to IRQ handler. If the CPU is running under VMX non-root
+mode, an external interrupt will trigger a VM exit for reason
+“external-interrupt”.</p>
+<p>Interrupt and IRQ processing flow diagrams are shown below:</p>
+<div class="figure align-center" id="phy-interrupt-processing">
+<img alt="../../_images/interrupt-image48.png" src="../../_images/interrupt-image48.png" />
+<p class="caption"><span class="caption-number">Figure 52 </span><span class="caption-text">Processing of physical interrupts</span></p>
 </div>
-<p>After an interrupt happens (in either case noted above), the ACRN
-hypervisor jumps to <code class="docutils literal notranslate"><span class="pre">dispatch_interrupt</span></code>. This function will check
-which vector caused this interrupt, and the corresponding <code class="docutils literal notranslate"><span class="pre">irq_desc</span></code>
-structure’s <code class="docutils literal notranslate"><span class="pre">irq_handler</span></code> will be called for the service.</p>
-<p>There are several irq_handler’s defined in the ACRN hypervisor, as shown
-in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 50</span></a>, designed for different uses.  For
-example, <code class="docutils literal notranslate"><span class="pre">quick_handler_nolock</span></code> is used when no critical data needs
-protection in the action handlers; the VCPU notification IPI and local
-timer are good example of this use case.</p>
-<p>The more complicated <code class="docutils literal notranslate"><span class="pre">common_dev_handler_level</span></code> handler is intended
-for pass-thru devices with level triggered interrupts. To avoid
-continuously triggering the interrupt, it initially masks IOAPIC pin and
-unmasks it only when the corresponding vIOAPIC pin gets an explicit EOI
-ACK from the guest.</p>
-<p>All the irq handler’s finally call their own action handler list, as
-shown here:</p>
-<p>The common APIs for registering, updating, and unregistering
-interrupt handlers include irq_to_vector, dev_to_irq, dev_to_vector,
-pri_register_handler, normal_register_handler,
-unregister_handler_common, and update_irq_handler.</p>
+<div class="figure align-center" id="id2">
+<img alt="../../_images/interrupt-image39.png" src="../../_images/interrupt-image39.png" />
+<p class="caption"><span class="caption-number">Figure 53 </span><span class="caption-text">IRQ processing control flow</span></p>
 </div>
-<div class="section" id="physical-interrupt-source">
-<span id="id1"></span><h3>Physical Interrupt Source<a class="headerlink" href="#physical-interrupt-source" title="Permalink to this headline">¶</a></h3>
-<p>The ACRN hypervisor handles interrupts from many different sources, as
-shown in <a class="reference internal" href="#interrupt-source"><span class="std std-numref">Table 2</span></a>:</p>
-<table border="1" class="colwidths-given docutils" id="interrupt-source">
-<caption><span class="caption-number">Table 2 </span><span class="caption-text">Physical Interrupt Source</span><a class="headerlink" href="#interrupt-source" title="Permalink to this table">¶</a></caption>
-<colgroup>
-<col width="18%" />
-<col width="12%" />
-<col width="71%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Interrupt Source</th>
-<th class="head">Vector</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>TSC Deadline Timer</td>
-<td>0xEF</td>
-<td>The TSC deadline timer implements the timer framework in
-the hypervisor based on the LAPIC TSC deadline. This interrupt’s
-target is specific to the CPU to which the LAPIC belongs.</td>
-</tr>
-<tr class="row-odd"><td>CPU Startup IPI</td>
-<td>N/A</td>
-<td>The BSP needs to trigger an INIT-SIPI sequence to wake up the
-APs. This interrupt’s target is specified by the BSP calling
-`` start_cpus()``.</td>
-</tr>
-<tr class="row-even"><td>VCPU Notify IPI</td>
-<td>0xF0</td>
-<td>When the hypervisor needs to kick the VCPU out of VMX non-root
-mode to do requests such as virtual interrupt injection, EPT
-flush, etc. This interrupt’s target is specified by function
-<code class="docutils literal notranslate"><span class="pre">send_single_ipi()</span></code>.</td>
-</tr>
-<tr class="row-odd"><td>IOMMU MSI</td>
-<td>dynamic</td>
-<td>IOMMU device supports an MSI interrupt. The vtd device driver in
-the hypervisor will register an interrupt to handle dmar fault.
-This interrupt’s target is specified by vtd device driver.</td>
-</tr>
-<tr class="row-even"><td>PTdev INTx</td>
-<td>dynamic</td>
-<td>All native devices are owned by the guest (SOS or UOS), taking
-advantage of the pass-thru method. Each pass-thru device connected
-with IOAPIC/PIC (PTdev INTx) will register an interrupt when
-its attached interrupt controller pin first gets unmasked.
-This interrupt’s target is defined by and RTE entry in the IOAPIC.</td>
-</tr>
-<tr class="row-odd"><td>PTdev MSI</td>
-<td>dynamic</td>
-<td>All native devices are owned by the guest (SOS or UOS), taking
-advantage of pass-thru method. Each pass-thru device with
-enabled MSI (PTdev MSI) will register an interrupt when the SOS
-does an explicit hypercall. This interrupt’s target is defined
-by an MSI address entry.</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="softirq">
-<h3>Softirq<a class="headerlink" href="#softirq" title="Permalink to this headline">¶</a></h3>
-<p>ACRN hypervisor implements a simple bottom-half softirq to execute the
-interrupt handler, as showed in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 50</span></a>.
-The softirq is executed when an interrupt is enabled. Several APIs for softirq
-are defined including enable_softirq, disable_softirq, raise_softirq,
-and exec_softirq.</p>
-</div>
-<div class="section" id="physical-exception-handling">
-<h3>Physical Exception Handling<a class="headerlink" href="#physical-exception-handling" title="Permalink to this headline">¶</a></h3>
-<p>As mentioned earlier, the ACRN hypervisor does not handle any
-physical exceptions. The VMX root mode code path should guarantee no
-exceptions are triggered while the hypervisor is running.</p>
-</div>
-</div>
-<div class="section" id="guest-virtual-interrupt-management">
-<h2>Guest Virtual Interrupt Management<a class="headerlink" href="#guest-virtual-interrupt-management" title="Permalink to this headline">¶</a></h2>
-<p>The previous sections describe physical interrupt management in the ACRN
-hypervisor. After a physical interrupt happens, a registered action
-handler is executed. Usually, the action handler represents a service
-for virtual interrupt injection. For example, if an interrupt is
-triggered from a pass-thru device, the appropriate virtual interrupt
-should be injected into its guest VM.</p>
-<p>The virtual interrupt injection could also come from an emulated device.
-The I/O mediator in the Service OS (SOS) could trigger an interrupt
-through a hypercall, and then do the virtual interrupt injection in the
-hypervisor.</p>
-<p>The following sections give an introduction to the ACRN guest virtual
-interrupt management, including VCPU request for virtual interrupt kick
-off, vPIC/vIOAPIC/vLAPIC for virtual interrupt injection interfaces,
-physical-to-virtual interrupt mapping for a pass-thru device, and the
-process of VMX interrupt/exception injection.</p>
-<div class="section" id="vcpu-request">
-<h3>VCPU Request<a class="headerlink" href="#vcpu-request" title="Permalink to this headline">¶</a></h3>
-<p>As mentioned in <a class="reference internal" href="#physical-interrupt-source">physical_interrupt_source</a>, physical vector 0xF0 is
-used to kick the VCPU out of its VMX non-root mode, and make a request
-for virtual interrupt injection or other requests such as flush EPT.</p>
-<p>The request-make API (vcpu_make_request) and eventid supports virtual interrupt
-injection.</p>
-<p>There are requests for exception injection (ACRN_REQUEST_EXCP), vLAPIC
-event (ACRN_REQUEST_EVENT), external interrupt from vPIC
-(ACRN_REQUEST_EXTINT) and non-maskable-interrupt (ACRN_REQUEST_NMI).</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">vcpu_make_request</span></code> is necessary for a virtual interrupt
-injection.  If the target VCPU is running under VMX non-root mode, it
-will send an IPI to kick it out and results in an external-interrupt
-VM-Exit.  The flow of <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 50</span></a> could be executed
-to complete the injection of a virtual interrupt.</p>
-<p>There are some cases that do not need to send an IPI when making a
-request because the CPU making the request is the target VCPU.  For
-example, the #GP exception request always happens on the current CPU
-when an invalid emulation happens. An external interrupt for a pass-thru
-device always happens on the VCPUs the device belongs to, so after it
-triggers an external-interrupt VM-Exit, the current CPU is also the
-target VCPU.</p>
-</div>
-<div class="section" id="virtual-pic">
-<h3>Virtual PIC<a class="headerlink" href="#virtual-pic" title="Permalink to this headline">¶</a></h3>
-<p>The ACRN hypervisor emulates a vPIC for each VM based on IO ranges
-0x20-0x21, 0xa0-0xa1, or 0x4d0-0x4d1.</p>
-<p>If an interrupt source from vPIC needs to inject an interrupt,
-the vpic_assert_irq, vpic_deassert_irq, or vpic_pulse_irq functions can
-be called to make a request for ACRN_REQUEST_EXTINT or
-ACRN_REQUEST_EVENT:</p>
-<p>The vpic_pending_intr and vpic_intr_accepted APIs are used to query the
-vector being injected and ACK the service, by moving the interrupt from
-request service (IRR) to in service (ISR).</p>
-</div>
-<div class="section" id="virtual-ioapic">
-<h3>Virtual IOAPIC<a class="headerlink" href="#virtual-ioapic" title="Permalink to this headline">¶</a></h3>
-<p>ACRN hypervisor emulates a vIOAPIC for each VM based on MMIO
-VIOAPIC_BASE.</p>
-<p>If an interrupt source from vIOAPIC needs to inject an interrupt, the
-vioapic_assert_irq, vioapic_dessert_irq, and vioapic_pulse_irq APIs are
-used to make a request for ACRN_REQUEST_EVENT.</p>
-<p>As the vIOAPIC is always associated with a vLAPIC, the virtual interrupt
-injection from vIOAPIC will finally trigger a request for an vLAPIC
-event.</p>
-</div>
-<div class="section" id="virtual-lapic">
-<h3>Virtual LAPIC<a class="headerlink" href="#virtual-lapic" title="Permalink to this headline">¶</a></h3>
-<p>The ACRN hypervisor emulates a vLAPIC for each VCPU based on MMIO
-DEFAULT_APIC_BASE.</p>
-<p>If an interrupt source from vLAPIC needs to inject an interrupt (e.g.,
-from LVT such as an LAPIC timer, from vIOAPIC for a pass-thru device
-interrupt, or from an emulated device for a MSI), vlapic_intr_level,
-vlapic_intr_edge, vlapic_set_local_intr, vlapic_intr_msi,
-vlapic_deliver_intr APIs need to be called, resulting in a request for
-ACRN_REQUEST_EVENT.</p>
-<p>The vlapic_pending_intr and vlapic_intr_accepted APIs are used to query
-the vector that needs to be injected and ACK
-the service that move the interrupt from request service (IRR) to in
-service (ISR).</p>
-<p>By default, the ACRN hypervisor enables vAPIC to improve the performance of
-a vLAPIC emulation.</p>
-</div>
-<div class="section" id="virtual-exception">
-<h3>Virtual Exception<a class="headerlink" href="#virtual-exception" title="Permalink to this headline">¶</a></h3>
-<p>When doing emulation, an exception may be triggered in the hypervisor,
-for example, if guest accesses an invalid vMSR register, or the
-hypervisor needs to inject a #GP, or during instruction emulation, an
-instruction fetch may access a non-exist page from rip_gva, and a #PF
-must be injected.</p>
-<p>ACRN hypervisor implements virtual exception injection using the
-vcpu_queue_exception, vcpu_inject_gq, and vcpu_inject_pf APIs.</p>
-<p>The ACRN hypervisor uses vcpu_inject_gp/vcpu_inject_pf functions to
-queue exception requests, and follows <a class="reference external" href="SDMvol3">Intel Software
-Developer Manual, Vol 3.</a> - 6.15, Table 6-5
-listing conditions for generating a double fault.</p>
-</div>
-<div class="section" id="interrupt-mapping-for-a-pass-thru-device">
-<h3>Interrupt Mapping for a Pass-thru Device<a class="headerlink" href="#interrupt-mapping-for-a-pass-thru-device" title="Permalink to this headline">¶</a></h3>
-<p>A VM can control a PCI device directly through pass-thru device
-assignment. The pass-thru entry is the major info object, and it is:</p>
+<p>When a physical interrupt is raised and delivered to a physical CPU, the
+CPU may be running under either VMX root mode or non-root mode.</p>
 <ul class="simple">
-<li>A physical interrupt source, and could be a MSI/MSIX entry, PIC pins, or
-IOAPIC pins</li>
-<li>Pass-thru remapping information between physical and virtual interrupt
-source, for MSI/MSIX it is identified by a PCI device’s BDF. For
-PIC/IOAPIC it is identified by the pin number.</li>
+<li>If the CPU is running under VMX root mode, the interrupt is handled
+following the standard native IRQ flow: interrupt gate to
+dispatch_interrupt(), IRQ handler, and finally the registered callback.</li>
+<li>If the CPU is running under VMX non-root mode, an external interrupt
+calls a VM exit for reason “external-interrupt”, and then the VM
+exit processing flow will call dispatch_interrupt() to dispatch and
+handle the interrupt.</li>
 </ul>
-<div class="figure align-center" id="interrupt-pass-thru">
-<a class="reference internal image-reference" href="../../_images/interrupt-image7.png"><img alt="../../_images/interrupt-image7.png" src="../../_images/interrupt-image7.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 51 </span><span class="caption-text">Pass-thru Device Entry Assignment</span></p>
-</div>
-<p>As shown in <a class="reference internal" href="#interrupt-pass-thru"><span class="std std-numref">Figure 51</span></a> above, a UOS will assign its
-pass-thru device entry by the DM, and it will fill its entry info from:</p>
-<ul class="simple">
-<li>vPIC/vIOAPIC interrupt mask/unmask</li>
-<li>MSI IOReq from UOS then MSI hypercall from SOS</li>
+<p>After an interrupt occures from either path shown in
+<a class="reference internal" href="#phy-interrupt-processing"><span class="std std-numref">Figure 52</span></a>, ACRN hypervisor will jump to
+dispatch_interrupt. This function gets the vector of the generated
+interrupt from the context, gets IRQ number from vector_to_irq[], and
+then gets the corresponding irq_desc.</p>
+<p>Though there is only one generic IRQ handler for registered interrupt,
+there are three different handling flows according to flags:</p>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">!IRQF_LEVEL</span></code></p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">IRQF_LEVEL</span> <span class="pre">&amp;&amp;</span> <span class="pre">!IRQF_PT</span></code></p>
+<p>To avoid continuous interrupt triggers, it masks the IOAPIC pin and
+unmask it only after IRQ action callback is executed</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">IRQF_LEVEL</span> <span class="pre">&amp;&amp;</span> <span class="pre">IRQF_PT</span></code></p>
+<p>For pass-thru devices, to avoid continuous interrupt triggers, it masks
+the IOAPIC pin and leaves it unmasked until corresponding vIOAPIC
+pin gets an explicit EOI ACK from guest.</p>
+</li>
 </ul>
-<p>The SOS adds its pass-thru device entry at runtime and fills info for:</p>
-<ul class="simple">
-<li>vPIC/vIOAPIC interrupt mask/unmask</li>
-<li>MSI hypercall from SOS</li>
-</ul>
-<p>During the pass-thru device entry info filling, the hypervisor builds
-native IOAPIC RTE/MSI entry based on vIOAPIC/vPIC/vMSI configuration,
-and register the physical interrupt handler for it. Then with the pass-thru
-device entry as the handler private data, the physical interrupt can
-be linked to a virtual pin of a guest’s vPIC/vIOAPIC or virtual vector of
-a guest’s vMSI. The handler then injects the corresponding virtual
-interrupt into the guest, based on vPIC/vIOAPIC/vLAPIC APIs described
-earlier.</p>
+<p>Since interrupts are not shared for multiple devices, there is only one
+IRQ action registered for each interrupt</p>
+<p>The IRQ number inside HV is a software concept to identify GSI and
+Vectors. Each GSI will be mapped to one IRQ. The GSI number is usually the same
+as the IRQ number. IRQ numbers greater than max GSI (nr_gsi) number are dynamically
+assigned. For example, HV allocates an interrupt vector to a PCI device,
+an IRQ number is then assigned to that vector. When the vector later
+reaches a CPU, the corresponding IRQ routine is located and executed.</p>
+<p>See <a class="reference internal" href="#request-irq"><span class="std std-numref">Figure 54</span></a> for request IRQ control flow for different
+conditions:</p>
+<div class="figure align-center" id="request-irq">
+<img alt="../../_images/interrupt-image76.png" src="../../_images/interrupt-image76.png" />
+<p class="caption"><span class="caption-number">Figure 54 </span><span class="caption-text">Request IRQ for different conditions</span></p>
 </div>
-<div class="section" id="interrupt-storm-mitigation">
-<h3>Interrupt Storm Mitigation<a class="headerlink" href="#interrupt-storm-mitigation" title="Permalink to this headline">¶</a></h3>
-<p>When the Device Model (DM) launches a User OS (UOS), the ACRN hypervisor
-will remap the interrupt for this user OS’s pass-through devices. When
-an interrupt occurs for a pass-through device, the CPU core is assigned
-to that User OS gets trapped into the hypervisor. The benefit of such a
-mechanism is that, should an interrupt storm happen in a particular UOS,
-it will have only a minimal effect on the performance of the Service OS.</p>
 </div>
-<div class="section" id="interrupt-exception-injection-process">
-<h3>Interrupt/Exception Injection Process<a class="headerlink" href="#interrupt-exception-injection-process" title="Permalink to this headline">¶</a></h3>
-<p>As shown in <a class="reference internal" href="#interrupt-handle-flow"><span class="std std-numref">Figure 50</span></a>, the ACRN hypervisor injects
-virtual interrupt/exception to the guest before its VM-Entry.</p>
-<p>This is done by updating the VMX_ENTRY_INT_INFO_FIELD of the VCPU’s
-VMCS. As this field is unique, the interrupt/exception injection must
-follow a priority rule to handle one-by-one.</p>
-<p><a class="reference internal" href="#interrupt-injection"><span class="std std-numref">Figure 52</span></a> below shows the rules about how to inject
-virtual interrupt/exception one-by-one. If a high priority
-interrupt/exception was already injected, the next pending
-interrupt/exception will enable an interrupt window where the next
-injection will be done by the following VM-Exit, triggered by the
-interrupt window.</p>
-<div class="figure align-center" id="interrupt-injection">
-<a class="reference internal image-reference" href="../../_images/interrupt-image6.png"><img alt="../../_images/interrupt-image6.png" src="../../_images/interrupt-image6.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 52 </span><span class="caption-text">ACRN Hypervisor Interrupt/Exception Injection Process</span></p>
+<div class="section" id="ipi-management">
+<h2>IPI Management<a class="headerlink" href="#ipi-management" title="Permalink to this headline">¶</a></h2>
+<p>The only purpose of IPI use in HV is to kick a vCPU out of non-root mode
+and enter to HV mode. This requires I/O request and virtual interrupt
+injection be distributed to different IPI vectors. The I/O request uses
+IPI vector 0xF4 upcall (refer to Chapter 5.4). The virtual interrupt
+injection uses IPI vector 0xF0.</p>
+<dl class="docutils">
+<dt>0xF4 upcall</dt>
+<dd>A Guest vCPU VM Exit exits due to EPT violation or IO instruction trap.
+It requires Device Module to emulate the MMIO/PortIO instruction.
+However it could be that the Service OS (SOS) vCPU0 is still in non-root
+mode. So an IPI (0xF4 upcall vector) should be sent to the physical CPU0
+(with non-root mode as vCPU0 inside SOS) to force vCPU0 to VM Exit due
+to the external interrupt. The virtual upcall vector is then injected to
+SOS, and the vCPU0 inside SOS then will pick up the IO request and do
+emulation for other Guest.</dd>
+<dt>0xF0 IPI flow</dt>
+<dd>If Device Module inside SOS needs to inject an interrupt to other Guest
+such as vCPU1, it will issue an IPI first to kick CPU1 (assuming CPU1 is
+running on vCPU1) to root-hv_interrupt-data-apmode. CPU1 will inject the
+interrupt before VM Enter.</dd>
+</dl>
+</div>
+<div class="section" id="data-structures-and-interfaces">
+<span id="hv-interrupt-data-api"></span><h2>Data structures and interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="ioapic">
+<h3>IOAPIC<a class="headerlink" href="#ioapic" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for IOAPIC related
+operations.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">ioapic_get_rte</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="k">union</span> <span class="n">ioapic_rte</span> <span class="o">*</span><span class="n">rte</span><span class="p">)</span>
+   <span class="cm">/*   get the redirection table entry of an irq. */</span>
+
+<span class="kt">void</span> <span class="n">ioapic_set_rte</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="k">union</span> <span class="n">ioapic_rte</span> <span class="n">rte</span><span class="p">)</span>
+   <span class="cm">/*   Set the redirection table entry of an irq. */</span>
+
+<span class="kt">uint32_t</span> <span class="n">pin_to_irq</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">pin</span><span class="p">)</span>
+   <span class="cm">/*   Get irq num from physical irq pin num */</span>
+
+<span class="kt">void</span> <span class="n">suspend_ioapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   Suspended ioapic, mainly save the RTEs. */</span>
+
+<span class="kt">void</span> <span class="n">resume_ioapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   Resume ioapic, mainly restore the RTEs. */</span>
+
+<span class="kt">int</span> <span class="n">get_ioapic_info</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">str_arg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">str_max_len</span><span class="p">)</span>
+   <span class="cm">/*   Dump information of ioapic for debug, such as irq num, pin,</span>
+<span class="cm">    *   RTE, vector, trigger mode etc. For debugging only.</span>
+<span class="cm">    */</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="lapic">
+<h3>LAPIC<a class="headerlink" href="#lapic" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for LAPIC related operations.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">write_lapic_reg32</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">offset</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">value</span><span class="p">)</span>
+   <span class="cm">/*   Write to lapic register. */</span>
+
+<span class="kt">void</span> <span class="n">early_init_lapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   To get the local apic base addr, map lapic registers and check the</span>
+<span class="cm">    *   xAPIC/x2APIC capability.</span>
+<span class="cm">    */</span>
+
+<span class="kt">void</span> <span class="n">save_lapic</span><span class="p">(</span><span class="k">struct</span> <span class="n">lapic_regs</span> <span class="o">*</span><span class="n">regs</span><span class="p">)</span>
+   <span class="cm">/*   Save context of lapic before entering s3. */</span>
+
+<span class="kt">void</span> <span class="n">restore_lapic</span><span class="p">(</span><span class="k">struct</span> <span class="n">lapic_regs</span> <span class="o">*</span><span class="n">regs</span><span class="p">)</span>
+   <span class="cm">/*   Restore context of lapic when resume from s3. */</span>
+
+<span class="kt">void</span> <span class="n">resume_lapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   Resume lapic by setting the apic base addr and restore the registers. */</span>
+
+<span class="kt">uint8_t</span> <span class="n">get_cur_lapic_id</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   Get the lapic id. */</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ipi">
+<h3>IPI<a class="headerlink" href="#ipi" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for IPI related operations.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">send_startup_ipi</span><span class="p">(</span><span class="k">enum</span> <span class="n">intr_cpu_startup_shorthand</span> <span class="n">cpu_startup_shorthand</span><span class="p">,</span>
+                      <span class="kt">uint16_t</span> <span class="n">dest_pcpu_id</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">cpu_startup_start_address</span><span class="p">)</span>
+   <span class="cm">/*   Send an SIPI to a specific cpu, to notify the cpu to start booting. */</span>
+
+<span class="kt">void</span> <span class="n">send_dest_ipi</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">dest</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">vector</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">dest_mode</span><span class="p">)</span>
+   <span class="cm">/*   Send an IPI to a specific cpu with dest mode specified. */</span>
+
+<span class="kt">void</span> <span class="n">send_single_ipi</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">pcpu_id</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">vector</span><span class="p">)</span>
+   <span class="cm">/*   Send an IPI to a specific cpu with physical dest mode. */</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="physical-interrupt">
+<h3>Physical Interrupt<a class="headerlink" href="#physical-interrupt" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for physical interrupt
+related operations.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int32_t</span> <span class="n">request_irq</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">req_irq</span><span class="p">,</span> <span class="n">irq_action_t</span> <span class="n">action_fn</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">priv_data</span><span class="p">,</span>
+                    <span class="kt">uint32_t</span> <span class="n">flags</span><span class="p">)</span>
+   <span class="cm">/*   Request interrupt num if not specified, and register irq action for the</span>
+<span class="cm">    *   specified/allocated irq.</span>
+<span class="cm">    */</span>
+
+<span class="kt">void</span> <span class="n">free_irq</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">)</span>
+   <span class="cm">/*   Free irq num and unregister the irq action. */</span>
+
+<span class="kt">void</span> <span class="n">set_irq_trigger_mode</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is_level_trigger</span><span class="p">)</span>
+   <span class="cm">/*   Set the irq trigger mode: edge-triggered or level-triggered */</span>
+
+<span class="kt">uint32_t</span> <span class="n">irq_to_vector</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">)</span>
+   <span class="cm">/*  Convert irq num to vector */</span>
+
+<span class="kt">void</span> <span class="n">get_cpu_interrupt_info</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">str_arg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">str_max</span><span class="p">)</span>
+   <span class="cm">/*  To dump interrupt statistics info, such as irq num, vector,</span>
+<span class="cm">    *  irq count on each physical cpu.</span>
+<span class="cm">    */</span>
+
+<span class="kt">void</span> <span class="n">dispatch_interrupt</span><span class="p">(</span><span class="k">struct</span> <span class="n">intr_excp_ctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">)</span>
+   <span class="cm">/*  To dispatch an interrupt, an action callback will be called if registered. */</span>
+
+<span class="kt">void</span> <span class="n">interrupt_init</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">pcpu_id</span><span class="p">)</span>
+   <span class="cm">/*  To do interrupt initialization for a cpu, will be called for</span>
+<span class="cm">    *  each physical cpu.</span>
+<span class="cm">    */</span>
+</pre></div>
 </div>
 </div>
 </div>
