@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="GVT-g high-level design" href="hld-APL_GVT-g.html" />
-    <link rel="prev" title="ACPI Virtualization high-level design" href="acpi-virt.html" /> 
+    <link rel="next" title="Interrupt Management high-level design" href="interrupt-hld.html" />
+    <link rel="prev" title="Memory Management high-level design" href="memmgt-hld.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -221,10 +221,11 @@
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html#power-management">Power Management</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a><ul>
+<li class="toctree-l3 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="hv-startup.html">Hypervisor Startup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hv-cpu-virt.html">CPU Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="memmgt-hld.html">Memory management</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">I/O Emulation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="interrupt-hld.html">Interrupt management</a></li>
 </ul>
 </li>
@@ -232,11 +233,10 @@
 <li class="toctree-l4"><a class="reference internal" href="acpi-virt.html">ACPI virtualization</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">I/O Emulation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#trap-path">Trap Path</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#i-o-emulation-in-the-hypervisor">I/O Emulation in the Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#i-o-requests">I/O Requests</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#data-structures-and-interfaces">Data Structures and Interfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -522,6 +522,8 @@
         
           <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
         
+          <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
+        
       <li>I/O Emulation high-level design</li>
     
     
@@ -551,7 +553,7 @@ emulating trapped I/O accesses in a certain range.</li>
 <li>Forward I/O accesses to SOS when they cannot be handled by the
 hypervisor by any registered handlers.</li>
 </ul>
-<p><a class="reference internal" href="#io-control-flow"><span class="std std-numref">Figure 50</span></a> illustrates the main control flow steps of I/O emulation
+<p><a class="reference internal" href="#io-control-flow"><span class="std std-numref">Figure 43</span></a> illustrates the main control flow steps of I/O emulation
 inside the hypervisor:</p>
 <ol class="arabic simple">
 <li>Trap and decode I/O access by VM exits and decode the access from
@@ -564,7 +566,7 @@ handler, deliver an I/O request to SOS.</li>
 </ol>
 <div class="figure align-center" id="io-control-flow">
 <img alt="../../_images/ioem-image101.png" src="../../_images/ioem-image101.png" />
-<p class="caption"><span class="caption-number">Figure 50 </span><span class="caption-text">Control flow of I/O emulation in the hypervisor</span></p>
+<p class="caption"><span class="caption-number">Figure 43 </span><span class="caption-text">Control flow of I/O emulation in the hypervisor</span></p>
 </div>
 <p><a class="reference internal" href="../../reference/kconfig/CONFIG_PARTITION_MODE.html#cmdoption-arg-config-partition-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_PARTITION_MODE</span></code></a> is the only configuration option that affects the
 functionality of I/O emulation. With <a class="reference internal" href="../../reference/kconfig/CONFIG_PARTITION_MODE.html#cmdoption-arg-config-partition-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_PARTITION_MODE</span></code></a> enabled,
@@ -687,7 +689,7 @@ with four states. The following figure illustrates the state transitions
 and the events that trigger them.</p>
 <div class="figure align-center" id="id1">
 <img alt="../../_images/ioem-image92.png" src="../../_images/ioem-image92.png" />
-<p class="caption"><span class="caption-number">Figure 51 </span><span class="caption-text">State Transition of I/O Requests</span></p>
+<p class="caption"><span class="caption-number">Figure 44 </span><span class="caption-text">State Transition of I/O Requests</span></p>
 </div>
 <p>The four states are:</p>
 <dl class="docutils">
@@ -744,7 +746,7 @@ the post-work, and resume the guest vCPU. The post-work takes care of
 updating the vCPU guest state to reflect the effect of the I/O reads.</p>
 <div class="figure align-center" id="id2">
 <img alt="../../_images/ioem-image100.png" src="../../_images/ioem-image100.png" />
-<p class="caption"><span class="caption-number">Figure 52 </span><span class="caption-text">Workflow of MMIO I/O request completion</span></p>
+<p class="caption"><span class="caption-number">Figure 45 </span><span class="caption-text">Workflow of MMIO I/O request completion</span></p>
 </div>
 <p>The figure above illustrates the workflow to complete an I/O
 request for MMIO. Once the I/O request is completed, SOS makes a
@@ -755,9 +757,9 @@ the access reads an address, changes the state of the corresponding I/O
 request slot to FREE, and continues execution of the vCPU.</p>
 <div class="figure align-center" id="port-io-completion">
 <img alt="../../_images/ioem-image106.png" src="../../_images/ioem-image106.png" />
-<p class="caption"><span class="caption-number">Figure 53 </span><span class="caption-text">Workflow of port I/O request completion</span></p>
+<p class="caption"><span class="caption-number">Figure 46 </span><span class="caption-text">Workflow of port I/O request completion</span></p>
 </div>
-<p>Completion of a port I/O request (shown in <a class="reference internal" href="#port-io-completion"><span class="std std-numref">Figure 53</span></a>
+<p>Completion of a port I/O request (shown in <a class="reference internal" href="#port-io-completion"><span class="std std-numref">Figure 46</span></a>
 above) is
 similar to the MMIO case, except the post-work is done before resuming
 the vCPU. This is because the post-work for port I/O reads need to update
@@ -1083,13 +1085,6 @@ I/O bitmaps and register or unregister I/O handlers:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">change these to reference API material from ioreq.h</p>
-</div>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
-</ul>
 </div>
 </div>
 </div>
