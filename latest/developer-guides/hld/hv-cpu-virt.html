@@ -228,6 +228,7 @@
 <li class="toctree-l4"><a class="reference internal" href="hv-io-emulation.html">I/O Emulation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hv-interrupt.html">Physical Interrupt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hv-timer.html">Timer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-virt-interrupt.html">Virtual Interrupt</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-devicemodel.html">Device Model</a><ul>
@@ -768,7 +769,7 @@ schedule out to vcpu_thread if necessary.</li>
 switch between vcpu_thread and default_idle.</li>
 </ul>
 <p>Some example scenario flows are shown here:</p>
-<div class="figure align-center" id="id4">
+<div class="figure align-center" id="id5">
 <img alt="../../_images/hld-image7.png" src="../../_images/hld-image7.png" />
 <p class="caption"><span class="caption-number">Figure 31 </span><span class="caption-text">ACRN vCPU scheduling scenarios</span></p>
 </div>
@@ -792,7 +793,7 @@ schedule back to <em>vcpu_thread</em> to continue its guest execution.</li>
 <div class="section" id="vcpu-thread">
 <h2>vCPU Thread<a class="headerlink" href="#vcpu-thread" title="Permalink to this headline">¶</a></h2>
 <p>The vCPU thread flow is a loop as shown and described below:</p>
-<div class="figure align-center" id="id5">
+<div class="figure align-center" id="id6">
 <img alt="../../_images/hld-image68.png" src="../../_images/hld-image68.png" />
 <p class="caption"><span class="caption-number">Figure 32 </span><span class="caption-text">ACRN vCPU thread</span></p>
 </div>
@@ -801,7 +802,7 @@ schedule back to <em>vcpu_thread</em> to continue its guest execution.</li>
 initialization. (See <a class="reference internal" href="#vmx-initialization">VMX Initialization</a>.)</li>
 <li>Handle softirq by calling <em>do_softirq</em>.</li>
 <li>Handle pending request by calling <em>acrn_handle_pending_request</em>.
-(See <a class="reference internal" href="#pending-request-handlers">Pending Request Handlers</a>.)</li>
+(See <a class="reference internal" href="#id2">Pending Request Handlers</a>.)</li>
 <li>Check if <em>vcpu_thread</em> needs to schedule out to <em>default_idle</em> by
 reschedule request. If needed, then schedule out to
 <em>default_idle</em>.</li>
@@ -1017,7 +1018,7 @@ request to DM</td>
 <p>Details of each vm exit reason handler are described in other sections.</p>
 </div>
 <div class="section" id="pending-request-handlers">
-<h3>Pending Request Handlers<a class="headerlink" href="#pending-request-handlers" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Pending Request Handlers<a class="headerlink" href="#pending-request-handlers" title="Permalink to this headline">¶</a></h3>
 <p>ACRN uses the function <em>acrn_handle_pending_request</em> to handle
 requests before VM entry in <em>vcpu_thread</em>.</p>
 <p>A bitmap in the vCPU structure lists the different requests:</p>
@@ -1713,7 +1714,7 @@ additionally added bits</td>
 <p>The <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr4</span></code> emulation is similar to cr0 emulation noted above.</p>
 </div>
 <div class="section" id="io-mmio-emulation">
-<span id="id2"></span><h2>IO/MMIO Emulation<a class="headerlink" href="#io-mmio-emulation" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>IO/MMIO Emulation<a class="headerlink" href="#io-mmio-emulation" title="Permalink to this headline">¶</a></h2>
 <p>ACRN always enables I/O bitmap in <em>VMX_PROC_VM_EXEC_CONTROLS</em> and EPT
 in <em>VMX_PROC_VM_EXEC_CONTROLS2</em>. Based on them,
 <em>pio_instr_vmexit_handler</em> and <em>ept_violation_vmexit_handler</em> are
@@ -1774,7 +1775,7 @@ by specific MMIO range</td>
 </table>
 </div>
 <div class="section" id="instruction-emulation">
-<span id="id3"></span><h2>Instruction Emulation<a class="headerlink" href="#instruction-emulation" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>Instruction Emulation<a class="headerlink" href="#instruction-emulation" title="Permalink to this headline">¶</a></h2>
 <p>ACRN implements a simple instruction emulation infrastructure for
 MMIO (EPT) and APIC access emulation. When such a VM exit is triggered, the
 hypervisor needs to decode the instruction from RIP then attempt the
@@ -1783,7 +1784,7 @@ corresponding emulation based on its instruction and read/write direction.</p>
 <code class="docutils literal notranslate"><span class="pre">movs</span></code>, <code class="docutils literal notranslate"><span class="pre">stos</span></code>, <code class="docutils literal notranslate"><span class="pre">test</span></code>, <code class="docutils literal notranslate"><span class="pre">and</span></code>, <code class="docutils literal notranslate"><span class="pre">or</span></code>, <code class="docutils literal notranslate"><span class="pre">cmp</span></code>, <code class="docutils literal notranslate"><span class="pre">sub</span></code> and
 <code class="docutils literal notranslate"><span class="pre">bittest</span></code> without support for lock prefix.  Real mode emulation is not
 supported.</p>
-<div class="figure align-center" id="id6">
+<div class="figure align-center" id="id7">
 <img alt="../../_images/hld-image82.png" src="../../_images/hld-image82.png" />
 <p class="caption"><span class="caption-number">Figure 33 </span><span class="caption-text">Instruction Emulation Work Flow</span></p>
 </div>
@@ -1849,7 +1850,7 @@ at any privilege level;</li>
 </ul>
 <p>Enabling the XSAVE feature set is controlled by XCR0 (through XSETBV)
 and IA32_XSS MSR. Refer to the <a class="reference external" href="https://www.intel.com/content/www/us/en/architecture-and-technology/64-ia-32-architectures-software-developer-vol-1-manual.html">Intel SDM Volume 1</a> chapter 13 for more details.</p>
-<div class="figure align-center" id="id7">
+<div class="figure align-center" id="id8">
 <img alt="../../_images/hld-image38.png" src="../../_images/hld-image38.png" />
 <p class="caption"><span class="caption-number">Figure 34 </span><span class="caption-text">ACRN Hypervisor XSAVE emulation</span></p>
 </div>
