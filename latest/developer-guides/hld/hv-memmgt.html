@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>I/O Emulation high-level design &mdash; Project ACRN™ v 0.3-unstable documentation</title>
+  <title>Memory Management high-level design &mdash; Project ACRN™ v 0.3-unstable documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Physical Interrupt high-level design" href="interrupt-hld.html" />
-    <link rel="prev" title="Memory Management high-level design" href="memmgt-hld.html" /> 
+    <link rel="next" title="I/O Emulation high-level design" href="hv-io-emulation.html" />
+    <link rel="prev" title="CPU Virtualization" href="hv-cpu-virt.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -224,9 +224,10 @@
 <li class="toctree-l3 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="hv-startup.html">Hypervisor Startup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hv-cpu-virt.html">CPU Virtualization</a></li>
-<li class="toctree-l4"><a class="reference internal" href="memmgt-hld.html">Memory management</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">I/O Emulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="interrupt-hld.html">Physical Interrupt</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Memory management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-io-emulation.html">I/O Emulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-interrupt.html">Physical Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-timer.html">Timer</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-devicemodel.html">Device Model</a><ul>
@@ -524,7 +525,7 @@
         
           <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
         
-      <li>I/O Emulation high-level design</li>
+      <li>Memory Management high-level design</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -541,551 +542,650 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="i-o-emulation-high-level-design">
-<span id="hld-io-emulation"></span><h1>I/O Emulation high-level design<a class="headerlink" href="#i-o-emulation-high-level-design" title="Permalink to this headline">¶</a></h1>
-<p>As discussed in <a class="reference internal" href="hld-overview.html#intro-io-emulation"><span class="std std-ref">Device Emulation</span></a>, there are multiple ways and
-places to handle I/O emulation, including HV, SOS Kernel VHM, and SOS
-user-land device model (acrn-dm).</p>
-<p>I/O emulation in the hypervisor provides these functionalities:</p>
+  <div class="section" id="memory-management-high-level-design">
+<span id="memmgt-hld"></span><h1>Memory Management high-level design<a class="headerlink" href="#memory-management-high-level-design" title="Permalink to this headline">¶</a></h1>
+<p>This document describes memory management for the ACRN hypervisor.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The hypervisor (HV) virtualizes real physical memory so an unmodified OS
+(such as Linux or Android) running in a virtual machine, has the view of
+managing its own contiguous physical memory.  HV uses virtual-processor
+identifiers (VPIDs) and the extended page-table mechanism (EPT) to
+translate guest-physical address into host-physical address. HV enables
+EPT and VPID hardware virtualization features, establishes EPT page
+tables for SOS/UOS, and provides EPT page tables operation interfaces to
+others.</p>
+<p>In the ACRN hypervisor system, there are few different memory spaces to
+consider.  From the hypervisor’s point of view there are:</p>
 <ul class="simple">
-<li>Maintain lists of port I/O or MMIO handlers in the hypervisor for
-emulating trapped I/O accesses in a certain range.</li>
-<li>Forward I/O accesses to SOS when they cannot be handled by the
-hypervisor by any registered handlers.</li>
+<li><strong>Host Physical Address (HPA)</strong>: the native physical address space, and</li>
+<li><strong>Host Virtual Address (HVA)</strong>: the native virtual address space based on
+a MMU. A page table is used to translate between HPA and HVA
+spaces.</li>
 </ul>
-<p><a class="reference internal" href="#io-control-flow"><span class="std std-numref">Figure 43</span></a> illustrates the main control flow steps of I/O emulation
-inside the hypervisor:</p>
-<ol class="arabic simple">
-<li>Trap and decode I/O access by VM exits and decode the access from
-exit qualification or by invoking the instruction decoder.</li>
-<li>If the range of the I/O access overlaps with any registered handler,
-call that handler if it completely covers the range of the
-access, or ignore the access if the access crosses the boundary.</li>
-<li>If the range of the I/O access does not overlap the range of any I/O
-handler, deliver an I/O request to SOS.</li>
-</ol>
-<div class="figure align-center" id="io-control-flow">
-<img alt="../../_images/ioem-image101.png" src="../../_images/ioem-image101.png" />
-<p class="caption"><span class="caption-number">Figure 43 </span><span class="caption-text">Control flow of I/O emulation in the hypervisor</span></p>
-</div>
-<p><a class="reference internal" href="../../reference/kconfig/CONFIG_PARTITION_MODE.html#cmdoption-arg-config-partition-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_PARTITION_MODE</span></code></a> is the only configuration option that affects the
-functionality of I/O emulation. With <a class="reference internal" href="../../reference/kconfig/CONFIG_PARTITION_MODE.html#cmdoption-arg-config-partition-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_PARTITION_MODE</span></code></a> enabled,
-the hypervisor never sends I/O request to any VM. Unhandled I/O reads
-get all 1’s and writes are silently dropped.</p>
-<p>I/O emulation does not rely on any calibration data.</p>
-<div class="section" id="trap-path">
-<h2>Trap Path<a class="headerlink" href="#trap-path" title="Permalink to this headline">¶</a></h2>
-<p>Port I/O accesses are trapped by VM exits with the basic exit reason
-“I/O instruction”. The port address to be accessed, size, and direction
-(read or write) are fetched from the VM exit qualification. For writes
-the value to be written to the I/O port is fetched from guest registers
-al, ax or eax, depending on the access size.</p>
-<p>MMIO accesses are trapped by VM exits with the basic exit reason “EPT
-violation”. The instruction emulator is invoked to decode the
-instruction that triggers the VM exit to get the memory address being
-accessed, size, direction (read or write), and the involved register.</p>
-<p>The I/O bitmaps and EPT are used to configure the addresses that will
-trigger VM exits when accessed by a VM. Refer to
-<a class="reference internal" href="hv-cpu-virt.html#io-mmio-emulation"><span class="std std-ref">IO/MMIO Emulation</span></a> for details.</p>
-</div>
-<div class="section" id="i-o-emulation-in-the-hypervisor">
-<h2>I/O Emulation in the Hypervisor<a class="headerlink" href="#i-o-emulation-in-the-hypervisor" title="Permalink to this headline">¶</a></h2>
-<p>When a port I/O or MMIO access is trapped, the hypervisor first checks
-whether the to-be-accessed address falls in the range of any registered
-handler, and calls the handler when such a handler exists.</p>
-<div class="section" id="handler-management">
-<h3>Handler Management<a class="headerlink" href="#handler-management" title="Permalink to this headline">¶</a></h3>
-<p>Each VM has two lists of I/O handlers, one for port I/O and the other
-for MMIO. Each element of the list contains a memory range and a pointer
-to the handler which emulates the accesses falling in the range.  See
-<a class="reference internal" href="#io-handler-init"><span class="std std-ref">Initialization and Deinitialization</span></a> for descriptions of the related data structures.</p>
-<p>The I/O handlers are registered on VM creation and never changed until
-the destruction of that VM, when the handlers are unregistered. If
-multiple handlers are registered for the same address, the one
-registered later wins. See <a class="reference internal" href="#io-handler-init"><span class="std std-ref">Initialization and Deinitialization</span></a> for the interfaces
-used to register and unregister I/O handlers.</p>
-</div>
-<div class="section" id="i-o-dispatching">
-<h3>I/O Dispatching<a class="headerlink" href="#i-o-dispatching" title="Permalink to this headline">¶</a></h3>
-<p>When a port I/O or MMIO access is trapped, the hypervisor first walks
-through the corresponding I/O handler list in the reverse order of
-registration, looking for a proper handler to emulate the access. The
-following cases exist:</p>
+<p>From the Guest OS running on a hypervisor there are:</p>
 <ul class="simple">
-<li>If a handler whose range overlaps the range of the I/O access is
-found,<ul>
-<li>If the range of the I/O access falls completely in the range the
-handler can emulate, that handler is called.</li>
-<li>Otherwise it is implied that the access crosses the boundary of
-multiple devices which the hypervisor does not emulate. Thus
-no handler is called and no I/O request will be delivered to
-SOS. I/O reads get all 1’s and I/O writes are dropped.</li>
+<li><strong>Guest Physical Address (GPA)</strong>: the guest physical address space from a
+virtual machine.  GPA to HPA transition is usually based on a
+MMU-like hardware module (EPT in X86), and associated with a page
+table</li>
+<li><strong>Guest Virtual Address (GVA)</strong>: the guest virtual address space from a
+virtual machine based on a vMMU</li>
 </ul>
-</li>
-<li>If the range of the I/O access does not overlap with any range of the
-handlers, the I/O access is delivered to SOS as an I/O request
-for further processing.</li>
+<div class="figure align-center" id="mem-overview">
+<a class="reference internal image-reference" href="../../_images/mem-image2.png"><img alt="../../_images/mem-image2.png" src="../../_images/mem-image2.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 35 </span><span class="caption-text">ACRN Memory Mapping Overview</span></p>
+</div>
+<p><a class="reference internal" href="#mem-overview"><span class="std std-numref">Figure 35</span></a> provides an overview of the ACRN system memory
+mapping, showing:</p>
+<ul class="simple">
+<li>GVA to GPA mapping based on vMMU on a VCPU in a VM</li>
+<li>GPA to HPA mapping based on EPT for a VM in the hypervisor</li>
+<li>HVA to HPA mapping based on MMU in the hypervisor</li>
+</ul>
+<p>This document illustrates the memory management infrastructure for the
+ACRN hypervisor and how it handles the different memory space views
+inside the hypervisor and from a VM:</p>
+<ul class="simple">
+<li>How ACRN hypervisor manages host memory (HPA/HVA)</li>
+<li>How ACRN hypervisor manages SOS guest memory (HPA/GPA)</li>
+<li>How ACRN hypervisor &amp; SOS DM manage UOS guest memory (HPA/GPA)</li>
 </ul>
 </div>
+<div class="section" id="hypervisor-physical-memory-management">
+<h2>Hypervisor Physical Memory Management<a class="headerlink" href="#hypervisor-physical-memory-management" title="Permalink to this headline">¶</a></h2>
+<p>In the ACRN, the HV initializes MMU page tables to manage all physical
+memory and then switches to the new MMU page tables. After MMU page
+tables are initialized at the platform initialization stage, no updates
+are made for MMU page tables.</p>
+<div class="section" id="hypervisor-physical-memory-layout-e820">
+<h3>Hypervisor Physical Memory Layout - E820<a class="headerlink" href="#hypervisor-physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor is the primary owner to manage system memory.
+Typically the boot firmware (e.g., EFI) passes the platform physical
+memory layout - E820 table to the hypervisor. The ACRN hypervisor does
+its memory management based on this table using 4-level paging.</p>
+<p>The BIOS/bootloader firmware (e.g., EFI) passes the E820 table through a
+multiboot protocol.  This table contains the original memory layout for
+the platform.</p>
+<div class="figure align-center" id="mem-layout">
+<a class="reference internal image-reference" href="../../_images/mem-image1.png"><img alt="../../_images/mem-image1.png" src="../../_images/mem-image1.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 36 </span><span class="caption-text">Physical Memory Layout Example</span></p>
 </div>
-<div class="section" id="i-o-requests">
-<h2>I/O Requests<a class="headerlink" href="#i-o-requests" title="Permalink to this headline">¶</a></h2>
-<p>An I/O request is delivered to SOS vCPU 0 if the hypervisor does not
-find any handler that overlaps the range of a trapped I/O access. This
-section describes the initialization of the I/O request mechanism and
-how an I/O access is emulated via I/O requests in the hypervisor.</p>
-<div class="section" id="initialization">
-<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h3>
-<p>For each UOS the hypervisor shares a page with SOS to exchange I/O
-requests. The 4-KByte page consists of 16 256-Byte slots, indexed by
-vCPU ID. It is required for the DM to allocate and set up the request
-buffer on VM creation, otherwise I/O accesses from UOS cannot be
-emulated by SOS, and all I/O accesses not handled by the I/O handlers in
-the hypervisor will be dropped (reads get all 1’s).</p>
-<p>Refer to Section 4.4.1 for the details of I/O requests and the
-initialization of the I/O request buffer.</p>
+<p><a class="reference internal" href="#mem-layout"><span class="std std-numref">Figure 36</span></a> is an example of the physical memory layout based on a simple
+platform E820 table.</p>
 </div>
-<div class="section" id="types-of-i-o-requests">
-<h3>Types of I/O Requests<a class="headerlink" href="#types-of-i-o-requests" title="Permalink to this headline">¶</a></h3>
-<p>There are four types of I/O requests:</p>
+<div class="section" id="hypervisor-memory-initialization">
+<h3>Hypervisor Memory Initialization<a class="headerlink" href="#hypervisor-memory-initialization" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor runs under paging mode. After the bootstrap
+processor (BSP) gets the platform E820 table, BSP creates its MMU page
+table based on it. This is done by the function <em>init_paging()</em> and
+<em>smep()</em>. After the application processor (AP) receives IPI CPU startup
+interrupt, it uses the MMU page tables created by BSP and enable SMEP.
+<a class="reference internal" href="#hv-mem-init"><span class="std std-numref">Figure 37</span></a>  describes the hypervisor memory initialization for BSP
+and APs.</p>
+<div class="figure align-center" id="hv-mem-init">
+<img alt="../../_images/mem-image8.png" src="../../_images/mem-image8.png" />
+<p class="caption"><span class="caption-number">Figure 37 </span><span class="caption-text">Hypervisor Memory Initialization</span></p>
+</div>
+<p>The memory mapping policy used is:</p>
+<ul class="simple">
+<li>Identical mapping (ACRN hypervisor memory could be relocatable in
+the future)</li>
+<li>Map all memory regions with UNCACHED type</li>
+<li>Remap RAM regions to WRITE-BACK type</li>
+</ul>
+<div class="figure align-center" id="hv-mem-vm-init">
+<img alt="../../_images/mem-image69.png" src="../../_images/mem-image69.png" />
+<p class="caption"><span class="caption-number">Figure 38 </span><span class="caption-text">Hypervisor Virtual Memory Layout</span></p>
+</div>
+<p><a class="reference internal" href="#hv-mem-vm-init"><span class="std std-numref">Figure 38</span></a> above shows:</p>
+<ul class="simple">
+<li>Hypervisor has a view of and can access all system memory</li>
+<li>Hypervisor has UNCACHED MMIO/PCI hole reserved for devices such as
+LAPIC/IOAPIC accessing</li>
+<li>Hypervisor has its own memory with WRITE-BACK cache type for its
+code/data (&lt; 1M part is for secondary CPU reset code)</li>
+</ul>
+<p>The hypervisor should use minimum memory pages to map from virtual
+address space into physical address space.</p>
+<ul class="simple">
+<li>If 1GB hugepage can be used
+for virtual address space mapping, the corresponding PDPT entry shall be
+set for this 1GB hugepage.</li>
+<li>If 1GB hugepage can’t be used for virtual
+address space mapping and 2MB hugepage can be used, the corresponding
+PDT entry shall be set for this 2MB hugepage.</li>
+<li>If both of 1GB hugepage
+and 2MB hugepage can’t be used for virtual address space mapping, the
+corresponding PT entry shall be set.</li>
+</ul>
+<p>If memory type or access rights of a page is updated, or some virtual
+address space is deleted, it will lead to splitting of the corresponding
+page. The hypervisor will still keep using minimum memory pages to map from
+virtual address space into physical address space.</p>
+</div>
+<div class="section" id="memory-pages-pool-functions">
+<h3>Memory Pages Pool Functions<a class="headerlink" href="#memory-pages-pool-functions" title="Permalink to this headline">¶</a></h3>
+<p>Memory pages pool functions provide dynamic management of multiple
+4KB page-size memory blocks, used by the hypervisor to store internal
+data.  Through these functions, the hypervisor can allocate and
+deallocate pages.</p>
+</div>
+<div class="section" id="data-flow-design">
+<h3>Data Flow Design<a class="headerlink" href="#data-flow-design" title="Permalink to this headline">¶</a></h3>
+<p>The physical memory management unit provides MMU 4-level page tables
+creating and updating services, MMU page tables switching service, SMEP
+enable service, and HPA/HVA retrieving service to other units.
+<a class="reference internal" href="#mem-data-flow-physical"><span class="std std-numref">Figure 39</span></a> shows the data flow diagram
+of physical memory management.</p>
+<div class="figure align-center" id="mem-data-flow-physical">
+<img alt="../../_images/mem-image45.png" src="../../_images/mem-image45.png" />
+<p class="caption"><span class="caption-number">Figure 39 </span><span class="caption-text">Data Flow of Hypervisor Physical Memory Management</span></p>
+</div>
+</div>
+<div class="section" id="data-structure-design">
+<h3>Data Structure Design<a class="headerlink" href="#data-structure-design" title="Permalink to this headline">¶</a></h3>
+<p>The page tables operation type:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="n">_page_table_type</span> <span class="p">{</span>
+
+   <span class="n">PTT_HOST</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>           <span class="cm">/* Operations for MMU page tables */</span>
+   <span class="n">PTT_EPT</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>           <span class="cm">/* Operations for EPT page tables */</span>
+   <span class="n">PAGETABLE_TYPE_UNKNOWN</span><span class="p">,</span> <span class="cm">/* Page tables operation type is unknown */</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interfaces-design">
+<h3>Interfaces Design<a class="headerlink" href="#interfaces-design" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="mmu-initialization">
+<h4>MMU Initialization<a class="headerlink" href="#mmu-initialization" title="Permalink to this headline">¶</a></h4>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
 <col width="50%" />
 <col width="50%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">I/O Request Type</th>
+<tr class="row-odd"><th class="head">APIs</th>
 <th class="head">Description</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>PIO</td>
-<td>A port I/O access.</td>
+<tr class="row-even"><td>void enable_smep(void)</td>
+<td>Supervisor-mode execution prevention (SMEP) enable</td>
 </tr>
-<tr class="row-odd"><td>MMIO</td>
-<td>A MMIO access to a GPA with no mapping in EPT.</td>
+<tr class="row-odd"><td>void enable_paging(uint64_t pml64_base_addr)</td>
+<td>MMU paging enable</td>
 </tr>
-<tr class="row-even"><td>PCI</td>
-<td>A PCI configuration space access.</td>
+<tr class="row-even"><td>void init_paging(void)</td>
+<td>MMU page tables initialization</td>
 </tr>
-<tr class="row-odd"><td>WP</td>
-<td>A MMIO access to a GPA with a read-only mapping in EPT.</td>
+<tr class="row-odd"><td>uint64_t get_paging_pml4(void)</td>
+<td>Page map level 4 (PML4) table start address getting</td>
 </tr>
 </tbody>
 </table>
-<p>For port I/O accesses, the hypervisor will always deliver an I/O request
-of type PIO to SOS. For MMIO accesses, the hypervisor will deliver an
-I/O request of either MMIO or WP, depending on the mapping of the
-accessed address (in GPA) in the EPT of the vCPU. The hypervisor will
-never deliver any I/O request of type PCI, but will handle such I/O
-requests in the same ways as port I/O accesses on their completion.</p>
-<p>Refer to <a class="reference internal" href="#io-structs-interfaces"><span class="std std-ref">Data Structures and Interfaces</span></a> for a detailed description of the
-data held by each type of I/O request.</p>
 </div>
-<div class="section" id="i-o-request-state-transitions">
-<h3>I/O Request State Transitions<a class="headerlink" href="#i-o-request-state-transitions" title="Permalink to this headline">¶</a></h3>
-<p>Each slot in the I/O request buffer is managed by a finite state machine
-with four states. The following figure illustrates the state transitions
-and the events that trigger them.</p>
-<div class="figure align-center" id="id1">
-<img alt="../../_images/ioem-image92.png" src="../../_images/ioem-image92.png" />
-<p class="caption"><span class="caption-number">Figure 44 </span><span class="caption-text">State Transition of I/O Requests</span></p>
+<div class="section" id="page-allocation">
+<h4>Page Allocation<a class="headerlink" href="#page-allocation" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>void * alloc_paging_struct(void)</td>
+<td>Allocate one page from memory page pool</td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>The four states are:</p>
-<dl class="docutils">
-<dt>FREE</dt>
-<dd>The I/O request slot is not used and new I/O requests can be
-delivered. This is the initial state on UOS creation.</dd>
-<dt>PENDING</dt>
-<dd>The I/O request slot is occupied with an I/O request pending
-to be processed by SOS.</dd>
-<dt>PROCESSING</dt>
-<dd>The I/O request has been dispatched to a client but the
-client has not finished handling it yet.</dd>
-<dt>COMPLETE</dt>
-<dd>The client has completed the I/O request but the hypervisor
-has not consumed the results yet.</dd>
-</dl>
-<p>The contents of an I/O request slot are owned by the hypervisor when the
-state of an I/O request slot is FREE or COMPLETE. In such cases SOS can
-only access the state of that slot. Similarly the contents are owned by
-SOS when the state is PENDING or PROCESSING, when the hypervisor can
-only access the state of that slot.</p>
-<p>The states are transferred as follow:</p>
-<ol class="arabic simple">
-<li>To deliver an I/O request, the hypervisor takes the slot
-corresponding to the vCPU triggering the I/O access, fills the
-contents, changes the state to PENDING and notifies SOS via
-upcall.</li>
-<li>On upcalls, SOS dispatches each I/O request in the PENDING state to
-clients and changes the state to PROCESSING.</li>
-<li>The client assigned an I/O request changes the state to COMPLETE
-after it completes the emulation of the I/O request. A hypercall
-is made to notify the hypervisor on I/O request completion after
-the state change.</li>
-<li>The hypervisor finishes the post-work of a I/O request after it is
-notified on its completion and change the state back to FREE.</li>
-</ol>
-<p>States are accessed using atomic operations to avoid getting unexpected
-states on one core when it is written on another.</p>
-<p>Note that there is no state to represent a ‘failed’ I/O request. SOS
-should return all 1’s for reads and ignore writes whenever it cannot
-handle the I/O request, and change the state of the request to COMPLETE.</p>
-</div>
-<div class="section" id="post-work">
-<h3>Post-work<a class="headerlink" href="#post-work" title="Permalink to this headline">¶</a></h3>
-<p>After an I/O request is completed, some more work needs to be done for
-I/O reads to update guest registers accordingly. Currently the
-hypervisor re-enters the vCPU thread every time a vCPU is scheduled back
-in, rather than switching to where the vCPU is scheduled out. As a result,
-post-work is introduced for this purpose.</p>
-<p>The hypervisor pauses a vCPU before an I/O request is delivered to SOS.
-Once the I/O request emulation is completed, a client notifies the
-hypervisor by a hypercall. The hypervisor will pick up that request, do
-the post-work, and resume the guest vCPU. The post-work takes care of
-updating the vCPU guest state to reflect the effect of the I/O reads.</p>
-<div class="figure align-center" id="id2">
-<img alt="../../_images/ioem-image100.png" src="../../_images/ioem-image100.png" />
-<p class="caption"><span class="caption-number">Figure 45 </span><span class="caption-text">Workflow of MMIO I/O request completion</span></p>
-</div>
-<p>The figure above illustrates the workflow to complete an I/O
-request for MMIO. Once the I/O request is completed, SOS makes a
-hypercall to notify the hypervisor which resumes the UOS vCPU triggering
-the access after requesting post-work on that vCPU. After the UOS vCPU
-resumes, it does the post-work first to update the guest registers if
-the access reads an address, changes the state of the corresponding I/O
-request slot to FREE, and continues execution of the vCPU.</p>
-<div class="figure align-center" id="port-io-completion">
-<img alt="../../_images/ioem-image106.png" src="../../_images/ioem-image106.png" />
-<p class="caption"><span class="caption-number">Figure 46 </span><span class="caption-text">Workflow of port I/O request completion</span></p>
-</div>
-<p>Completion of a port I/O request (shown in <a class="reference internal" href="#port-io-completion"><span class="std std-numref">Figure 46</span></a>
-above) is
-similar to the MMIO case, except the post-work is done before resuming
-the vCPU. This is because the post-work for port I/O reads need to update
-the general register eax of the vCPU, while the post-work for MMIO reads
-need further emulation of the trapped instruction.  This is much more
-complex and may impact the performance of SOS.</p>
+<div class="section" id="address-space-translation">
+<h4>Address Space Translation<a class="headerlink" href="#address-space-translation" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>HPA2HVA(x)</td>
+<td>Translate host-physical address to host-virtual address</td>
+</tr>
+<tr class="row-odd"><td>HVA2HPA(x)</td>
+<td>Translate host-virtual address to host-physical address</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-<div class="section" id="data-structures-and-interfaces">
-<span id="io-structs-interfaces"></span><h2>Data Structures and Interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="external-interfaces">
-<h3>External Interfaces<a class="headerlink" href="#external-interfaces" title="Permalink to this headline">¶</a></h3>
-<p>The following structures represent an I/O request. <em>struct vhm_request</em>
-is the main structure and the others are detailed representations of I/O
-requests of different kinds. Refer to Section 4.4.4 for the usage of
-<em>struct pci_request</em>.</p>
-<dl class="class">
-<dt id="_CPPv312mmio_request">
-<span id="_CPPv212mmio_request"></span><span id="mmio_request"></span><span class="target" id="structmmio__request"></span><em class="property">struct </em><code class="descname">mmio_request</code><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Members</p>
-<dl class="member">
-<dt id="_CPPv3N12mmio_request9directionE">
-<span id="_CPPv2N12mmio_request9directionE"></span><span id="mmio_request::direction__uint32_t"></span><span class="target" id="structmmio__request_1a5ee5d2ef58edfa75b454de67d6065b38"></span>uint32_t <code class="descname">direction</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N12mmio_request8reservedE">
-<span id="_CPPv2N12mmio_request8reservedE"></span><span id="mmio_request::reserved__uint32_t"></span><span class="target" id="structmmio__request_1a6068a4375866ddd11ca232cefe1c94e4"></span>uint32_t <code class="descname">reserved</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N12mmio_request7addressE">
-<span id="_CPPv2N12mmio_request7addressE"></span><span id="mmio_request::address__uint64_t"></span><span class="target" id="structmmio__request_1ace9d10b323354405ec72a0aeec2ed3a8"></span>uint64_t <code class="descname">address</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N12mmio_request4sizeE">
-<span id="_CPPv2N12mmio_request4sizeE"></span><span id="mmio_request::size__uint64_t"></span><span class="target" id="structmmio__request_1ad0bbe4e98701765e1fa73a5c5d5ea559"></span>uint64_t <code class="descname">size</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N12mmio_request5valueE">
-<span id="_CPPv2N12mmio_request5valueE"></span><span id="mmio_request::value__uint64_t"></span><span class="target" id="structmmio__request_1a75c57764821580a65fc44c155d5d4606"></span>uint64_t <code class="descname">value</code><br /></dt>
-<dd></dd></dl>
-
 </div>
-</dd></dl>
-
-<dl class="class">
-<dt id="_CPPv311pio_request">
-<span id="_CPPv211pio_request"></span><span id="pio_request"></span><span class="target" id="structpio__request"></span><em class="property">struct </em><code class="descname">pio_request</code><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Members</p>
-<dl class="member">
-<dt id="_CPPv3N11pio_request9directionE">
-<span id="_CPPv2N11pio_request9directionE"></span><span id="pio_request::direction__uint32_t"></span><span class="target" id="structpio__request_1ab6678a312ecd518ff756ae3c996f64ff"></span>uint32_t <code class="descname">direction</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pio_request8reservedE">
-<span id="_CPPv2N11pio_request8reservedE"></span><span id="pio_request::reserved__uint32_t"></span><span class="target" id="structpio__request_1ac3f904d7697bab25b57aadd7486e8ec5"></span>uint32_t <code class="descname">reserved</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pio_request7addressE">
-<span id="_CPPv2N11pio_request7addressE"></span><span id="pio_request::address__uint64_t"></span><span class="target" id="structpio__request_1a3b47a8a43247497d55ad168184d2f1a0"></span>uint64_t <code class="descname">address</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pio_request4sizeE">
-<span id="_CPPv2N11pio_request4sizeE"></span><span id="pio_request::size__uint64_t"></span><span class="target" id="structpio__request_1ab6950f482e3f0ae85f5748d04f8f1e68"></span>uint64_t <code class="descname">size</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pio_request5valueE">
-<span id="_CPPv2N11pio_request5valueE"></span><span id="pio_request::value__uint32_t"></span><span class="target" id="structpio__request_1af328e5ae161c2304adb58874341ccee9"></span>uint32_t <code class="descname">value</code><br /></dt>
-<dd></dd></dl>
-
+<div class="section" id="hypervisor-memory-virtualization">
+<h2>Hypervisor Memory Virtualization<a class="headerlink" href="#hypervisor-memory-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>The hypervisor provides a contiguous region of physical memory for SOS
+and each UOS. It also guarantees that the SOS and UOS can not access
+code and internal data in the hypervisor, and each UOS can not access
+code and internal data of the SOS and other UOSs.</p>
+<p>The hypervisor:</p>
+<ul class="simple">
+<li>enables EPT and VPID hardware virtualization features,</li>
+<li>establishes EPT page tables for SOS/UOS,</li>
+<li>provides EPT page tables operations services,</li>
+<li>virtualizes MTRR for SOS/UOS,</li>
+<li>provides VPID operations services,</li>
+<li>provides services for address spaces translation between GPA and HPA, and</li>
+<li>provides services for data transfer between hypervisor and virtual machine.</li>
+</ul>
+<div class="section" id="memory-virtualization-capability-checking">
+<h3>Memory Virtualization Capability Checking<a class="headerlink" href="#memory-virtualization-capability-checking" title="Permalink to this headline">¶</a></h3>
+<p>In the hypervisor, memory virtualization provides EPT/VPID capability
+checking service and EPT hugepage supporting checking service. Before HV
+enables memory virtualization and uses EPT hugepage, these service need
+to be invoked by other units.</p>
 </div>
-</dd></dl>
-
-<dl class="class">
-<dt id="_CPPv311pci_request">
-<span id="_CPPv211pci_request"></span><span id="pci_request"></span><span class="target" id="structpci__request"></span><em class="property">struct </em><code class="descname">pci_request</code><br /></dt>
-<dd><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Members</p>
-<dl class="member">
-<dt id="_CPPv3N11pci_request9directionE">
-<span id="_CPPv2N11pci_request9directionE"></span><span id="pci_request::direction__uint32_t"></span><span class="target" id="structpci__request_1a8daeb6cfa8686b496f0a7ea35d17ff7e"></span>uint32_t <code class="descname">direction</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pci_request8reservedE">
-<span id="_CPPv2N11pci_request8reservedE"></span><span id="pci_request::reserved__uint32_tA"></span><span class="target" id="structpci__request_1a9102ebef6413b1a5899ea4bdfbfb10b0"></span>uint32_t <code class="descname">reserved</code>[3]<br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pci_request4sizeE">
-<span id="_CPPv2N11pci_request4sizeE"></span><span id="pci_request::size__int64_t"></span><span class="target" id="structpci__request_1aa8491df28ed5b4e0310e6ed8fe6e4e16"></span>int64_t <code class="descname">size</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pci_request5valueE">
-<span id="_CPPv2N11pci_request5valueE"></span><span id="pci_request::value__int32_t"></span><span class="target" id="structpci__request_1a7f1fc2c1edd7e085c6f53f0528094601"></span>int32_t <code class="descname">value</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pci_request3busE">
-<span id="_CPPv2N11pci_request3busE"></span><span id="pci_request::bus__int32_t"></span><span class="target" id="structpci__request_1a2aadc0b5232c4849e4e7ac6fd3d464bb"></span>int32_t <code class="descname">bus</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pci_request3devE">
-<span id="_CPPv2N11pci_request3devE"></span><span id="pci_request::dev__int32_t"></span><span class="target" id="structpci__request_1af806ad26912aa92883a9466f20def433"></span>int32_t <code class="descname">dev</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pci_request4funcE">
-<span id="_CPPv2N11pci_request4funcE"></span><span id="pci_request::func__int32_t"></span><span class="target" id="structpci__request_1a8f7df06a9c156899ce7aef0597764db4"></span>int32_t <code class="descname">func</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11pci_request3regE">
-<span id="_CPPv2N11pci_request3regE"></span><span id="pci_request::reg__int32_t"></span><span class="target" id="structpci__request_1af589874f0283c655839d6f8f7ea7b584"></span>int32_t <code class="descname">reg</code><br /></dt>
-<dd></dd></dl>
-
+<div class="section" id="data-transfer-between-different-address-spaces">
+<h3>Data Transfer between Different Address Spaces<a class="headerlink" href="#data-transfer-between-different-address-spaces" title="Permalink to this headline">¶</a></h3>
+<p>In ACRN, different memory space management is used in the hypervisor,
+Service OS, and User OS to achieve spatial isolation. Between memory
+spaces, there are different kinds of data transfer, such as a SOS/UOS
+may hypercall to request hypervisor services which includes data
+transferring, or when the hypervisor does instruction emulation: the HV
+needs to access the guest instruction pointer register to fetch guest
+instruction data.</p>
+<div class="section" id="access-gpa-from-hypervisor">
+<h4>Access GPA from Hypervisor<a class="headerlink" href="#access-gpa-from-hypervisor" title="Permalink to this headline">¶</a></h4>
+<p>When hypervisor need access GPA for data transfer, the caller from guest
+must make sure this memory range’s GPA is continuous. But for HPA in
+hypervisor, it could be dis-continuous (especially for UOS under hugetlb
+allocation mechanism).  For example, a 4M GPA range may map to 2
+different 2M huge host-physical pages. The ACRN hypervisor must take
+care of this kind of data transfer by doing EPT page walking based on
+its HPA.</p>
 </div>
-</dd></dl>
-
-<dl class="type">
-<dt id="_CPPv314vhm_io_request">
-<span id="_CPPv214vhm_io_request"></span><span id="vhm_io_request"></span><span class="target" id="unionvhm__io__request"></span><em class="property">union </em><code class="descname">vhm_io_request</code><br /></dt>
-<dd><em>#include &lt;acrn_common.h&gt;</em><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Members</p>
-<dl class="member">
-<dt id="_CPPv3N14vhm_io_request3pioE">
-<span id="_CPPv2N14vhm_io_request3pioE"></span><span id="vhm_io_request::pio__pio_request"></span><span class="target" id="unionvhm__io__request_1a867462f838e3cbdb67bd1f03eb4dd455"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv311pio_request" title="pio_request">pio_request</a> <code class="descname">pio</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N14vhm_io_request3pciE">
-<span id="_CPPv2N14vhm_io_request3pciE"></span><span id="vhm_io_request::pci__pci_request"></span><span class="target" id="unionvhm__io__request_1a11da1da54394346fbee522fe7c8ff427"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv311pci_request" title="pci_request">pci_request</a> <code class="descname">pci</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N14vhm_io_request4mmioE">
-<span id="_CPPv2N14vhm_io_request4mmioE"></span><span id="vhm_io_request::mmio__mmio_request"></span><span class="target" id="unionvhm__io__request_1a622ed8ff764ec1ec6d486e85c84da09f"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv312mmio_request" title="mmio_request">mmio_request</a> <code class="descname">mmio</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N14vhm_io_request9reserved1E">
-<span id="_CPPv2N14vhm_io_request9reserved1E"></span><span id="vhm_io_request::reserved1__int64_tA"></span><span class="target" id="unionvhm__io__request_1a7fab3ba7831ece0ae4b9b530e30291c2"></span>int64_t <code class="descname">reserved1</code>[8]<br /></dt>
-<dd></dd></dl>
-
+<div class="section" id="access-gva-from-hypervisor">
+<h4>Access GVA from Hypervisor<a class="headerlink" href="#access-gva-from-hypervisor" title="Permalink to this headline">¶</a></h4>
+<p>When hypervisor needs to access GVA for data transfer, it’s likely both
+GPA and HPA could be address dis-continuous. The ACRN hypervisor must
+watch for this kind of data transfer, and handle it by doing page
+walking based on both its GPA and HPA.</p>
 </div>
-</dd></dl>
+</div>
+<div class="section" id="ept-page-tables-operations">
+<h3>EPT Page Tables Operations<a class="headerlink" href="#ept-page-tables-operations" title="Permalink to this headline">¶</a></h3>
+<p>The hypervisor should use a minimum of memory pages to map from
+guest-physical address (GPA) space into host-physical address (HPA)
+space.</p>
+<ul class="simple">
+<li>If 1GB hugepage can be used for GPA space mapping, the
+corresponding EPT PDPT entry shall be set for this 1GB hugepage.</li>
+<li>If 1GB hugepage can’t be used for GPA space mapping and 2MB hugepage can be
+used, the corresponding EPT PDT entry shall be set for this 2MB
+hugepage.</li>
+<li>If both 1GB hugepage and 2MB hugepage can’t be used for GPA
+space mapping, the corresponding EPT PT entry shall be set.</li>
+</ul>
+<p>If memory type or access rights of a page is updated or some GPA space
+is deleted, it will lead to the corresponding EPT page being split. The
+hypervisor should still keep to using minimum EPT pages to map from GPA
+space into HPA space.</p>
+<p>The hypervisor provides EPT guest-physical mappings adding service, EPT
+guest-physical mappings modifying/deleting service, EPT page tables
+deallocation, and EPT guest-physical mappings invalidation service.</p>
+</div>
+</div>
+<div class="section" id="virtual-mtrr">
+<h2>Virtual MTRR<a class="headerlink" href="#virtual-mtrr" title="Permalink to this headline">¶</a></h2>
+<p>In ACRN, the hypervisor only virtualizes MTRRs fixed range (0~1MB).
+The HV sets MTRRs of the fixed range as Write-Back for UOS, and the SOS reads
+native MTRRs of the fixed range set by BIOS.</p>
+<p>If the guest physical address is not in the fixed range (0~1MB), the
+hypervisor uses the default memory type in the MTRR (Write-Back).</p>
+<p>When the guest disables MTRRs, the HV sets the guest address memory type
+as UC.</p>
+<p>If the guest physical address is in fixed range (0~1MB), the HV sets
+memory type according to the fixed virtual MTRRs.</p>
+<p>When the guest enable MTRRs, MTRRs have no effect on the memory type
+used for access to GPA. The HV first intercepts MTRR MSR registers
+access through MSR access VM exit and updates EPT memory type field in EPT
+PTE according to the memory type selected by MTRRs.  This combines with
+PAT entry in the PAT MSR (which is determined by PAT, PCD, and PWT bits
+from the guest paging structures) to determine the effective memory
+type.</p>
+<div class="section" id="vpid-operations">
+<h3>VPID operations<a class="headerlink" href="#vpid-operations" title="Permalink to this headline">¶</a></h3>
+<p>Virtual-processor identifier (VPID) is a hardware feature to optimize
+TLB management. When VPID is enable, hardware will add a tag for TLB of
+a logical processor and cache information for multiple linear-address
+spaces. VMX transitions may retain cached information and the logical
+processor switches to a different address space, avoiding unnecessary
+TLB flushes.</p>
+<p>In ACRN, an unique VPID must be allocated for each virtual CPU
+when a virtual CPU is created. The logical processor invalidates linear
+mappings and combined mapping associated with all VPIDs (except VPID
+0000H), and with all PCIDs when the logical processor launches the virtual
+CPU. The logical processor invalidates all linear mapping and combined
+mappings associated with the specified VPID when the interrupt pending
+request handling needs to invalidate cached mapping of the specified
+VPID.</p>
+</div>
+<div class="section" id="id1">
+<h3>Data Flow Design<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>The memory virtualization unit includes address space translation
+functions, data transferring functions, VM EPT operations functions,
+VPID operations functions, VM exit hanging about EPT violation and EPT
+misconfiguration, and MTRR virtualization functions. This unit handles
+guest-physical mapping updates by creating or updating related EPT page
+tables. It virtualizes MTRR for guest OS by updating related EPT page
+tables. It handles address translation from GPA to HPA by walking EPT
+page tables. It copies data from VM into the HV or from the HV to VM by
+walking guest MMU page tables and EPT page tables. It provides services
+to allocate VPID for each virtual CPU and TLB invalidation related VPID.
+It handles VM exit about EPT violation and EPT misconfiguration. The
+following <a class="reference internal" href="#mem-flow-mem-virt"><span class="std std-numref">Figure 40</span></a> describes the data flow diagram of
+the memory virtualization unit.</p>
+<div class="figure align-center" id="mem-flow-mem-virt">
+<img alt="../../_images/mem-image84.png" src="../../_images/mem-image84.png" />
+<p class="caption"><span class="caption-number">Figure 40 </span><span class="caption-text">Data Flow of Hypervisor Memory Virtualization</span></p>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Data Structure Design<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>EPT Memory Type Data Definition:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* EPT memory type is specified in bits 5:3 of the last EPT</span>
+<span class="cm"> * paging-structure entry */</span>
+<span class="cp">#define EPT_MT_SHIFT 3U</span>
 
-<dl class="class">
-<dt id="_CPPv311vhm_request">
-<span id="_CPPv211vhm_request"></span><span id="vhm_request"></span><span class="target" id="structvhm__request"></span><em class="property">struct </em><code class="descname">vhm_request</code><br /></dt>
-<dd><p>256-byte VHM requests </p>
-<p>The state transitions of a VHM request are:</p>
-<p>FREE -&gt; PENDING -&gt; PROCESSING -&gt; COMPLETE -&gt; FREE -&gt; …</p>
-<p>When a request is in COMPLETE or FREE state, the request is owned by the hypervisor. SOS (VHM or DM) shall not read or write the internals of the request except the state.</p>
-<p>When a request is in PENDING or PROCESSING state, the request is owned by SOS. The hypervisor shall not read or write the request other than the state.</p>
-<p>Based on the rules above, a typical VHM request lifecycle should looks like the following. <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                <span class="p">(</span><span class="n">assume</span> <span class="n">the</span> <span class="n">initial</span> <span class="n">state</span> <span class="ow">is</span> <span class="n">FREE</span><span class="p">)</span>
+<span class="cm">/* EPT memory type is uncacheable  */</span>
+<span class="cp">#define EPT_UNCACHED (0UL &lt;&lt; EPT_MT_SHIFT)</span>
 
-  <span class="n">SOS</span> <span class="n">vCPU</span> <span class="mi">0</span>                <span class="n">SOS</span> <span class="n">vCPU</span> <span class="n">x</span>                    <span class="n">UOS</span> <span class="n">vCPU</span> <span class="n">y</span>
+<span class="cm">/* EPT memory type is write combining  */</span>
+<span class="cp">#define EPT_WC (1UL &lt;&lt; EPT_MT_SHIFT)</span>
 
-                                            <span class="n">hypervisor</span><span class="p">:</span>
-                                                <span class="n">fill</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">etc</span><span class="o">.</span>
-                                                <span class="n">pause</span> <span class="n">UOS</span> <span class="n">vcpu</span> <span class="n">y</span>
-                                                <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">PENDING</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span>
-                                                <span class="n">fire</span> <span class="n">upcall</span> <span class="n">to</span> <span class="n">SOS</span> <span class="n">vCPU</span> <span class="mi">0</span>
+<span class="cm">/* EPT memory type is write through */</span>
+<span class="cp">#define EPT_WT (4UL &lt;&lt; EPT_MT_SHIFT)</span>
+
+<span class="cm">/* EPT memory type is write protected  */</span>
+<span class="cp">#define EPT_WP (5UL &lt;&lt; EPT_MT_SHIFT)</span>
+
+<span class="cm">/* EPT memory type is write back */</span>
+<span class="cp">#define EPT_WB (6UL &lt;&lt; EPT_MT_SHIFT)</span>
 </pre></div>
 </div>
-</p>
-<p>VHM: scan for pending requests set state to PROCESSING (b) assign requests to clients (c) <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                  <span class="n">client</span><span class="p">:</span>
-                      <span class="n">scan</span> <span class="k">for</span> <span class="n">assigned</span> <span class="n">requests</span>
-                      <span class="n">handle</span> <span class="n">the</span> <span class="n">requests</span> <span class="p">(</span><span class="n">d</span><span class="p">)</span>
-                      <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">COMPLETE</span>
-                      <span class="n">notify</span> <span class="n">the</span> <span class="n">hypervisor</span>
+<p>EPT Memory Access Right Definition:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* EPT memory access right is read-only */</span>
+<span class="cp">#define EPT_RD (1UL &lt;&lt; 0U)</span>
 
-                  <span class="n">hypervisor</span><span class="p">:</span>
-                      <span class="n">resume</span> <span class="n">UOS</span> <span class="n">vcpu</span> <span class="n">y</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span>
+<span class="cm">/* EPT memory access right is read/write */</span>
+<span class="cp">#define EPT_WR (1UL &lt;&lt; 1U)</span>
 
-                                       <span class="n">hypervisor</span><span class="p">:</span>
-                                           <span class="n">post</span><span class="o">-</span><span class="n">work</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                                           <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">FREE</span>
+<span class="cm">/* EPT memory access right is executable */</span>
+<span class="cp">#define EPT_EXE (1UL &lt;&lt; 2U)</span>
+
+<span class="cm">/* EPT memory access right is read/write and executable */</span>
+<span class="n">define</span> <span class="n">EPT_RWX</span> <span class="p">(</span><span class="n">EPT_RD</span> <span class="o">|</span> <span class="n">EPT_WR</span> <span class="o">|</span> <span class="n">EPT_EXE</span><span class="p">)</span>
 </pre></div>
 </div>
-</p>
-<p>Note that the following shall hold.</p>
-<p><ol class="arabic simple">
-<li>(a) happens before (b)</li>
-<li>(c) happens before (d)</li>
-<li>(e) happens before (f)</li>
-<li>One vCPU cannot trigger another I/O request before the previous one has completed (i.e. the state switched to FREE)</li>
-</ol>
-</p>
-<p>Accesses to the state of a <a class="reference internal" href="#structvhm__request"><span class="std std-ref">vhm_request</span></a> shall be atomic and proper barriers are needed to ensure that:</p>
-<p><ol class="arabic simple">
-<li>Setting state to PENDING is the last operation when issuing a request in the hypervisor, as the hypervisor shall not access the request any more.</li>
-<li>Due to similar reasons, setting state to COMPLETE is the last operation of request handling in VHM or clients in SOS. </li>
-</ol>
-</p>
-<div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Members</p>
-<dl class="member">
-<dt id="_CPPv3N11vhm_request4typeE">
-<span id="_CPPv2N11vhm_request4typeE"></span><span id="vhm_request::type__uint32_t"></span><span class="target" id="structvhm__request_1a88e4b41e58e05bdd0b9b90f71d417697"></span>uint32_t <code class="descname">type</code><br /></dt>
-<dd><p>Type of this request.</p>
-<p>Byte offset: 0. </p>
-</dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11vhm_request9reserved0E">
-<span id="_CPPv2N11vhm_request9reserved0E"></span><span id="vhm_request::reserved0__uint32_tA"></span><span class="target" id="structvhm__request_1aaccc0d7acdb9ce2ca10dddd3a53b20cd"></span>uint32_t <code class="descname">reserved0</code>[15]<br /></dt>
-<dd><p>Reserved.</p>
-<p>Byte offset: 4. </p>
-</dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11vhm_request4reqsE">
-<span id="_CPPv2N11vhm_request4reqsE"></span><span id="vhm_request::reqs__vhm_io_request"></span><span class="target" id="structvhm__request_1aef162f2ad5070f4b3ba9f1e72117b21e"></span><em class="property">union</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv314vhm_io_request" title="vhm_io_request">vhm_io_request</a> <code class="descname">reqs</code><br /></dt>
-<dd><p>Details about this request. For REQ_PORTIO, this has type <a class="reference internal" href="#structpio__request"><span class="std std-ref">pio_request</span></a>. For REQ_MMIO and REQ_WP, this has type <a class="reference internal" href="#structmmio__request"><span class="std std-ref">mmio_request</span></a>. For REQ_PCICFG, this has type <a class="reference internal" href="#structpci__request"><span class="std std-ref">pci_request</span></a>.</p>
-<p>Byte offset: 64. </p>
-</dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11vhm_request5validE">
-<span id="_CPPv2N11vhm_request5validE"></span><span id="vhm_request::valid__int32_t"></span><span class="target" id="structvhm__request_1a1247623c4b97cfffee71acc5797b09ab"></span>int32_t <code class="descname">valid</code><br /></dt>
-<dd><p>Whether this request is valid for processing. ACRN write, VHM read only.</p>
-<p>Warning; this field is obsolete and will be removed soon.</p>
-<p>Byte offset: 128. </p>
-</dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11vhm_request6clientE">
-<span id="_CPPv2N11vhm_request6clientE"></span><span id="vhm_request::client__int32_t"></span><span class="target" id="structvhm__request_1a49b1e5f5583f45fbc93c499c06dd1a3c"></span>int32_t <code class="descname">client</code><br /></dt>
-<dd><p>The client which is distributed to handle this request. Accessed by VHM only.</p>
-<p>Byte offset: 132. </p>
-</dd></dl>
-
-<dl class="member">
-<dt id="_CPPv3N11vhm_request9processedE">
-<span id="_CPPv2N11vhm_request9processedE"></span><span id="vhm_request::processed__uint32_t"></span><span class="target" id="structvhm__request_1a27ae52798ad22413ef28d5b4eebbfe9b"></span>uint32_t <code class="descname">processed</code><br /></dt>
-<dd><p>The status of this request, taking REQ_STATE_xxx as values.</p>
-<p>Byte offset: 136. </p>
-</dd></dl>
-
 </div>
-</dd></dl>
-
-<p>For hypercalls related to I/O emulation, refer to Section 3.11.4.</p>
+<div class="section" id="id3">
+<h3>Interfaces Design<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>The memory virtualization unit interacts with external units through VM
+exit and APIs.</p>
 </div>
-<div class="section" id="initialization-and-deinitialization">
-<span id="io-handler-init"></span><h3>Initialization and Deinitialization<a class="headerlink" href="#initialization-and-deinitialization" title="Permalink to this headline">¶</a></h3>
-<p>The following structure represents a port I/O handler:</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">add reference to vm_io_handler_desc definition in ioreq.h</p>
+<div class="section" id="vm-exit-about-ept">
+<h3>VM Exit about EPT<a class="headerlink" href="#vm-exit-about-ept" title="Permalink to this headline">¶</a></h3>
+<p>There are two VM exit handlers for EPT violation and EPT
+misconfiguration in the hypervisor. EPT page tables are
+always configured correctly for SOS and UOS. If EPT misconfiguration is
+detected, a fatal error is reported by HV. The hypervisor
+uses EPT violation to intercept MMIO access to do device emulation. EPT
+violation handling data flow is described in the
+<a class="reference internal" href="hv-cpu-virt.html#instruction-emulation"><span class="std std-ref">Instruction Emulation</span></a>.</p>
 </div>
-<p>The following structure represents a MMIO handler.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">add reference to mem_io_node definition in ioreq.h</p>
+<div class="section" id="memory-virtualization-apis">
+<h3>Memory Virtualization APIs<a class="headerlink" href="#memory-virtualization-apis" title="Permalink to this headline">¶</a></h3>
+<p>Here is a list of major memory related APIs in HV:</p>
+<div class="section" id="ept-vpid-capability-checking">
+<h4>EPT/VPID Capability Checking<a class="headerlink" href="#ept-vpid-capability-checking" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>int check_vmx_mmu_cap(void)</td>
+<td>EPT and VPID capability checking</td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>The following APIs are provided to initialize, deinitialize or configure
-I/O bitmaps and register or unregister I/O handlers:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* Initialize the I/O bitmap for vm. */</span>
-<span class="kt">void</span> <span class="n">setup_io_bitmap</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
-
-<span class="cm">/* Allow a VM to access a port I/O range.</span>
-<span class="cm"> * This API enables direct access from the given vm to the port I/O space</span>
-<span class="cm"> * starting from address_arg to address_arg + nbytes - 1.</span>
-<span class="cm"> */</span>
-<span class="kt">void</span> <span class="n">allow_guest_io_access</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">address_arg</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">nbytes</span><span class="p">)</span>
-
-<span class="cm">/* Free I/O bitmaps and port I/O handlers of vm. */</span>
-<span class="kt">void</span> <span class="n">free_io_emulation_resource</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
-
-<span class="cm">/* Register a port I/O handler. */</span>
-<span class="kt">void</span> <span class="n">register_io_emulation_handler</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="k">struct</span> <span class="n">vm_io_range</span> <span class="o">*</span><span class="n">range</span><span class="p">,</span>
-                                   <span class="n">io_read_fn_t</span> <span class="n">io_read_fn_ptr</span><span class="p">,</span> <span class="n">io_write_fn_t</span> <span class="n">io_write_fn_ptr</span><span class="p">)</span>
-
-<span class="cm">/* Register a MMIO handler. */</span>
-<span class="kt">int</span> <span class="n">register_mmio_emulation_handler</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="n">hv_mem_io_handler_t</span> <span class="n">read_write</span><span class="p">,</span>
-                                    <span class="kt">uint64_t</span> <span class="n">start</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">end</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">handler_private_data</span><span class="p">)</span>
-
-<span class="cm">/* Unregister a MMIO handler.*/</span>
-<span class="kt">void</span> <span class="n">unregister_mmio_emulation_handler</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">start</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">end</span><span class="p">)</span>
-</pre></div>
+<div class="section" id="gb-hugepage-supporting-checking">
+<h4>1GB Hugepage Supporting Checking<a class="headerlink" href="#gb-hugepage-supporting-checking" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>bool check_mmu_1gb_support(enum _page_table_type page_table_type)</td>
+<td>1GB page supporting capability checking</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">change these to reference API material from ioreq.h</p>
+<div class="section" id="data-transferring-between-hypervisor-and-vm">
+<h4>Data Transferring between hypervisor and VM<a class="headerlink" href="#data-transferring-between-hypervisor-and-vm" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>int copy_from_gpa(const struct vm *vm, void *h_ptr, uint64_t gpa, uint32_t size)</td>
+<td>Copy data from VM GPA space to HV address space</td>
+</tr>
+<tr class="row-odd"><td>int copy_to_gpa(const struct vm *vm, void *h_ptr, uint64_t gpa, uint32_t size)</td>
+<td>Copy data from HV address space to VM GPA space</td>
+</tr>
+<tr class="row-even"><td>int copy_from_gva(struct vcpu *vcpu, void *h_ptr, uint64_t gva,
+uint32_t size, uint32_t *err_code, uint64_t *fault_addr)</td>
+<td>Copy data from VM GVA space to HV address space</td>
+</tr>
+<tr class="row-odd"><td>int copy_to_gva(struct vcpu *vcpu, void *h_ptr, uint64_t gva,
+uint32_t size, uint32_t *err_code, uint64_t *fault_addr)</td>
+<td>Copy data from HV address space to VM GVA space</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id4">
+<h4>Address Space Translation<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>uint64_t gpa2hpa(const struct vm *vm, uint64_t gpa)</td>
+<td>Translating from guest-physical address to host-physical address</td>
+</tr>
+<tr class="row-odd"><td>uint64_t hpa2gpa(const struct vm *vm, uint64_t hpa)</td>
+<td>Translating from host-physical address to guest-physical address</td>
+</tr>
+<tr class="row-even"><td>bool check_continuous_hpa(struct vm *vm, uint64_t gpa_arg, uint64_t size_arg)</td>
+<td>Host-physical address continuous checking</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="ept">
+<h4>EPT<a class="headerlink" href="#ept" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>int ept_mr_add(const struct vm *vm, uint64_t hpa_arg, uint64_t gpa_arg,
+uint64_t size, uint32_t prot_arg)</td>
+<td>Guest-physical memory region mapping</td>
+</tr>
+<tr class="row-odd"><td>int ept_mr_del(const struct vm *vm, uint64_t *pml4_page, uint64_t gpa,
+uint64_t size)</td>
+<td>Guest-physical memory region unmapping</td>
+</tr>
+<tr class="row-even"><td>int ept_mr_modify(const struct vm *vm, uint64_t *pml4_page, uint64_t gpa,
+uint64_t size, uint64_t prot_set, uint64_t prot_clr)</td>
+<td>Guest-physical memory page access right or memory type updating</td>
+</tr>
+<tr class="row-odd"><td>void destroy_ept(struct vm *vm)</td>
+<td>EPT page tables destroy</td>
+</tr>
+<tr class="row-even"><td>void free_ept_mem(void *pml4_addr)</td>
+<td>EPT page tables free</td>
+</tr>
+<tr class="row-odd"><td>void invept(struct vcpu *vcpu)</td>
+<td>Guest-physical mappings and combined mappings invalidation</td>
+</tr>
+<tr class="row-even"><td>int ept_violation_vmexit_handler(struct vcpu *vcpu)</td>
+<td>EPT violation handling</td>
+</tr>
+<tr class="row-odd"><td>int ept_misconfig_vmexit_handler(__unused struct vcpu *vcpu)</td>
+<td>EPT misconfiguration handling</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id5">
+<h4>Virtual MTRR<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>void init_mtrr(struct vcpu *vcpu)</td>
+<td>Virtual MTRR initialization</td>
+</tr>
+<tr class="row-odd"><td>void mtrr_wrmsr(struct vcpu *vcpu, uint32_t msr, uint64_t value)</td>
+<td>Virtual MTRR MSR write</td>
+</tr>
+<tr class="row-even"><td>uint64_t mtrr_rdmsr(struct vcpu *vcpu, uint32_t msr)</td>
+<td>Virtual MTRR MSR read</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="vpid">
+<h4>VPID<a class="headerlink" href="#vpid" title="Permalink to this headline">¶</a></h4>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">APIs</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>uint16_t allocate_vpid(void)</td>
+<td>VPID allocation</td>
+</tr>
+<tr class="row-odd"><td>void flush_vpid_single(uint16_t vpid)</td>
+<td>Specified VPID flush</td>
+</tr>
+<tr class="row-even"><td>void flush_vpid_global(void)</td>
+<td>All VPID flush</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-<div class="section" id="i-o-emulation">
-<h3>I/O Emulation<a class="headerlink" href="#i-o-emulation" title="Permalink to this headline">¶</a></h3>
-<p>The following APIs are provided for I/O emulation at runtime:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* Emulate the given I/O access for vcpu. */</span>
-<span class="kt">int32_t</span> <span class="n">emulate_io</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="k">struct</span> <span class="n">io_request</span> <span class="o">*</span><span class="n">io_req</span><span class="p">)</span>
-
-<span class="cm">/* Deliver io_req to SOS and suspend vcpu till its completion. */</span>
-<span class="kt">int32_t</span> <span class="n">acrn_insert_request_wait</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="k">struct</span> <span class="n">io_request</span> <span class="o">*</span><span class="n">io_req</span><span class="p">)</span>
-
-<span class="cm">/* General post-work for port I/O emulation. */</span>
-<span class="kt">void</span> <span class="n">emulate_io_post</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">)</span>
-
-<span class="cm">/* General post-work for MMIO emulation. */</span>
-<span class="kt">void</span> <span class="n">emulate_mmio_post</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="k">struct</span> <span class="n">io_request</span> <span class="o">*</span><span class="n">io_req</span><span class="p">)</span>
-
-<span class="cm">/* Post-work of I/O requests for MMIO. */</span>
-<span class="kt">void</span> <span class="n">dm_emulate_mmio_post</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">)</span>
-
-<span class="cm">/* The handler of VM exits on I/O instructions. */</span>
-<span class="kt">int32_t</span> <span class="n">pio_instr_vmexit_handler</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">)</span>
-</pre></div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">change these to reference API material from ioreq.h</p>
+<div class="section" id="service-os-memory-management">
+<h2>Service OS Memory Management<a class="headerlink" href="#service-os-memory-management" title="Permalink to this headline">¶</a></h2>
+<p>After the ACRN hypervisor starts, it creates the Service OS as its first
+VM. The Service OS runs all the native device drivers, manage the
+hardware devices, and provides I/O mediation to guest VMs. The Service
+OS is in charge of the memory allocation for Guest VMs as well.</p>
+<p>ACRN hypervisor passes the whole system memory access (except its own
+part) to the Service OS. The Service OS must be able to access all of
+the system memory except the hypervisor part.</p>
+<div class="section" id="guest-physical-memory-layout-e820">
+<h3>Guest Physical Memory Layout - E820<a class="headerlink" href="#guest-physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor passes the original E820 table to the Service OS
+after filtering out its own part. So from Service OS’s view, it sees
+almost all the system memory as shown here:</p>
+<div class="figure align-center" id="sos-mem-layout">
+<a class="reference internal image-reference" href="../../_images/mem-image3.png"><img alt="../../_images/mem-image3.png" src="../../_images/mem-image3.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 41 </span><span class="caption-text">SOS Physical Memory Layout</span></p>
 </div>
+</div>
+<div class="section" id="host-to-guest-mapping">
+<h3>Host to Guest Mapping<a class="headerlink" href="#host-to-guest-mapping" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor creates Service OS’s host (HPA) to guest (GPA) mapping
+(EPT mapping) through the function <code class="docutils literal notranslate"><span class="pre">prepare_vm0_memmap_and_e820()</span></code>
+when it creates the SOS VM. It follows these rules:</p>
+<ul class="simple">
+<li>Identical mapping</li>
+<li>Map all memory range with UNCACHED type</li>
+<li>Remap RAM entries in E820 (revised) with WRITE-BACK type</li>
+<li>Unmap ACRN hypervisor memory range</li>
+<li>Unmap ACRN hypervisor emulated vLAPIC/vIOAPIC MMIO range</li>
+</ul>
+<p>The host to guest mapping is static for the Service OS; it will not
+change after the Service OS begins running. Each native device driver
+can access its MMIO through this static mapping. EPT violation is only
+serving for vLAPIC/vIOAPIC’s emulation in the hypervisor for Service OS
+VM.</p>
+</div>
+</div>
+<div class="section" id="trusty">
+<h2>Trusty<a class="headerlink" href="#trusty" title="Permalink to this headline">¶</a></h2>
+<p>For an Android User OS, there is a secure world named trusty world
+support, whose memory must be secured by the ACRN hypervisor and
+must not be accessible by SOS and UOS normal world.</p>
+<div class="figure align-center" id="id6">
+<img alt="../../_images/mem-image18.png" src="../../_images/mem-image18.png" />
+<p class="caption"><span class="caption-number">Figure 42 </span><span class="caption-text">UOS Physical Memory Layout with Trusty</span></p>
 </div>
 </div>
 </div>
@@ -1102,7 +1202,7 @@ I/O bitmaps and register or unregister I/O handlers:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 25, 2018.
+      Last updated on Oct 26, 2018.
 
     </p>
   </div> 

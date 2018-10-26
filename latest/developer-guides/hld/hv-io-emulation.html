@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Physical Interrupt high-level design &mdash; Project ACRN™ v 0.3-unstable documentation</title>
+  <title>I/O Emulation high-level design &mdash; Project ACRN™ v 0.3-unstable documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Device Model high-level design" href="hld-devicemodel.html" />
-    <link rel="prev" title="I/O Emulation high-level design" href="hld-io-emulation.html" /> 
+    <link rel="next" title="Physical Interrupt high-level design" href="hv-interrupt.html" />
+    <link rel="prev" title="Memory Management high-level design" href="hv-memmgt.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -224,9 +224,10 @@
 <li class="toctree-l3 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="hv-startup.html">Hypervisor Startup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hv-cpu-virt.html">CPU Virtualization</a></li>
-<li class="toctree-l4"><a class="reference internal" href="memmgt-hld.html">Memory management</a></li>
-<li class="toctree-l4"><a class="reference internal" href="hld-io-emulation.html">I/O Emulation</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Physical Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-memmgt.html">Memory management</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">I/O Emulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-interrupt.html">Physical Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-timer.html">Timer</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-devicemodel.html">Device Model</a><ul>
@@ -524,7 +525,7 @@
         
           <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
         
-      <li>Physical Interrupt high-level design</li>
+      <li>I/O Emulation high-level design</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -541,431 +542,550 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="physical-interrupt-high-level-design">
-<span id="interrupt-hld"></span><h1>Physical Interrupt high-level design<a class="headerlink" href="#physical-interrupt-high-level-design" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>The ACRN hypervisor implements a simple but fully functional framework
-to manage interrupts and exceptions, as show in
-<a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 47</span></a>. In its native layer, it configures
-the physical PIC, IOAPIC, and LAPIC to support different interrupt
-sources from local timer/IPI to external INTx/MSI. In its virtual guest
-layer, it emulates virtual PIC, virtual IOAPIC and virtual LAPIC, and
-provides full APIs allowing virtual interrupt injection from emulated or
-pass-thru devices.</p>
-<div class="figure align-center" id="interrupt-modules-overview">
-<a class="reference internal image-reference" href="../../_images/interrupt-image3.png"><img alt="../../_images/interrupt-image3.png" src="../../_images/interrupt-image3.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 47 </span><span class="caption-text">ACRN Interrupt Modules Overview</span></p>
-</div>
-<p>In the software modules view shown in <a class="reference internal" href="#interrupt-sw-modules"><span class="std std-numref">Figure 48</span></a>,
-the ACRN hypervisor sets up the physical interrupt in its basic
-interrupt modules (e.g., IOAPIC/LAPIC/IDT).  It dispatches the interrupt
-in the hypervisor interrupt flow control layer to the corresponding
-handlers, that could be pre-defined IPI notification, timer, or runtime
-registered pass-thru devices.  The ACRN hypervisor then uses its VM
-interfaces based on vPIC, vIOAPIC, and vMSI modules, to inject the
-necessary virtual interrupt into the specific VM</p>
-<div class="figure align-center" id="interrupt-sw-modules">
-<a class="reference internal image-reference" href="../../_images/interrupt-image2.png"><img alt="../../_images/interrupt-image2.png" src="../../_images/interrupt-image2.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 48 </span><span class="caption-text">ACRN Interrupt SW Modules Overview</span></p>
-</div>
-<p>The hypervisor implements the following functionalities for handling
-physical interrupts:</p>
+  <div class="section" id="i-o-emulation-high-level-design">
+<span id="hld-io-emulation"></span><h1>I/O Emulation high-level design<a class="headerlink" href="#i-o-emulation-high-level-design" title="Permalink to this headline">¶</a></h1>
+<p>As discussed in <a class="reference internal" href="hld-overview.html#intro-io-emulation"><span class="std std-ref">Device Emulation</span></a>, there are multiple ways and
+places to handle I/O emulation, including HV, SOS Kernel VHM, and SOS
+user-land device model (acrn-dm).</p>
+<p>I/O emulation in the hypervisor provides these functionalities:</p>
 <ul class="simple">
-<li>Configure interrupt-related hardware including IDT, PIC, LAPIC, and
-IOAPIC on startup.</li>
-<li>Provide APIs to manipulate the registers of LAPIC and IOAPIC.</li>
-<li>Acknowledge physical interrupts.</li>
-<li>Set up a callback mechanism for the other components in the
-hypervisor to request for an interrupt vector and register a
-handler for that interrupt.</li>
+<li>Maintain lists of port I/O or MMIO handlers in the hypervisor for
+emulating trapped I/O accesses in a certain range.</li>
+<li>Forward I/O accesses to SOS when they cannot be handled by the
+hypervisor by any registered handlers.</li>
 </ul>
-<p>HV owns all native physical interrupts and manages 256 vectors per CPU.
-All physical interrupts are first handled in VMX root-mode.  The
-“external-interrupt exiting” bit in VM-Execution controls field is set
-to support this. The ACRN hypervisor also initializes all the interrupt
-related modules like IDT, PIC, IOAPIC, and LAPIC.</p>
-<p>HV does not own any host devices (except UART). All devices are by
-default assigned to SOS. Any interrupts received by Guest VM (SOS or
-UOS) device drivers are virtual interrupts injected by HV (via vLAPIC).
-HV manages a Host-to-Guest mapping. When a native IRQ/interrupt occurs,
-HV decides whether this IRQ/interrupt should be forwarded to a VM and
-which VM to forward to (if any). Refer to section 3.7.6 for virtual
-interrupt injection and section 3.9.6 for the management of interrupt
-remapping.</p>
-<p>HV does not own any exceptions. Guest VMCS are configured so no VM Exit
-happens, with some exceptions such as #INT3 and #MC.  This is to
-simplify the design as HV does not support any exception handling
-itself. HV supports only static memory mapping, so there should be no
-#PF or #GP. If HV receives an exception indicating an error, an assert
-function is then executed with an error message print out, and the
-system then halts.</p>
-<p>Native interrupts could be generated from one of the following
-sources:</p>
+<p><a class="reference internal" href="#io-control-flow"><span class="std std-numref">Figure 43</span></a> illustrates the main control flow steps of I/O emulation
+inside the hypervisor:</p>
+<ol class="arabic simple">
+<li>Trap and decode I/O access by VM exits and decode the access from
+exit qualification or by invoking the instruction decoder.</li>
+<li>If the range of the I/O access overlaps with any registered handler,
+call that handler if it completely covers the range of the
+access, or ignore the access if the access crosses the boundary.</li>
+<li>If the range of the I/O access does not overlap the range of any I/O
+handler, deliver an I/O request to SOS.</li>
+</ol>
+<div class="figure align-center" id="io-control-flow">
+<img alt="../../_images/ioem-image101.png" src="../../_images/ioem-image101.png" />
+<p class="caption"><span class="caption-number">Figure 43 </span><span class="caption-text">Control flow of I/O emulation in the hypervisor</span></p>
+</div>
+<p><a class="reference internal" href="../../reference/kconfig/CONFIG_PARTITION_MODE.html#cmdoption-arg-config-partition-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_PARTITION_MODE</span></code></a> is the only configuration option that affects the
+functionality of I/O emulation. With <a class="reference internal" href="../../reference/kconfig/CONFIG_PARTITION_MODE.html#cmdoption-arg-config-partition-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_PARTITION_MODE</span></code></a> enabled,
+the hypervisor never sends I/O request to any VM. Unhandled I/O reads
+get all 1’s and writes are silently dropped.</p>
+<p>I/O emulation does not rely on any calibration data.</p>
+<div class="section" id="trap-path">
+<h2>Trap Path<a class="headerlink" href="#trap-path" title="Permalink to this headline">¶</a></h2>
+<p>Port I/O accesses are trapped by VM exits with the basic exit reason
+“I/O instruction”. The port address to be accessed, size, and direction
+(read or write) are fetched from the VM exit qualification. For writes
+the value to be written to the I/O port is fetched from guest registers
+al, ax or eax, depending on the access size.</p>
+<p>MMIO accesses are trapped by VM exits with the basic exit reason “EPT
+violation”. The instruction emulator is invoked to decode the
+instruction that triggers the VM exit to get the memory address being
+accessed, size, direction (read or write), and the involved register.</p>
+<p>The I/O bitmaps and EPT are used to configure the addresses that will
+trigger VM exits when accessed by a VM. Refer to
+<a class="reference internal" href="hv-cpu-virt.html#io-mmio-emulation"><span class="std std-ref">IO/MMIO Emulation</span></a> for details.</p>
+</div>
+<div class="section" id="i-o-emulation-in-the-hypervisor">
+<h2>I/O Emulation in the Hypervisor<a class="headerlink" href="#i-o-emulation-in-the-hypervisor" title="Permalink to this headline">¶</a></h2>
+<p>When a port I/O or MMIO access is trapped, the hypervisor first checks
+whether the to-be-accessed address falls in the range of any registered
+handler, and calls the handler when such a handler exists.</p>
+<div class="section" id="handler-management">
+<h3>Handler Management<a class="headerlink" href="#handler-management" title="Permalink to this headline">¶</a></h3>
+<p>Each VM has two lists of I/O handlers, one for port I/O and the other
+for MMIO. Each element of the list contains a memory range and a pointer
+to the handler which emulates the accesses falling in the range.  See
+<a class="reference internal" href="#io-handler-init"><span class="std std-ref">Initialization and Deinitialization</span></a> for descriptions of the related data structures.</p>
+<p>The I/O handlers are registered on VM creation and never changed until
+the destruction of that VM, when the handlers are unregistered. If
+multiple handlers are registered for the same address, the one
+registered later wins. See <a class="reference internal" href="#io-handler-init"><span class="std std-ref">Initialization and Deinitialization</span></a> for the interfaces
+used to register and unregister I/O handlers.</p>
+</div>
+<div class="section" id="i-o-dispatching">
+<h3>I/O Dispatching<a class="headerlink" href="#i-o-dispatching" title="Permalink to this headline">¶</a></h3>
+<p>When a port I/O or MMIO access is trapped, the hypervisor first walks
+through the corresponding I/O handler list in the reverse order of
+registration, looking for a proper handler to emulate the access. The
+following cases exist:</p>
 <ul class="simple">
-<li>GSI interrupts<ul>
-<li>PIC or Legacy devices IRQ (0~15)</li>
-<li>IOAPIC pin</li>
+<li>If a handler whose range overlaps the range of the I/O access is
+found,<ul>
+<li>If the range of the I/O access falls completely in the range the
+handler can emulate, that handler is called.</li>
+<li>Otherwise it is implied that the access crosses the boundary of
+multiple devices which the hypervisor does not emulate. Thus
+no handler is called and no I/O request will be delivered to
+SOS. I/O reads get all 1’s and I/O writes are dropped.</li>
 </ul>
 </li>
-<li>PCI MSI/MSI-X vectors</li>
-<li>Inter CPU IPI</li>
-<li>LAPIC timer</li>
+<li>If the range of the I/O access does not overlap with any range of the
+handlers, the I/O access is delivered to SOS as an I/O request
+for further processing.</li>
 </ul>
 </div>
-<div class="section" id="physical-interrupt-initialization">
-<h2>Physical Interrupt Initialization<a class="headerlink" href="#physical-interrupt-initialization" title="Permalink to this headline">¶</a></h2>
-<p>After ACRN hypervisor gets control from the bootloader, it
-initializes all physical interrupt-related modules for all the CPUs. ACRN
-hypervisor creates a framework to manage the physical interrupt for
-hypervisor local devices, pass-thru devices, and IPI between CPUs, as
-shown in <a class="reference internal" href="#hv-interrupt-init"><span class="std std-numref">Figure 49</span></a>:</p>
-<div class="figure align-center" id="hv-interrupt-init">
-<img alt="../../_images/interrupt-image66.png" src="../../_images/interrupt-image66.png" />
-<p class="caption"><span class="caption-number">Figure 49 </span><span class="caption-text">Physical Interrupt Initialization</span></p>
 </div>
-<div class="section" id="idt-initialization">
-<h3>IDT Initialization<a class="headerlink" href="#idt-initialization" title="Permalink to this headline">¶</a></h3>
-<p>ACRN hypervisor builds its native IDT (interrupt descriptor table)
-during interrupt initialization and set up the following handlers:</p>
-<ul class="simple">
-<li>On an exception, the hypervisor dumps its context and halts the current
-physical processor (because physical exceptions are not expected).</li>
-<li>For external interrupts, HV may mask the interrupt (depending on the
-trigger mode), followed by interrupt acknowledgement and dispatch
-to the registered handler, if any.</li>
-</ul>
-<p>Most interrupts and exceptions are handled without a stack switch,
-except for machine-check, double fault, and stack fault exceptions which
-have their own stack set in TSS.</p>
+<div class="section" id="i-o-requests">
+<h2>I/O Requests<a class="headerlink" href="#i-o-requests" title="Permalink to this headline">¶</a></h2>
+<p>An I/O request is delivered to SOS vCPU 0 if the hypervisor does not
+find any handler that overlaps the range of a trapped I/O access. This
+section describes the initialization of the I/O request mechanism and
+how an I/O access is emulated via I/O requests in the hypervisor.</p>
+<div class="section" id="initialization">
+<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h3>
+<p>For each UOS the hypervisor shares a page with SOS to exchange I/O
+requests. The 4-KByte page consists of 16 256-Byte slots, indexed by
+vCPU ID. It is required for the DM to allocate and set up the request
+buffer on VM creation, otherwise I/O accesses from UOS cannot be
+emulated by SOS, and all I/O accesses not handled by the I/O handlers in
+the hypervisor will be dropped (reads get all 1’s).</p>
+<p>Refer to Section 4.4.1 for the details of I/O requests and the
+initialization of the I/O request buffer.</p>
 </div>
-<div class="section" id="pic-ioapic-initialization">
-<h3>PIC/IOAPIC Initialization<a class="headerlink" href="#pic-ioapic-initialization" title="Permalink to this headline">¶</a></h3>
-<p>ACRN hypervisor masks all interrupts from the PIC. All legacy interrupts
-from PIC (&lt;16) will be linked to IOAPIC, as shown in the connections in
-<a class="reference internal" href="#hv-pic-config"><span class="std std-numref">Figure 50</span></a>.</p>
-<p>ACRN will pre-allocate vectors and mask them for these legacy interrupt
-in IOAPIC RTE. For others (&gt;= 16), ACRN will mask them with vector 0 in
-RTE, and the vector will be dynamically allocate on demand.</p>
-<p>All external IOAPIC pins are categorized as GSI interrupt according to
-ACPI definition. HV supports multiple IOAPIC components. IRQ PIN to GSI
-mappings are maintained internally to determine GSI source IOAPIC.
-Native PIC is not used in the system.</p>
-<div class="figure align-center" id="hv-pic-config">
-<img alt="../../_images/interrupt-image46.png" src="../../_images/interrupt-image46.png" />
-<p class="caption"><span class="caption-number">Figure 50 </span><span class="caption-text">HV PIC/IOAPIC/LAPIC configuration</span></p>
-</div>
-</div>
-<div class="section" id="lapic-initialization">
-<h3>LAPIC Initialization<a class="headerlink" href="#lapic-initialization" title="Permalink to this headline">¶</a></h3>
-<p>Physical LAPICs are in xAPIC mode in ACRN hypervisor. The hypervisor
-initializes LAPIC for each physical CPU by masking all interrupts in the
-local vector table (LVT), clearing all ISRs, and enabling LAPIC.</p>
-<p>APIs are provided to access LAPIC for the other components in the
-hypervisor, aiming for further usage of local timer (TSC Deadline)
-program, IPI notification program, etc. See <a class="reference internal" href="#hv-interrupt-data-api"><span class="std std-ref">Data structures and interfaces</span></a>
-for a complete list.</p>
-</div>
-<div class="section" id="hv-interrupt-vectors-and-delivery-mode">
-<h3>HV Interrupt Vectors and Delivery Mode<a class="headerlink" href="#hv-interrupt-vectors-and-delivery-mode" title="Permalink to this headline">¶</a></h3>
-<p>The interrupt vectors are assigned as shown here:</p>
-<dl class="docutils">
-<dt><strong>Vector 0-0x1F</strong></dt>
-<dd>are exceptions that are not handled by HV. If
-such an exception does occur, the system then halts.</dd>
-<dt><strong>Vector: 0x20-0x2F</strong></dt>
-<dd>are allocated statically for legacy IRQ0-15.</dd>
-<dt><strong>Vector: 0x30-0xDF</strong></dt>
-<dd>are dynamically allocated vectors for PCI devices
-INTx or MSI/MIS-X usage. According to different interrupt delivery mode
-(FLAT or PER_CPU mode), an interrupt will be assigned to a vector for
-all the CPUs or a particular CPU.</dd>
-<dt><strong>Vector: 0xE0-0xFE</strong></dt>
-<dd>are high priority vectors reserved by HV for
-dedicated purposes. For example, 0xEF is used for timer, 0xF0 is used
-for IPI.</dd>
-</dl>
+<div class="section" id="types-of-i-o-requests">
+<h3>Types of I/O Requests<a class="headerlink" href="#types-of-i-o-requests" title="Permalink to this headline">¶</a></h3>
+<p>There are four types of I/O requests:</p>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
-<col width="30%" />
-<col width="70%" />
+<col width="50%" />
+<col width="50%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Vectors</th>
-<th class="head">Usage</th>
+<tr class="row-odd"><th class="head">I/O Request Type</th>
+<th class="head">Description</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>0x0-0x13</td>
-<td>Exceptions: NMI, INT3, page dault, GP, debug.</td>
+<tr class="row-even"><td>PIO</td>
+<td>A port I/O access.</td>
 </tr>
-<tr class="row-odd"><td>0x14-0x1F</td>
-<td>Reserved</td>
+<tr class="row-odd"><td>MMIO</td>
+<td>A MMIO access to a GPA with no mapping in EPT.</td>
 </tr>
-<tr class="row-even"><td>0x20-0x2F</td>
-<td>Statically allocated for external IRQ (IRQ0-IRQ15)</td>
+<tr class="row-even"><td>PCI</td>
+<td>A PCI configuration space access.</td>
 </tr>
-<tr class="row-odd"><td>0x30-0xDF</td>
-<td>Dynamically allocated for IOAPIC IRQ from PCI INTx/MSI</td>
-</tr>
-<tr class="row-even"><td>0xE0-0xFE</td>
-<td>Static allocated for HV</td>
-</tr>
-<tr class="row-odd"><td>0xEF</td>
-<td>Timer</td>
-</tr>
-<tr class="row-even"><td>0xF0</td>
-<td>IPI</td>
-</tr>
-<tr class="row-odd"><td>0xFF</td>
-<td>SPURIOUS_APIC_VECTOR</td>
+<tr class="row-odd"><td>WP</td>
+<td>A MMIO access to a GPA with a read-only mapping in EPT.</td>
 </tr>
 </tbody>
 </table>
-<p>Interrupts from either IOAPIC or MSI can be delivered to a target CPU.
-By default they are configured as Lowest Priority (FLAT mode), i.e. they
-are delivered to a CPU core that is currently idle or executing lowest
-priority ISR. There is no guarantee a device’s interrupt will be
-delivered to a specific Guest’s CPU. Timer interrupts are an exception -
-these are always delivered to the CPU which programs the LAPIC timer.</p>
-<p>There are two interrupt delivery modes: FLAT mode and PER_CPU mode. ACRN
-uses FLAT MODE where the interrupt/irq to vector mapping is the same on all CPUs. Every
-CPU receives same interrupts. IOAPIC and LAPIC MSI delivery mode are
-configured to Lowest Priority.</p>
-<p>Vector allocation for CPUs is shown here:</p>
+<p>For port I/O accesses, the hypervisor will always deliver an I/O request
+of type PIO to SOS. For MMIO accesses, the hypervisor will deliver an
+I/O request of either MMIO or WP, depending on the mapping of the
+accessed address (in GPA) in the EPT of the vCPU. The hypervisor will
+never deliver any I/O request of type PCI, but will handle such I/O
+requests in the same ways as port I/O accesses on their completion.</p>
+<p>Refer to <a class="reference internal" href="#io-structs-interfaces"><span class="std std-ref">Data Structures and Interfaces</span></a> for a detailed description of the
+data held by each type of I/O request.</p>
+</div>
+<div class="section" id="i-o-request-state-transitions">
+<h3>I/O Request State Transitions<a class="headerlink" href="#i-o-request-state-transitions" title="Permalink to this headline">¶</a></h3>
+<p>Each slot in the I/O request buffer is managed by a finite state machine
+with four states. The following figure illustrates the state transitions
+and the events that trigger them.</p>
 <div class="figure align-center" id="id1">
-<img alt="../../_images/interrupt-image89.png" src="../../_images/interrupt-image89.png" />
-<p class="caption"><span class="caption-number">Figure 51 </span><span class="caption-text">FLAT mode vector allocation</span></p>
+<img alt="../../_images/ioem-image92.png" src="../../_images/ioem-image92.png" />
+<p class="caption"><span class="caption-number">Figure 44 </span><span class="caption-text">State Transition of I/O Requests</span></p>
 </div>
-</div>
-<div class="section" id="irq-descriptor-table">
-<h3>IRQ Descriptor Table<a class="headerlink" href="#irq-descriptor-table" title="Permalink to this headline">¶</a></h3>
-<p>ACRN hypervisor maintains a global IRQ Descriptor Table shared among the
-physical CPUs. ACRN use FLAT MODE to manage the interrupts so the
-same vector will link to same the IRQ number for all CPUs.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">need to reference API doc for irq_desc</p>
-</div>
-<p>The <em>irq_desc[]</em> array’s index represents IRQ number. An <em>irq_handler</em>
-field could be set to common edge/level/quick handler which will be
-called from <em>interrupt_dispatch</em>. The <em>irq_desc</em> structure also
-contains the <em>dev_list</em> field to maintain this IRQ’s action handler
-list.</p>
-<p>Another reverse mapping from vector to IRQ is used in addition to the
-IRQ descriptor table which maintains the mapping from IRQ to vector.</p>
-<p>On initialization, the descriptor of the legacy IRQs are initialized with
-proper vectors and the corresponding reverse mapping is set up.
-The descriptor of other IRQs are filled with an invalid
-vector which will be updated on IRQ allocation.</p>
-<p>For example, if local timer registers an interrupt with IRQ number 271 and
-vector 0xEF, then this date will be set up:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">].</span><span class="n">irq</span> <span class="o">=</span> <span class="mi">271</span>
-<span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">].</span><span class="n">vector</span> <span class="o">=</span> <span class="mh">0xEF</span>
-<span class="n">vector_to_irq</span><span class="p">[</span><span class="mh">0xEF</span><span class="p">]</span> <span class="o">=</span> <span class="mi">271</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="external-interrupt-handling">
-<h2>External Interrupt Handling<a class="headerlink" href="#external-interrupt-handling" title="Permalink to this headline">¶</a></h2>
-<p>CPU runs under VMX non-root mode and inside Guest VMs.
-<code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_PINBASED_CTLS.bit[0]</span></code> and
-<code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_EXIT_CTLS.bit[15]</span></code> are set to allow vCPU VM Exit to HV
-whenever there are interrupts to that physical CPU under
-non-root mode. HV ACKs the interrupts in VMX non-root and saves the
-interrupt vector to the relevant VM Exit field for HV IRQ processing.</p>
-<p>Note that as discussed above, an external interrupt causing vCPU VM Exit
-to HV does not mean that the interrupt belongs to that Guest VM. When
-CPU executes VM Exit into root-mode, interrupt handling will be enabled
-and the interrupt will be delivered and processed as quickly as possible
-inside HV. HV may emulate a virtual interrupt and inject to Guest if
-necessary.</p>
-<p>When an physical interrupt happened on a CPU, this CPU could be running
-under VMX root mode or non-root mode. If the CPU is running under VMX
-root mode, the interrupt is triggered from standard native IRQ flow -
-interrupt gate to IRQ handler. If the CPU is running under VMX non-root
-mode, an external interrupt will trigger a VM exit for reason
-“external-interrupt”.</p>
-<p>Interrupt and IRQ processing flow diagrams are shown below:</p>
-<div class="figure align-center" id="phy-interrupt-processing">
-<img alt="../../_images/interrupt-image48.png" src="../../_images/interrupt-image48.png" />
-<p class="caption"><span class="caption-number">Figure 52 </span><span class="caption-text">Processing of physical interrupts</span></p>
-</div>
-<div class="figure align-center" id="id2">
-<img alt="../../_images/interrupt-image39.png" src="../../_images/interrupt-image39.png" />
-<p class="caption"><span class="caption-number">Figure 53 </span><span class="caption-text">IRQ processing control flow</span></p>
-</div>
-<p>When a physical interrupt is raised and delivered to a physical CPU, the
-CPU may be running under either VMX root mode or non-root mode.</p>
-<ul class="simple">
-<li>If the CPU is running under VMX root mode, the interrupt is handled
-following the standard native IRQ flow: interrupt gate to
-dispatch_interrupt(), IRQ handler, and finally the registered callback.</li>
-<li>If the CPU is running under VMX non-root mode, an external interrupt
-calls a VM exit for reason “external-interrupt”, and then the VM
-exit processing flow will call dispatch_interrupt() to dispatch and
-handle the interrupt.</li>
-</ul>
-<p>After an interrupt occures from either path shown in
-<a class="reference internal" href="#phy-interrupt-processing"><span class="std std-numref">Figure 52</span></a>, ACRN hypervisor will jump to
-dispatch_interrupt. This function gets the vector of the generated
-interrupt from the context, gets IRQ number from vector_to_irq[], and
-then gets the corresponding irq_desc.</p>
-<p>Though there is only one generic IRQ handler for registered interrupt,
-there are three different handling flows according to flags:</p>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">!IRQF_LEVEL</span></code></p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">IRQF_LEVEL</span> <span class="pre">&amp;&amp;</span> <span class="pre">!IRQF_PT</span></code></p>
-<p>To avoid continuous interrupt triggers, it masks the IOAPIC pin and
-unmask it only after IRQ action callback is executed</p>
-</li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">IRQF_LEVEL</span> <span class="pre">&amp;&amp;</span> <span class="pre">IRQF_PT</span></code></p>
-<p>For pass-thru devices, to avoid continuous interrupt triggers, it masks
-the IOAPIC pin and leaves it unmasked until corresponding vIOAPIC
-pin gets an explicit EOI ACK from guest.</p>
-</li>
-</ul>
-<p>Since interrupts are not shared for multiple devices, there is only one
-IRQ action registered for each interrupt</p>
-<p>The IRQ number inside HV is a software concept to identify GSI and
-Vectors. Each GSI will be mapped to one IRQ. The GSI number is usually the same
-as the IRQ number. IRQ numbers greater than max GSI (nr_gsi) number are dynamically
-assigned. For example, HV allocates an interrupt vector to a PCI device,
-an IRQ number is then assigned to that vector. When the vector later
-reaches a CPU, the corresponding IRQ routine is located and executed.</p>
-<p>See <a class="reference internal" href="#request-irq"><span class="std std-numref">Figure 54</span></a> for request IRQ control flow for different
-conditions:</p>
-<div class="figure align-center" id="request-irq">
-<img alt="../../_images/interrupt-image76.png" src="../../_images/interrupt-image76.png" />
-<p class="caption"><span class="caption-number">Figure 54 </span><span class="caption-text">Request IRQ for different conditions</span></p>
-</div>
-</div>
-<div class="section" id="ipi-management">
-<h2>IPI Management<a class="headerlink" href="#ipi-management" title="Permalink to this headline">¶</a></h2>
-<p>The only purpose of IPI use in HV is to kick a vCPU out of non-root mode
-and enter to HV mode. This requires I/O request and virtual interrupt
-injection be distributed to different IPI vectors. The I/O request uses
-IPI vector 0xF4 upcall (refer to Chapter 5.4). The virtual interrupt
-injection uses IPI vector 0xF0.</p>
+<p>The four states are:</p>
 <dl class="docutils">
-<dt>0xF4 upcall</dt>
-<dd>A Guest vCPU VM Exit exits due to EPT violation or IO instruction trap.
-It requires Device Module to emulate the MMIO/PortIO instruction.
-However it could be that the Service OS (SOS) vCPU0 is still in non-root
-mode. So an IPI (0xF4 upcall vector) should be sent to the physical CPU0
-(with non-root mode as vCPU0 inside SOS) to force vCPU0 to VM Exit due
-to the external interrupt. The virtual upcall vector is then injected to
-SOS, and the vCPU0 inside SOS then will pick up the IO request and do
-emulation for other Guest.</dd>
-<dt>0xF0 IPI flow</dt>
-<dd>If Device Module inside SOS needs to inject an interrupt to other Guest
-such as vCPU1, it will issue an IPI first to kick CPU1 (assuming CPU1 is
-running on vCPU1) to root-hv_interrupt-data-apmode. CPU1 will inject the
-interrupt before VM Enter.</dd>
+<dt>FREE</dt>
+<dd>The I/O request slot is not used and new I/O requests can be
+delivered. This is the initial state on UOS creation.</dd>
+<dt>PENDING</dt>
+<dd>The I/O request slot is occupied with an I/O request pending
+to be processed by SOS.</dd>
+<dt>PROCESSING</dt>
+<dd>The I/O request has been dispatched to a client but the
+client has not finished handling it yet.</dd>
+<dt>COMPLETE</dt>
+<dd>The client has completed the I/O request but the hypervisor
+has not consumed the results yet.</dd>
 </dl>
+<p>The contents of an I/O request slot are owned by the hypervisor when the
+state of an I/O request slot is FREE or COMPLETE. In such cases SOS can
+only access the state of that slot. Similarly the contents are owned by
+SOS when the state is PENDING or PROCESSING, when the hypervisor can
+only access the state of that slot.</p>
+<p>The states are transferred as follow:</p>
+<ol class="arabic simple">
+<li>To deliver an I/O request, the hypervisor takes the slot
+corresponding to the vCPU triggering the I/O access, fills the
+contents, changes the state to PENDING and notifies SOS via
+upcall.</li>
+<li>On upcalls, SOS dispatches each I/O request in the PENDING state to
+clients and changes the state to PROCESSING.</li>
+<li>The client assigned an I/O request changes the state to COMPLETE
+after it completes the emulation of the I/O request. A hypercall
+is made to notify the hypervisor on I/O request completion after
+the state change.</li>
+<li>The hypervisor finishes the post-work of a I/O request after it is
+notified on its completion and change the state back to FREE.</li>
+</ol>
+<p>States are accessed using atomic operations to avoid getting unexpected
+states on one core when it is written on another.</p>
+<p>Note that there is no state to represent a ‘failed’ I/O request. SOS
+should return all 1’s for reads and ignore writes whenever it cannot
+handle the I/O request, and change the state of the request to COMPLETE.</p>
+</div>
+<div class="section" id="post-work">
+<h3>Post-work<a class="headerlink" href="#post-work" title="Permalink to this headline">¶</a></h3>
+<p>After an I/O request is completed, some more work needs to be done for
+I/O reads to update guest registers accordingly. Currently the
+hypervisor re-enters the vCPU thread every time a vCPU is scheduled back
+in, rather than switching to where the vCPU is scheduled out. As a result,
+post-work is introduced for this purpose.</p>
+<p>The hypervisor pauses a vCPU before an I/O request is delivered to SOS.
+Once the I/O request emulation is completed, a client notifies the
+hypervisor by a hypercall. The hypervisor will pick up that request, do
+the post-work, and resume the guest vCPU. The post-work takes care of
+updating the vCPU guest state to reflect the effect of the I/O reads.</p>
+<div class="figure align-center" id="id2">
+<img alt="../../_images/ioem-image100.png" src="../../_images/ioem-image100.png" />
+<p class="caption"><span class="caption-number">Figure 45 </span><span class="caption-text">Workflow of MMIO I/O request completion</span></p>
+</div>
+<p>The figure above illustrates the workflow to complete an I/O
+request for MMIO. Once the I/O request is completed, SOS makes a
+hypercall to notify the hypervisor which resumes the UOS vCPU triggering
+the access after requesting post-work on that vCPU. After the UOS vCPU
+resumes, it does the post-work first to update the guest registers if
+the access reads an address, changes the state of the corresponding I/O
+request slot to FREE, and continues execution of the vCPU.</p>
+<div class="figure align-center" id="port-io-completion">
+<img alt="../../_images/ioem-image106.png" src="../../_images/ioem-image106.png" />
+<p class="caption"><span class="caption-number">Figure 46 </span><span class="caption-text">Workflow of port I/O request completion</span></p>
+</div>
+<p>Completion of a port I/O request (shown in <a class="reference internal" href="#port-io-completion"><span class="std std-numref">Figure 46</span></a>
+above) is
+similar to the MMIO case, except the post-work is done before resuming
+the vCPU. This is because the post-work for port I/O reads need to update
+the general register eax of the vCPU, while the post-work for MMIO reads
+need further emulation of the trapped instruction.  This is much more
+complex and may impact the performance of SOS.</p>
+</div>
 </div>
 <div class="section" id="data-structures-and-interfaces">
-<span id="hv-interrupt-data-api"></span><h2>Data structures and interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="ioapic">
-<h3>IOAPIC<a class="headerlink" href="#ioapic" title="Permalink to this headline">¶</a></h3>
-<p>The following APIs are external interfaces for IOAPIC related
-operations.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">ioapic_get_rte</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="k">union</span> <span class="n">ioapic_rte</span> <span class="o">*</span><span class="n">rte</span><span class="p">)</span>
-   <span class="cm">/*   get the redirection table entry of an irq. */</span>
+<span id="io-structs-interfaces"></span><h2>Data Structures and Interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="external-interfaces">
+<h3>External Interfaces<a class="headerlink" href="#external-interfaces" title="Permalink to this headline">¶</a></h3>
+<p>The following structures represent an I/O request. <em>struct vhm_request</em>
+is the main structure and the others are detailed representations of I/O
+requests of different kinds. Refer to Section 4.4.4 for the usage of
+<em>struct pci_request</em>.</p>
+<dl class="class">
+<dt id="_CPPv312mmio_request">
+<span id="_CPPv212mmio_request"></span><span id="mmio_request"></span><span class="target" id="structmmio__request"></span><em class="property">struct </em><code class="descname">mmio_request</code><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N12mmio_request9directionE">
+<span id="_CPPv2N12mmio_request9directionE"></span><span id="mmio_request::direction__uint32_t"></span><span class="target" id="structmmio__request_1a5ee5d2ef58edfa75b454de67d6065b38"></span>uint32_t <code class="descname">direction</code><br /></dt>
+<dd></dd></dl>
 
-<span class="kt">void</span> <span class="n">ioapic_set_rte</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="k">union</span> <span class="n">ioapic_rte</span> <span class="n">rte</span><span class="p">)</span>
-   <span class="cm">/*   Set the redirection table entry of an irq. */</span>
+<dl class="member">
+<dt id="_CPPv3N12mmio_request8reservedE">
+<span id="_CPPv2N12mmio_request8reservedE"></span><span id="mmio_request::reserved__uint32_t"></span><span class="target" id="structmmio__request_1a6068a4375866ddd11ca232cefe1c94e4"></span>uint32_t <code class="descname">reserved</code><br /></dt>
+<dd></dd></dl>
 
-<span class="kt">uint32_t</span> <span class="n">pin_to_irq</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">pin</span><span class="p">)</span>
-   <span class="cm">/*   Get irq num from physical irq pin num */</span>
+<dl class="member">
+<dt id="_CPPv3N12mmio_request7addressE">
+<span id="_CPPv2N12mmio_request7addressE"></span><span id="mmio_request::address__uint64_t"></span><span class="target" id="structmmio__request_1ace9d10b323354405ec72a0aeec2ed3a8"></span>uint64_t <code class="descname">address</code><br /></dt>
+<dd></dd></dl>
 
-<span class="kt">void</span> <span class="n">suspend_ioapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-   <span class="cm">/*   Suspended ioapic, mainly save the RTEs. */</span>
+<dl class="member">
+<dt id="_CPPv3N12mmio_request4sizeE">
+<span id="_CPPv2N12mmio_request4sizeE"></span><span id="mmio_request::size__uint64_t"></span><span class="target" id="structmmio__request_1ad0bbe4e98701765e1fa73a5c5d5ea559"></span>uint64_t <code class="descname">size</code><br /></dt>
+<dd></dd></dl>
 
-<span class="kt">void</span> <span class="n">resume_ioapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-   <span class="cm">/*   Resume ioapic, mainly restore the RTEs. */</span>
+<dl class="member">
+<dt id="_CPPv3N12mmio_request5valueE">
+<span id="_CPPv2N12mmio_request5valueE"></span><span id="mmio_request::value__uint64_t"></span><span class="target" id="structmmio__request_1a75c57764821580a65fc44c155d5d4606"></span>uint64_t <code class="descname">value</code><br /></dt>
+<dd></dd></dl>
 
-<span class="kt">int</span> <span class="n">get_ioapic_info</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">str_arg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">str_max_len</span><span class="p">)</span>
-   <span class="cm">/*   Dump information of ioapic for debug, such as irq num, pin,</span>
-<span class="cm">    *   RTE, vector, trigger mode etc. For debugging only.</span>
-<span class="cm">    */</span>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="_CPPv311pio_request">
+<span id="_CPPv211pio_request"></span><span id="pio_request"></span><span class="target" id="structpio__request"></span><em class="property">struct </em><code class="descname">pio_request</code><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N11pio_request9directionE">
+<span id="_CPPv2N11pio_request9directionE"></span><span id="pio_request::direction__uint32_t"></span><span class="target" id="structpio__request_1ab6678a312ecd518ff756ae3c996f64ff"></span>uint32_t <code class="descname">direction</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pio_request8reservedE">
+<span id="_CPPv2N11pio_request8reservedE"></span><span id="pio_request::reserved__uint32_t"></span><span class="target" id="structpio__request_1ac3f904d7697bab25b57aadd7486e8ec5"></span>uint32_t <code class="descname">reserved</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pio_request7addressE">
+<span id="_CPPv2N11pio_request7addressE"></span><span id="pio_request::address__uint64_t"></span><span class="target" id="structpio__request_1a3b47a8a43247497d55ad168184d2f1a0"></span>uint64_t <code class="descname">address</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pio_request4sizeE">
+<span id="_CPPv2N11pio_request4sizeE"></span><span id="pio_request::size__uint64_t"></span><span class="target" id="structpio__request_1ab6950f482e3f0ae85f5748d04f8f1e68"></span>uint64_t <code class="descname">size</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pio_request5valueE">
+<span id="_CPPv2N11pio_request5valueE"></span><span id="pio_request::value__uint32_t"></span><span class="target" id="structpio__request_1af328e5ae161c2304adb58874341ccee9"></span>uint32_t <code class="descname">value</code><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="_CPPv311pci_request">
+<span id="_CPPv211pci_request"></span><span id="pci_request"></span><span class="target" id="structpci__request"></span><em class="property">struct </em><code class="descname">pci_request</code><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N11pci_request9directionE">
+<span id="_CPPv2N11pci_request9directionE"></span><span id="pci_request::direction__uint32_t"></span><span class="target" id="structpci__request_1a8daeb6cfa8686b496f0a7ea35d17ff7e"></span>uint32_t <code class="descname">direction</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pci_request8reservedE">
+<span id="_CPPv2N11pci_request8reservedE"></span><span id="pci_request::reserved__uint32_tA"></span><span class="target" id="structpci__request_1a9102ebef6413b1a5899ea4bdfbfb10b0"></span>uint32_t <code class="descname">reserved</code>[3]<br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pci_request4sizeE">
+<span id="_CPPv2N11pci_request4sizeE"></span><span id="pci_request::size__int64_t"></span><span class="target" id="structpci__request_1aa8491df28ed5b4e0310e6ed8fe6e4e16"></span>int64_t <code class="descname">size</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pci_request5valueE">
+<span id="_CPPv2N11pci_request5valueE"></span><span id="pci_request::value__int32_t"></span><span class="target" id="structpci__request_1a7f1fc2c1edd7e085c6f53f0528094601"></span>int32_t <code class="descname">value</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pci_request3busE">
+<span id="_CPPv2N11pci_request3busE"></span><span id="pci_request::bus__int32_t"></span><span class="target" id="structpci__request_1a2aadc0b5232c4849e4e7ac6fd3d464bb"></span>int32_t <code class="descname">bus</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pci_request3devE">
+<span id="_CPPv2N11pci_request3devE"></span><span id="pci_request::dev__int32_t"></span><span class="target" id="structpci__request_1af806ad26912aa92883a9466f20def433"></span>int32_t <code class="descname">dev</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pci_request4funcE">
+<span id="_CPPv2N11pci_request4funcE"></span><span id="pci_request::func__int32_t"></span><span class="target" id="structpci__request_1a8f7df06a9c156899ce7aef0597764db4"></span>int32_t <code class="descname">func</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11pci_request3regE">
+<span id="_CPPv2N11pci_request3regE"></span><span id="pci_request::reg__int32_t"></span><span class="target" id="structpci__request_1af589874f0283c655839d6f8f7ea7b584"></span>int32_t <code class="descname">reg</code><br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="type">
+<dt id="_CPPv314vhm_io_request">
+<span id="_CPPv214vhm_io_request"></span><span id="vhm_io_request"></span><span class="target" id="unionvhm__io__request"></span><em class="property">union </em><code class="descname">vhm_io_request</code><br /></dt>
+<dd><em>#include &lt;acrn_common.h&gt;</em><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N14vhm_io_request3pioE">
+<span id="_CPPv2N14vhm_io_request3pioE"></span><span id="vhm_io_request::pio__pio_request"></span><span class="target" id="unionvhm__io__request_1a867462f838e3cbdb67bd1f03eb4dd455"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv311pio_request" title="pio_request">pio_request</a> <code class="descname">pio</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N14vhm_io_request3pciE">
+<span id="_CPPv2N14vhm_io_request3pciE"></span><span id="vhm_io_request::pci__pci_request"></span><span class="target" id="unionvhm__io__request_1a11da1da54394346fbee522fe7c8ff427"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv311pci_request" title="pci_request">pci_request</a> <code class="descname">pci</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N14vhm_io_request4mmioE">
+<span id="_CPPv2N14vhm_io_request4mmioE"></span><span id="vhm_io_request::mmio__mmio_request"></span><span class="target" id="unionvhm__io__request_1a622ed8ff764ec1ec6d486e85c84da09f"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv312mmio_request" title="mmio_request">mmio_request</a> <code class="descname">mmio</code><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N14vhm_io_request9reserved1E">
+<span id="_CPPv2N14vhm_io_request9reserved1E"></span><span id="vhm_io_request::reserved1__int64_tA"></span><span class="target" id="unionvhm__io__request_1a7fab3ba7831ece0ae4b9b530e30291c2"></span>int64_t <code class="descname">reserved1</code>[8]<br /></dt>
+<dd></dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="_CPPv311vhm_request">
+<span id="_CPPv211vhm_request"></span><span id="vhm_request"></span><span class="target" id="structvhm__request"></span><em class="property">struct </em><code class="descname">vhm_request</code><br /></dt>
+<dd><p>256-byte VHM requests </p>
+<p>The state transitions of a VHM request are:</p>
+<p>FREE -&gt; PENDING -&gt; PROCESSING -&gt; COMPLETE -&gt; FREE -&gt; …</p>
+<p>When a request is in COMPLETE or FREE state, the request is owned by the hypervisor. SOS (VHM or DM) shall not read or write the internals of the request except the state.</p>
+<p>When a request is in PENDING or PROCESSING state, the request is owned by SOS. The hypervisor shall not read or write the request other than the state.</p>
+<p>Based on the rules above, a typical VHM request lifecycle should looks like the following. <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                <span class="p">(</span><span class="n">assume</span> <span class="n">the</span> <span class="n">initial</span> <span class="n">state</span> <span class="ow">is</span> <span class="n">FREE</span><span class="p">)</span>
+
+  <span class="n">SOS</span> <span class="n">vCPU</span> <span class="mi">0</span>                <span class="n">SOS</span> <span class="n">vCPU</span> <span class="n">x</span>                    <span class="n">UOS</span> <span class="n">vCPU</span> <span class="n">y</span>
+
+                                            <span class="n">hypervisor</span><span class="p">:</span>
+                                                <span class="n">fill</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">etc</span><span class="o">.</span>
+                                                <span class="n">pause</span> <span class="n">UOS</span> <span class="n">vcpu</span> <span class="n">y</span>
+                                                <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">PENDING</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                                                <span class="n">fire</span> <span class="n">upcall</span> <span class="n">to</span> <span class="n">SOS</span> <span class="n">vCPU</span> <span class="mi">0</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="lapic">
-<h3>LAPIC<a class="headerlink" href="#lapic" title="Permalink to this headline">¶</a></h3>
-<p>The following APIs are external interfaces for LAPIC related operations.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">write_lapic_reg32</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">offset</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">value</span><span class="p">)</span>
-   <span class="cm">/*   Write to lapic register. */</span>
+</p>
+<p>VHM: scan for pending requests set state to PROCESSING (b) assign requests to clients (c) <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                  <span class="n">client</span><span class="p">:</span>
+                      <span class="n">scan</span> <span class="k">for</span> <span class="n">assigned</span> <span class="n">requests</span>
+                      <span class="n">handle</span> <span class="n">the</span> <span class="n">requests</span> <span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                      <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">COMPLETE</span>
+                      <span class="n">notify</span> <span class="n">the</span> <span class="n">hypervisor</span>
 
-<span class="kt">void</span> <span class="n">early_init_lapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-   <span class="cm">/*   To get the local apic base addr, map lapic registers and check the</span>
-<span class="cm">    *   xAPIC/x2APIC capability.</span>
-<span class="cm">    */</span>
+                  <span class="n">hypervisor</span><span class="p">:</span>
+                      <span class="n">resume</span> <span class="n">UOS</span> <span class="n">vcpu</span> <span class="n">y</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
-<span class="kt">void</span> <span class="n">save_lapic</span><span class="p">(</span><span class="k">struct</span> <span class="n">lapic_regs</span> <span class="o">*</span><span class="n">regs</span><span class="p">)</span>
-   <span class="cm">/*   Save context of lapic before entering s3. */</span>
-
-<span class="kt">void</span> <span class="n">restore_lapic</span><span class="p">(</span><span class="k">struct</span> <span class="n">lapic_regs</span> <span class="o">*</span><span class="n">regs</span><span class="p">)</span>
-   <span class="cm">/*   Restore context of lapic when resume from s3. */</span>
-
-<span class="kt">void</span> <span class="n">resume_lapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-   <span class="cm">/*   Resume lapic by setting the apic base addr and restore the registers. */</span>
-
-<span class="kt">uint8_t</span> <span class="n">get_cur_lapic_id</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-   <span class="cm">/*   Get the lapic id. */</span>
+                                       <span class="n">hypervisor</span><span class="p">:</span>
+                                           <span class="n">post</span><span class="o">-</span><span class="n">work</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                                           <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">FREE</span>
 </pre></div>
 </div>
+</p>
+<p>Note that the following shall hold.</p>
+<p><ol class="arabic simple">
+<li>(a) happens before (b)</li>
+<li>(c) happens before (d)</li>
+<li>(e) happens before (f)</li>
+<li>One vCPU cannot trigger another I/O request before the previous one has completed (i.e. the state switched to FREE)</li>
+</ol>
+</p>
+<p>Accesses to the state of a <a class="reference internal" href="#structvhm__request"><span class="std std-ref">vhm_request</span></a> shall be atomic and proper barriers are needed to ensure that:</p>
+<p><ol class="arabic simple">
+<li>Setting state to PENDING is the last operation when issuing a request in the hypervisor, as the hypervisor shall not access the request any more.</li>
+<li>Due to similar reasons, setting state to COMPLETE is the last operation of request handling in VHM or clients in SOS. </li>
+</ol>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N11vhm_request4typeE">
+<span id="_CPPv2N11vhm_request4typeE"></span><span id="vhm_request::type__uint32_t"></span><span class="target" id="structvhm__request_1a88e4b41e58e05bdd0b9b90f71d417697"></span>uint32_t <code class="descname">type</code><br /></dt>
+<dd><p>Type of this request.</p>
+<p>Byte offset: 0. </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11vhm_request9reserved0E">
+<span id="_CPPv2N11vhm_request9reserved0E"></span><span id="vhm_request::reserved0__uint32_tA"></span><span class="target" id="structvhm__request_1aaccc0d7acdb9ce2ca10dddd3a53b20cd"></span>uint32_t <code class="descname">reserved0</code>[15]<br /></dt>
+<dd><p>Reserved.</p>
+<p>Byte offset: 4. </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11vhm_request4reqsE">
+<span id="_CPPv2N11vhm_request4reqsE"></span><span id="vhm_request::reqs__vhm_io_request"></span><span class="target" id="structvhm__request_1aef162f2ad5070f4b3ba9f1e72117b21e"></span><em class="property">union</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv314vhm_io_request" title="vhm_io_request">vhm_io_request</a> <code class="descname">reqs</code><br /></dt>
+<dd><p>Details about this request. For REQ_PORTIO, this has type <a class="reference internal" href="#structpio__request"><span class="std std-ref">pio_request</span></a>. For REQ_MMIO and REQ_WP, this has type <a class="reference internal" href="#structmmio__request"><span class="std std-ref">mmio_request</span></a>. For REQ_PCICFG, this has type <a class="reference internal" href="#structpci__request"><span class="std std-ref">pci_request</span></a>.</p>
+<p>Byte offset: 64. </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11vhm_request5validE">
+<span id="_CPPv2N11vhm_request5validE"></span><span id="vhm_request::valid__int32_t"></span><span class="target" id="structvhm__request_1a1247623c4b97cfffee71acc5797b09ab"></span>int32_t <code class="descname">valid</code><br /></dt>
+<dd><p>Whether this request is valid for processing. ACRN write, VHM read only.</p>
+<p>Warning; this field is obsolete and will be removed soon.</p>
+<p>Byte offset: 128. </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11vhm_request6clientE">
+<span id="_CPPv2N11vhm_request6clientE"></span><span id="vhm_request::client__int32_t"></span><span class="target" id="structvhm__request_1a49b1e5f5583f45fbc93c499c06dd1a3c"></span>int32_t <code class="descname">client</code><br /></dt>
+<dd><p>The client which is distributed to handle this request. Accessed by VHM only.</p>
+<p>Byte offset: 132. </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N11vhm_request9processedE">
+<span id="_CPPv2N11vhm_request9processedE"></span><span id="vhm_request::processed__uint32_t"></span><span class="target" id="structvhm__request_1a27ae52798ad22413ef28d5b4eebbfe9b"></span>uint32_t <code class="descname">processed</code><br /></dt>
+<dd><p>The status of this request, taking REQ_STATE_xxx as values.</p>
+<p>Byte offset: 136. </p>
+</dd></dl>
+
 </div>
-<div class="section" id="ipi">
-<h3>IPI<a class="headerlink" href="#ipi" title="Permalink to this headline">¶</a></h3>
-<p>The following APIs are external interfaces for IPI related operations.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">send_startup_ipi</span><span class="p">(</span><span class="k">enum</span> <span class="n">intr_cpu_startup_shorthand</span> <span class="n">cpu_startup_shorthand</span><span class="p">,</span>
-                      <span class="kt">uint16_t</span> <span class="n">dest_pcpu_id</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">cpu_startup_start_address</span><span class="p">)</span>
-   <span class="cm">/*   Send an SIPI to a specific cpu, to notify the cpu to start booting. */</span>
+</dd></dl>
 
-<span class="kt">void</span> <span class="n">send_dest_ipi</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">dest</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">vector</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">dest_mode</span><span class="p">)</span>
-   <span class="cm">/*   Send an IPI to a specific cpu with dest mode specified. */</span>
+<p>For hypercalls related to I/O emulation, refer to Section 3.11.4.</p>
+</div>
+<div class="section" id="initialization-and-deinitialization">
+<span id="io-handler-init"></span><h3>Initialization and Deinitialization<a class="headerlink" href="#initialization-and-deinitialization" title="Permalink to this headline">¶</a></h3>
+<p>The following structure represents a port I/O handler:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">add reference to vm_io_handler_desc definition in ioreq.h</p>
+</div>
+<p>The following structure represents a MMIO handler.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">add reference to mem_io_node definition in ioreq.h</p>
+</div>
+<p>The following APIs are provided to initialize, deinitialize or configure
+I/O bitmaps and register or unregister I/O handlers:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* Initialize the I/O bitmap for vm. */</span>
+<span class="kt">void</span> <span class="n">setup_io_bitmap</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
 
-<span class="kt">void</span> <span class="n">send_single_ipi</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">pcpu_id</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">vector</span><span class="p">)</span>
-   <span class="cm">/*   Send an IPI to a specific cpu with physical dest mode. */</span>
+<span class="cm">/* Allow a VM to access a port I/O range.</span>
+<span class="cm"> * This API enables direct access from the given vm to the port I/O space</span>
+<span class="cm"> * starting from address_arg to address_arg + nbytes - 1.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span> <span class="n">allow_guest_io_access</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">address_arg</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">nbytes</span><span class="p">)</span>
+
+<span class="cm">/* Free I/O bitmaps and port I/O handlers of vm. */</span>
+<span class="kt">void</span> <span class="n">free_io_emulation_resource</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
+
+<span class="cm">/* Register a port I/O handler. */</span>
+<span class="kt">void</span> <span class="n">register_io_emulation_handler</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="k">struct</span> <span class="n">vm_io_range</span> <span class="o">*</span><span class="n">range</span><span class="p">,</span>
+                                   <span class="n">io_read_fn_t</span> <span class="n">io_read_fn_ptr</span><span class="p">,</span> <span class="n">io_write_fn_t</span> <span class="n">io_write_fn_ptr</span><span class="p">)</span>
+
+<span class="cm">/* Register a MMIO handler. */</span>
+<span class="kt">int</span> <span class="n">register_mmio_emulation_handler</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="n">hv_mem_io_handler_t</span> <span class="n">read_write</span><span class="p">,</span>
+                                    <span class="kt">uint64_t</span> <span class="n">start</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">end</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">handler_private_data</span><span class="p">)</span>
+
+<span class="cm">/* Unregister a MMIO handler.*/</span>
+<span class="kt">void</span> <span class="n">unregister_mmio_emulation_handler</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">start</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">end</span><span class="p">)</span>
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">change these to reference API material from ioreq.h</p>
 </div>
-<div class="section" id="physical-interrupt">
-<h3>Physical Interrupt<a class="headerlink" href="#physical-interrupt" title="Permalink to this headline">¶</a></h3>
-<p>The following APIs are external interfaces for physical interrupt
-related operations.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int32_t</span> <span class="n">request_irq</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">req_irq</span><span class="p">,</span> <span class="n">irq_action_t</span> <span class="n">action_fn</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">priv_data</span><span class="p">,</span>
-                    <span class="kt">uint32_t</span> <span class="n">flags</span><span class="p">)</span>
-   <span class="cm">/*   Request interrupt num if not specified, and register irq action for the</span>
-<span class="cm">    *   specified/allocated irq.</span>
-<span class="cm">    */</span>
+</div>
+<div class="section" id="i-o-emulation">
+<h3>I/O Emulation<a class="headerlink" href="#i-o-emulation" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are provided for I/O emulation at runtime:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* Emulate the given I/O access for vcpu. */</span>
+<span class="kt">int32_t</span> <span class="n">emulate_io</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="k">struct</span> <span class="n">io_request</span> <span class="o">*</span><span class="n">io_req</span><span class="p">)</span>
 
-<span class="kt">void</span> <span class="n">free_irq</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">)</span>
-   <span class="cm">/*   Free irq num and unregister the irq action. */</span>
+<span class="cm">/* Deliver io_req to SOS and suspend vcpu till its completion. */</span>
+<span class="kt">int32_t</span> <span class="n">acrn_insert_request_wait</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="k">struct</span> <span class="n">io_request</span> <span class="o">*</span><span class="n">io_req</span><span class="p">)</span>
 
-<span class="kt">void</span> <span class="n">set_irq_trigger_mode</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is_level_trigger</span><span class="p">)</span>
-   <span class="cm">/*   Set the irq trigger mode: edge-triggered or level-triggered */</span>
+<span class="cm">/* General post-work for port I/O emulation. */</span>
+<span class="kt">void</span> <span class="n">emulate_io_post</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">)</span>
 
-<span class="kt">uint32_t</span> <span class="n">irq_to_vector</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">)</span>
-   <span class="cm">/*  Convert irq num to vector */</span>
+<span class="cm">/* General post-work for MMIO emulation. */</span>
+<span class="kt">void</span> <span class="n">emulate_mmio_post</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="k">struct</span> <span class="n">io_request</span> <span class="o">*</span><span class="n">io_req</span><span class="p">)</span>
 
-<span class="kt">void</span> <span class="n">get_cpu_interrupt_info</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">str_arg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">str_max</span><span class="p">)</span>
-   <span class="cm">/*  To dump interrupt statistics info, such as irq num, vector,</span>
-<span class="cm">    *  irq count on each physical cpu.</span>
-<span class="cm">    */</span>
+<span class="cm">/* Post-work of I/O requests for MMIO. */</span>
+<span class="kt">void</span> <span class="n">dm_emulate_mmio_post</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">)</span>
 
-<span class="kt">void</span> <span class="n">dispatch_interrupt</span><span class="p">(</span><span class="k">struct</span> <span class="n">intr_excp_ctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">)</span>
-   <span class="cm">/*  To dispatch an interrupt, an action callback will be called if registered. */</span>
-
-<span class="kt">void</span> <span class="n">interrupt_init</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">pcpu_id</span><span class="p">)</span>
-   <span class="cm">/*  To do interrupt initialization for a cpu, will be called for</span>
-<span class="cm">    *  each physical cpu.</span>
-<span class="cm">    */</span>
+<span class="cm">/* The handler of VM exits on I/O instructions. */</span>
+<span class="kt">int32_t</span> <span class="n">pio_instr_vmexit_handler</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">change these to reference API material from ioreq.h</p>
 </div>
 </div>
 </div>
@@ -983,7 +1103,7 @@ related operations.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 25, 2018.
+      Last updated on Oct 26, 2018.
 
     </p>
   </div> 

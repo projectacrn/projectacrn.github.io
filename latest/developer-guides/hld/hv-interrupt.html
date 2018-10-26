@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Memory Management high-level design &mdash; Project ACRN™ v 0.3-unstable documentation</title>
+  <title>Physical Interrupt high-level design &mdash; Project ACRN™ v 0.3-unstable documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="I/O Emulation high-level design" href="hld-io-emulation.html" />
-    <link rel="prev" title="CPU Virtualization" href="hv-cpu-virt.html" /> 
+    <link rel="next" title="Timer" href="hv-timer.html" />
+    <link rel="prev" title="I/O Emulation high-level design" href="hv-io-emulation.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -224,9 +224,10 @@
 <li class="toctree-l3 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="hv-startup.html">Hypervisor Startup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hv-cpu-virt.html">CPU Virtualization</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Memory management</a></li>
-<li class="toctree-l4"><a class="reference internal" href="hld-io-emulation.html">I/O Emulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="interrupt-hld.html">Physical Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-memmgt.html">Memory management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-io-emulation.html">I/O Emulation</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Physical Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-timer.html">Timer</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-devicemodel.html">Device Model</a><ul>
@@ -524,7 +525,7 @@
         
           <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
         
-      <li>Memory Management high-level design</li>
+      <li>Physical Interrupt high-level design</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -541,650 +542,432 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="memory-management-high-level-design">
-<span id="memmgt-hld"></span><h1>Memory Management high-level design<a class="headerlink" href="#memory-management-high-level-design" title="Permalink to this headline">¶</a></h1>
-<p>This document describes memory management for the ACRN hypervisor.</p>
+  <div class="section" id="physical-interrupt-high-level-design">
+<span id="interrupt-hld"></span><h1>Physical Interrupt high-level design<a class="headerlink" href="#physical-interrupt-high-level-design" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>The hypervisor (HV) virtualizes real physical memory so an unmodified OS
-(such as Linux or Android) running in a virtual machine, has the view of
-managing its own contiguous physical memory.  HV uses virtual-processor
-identifiers (VPIDs) and the extended page-table mechanism (EPT) to
-translate guest-physical address into host-physical address. HV enables
-EPT and VPID hardware virtualization features, establishes EPT page
-tables for SOS/UOS, and provides EPT page tables operation interfaces to
-others.</p>
-<p>In the ACRN hypervisor system, there are few different memory spaces to
-consider.  From the hypervisor’s point of view there are:</p>
+<p>The ACRN hypervisor implements a simple but fully functional framework
+to manage interrupts and exceptions, as show in
+<a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 47</span></a>. In its native layer, it configures
+the physical PIC, IOAPIC, and LAPIC to support different interrupt
+sources from local timer/IPI to external INTx/MSI. In its virtual guest
+layer, it emulates virtual PIC, virtual IOAPIC and virtual LAPIC, and
+provides full APIs allowing virtual interrupt injection from emulated or
+pass-thru devices.</p>
+<div class="figure align-center" id="interrupt-modules-overview">
+<a class="reference internal image-reference" href="../../_images/interrupt-image3.png"><img alt="../../_images/interrupt-image3.png" src="../../_images/interrupt-image3.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 47 </span><span class="caption-text">ACRN Interrupt Modules Overview</span></p>
+</div>
+<p>In the software modules view shown in <a class="reference internal" href="#interrupt-sw-modules"><span class="std std-numref">Figure 48</span></a>,
+the ACRN hypervisor sets up the physical interrupt in its basic
+interrupt modules (e.g., IOAPIC/LAPIC/IDT).  It dispatches the interrupt
+in the hypervisor interrupt flow control layer to the corresponding
+handlers, that could be pre-defined IPI notification, timer, or runtime
+registered pass-thru devices.  The ACRN hypervisor then uses its VM
+interfaces based on vPIC, vIOAPIC, and vMSI modules, to inject the
+necessary virtual interrupt into the specific VM</p>
+<div class="figure align-center" id="interrupt-sw-modules">
+<a class="reference internal image-reference" href="../../_images/interrupt-image2.png"><img alt="../../_images/interrupt-image2.png" src="../../_images/interrupt-image2.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 48 </span><span class="caption-text">ACRN Interrupt SW Modules Overview</span></p>
+</div>
+<p>The hypervisor implements the following functionalities for handling
+physical interrupts:</p>
 <ul class="simple">
-<li><strong>Host Physical Address (HPA)</strong>: the native physical address space, and</li>
-<li><strong>Host Virtual Address (HVA)</strong>: the native virtual address space based on
-a MMU. A page table is used to translate between HPA and HVA
-spaces.</li>
+<li>Configure interrupt-related hardware including IDT, PIC, LAPIC, and
+IOAPIC on startup.</li>
+<li>Provide APIs to manipulate the registers of LAPIC and IOAPIC.</li>
+<li>Acknowledge physical interrupts.</li>
+<li>Set up a callback mechanism for the other components in the
+hypervisor to request for an interrupt vector and register a
+handler for that interrupt.</li>
 </ul>
-<p>From the Guest OS running on a hypervisor there are:</p>
+<p>HV owns all native physical interrupts and manages 256 vectors per CPU.
+All physical interrupts are first handled in VMX root-mode.  The
+“external-interrupt exiting” bit in VM-Execution controls field is set
+to support this. The ACRN hypervisor also initializes all the interrupt
+related modules like IDT, PIC, IOAPIC, and LAPIC.</p>
+<p>HV does not own any host devices (except UART). All devices are by
+default assigned to SOS. Any interrupts received by Guest VM (SOS or
+UOS) device drivers are virtual interrupts injected by HV (via vLAPIC).
+HV manages a Host-to-Guest mapping. When a native IRQ/interrupt occurs,
+HV decides whether this IRQ/interrupt should be forwarded to a VM and
+which VM to forward to (if any). Refer to section 3.7.6 for virtual
+interrupt injection and section 3.9.6 for the management of interrupt
+remapping.</p>
+<p>HV does not own any exceptions. Guest VMCS are configured so no VM Exit
+happens, with some exceptions such as #INT3 and #MC.  This is to
+simplify the design as HV does not support any exception handling
+itself. HV supports only static memory mapping, so there should be no
+#PF or #GP. If HV receives an exception indicating an error, an assert
+function is then executed with an error message print out, and the
+system then halts.</p>
+<p>Native interrupts could be generated from one of the following
+sources:</p>
 <ul class="simple">
-<li><strong>Guest Physical Address (GPA)</strong>: the guest physical address space from a
-virtual machine.  GPA to HPA transition is usually based on a
-MMU-like hardware module (EPT in X86), and associated with a page
-table</li>
-<li><strong>Guest Virtual Address (GVA)</strong>: the guest virtual address space from a
-virtual machine based on a vMMU</li>
+<li>GSI interrupts<ul>
+<li>PIC or Legacy devices IRQ (0~15)</li>
+<li>IOAPIC pin</li>
 </ul>
-<div class="figure align-center" id="mem-overview">
-<a class="reference internal image-reference" href="../../_images/mem-image2.png"><img alt="../../_images/mem-image2.png" src="../../_images/mem-image2.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 35 </span><span class="caption-text">ACRN Memory Mapping Overview</span></p>
+</li>
+<li>PCI MSI/MSI-X vectors</li>
+<li>Inter CPU IPI</li>
+<li>LAPIC timer</li>
+</ul>
 </div>
-<p><a class="reference internal" href="#mem-overview"><span class="std std-numref">Figure 35</span></a> provides an overview of the ACRN system memory
-mapping, showing:</p>
+<div class="section" id="physical-interrupt-initialization">
+<h2>Physical Interrupt Initialization<a class="headerlink" href="#physical-interrupt-initialization" title="Permalink to this headline">¶</a></h2>
+<p>After ACRN hypervisor gets control from the bootloader, it
+initializes all physical interrupt-related modules for all the CPUs. ACRN
+hypervisor creates a framework to manage the physical interrupt for
+hypervisor local devices, pass-thru devices, and IPI between CPUs, as
+shown in <a class="reference internal" href="#hv-interrupt-init"><span class="std std-numref">Figure 49</span></a>:</p>
+<div class="figure align-center" id="hv-interrupt-init">
+<img alt="../../_images/interrupt-image66.png" src="../../_images/interrupt-image66.png" />
+<p class="caption"><span class="caption-number">Figure 49 </span><span class="caption-text">Physical Interrupt Initialization</span></p>
+</div>
+<div class="section" id="idt-initialization">
+<h3>IDT Initialization<a class="headerlink" href="#idt-initialization" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor builds its native IDT (interrupt descriptor table)
+during interrupt initialization and set up the following handlers:</p>
 <ul class="simple">
-<li>GVA to GPA mapping based on vMMU on a VCPU in a VM</li>
-<li>GPA to HPA mapping based on EPT for a VM in the hypervisor</li>
-<li>HVA to HPA mapping based on MMU in the hypervisor</li>
+<li>On an exception, the hypervisor dumps its context and halts the current
+physical processor (because physical exceptions are not expected).</li>
+<li>For external interrupts, HV may mask the interrupt (depending on the
+trigger mode), followed by interrupt acknowledgement and dispatch
+to the registered handler, if any.</li>
 </ul>
-<p>This document illustrates the memory management infrastructure for the
-ACRN hypervisor and how it handles the different memory space views
-inside the hypervisor and from a VM:</p>
-<ul class="simple">
-<li>How ACRN hypervisor manages host memory (HPA/HVA)</li>
-<li>How ACRN hypervisor manages SOS guest memory (HPA/GPA)</li>
-<li>How ACRN hypervisor &amp; SOS DM manage UOS guest memory (HPA/GPA)</li>
-</ul>
+<p>Most interrupts and exceptions are handled without a stack switch,
+except for machine-check, double fault, and stack fault exceptions which
+have their own stack set in TSS.</p>
 </div>
-<div class="section" id="hypervisor-physical-memory-management">
-<h2>Hypervisor Physical Memory Management<a class="headerlink" href="#hypervisor-physical-memory-management" title="Permalink to this headline">¶</a></h2>
-<p>In the ACRN, the HV initializes MMU page tables to manage all physical
-memory and then switches to the new MMU page tables. After MMU page
-tables are initialized at the platform initialization stage, no updates
-are made for MMU page tables.</p>
-<div class="section" id="hypervisor-physical-memory-layout-e820">
-<h3>Hypervisor Physical Memory Layout - E820<a class="headerlink" href="#hypervisor-physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
-<p>The ACRN hypervisor is the primary owner to manage system memory.
-Typically the boot firmware (e.g., EFI) passes the platform physical
-memory layout - E820 table to the hypervisor. The ACRN hypervisor does
-its memory management based on this table using 4-level paging.</p>
-<p>The BIOS/bootloader firmware (e.g., EFI) passes the E820 table through a
-multiboot protocol.  This table contains the original memory layout for
-the platform.</p>
-<div class="figure align-center" id="mem-layout">
-<a class="reference internal image-reference" href="../../_images/mem-image1.png"><img alt="../../_images/mem-image1.png" src="../../_images/mem-image1.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 36 </span><span class="caption-text">Physical Memory Layout Example</span></p>
-</div>
-<p><a class="reference internal" href="#mem-layout"><span class="std std-numref">Figure 36</span></a> is an example of the physical memory layout based on a simple
-platform E820 table.</p>
-</div>
-<div class="section" id="hypervisor-memory-initialization">
-<h3>Hypervisor Memory Initialization<a class="headerlink" href="#hypervisor-memory-initialization" title="Permalink to this headline">¶</a></h3>
-<p>The ACRN hypervisor runs under paging mode. After the bootstrap
-processor (BSP) gets the platform E820 table, BSP creates its MMU page
-table based on it. This is done by the function <em>init_paging()</em> and
-<em>smep()</em>. After the application processor (AP) receives IPI CPU startup
-interrupt, it uses the MMU page tables created by BSP and enable SMEP.
-<a class="reference internal" href="#hv-mem-init"><span class="std std-numref">Figure 37</span></a>  describes the hypervisor memory initialization for BSP
-and APs.</p>
-<div class="figure align-center" id="hv-mem-init">
-<img alt="../../_images/mem-image8.png" src="../../_images/mem-image8.png" />
-<p class="caption"><span class="caption-number">Figure 37 </span><span class="caption-text">Hypervisor Memory Initialization</span></p>
-</div>
-<p>The memory mapping policy used is:</p>
-<ul class="simple">
-<li>Identical mapping (ACRN hypervisor memory could be relocatable in
-the future)</li>
-<li>Map all memory regions with UNCACHED type</li>
-<li>Remap RAM regions to WRITE-BACK type</li>
-</ul>
-<div class="figure align-center" id="hv-mem-vm-init">
-<img alt="../../_images/mem-image69.png" src="../../_images/mem-image69.png" />
-<p class="caption"><span class="caption-number">Figure 38 </span><span class="caption-text">Hypervisor Virtual Memory Layout</span></p>
-</div>
-<p><a class="reference internal" href="#hv-mem-vm-init"><span class="std std-numref">Figure 38</span></a> above shows:</p>
-<ul class="simple">
-<li>Hypervisor has a view of and can access all system memory</li>
-<li>Hypervisor has UNCACHED MMIO/PCI hole reserved for devices such as
-LAPIC/IOAPIC accessing</li>
-<li>Hypervisor has its own memory with WRITE-BACK cache type for its
-code/data (&lt; 1M part is for secondary CPU reset code)</li>
-</ul>
-<p>The hypervisor should use minimum memory pages to map from virtual
-address space into physical address space.</p>
-<ul class="simple">
-<li>If 1GB hugepage can be used
-for virtual address space mapping, the corresponding PDPT entry shall be
-set for this 1GB hugepage.</li>
-<li>If 1GB hugepage can’t be used for virtual
-address space mapping and 2MB hugepage can be used, the corresponding
-PDT entry shall be set for this 2MB hugepage.</li>
-<li>If both of 1GB hugepage
-and 2MB hugepage can’t be used for virtual address space mapping, the
-corresponding PT entry shall be set.</li>
-</ul>
-<p>If memory type or access rights of a page is updated, or some virtual
-address space is deleted, it will lead to splitting of the corresponding
-page. The hypervisor will still keep using minimum memory pages to map from
-virtual address space into physical address space.</p>
-</div>
-<div class="section" id="memory-pages-pool-functions">
-<h3>Memory Pages Pool Functions<a class="headerlink" href="#memory-pages-pool-functions" title="Permalink to this headline">¶</a></h3>
-<p>Memory pages pool functions provide dynamic management of multiple
-4KB page-size memory blocks, used by the hypervisor to store internal
-data.  Through these functions, the hypervisor can allocate and
-deallocate pages.</p>
-</div>
-<div class="section" id="data-flow-design">
-<h3>Data Flow Design<a class="headerlink" href="#data-flow-design" title="Permalink to this headline">¶</a></h3>
-<p>The physical memory management unit provides MMU 4-level page tables
-creating and updating services, MMU page tables switching service, SMEP
-enable service, and HPA/HVA retrieving service to other units.
-<a class="reference internal" href="#mem-data-flow-physical"><span class="std std-numref">Figure 39</span></a> shows the data flow diagram
-of physical memory management.</p>
-<div class="figure align-center" id="mem-data-flow-physical">
-<img alt="../../_images/mem-image45.png" src="../../_images/mem-image45.png" />
-<p class="caption"><span class="caption-number">Figure 39 </span><span class="caption-text">Data Flow of Hypervisor Physical Memory Management</span></p>
+<div class="section" id="pic-ioapic-initialization">
+<h3>PIC/IOAPIC Initialization<a class="headerlink" href="#pic-ioapic-initialization" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor masks all interrupts from the PIC. All legacy interrupts
+from PIC (&lt;16) will be linked to IOAPIC, as shown in the connections in
+<a class="reference internal" href="#hv-pic-config"><span class="std std-numref">Figure 50</span></a>.</p>
+<p>ACRN will pre-allocate vectors and mask them for these legacy interrupt
+in IOAPIC RTE. For others (&gt;= 16), ACRN will mask them with vector 0 in
+RTE, and the vector will be dynamically allocate on demand.</p>
+<p>All external IOAPIC pins are categorized as GSI interrupt according to
+ACPI definition. HV supports multiple IOAPIC components. IRQ PIN to GSI
+mappings are maintained internally to determine GSI source IOAPIC.
+Native PIC is not used in the system.</p>
+<div class="figure align-center" id="hv-pic-config">
+<img alt="../../_images/interrupt-image46.png" src="../../_images/interrupt-image46.png" />
+<p class="caption"><span class="caption-number">Figure 50 </span><span class="caption-text">HV PIC/IOAPIC/LAPIC configuration</span></p>
 </div>
 </div>
-<div class="section" id="data-structure-design">
-<h3>Data Structure Design<a class="headerlink" href="#data-structure-design" title="Permalink to this headline">¶</a></h3>
-<p>The page tables operation type:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">enum</span> <span class="n">_page_table_type</span> <span class="p">{</span>
-
-   <span class="n">PTT_HOST</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>           <span class="cm">/* Operations for MMU page tables */</span>
-   <span class="n">PTT_EPT</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>           <span class="cm">/* Operations for EPT page tables */</span>
-   <span class="n">PAGETABLE_TYPE_UNKNOWN</span><span class="p">,</span> <span class="cm">/* Page tables operation type is unknown */</span>
-<span class="p">};</span>
+<div class="section" id="lapic-initialization">
+<h3>LAPIC Initialization<a class="headerlink" href="#lapic-initialization" title="Permalink to this headline">¶</a></h3>
+<p>Physical LAPICs are in xAPIC mode in ACRN hypervisor. The hypervisor
+initializes LAPIC for each physical CPU by masking all interrupts in the
+local vector table (LVT), clearing all ISRs, and enabling LAPIC.</p>
+<p>APIs are provided to access LAPIC for the other components in the
+hypervisor, aiming for further usage of local timer (TSC Deadline)
+program, IPI notification program, etc. See <a class="reference internal" href="#hv-interrupt-data-api"><span class="std std-ref">Data structures and interfaces</span></a>
+for a complete list.</p>
+</div>
+<div class="section" id="hv-interrupt-vectors-and-delivery-mode">
+<h3>HV Interrupt Vectors and Delivery Mode<a class="headerlink" href="#hv-interrupt-vectors-and-delivery-mode" title="Permalink to this headline">¶</a></h3>
+<p>The interrupt vectors are assigned as shown here:</p>
+<dl class="docutils">
+<dt><strong>Vector 0-0x1F</strong></dt>
+<dd>are exceptions that are not handled by HV. If
+such an exception does occur, the system then halts.</dd>
+<dt><strong>Vector: 0x20-0x2F</strong></dt>
+<dd>are allocated statically for legacy IRQ0-15.</dd>
+<dt><strong>Vector: 0x30-0xDF</strong></dt>
+<dd>are dynamically allocated vectors for PCI devices
+INTx or MSI/MIS-X usage. According to different interrupt delivery mode
+(FLAT or PER_CPU mode), an interrupt will be assigned to a vector for
+all the CPUs or a particular CPU.</dd>
+<dt><strong>Vector: 0xE0-0xFE</strong></dt>
+<dd>are high priority vectors reserved by HV for
+dedicated purposes. For example, 0xEF is used for timer, 0xF0 is used
+for IPI.</dd>
+</dl>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Vectors</th>
+<th class="head">Usage</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0x0-0x13</td>
+<td>Exceptions: NMI, INT3, page dault, GP, debug.</td>
+</tr>
+<tr class="row-odd"><td>0x14-0x1F</td>
+<td>Reserved</td>
+</tr>
+<tr class="row-even"><td>0x20-0x2F</td>
+<td>Statically allocated for external IRQ (IRQ0-IRQ15)</td>
+</tr>
+<tr class="row-odd"><td>0x30-0xDF</td>
+<td>Dynamically allocated for IOAPIC IRQ from PCI INTx/MSI</td>
+</tr>
+<tr class="row-even"><td>0xE0-0xFE</td>
+<td>Static allocated for HV</td>
+</tr>
+<tr class="row-odd"><td>0xEF</td>
+<td>Timer</td>
+</tr>
+<tr class="row-even"><td>0xF0</td>
+<td>IPI</td>
+</tr>
+<tr class="row-odd"><td>0xFF</td>
+<td>SPURIOUS_APIC_VECTOR</td>
+</tr>
+</tbody>
+</table>
+<p>Interrupts from either IOAPIC or MSI can be delivered to a target CPU.
+By default they are configured as Lowest Priority (FLAT mode), i.e. they
+are delivered to a CPU core that is currently idle or executing lowest
+priority ISR. There is no guarantee a device’s interrupt will be
+delivered to a specific Guest’s CPU. Timer interrupts are an exception -
+these are always delivered to the CPU which programs the LAPIC timer.</p>
+<p>There are two interrupt delivery modes: FLAT mode and PER_CPU mode. ACRN
+uses FLAT MODE where the interrupt/irq to vector mapping is the same on all CPUs. Every
+CPU receives same interrupts. IOAPIC and LAPIC MSI delivery mode are
+configured to Lowest Priority.</p>
+<p>Vector allocation for CPUs is shown here:</p>
+<div class="figure align-center" id="id1">
+<img alt="../../_images/interrupt-image89.png" src="../../_images/interrupt-image89.png" />
+<p class="caption"><span class="caption-number">Figure 51 </span><span class="caption-text">FLAT mode vector allocation</span></p>
+</div>
+</div>
+<div class="section" id="irq-descriptor-table">
+<h3>IRQ Descriptor Table<a class="headerlink" href="#irq-descriptor-table" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor maintains a global IRQ Descriptor Table shared among the
+physical CPUs. ACRN use FLAT MODE to manage the interrupts so the
+same vector will link to same the IRQ number for all CPUs.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">need to reference API doc for irq_desc</p>
+</div>
+<p>The <em>irq_desc[]</em> array’s index represents IRQ number. An <em>irq_handler</em>
+field could be set to common edge/level/quick handler which will be
+called from <em>interrupt_dispatch</em>. The <em>irq_desc</em> structure also
+contains the <em>dev_list</em> field to maintain this IRQ’s action handler
+list.</p>
+<p>Another reverse mapping from vector to IRQ is used in addition to the
+IRQ descriptor table which maintains the mapping from IRQ to vector.</p>
+<p>On initialization, the descriptor of the legacy IRQs are initialized with
+proper vectors and the corresponding reverse mapping is set up.
+The descriptor of other IRQs are filled with an invalid
+vector which will be updated on IRQ allocation.</p>
+<p>For example, if local timer registers an interrupt with IRQ number 271 and
+vector 0xEF, then this date will be set up:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">].</span><span class="n">irq</span> <span class="o">=</span> <span class="mi">271</span>
+<span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">].</span><span class="n">vector</span> <span class="o">=</span> <span class="mh">0xEF</span>
+<span class="n">vector_to_irq</span><span class="p">[</span><span class="mh">0xEF</span><span class="p">]</span> <span class="o">=</span> <span class="mi">271</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="interfaces-design">
-<h3>Interfaces Design<a class="headerlink" href="#interfaces-design" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="mmu-initialization">
-<h4>MMU Initialization<a class="headerlink" href="#mmu-initialization" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>void enable_smep(void)</td>
-<td>Supervisor-mode execution prevention (SMEP) enable</td>
-</tr>
-<tr class="row-odd"><td>void enable_paging(uint64_t pml64_base_addr)</td>
-<td>MMU paging enable</td>
-</tr>
-<tr class="row-even"><td>void init_paging(void)</td>
-<td>MMU page tables initialization</td>
-</tr>
-<tr class="row-odd"><td>uint64_t get_paging_pml4(void)</td>
-<td>Page map level 4 (PML4) table start address getting</td>
-</tr>
-</tbody>
-</table>
 </div>
-<div class="section" id="page-allocation">
-<h4>Page Allocation<a class="headerlink" href="#page-allocation" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>void * alloc_paging_struct(void)</td>
-<td>Allocate one page from memory page pool</td>
-</tr>
-</tbody>
-</table>
+<div class="section" id="external-interrupt-handling">
+<h2>External Interrupt Handling<a class="headerlink" href="#external-interrupt-handling" title="Permalink to this headline">¶</a></h2>
+<p>CPU runs under VMX non-root mode and inside Guest VMs.
+<code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_PINBASED_CTLS.bit[0]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_EXIT_CTLS.bit[15]</span></code> are set to allow vCPU VM Exit to HV
+whenever there are interrupts to that physical CPU under
+non-root mode. HV ACKs the interrupts in VMX non-root and saves the
+interrupt vector to the relevant VM Exit field for HV IRQ processing.</p>
+<p>Note that as discussed above, an external interrupt causing vCPU VM Exit
+to HV does not mean that the interrupt belongs to that Guest VM. When
+CPU executes VM Exit into root-mode, interrupt handling will be enabled
+and the interrupt will be delivered and processed as quickly as possible
+inside HV. HV may emulate a virtual interrupt and inject to Guest if
+necessary.</p>
+<p>When an physical interrupt happened on a CPU, this CPU could be running
+under VMX root mode or non-root mode. If the CPU is running under VMX
+root mode, the interrupt is triggered from standard native IRQ flow -
+interrupt gate to IRQ handler. If the CPU is running under VMX non-root
+mode, an external interrupt will trigger a VM exit for reason
+“external-interrupt”.</p>
+<p>Interrupt and IRQ processing flow diagrams are shown below:</p>
+<div class="figure align-center" id="phy-interrupt-processing">
+<img alt="../../_images/interrupt-image48.png" src="../../_images/interrupt-image48.png" />
+<p class="caption"><span class="caption-number">Figure 52 </span><span class="caption-text">Processing of physical interrupts</span></p>
 </div>
-<div class="section" id="address-space-translation">
-<h4>Address Space Translation<a class="headerlink" href="#address-space-translation" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>HPA2HVA(x)</td>
-<td>Translate host-physical address to host-virtual address</td>
-</tr>
-<tr class="row-odd"><td>HVA2HPA(x)</td>
-<td>Translate host-virtual address to host-physical address</td>
-</tr>
-</tbody>
-</table>
+<div class="figure align-center" id="id2">
+<img alt="../../_images/interrupt-image39.png" src="../../_images/interrupt-image39.png" />
+<p class="caption"><span class="caption-number">Figure 53 </span><span class="caption-text">IRQ processing control flow</span></p>
 </div>
-</div>
-</div>
-<div class="section" id="hypervisor-memory-virtualization">
-<h2>Hypervisor Memory Virtualization<a class="headerlink" href="#hypervisor-memory-virtualization" title="Permalink to this headline">¶</a></h2>
-<p>The hypervisor provides a contiguous region of physical memory for SOS
-and each UOS. It also guarantees that the SOS and UOS can not access
-code and internal data in the hypervisor, and each UOS can not access
-code and internal data of the SOS and other UOSs.</p>
-<p>The hypervisor:</p>
+<p>When a physical interrupt is raised and delivered to a physical CPU, the
+CPU may be running under either VMX root mode or non-root mode.</p>
 <ul class="simple">
-<li>enables EPT and VPID hardware virtualization features,</li>
-<li>establishes EPT page tables for SOS/UOS,</li>
-<li>provides EPT page tables operations services,</li>
-<li>virtualizes MTRR for SOS/UOS,</li>
-<li>provides VPID operations services,</li>
-<li>provides services for address spaces translation between GPA and HPA, and</li>
-<li>provides services for data transfer between hypervisor and virtual machine.</li>
+<li>If the CPU is running under VMX root mode, the interrupt is handled
+following the standard native IRQ flow: interrupt gate to
+dispatch_interrupt(), IRQ handler, and finally the registered callback.</li>
+<li>If the CPU is running under VMX non-root mode, an external interrupt
+calls a VM exit for reason “external-interrupt”, and then the VM
+exit processing flow will call dispatch_interrupt() to dispatch and
+handle the interrupt.</li>
 </ul>
-<div class="section" id="memory-virtualization-capability-checking">
-<h3>Memory Virtualization Capability Checking<a class="headerlink" href="#memory-virtualization-capability-checking" title="Permalink to this headline">¶</a></h3>
-<p>In the hypervisor, memory virtualization provides EPT/VPID capability
-checking service and EPT hugepage supporting checking service. Before HV
-enables memory virtualization and uses EPT hugepage, these service need
-to be invoked by other units.</p>
-</div>
-<div class="section" id="data-transfer-between-different-address-spaces">
-<h3>Data Transfer between Different Address Spaces<a class="headerlink" href="#data-transfer-between-different-address-spaces" title="Permalink to this headline">¶</a></h3>
-<p>In ACRN, different memory space management is used in the hypervisor,
-Service OS, and User OS to achieve spatial isolation. Between memory
-spaces, there are different kinds of data transfer, such as a SOS/UOS
-may hypercall to request hypervisor services which includes data
-transferring, or when the hypervisor does instruction emulation: the HV
-needs to access the guest instruction pointer register to fetch guest
-instruction data.</p>
-<div class="section" id="access-gpa-from-hypervisor">
-<h4>Access GPA from Hypervisor<a class="headerlink" href="#access-gpa-from-hypervisor" title="Permalink to this headline">¶</a></h4>
-<p>When hypervisor need access GPA for data transfer, the caller from guest
-must make sure this memory range’s GPA is continuous. But for HPA in
-hypervisor, it could be dis-continuous (especially for UOS under hugetlb
-allocation mechanism).  For example, a 4M GPA range may map to 2
-different 2M huge host-physical pages. The ACRN hypervisor must take
-care of this kind of data transfer by doing EPT page walking based on
-its HPA.</p>
-</div>
-<div class="section" id="access-gva-from-hypervisor">
-<h4>Access GVA from Hypervisor<a class="headerlink" href="#access-gva-from-hypervisor" title="Permalink to this headline">¶</a></h4>
-<p>When hypervisor needs to access GVA for data transfer, it’s likely both
-GPA and HPA could be address dis-continuous. The ACRN hypervisor must
-watch for this kind of data transfer, and handle it by doing page
-walking based on both its GPA and HPA.</p>
-</div>
-</div>
-<div class="section" id="ept-page-tables-operations">
-<h3>EPT Page Tables Operations<a class="headerlink" href="#ept-page-tables-operations" title="Permalink to this headline">¶</a></h3>
-<p>The hypervisor should use a minimum of memory pages to map from
-guest-physical address (GPA) space into host-physical address (HPA)
-space.</p>
-<ul class="simple">
-<li>If 1GB hugepage can be used for GPA space mapping, the
-corresponding EPT PDPT entry shall be set for this 1GB hugepage.</li>
-<li>If 1GB hugepage can’t be used for GPA space mapping and 2MB hugepage can be
-used, the corresponding EPT PDT entry shall be set for this 2MB
-hugepage.</li>
-<li>If both 1GB hugepage and 2MB hugepage can’t be used for GPA
-space mapping, the corresponding EPT PT entry shall be set.</li>
+<p>After an interrupt occures from either path shown in
+<a class="reference internal" href="#phy-interrupt-processing"><span class="std std-numref">Figure 52</span></a>, ACRN hypervisor will jump to
+dispatch_interrupt. This function gets the vector of the generated
+interrupt from the context, gets IRQ number from vector_to_irq[], and
+then gets the corresponding irq_desc.</p>
+<p>Though there is only one generic IRQ handler for registered interrupt,
+there are three different handling flows according to flags:</p>
+<ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">!IRQF_LEVEL</span></code></p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">IRQF_LEVEL</span> <span class="pre">&amp;&amp;</span> <span class="pre">!IRQF_PT</span></code></p>
+<p>To avoid continuous interrupt triggers, it masks the IOAPIC pin and
+unmask it only after IRQ action callback is executed</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">IRQF_LEVEL</span> <span class="pre">&amp;&amp;</span> <span class="pre">IRQF_PT</span></code></p>
+<p>For pass-thru devices, to avoid continuous interrupt triggers, it masks
+the IOAPIC pin and leaves it unmasked until corresponding vIOAPIC
+pin gets an explicit EOI ACK from guest.</p>
+</li>
 </ul>
-<p>If memory type or access rights of a page is updated or some GPA space
-is deleted, it will lead to the corresponding EPT page being split. The
-hypervisor should still keep to using minimum EPT pages to map from GPA
-space into HPA space.</p>
-<p>The hypervisor provides EPT guest-physical mappings adding service, EPT
-guest-physical mappings modifying/deleting service, EPT page tables
-deallocation, and EPT guest-physical mappings invalidation service.</p>
+<p>Since interrupts are not shared for multiple devices, there is only one
+IRQ action registered for each interrupt</p>
+<p>The IRQ number inside HV is a software concept to identify GSI and
+Vectors. Each GSI will be mapped to one IRQ. The GSI number is usually the same
+as the IRQ number. IRQ numbers greater than max GSI (nr_gsi) number are dynamically
+assigned. For example, HV allocates an interrupt vector to a PCI device,
+an IRQ number is then assigned to that vector. When the vector later
+reaches a CPU, the corresponding IRQ routine is located and executed.</p>
+<p>See <a class="reference internal" href="#request-irq"><span class="std std-numref">Figure 54</span></a> for request IRQ control flow for different
+conditions:</p>
+<div class="figure align-center" id="request-irq">
+<img alt="../../_images/interrupt-image76.png" src="../../_images/interrupt-image76.png" />
+<p class="caption"><span class="caption-number">Figure 54 </span><span class="caption-text">Request IRQ for different conditions</span></p>
 </div>
 </div>
-<div class="section" id="virtual-mtrr">
-<h2>Virtual MTRR<a class="headerlink" href="#virtual-mtrr" title="Permalink to this headline">¶</a></h2>
-<p>In ACRN, the hypervisor only virtualizes MTRRs fixed range (0~1MB).
-The HV sets MTRRs of the fixed range as Write-Back for UOS, and the SOS reads
-native MTRRs of the fixed range set by BIOS.</p>
-<p>If the guest physical address is not in the fixed range (0~1MB), the
-hypervisor uses the default memory type in the MTRR (Write-Back).</p>
-<p>When the guest disables MTRRs, the HV sets the guest address memory type
-as UC.</p>
-<p>If the guest physical address is in fixed range (0~1MB), the HV sets
-memory type according to the fixed virtual MTRRs.</p>
-<p>When the guest enable MTRRs, MTRRs have no effect on the memory type
-used for access to GPA. The HV first intercepts MTRR MSR registers
-access through MSR access VM exit and updates EPT memory type field in EPT
-PTE according to the memory type selected by MTRRs.  This combines with
-PAT entry in the PAT MSR (which is determined by PAT, PCD, and PWT bits
-from the guest paging structures) to determine the effective memory
-type.</p>
-<div class="section" id="vpid-operations">
-<h3>VPID operations<a class="headerlink" href="#vpid-operations" title="Permalink to this headline">¶</a></h3>
-<p>Virtual-processor identifier (VPID) is a hardware feature to optimize
-TLB management. When VPID is enable, hardware will add a tag for TLB of
-a logical processor and cache information for multiple linear-address
-spaces. VMX transitions may retain cached information and the logical
-processor switches to a different address space, avoiding unnecessary
-TLB flushes.</p>
-<p>In ACRN, an unique VPID must be allocated for each virtual CPU
-when a virtual CPU is created. The logical processor invalidates linear
-mappings and combined mapping associated with all VPIDs (except VPID
-0000H), and with all PCIDs when the logical processor launches the virtual
-CPU. The logical processor invalidates all linear mapping and combined
-mappings associated with the specified VPID when the interrupt pending
-request handling needs to invalidate cached mapping of the specified
-VPID.</p>
+<div class="section" id="ipi-management">
+<h2>IPI Management<a class="headerlink" href="#ipi-management" title="Permalink to this headline">¶</a></h2>
+<p>The only purpose of IPI use in HV is to kick a vCPU out of non-root mode
+and enter to HV mode. This requires I/O request and virtual interrupt
+injection be distributed to different IPI vectors. The I/O request uses
+IPI vector 0xF4 upcall (refer to Chapter 5.4). The virtual interrupt
+injection uses IPI vector 0xF0.</p>
+<dl class="docutils">
+<dt>0xF4 upcall</dt>
+<dd>A Guest vCPU VM Exit exits due to EPT violation or IO instruction trap.
+It requires Device Module to emulate the MMIO/PortIO instruction.
+However it could be that the Service OS (SOS) vCPU0 is still in non-root
+mode. So an IPI (0xF4 upcall vector) should be sent to the physical CPU0
+(with non-root mode as vCPU0 inside SOS) to force vCPU0 to VM Exit due
+to the external interrupt. The virtual upcall vector is then injected to
+SOS, and the vCPU0 inside SOS then will pick up the IO request and do
+emulation for other Guest.</dd>
+<dt>0xF0 IPI flow</dt>
+<dd>If Device Module inside SOS needs to inject an interrupt to other Guest
+such as vCPU1, it will issue an IPI first to kick CPU1 (assuming CPU1 is
+running on vCPU1) to root-hv_interrupt-data-apmode. CPU1 will inject the
+interrupt before VM Enter.</dd>
+</dl>
 </div>
-<div class="section" id="id1">
-<h3>Data Flow Design<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>The memory virtualization unit includes address space translation
-functions, data transferring functions, VM EPT operations functions,
-VPID operations functions, VM exit hanging about EPT violation and EPT
-misconfiguration, and MTRR virtualization functions. This unit handles
-guest-physical mapping updates by creating or updating related EPT page
-tables. It virtualizes MTRR for guest OS by updating related EPT page
-tables. It handles address translation from GPA to HPA by walking EPT
-page tables. It copies data from VM into the HV or from the HV to VM by
-walking guest MMU page tables and EPT page tables. It provides services
-to allocate VPID for each virtual CPU and TLB invalidation related VPID.
-It handles VM exit about EPT violation and EPT misconfiguration. The
-following <a class="reference internal" href="#mem-flow-mem-virt"><span class="std std-numref">Figure 40</span></a> describes the data flow diagram of
-the memory virtualization unit.</p>
-<div class="figure align-center" id="mem-flow-mem-virt">
-<img alt="../../_images/mem-image84.png" src="../../_images/mem-image84.png" />
-<p class="caption"><span class="caption-number">Figure 40 </span><span class="caption-text">Data Flow of Hypervisor Memory Virtualization</span></p>
-</div>
-</div>
-<div class="section" id="id2">
-<h3>Data Structure Design<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>EPT Memory Type Data Definition:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* EPT memory type is specified in bits 5:3 of the last EPT</span>
-<span class="cm"> * paging-structure entry */</span>
-<span class="cp">#define EPT_MT_SHIFT 3U</span>
+<div class="section" id="data-structures-and-interfaces">
+<span id="hv-interrupt-data-api"></span><h2>Data structures and interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="ioapic">
+<h3>IOAPIC<a class="headerlink" href="#ioapic" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for IOAPIC related
+operations.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">ioapic_get_rte</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="k">union</span> <span class="n">ioapic_rte</span> <span class="o">*</span><span class="n">rte</span><span class="p">)</span>
+   <span class="cm">/*   get the redirection table entry of an irq. */</span>
 
-<span class="cm">/* EPT memory type is uncacheable  */</span>
-<span class="cp">#define EPT_UNCACHED (0UL &lt;&lt; EPT_MT_SHIFT)</span>
+<span class="kt">void</span> <span class="n">ioapic_set_rte</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="k">union</span> <span class="n">ioapic_rte</span> <span class="n">rte</span><span class="p">)</span>
+   <span class="cm">/*   Set the redirection table entry of an irq. */</span>
 
-<span class="cm">/* EPT memory type is write combining  */</span>
-<span class="cp">#define EPT_WC (1UL &lt;&lt; EPT_MT_SHIFT)</span>
+<span class="kt">uint32_t</span> <span class="n">pin_to_irq</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">pin</span><span class="p">)</span>
+   <span class="cm">/*   Get irq num from physical irq pin num */</span>
 
-<span class="cm">/* EPT memory type is write through */</span>
-<span class="cp">#define EPT_WT (4UL &lt;&lt; EPT_MT_SHIFT)</span>
+<span class="kt">void</span> <span class="n">suspend_ioapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   Suspended ioapic, mainly save the RTEs. */</span>
 
-<span class="cm">/* EPT memory type is write protected  */</span>
-<span class="cp">#define EPT_WP (5UL &lt;&lt; EPT_MT_SHIFT)</span>
+<span class="kt">void</span> <span class="n">resume_ioapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   Resume ioapic, mainly restore the RTEs. */</span>
 
-<span class="cm">/* EPT memory type is write back */</span>
-<span class="cp">#define EPT_WB (6UL &lt;&lt; EPT_MT_SHIFT)</span>
-</pre></div>
-</div>
-<p>EPT Memory Access Right Definition:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* EPT memory access right is read-only */</span>
-<span class="cp">#define EPT_RD (1UL &lt;&lt; 0U)</span>
-
-<span class="cm">/* EPT memory access right is read/write */</span>
-<span class="cp">#define EPT_WR (1UL &lt;&lt; 1U)</span>
-
-<span class="cm">/* EPT memory access right is executable */</span>
-<span class="cp">#define EPT_EXE (1UL &lt;&lt; 2U)</span>
-
-<span class="cm">/* EPT memory access right is read/write and executable */</span>
-<span class="n">define</span> <span class="n">EPT_RWX</span> <span class="p">(</span><span class="n">EPT_RD</span> <span class="o">|</span> <span class="n">EPT_WR</span> <span class="o">|</span> <span class="n">EPT_EXE</span><span class="p">)</span>
+<span class="kt">int</span> <span class="n">get_ioapic_info</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">str_arg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">str_max_len</span><span class="p">)</span>
+   <span class="cm">/*   Dump information of ioapic for debug, such as irq num, pin,</span>
+<span class="cm">    *   RTE, vector, trigger mode etc. For debugging only.</span>
+<span class="cm">    */</span>
 </pre></div>
 </div>
 </div>
-<div class="section" id="id3">
-<h3>Interfaces Design<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
-<p>The memory virtualization unit interacts with external units through VM
-exit and APIs.</p>
-</div>
-<div class="section" id="vm-exit-about-ept">
-<h3>VM Exit about EPT<a class="headerlink" href="#vm-exit-about-ept" title="Permalink to this headline">¶</a></h3>
-<p>There are two VM exit handlers for EPT violation and EPT
-misconfiguration in the hypervisor. EPT page tables are
-always configured correctly for SOS and UOS. If EPT misconfiguration is
-detected, a fatal error is reported by HV. The hypervisor
-uses EPT violation to intercept MMIO access to do device emulation. EPT
-violation handling data flow is described in the
-<a class="reference internal" href="hv-cpu-virt.html#instruction-emulation"><span class="std std-ref">Instruction Emulation</span></a>.</p>
-</div>
-<div class="section" id="memory-virtualization-apis">
-<h3>Memory Virtualization APIs<a class="headerlink" href="#memory-virtualization-apis" title="Permalink to this headline">¶</a></h3>
-<p>Here is a list of major memory related APIs in HV:</p>
-<div class="section" id="ept-vpid-capability-checking">
-<h4>EPT/VPID Capability Checking<a class="headerlink" href="#ept-vpid-capability-checking" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>int check_vmx_mmu_cap(void)</td>
-<td>EPT and VPID capability checking</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="gb-hugepage-supporting-checking">
-<h4>1GB Hugepage Supporting Checking<a class="headerlink" href="#gb-hugepage-supporting-checking" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>bool check_mmu_1gb_support(enum _page_table_type page_table_type)</td>
-<td>1GB page supporting capability checking</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="data-transferring-between-hypervisor-and-vm">
-<h4>Data Transferring between hypervisor and VM<a class="headerlink" href="#data-transferring-between-hypervisor-and-vm" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>int copy_from_gpa(const struct vm *vm, void *h_ptr, uint64_t gpa, uint32_t size)</td>
-<td>Copy data from VM GPA space to HV address space</td>
-</tr>
-<tr class="row-odd"><td>int copy_to_gpa(const struct vm *vm, void *h_ptr, uint64_t gpa, uint32_t size)</td>
-<td>Copy data from HV address space to VM GPA space</td>
-</tr>
-<tr class="row-even"><td>int copy_from_gva(struct vcpu *vcpu, void *h_ptr, uint64_t gva,
-uint32_t size, uint32_t *err_code, uint64_t *fault_addr)</td>
-<td>Copy data from VM GVA space to HV address space</td>
-</tr>
-<tr class="row-odd"><td>int copy_to_gva(struct vcpu *vcpu, void *h_ptr, uint64_t gva,
-uint32_t size, uint32_t *err_code, uint64_t *fault_addr)</td>
-<td>Copy data from HV address space to VM GVA space</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="id4">
-<h4>Address Space Translation<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>uint64_t gpa2hpa(const struct vm *vm, uint64_t gpa)</td>
-<td>Translating from guest-physical address to host-physical address</td>
-</tr>
-<tr class="row-odd"><td>uint64_t hpa2gpa(const struct vm *vm, uint64_t hpa)</td>
-<td>Translating from host-physical address to guest-physical address</td>
-</tr>
-<tr class="row-even"><td>bool check_continuous_hpa(struct vm *vm, uint64_t gpa_arg, uint64_t size_arg)</td>
-<td>Host-physical address continuous checking</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="ept">
-<h4>EPT<a class="headerlink" href="#ept" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>int ept_mr_add(const struct vm *vm, uint64_t hpa_arg, uint64_t gpa_arg,
-uint64_t size, uint32_t prot_arg)</td>
-<td>Guest-physical memory region mapping</td>
-</tr>
-<tr class="row-odd"><td>int ept_mr_del(const struct vm *vm, uint64_t *pml4_page, uint64_t gpa,
-uint64_t size)</td>
-<td>Guest-physical memory region unmapping</td>
-</tr>
-<tr class="row-even"><td>int ept_mr_modify(const struct vm *vm, uint64_t *pml4_page, uint64_t gpa,
-uint64_t size, uint64_t prot_set, uint64_t prot_clr)</td>
-<td>Guest-physical memory page access right or memory type updating</td>
-</tr>
-<tr class="row-odd"><td>void destroy_ept(struct vm *vm)</td>
-<td>EPT page tables destroy</td>
-</tr>
-<tr class="row-even"><td>void free_ept_mem(void *pml4_addr)</td>
-<td>EPT page tables free</td>
-</tr>
-<tr class="row-odd"><td>void invept(struct vcpu *vcpu)</td>
-<td>Guest-physical mappings and combined mappings invalidation</td>
-</tr>
-<tr class="row-even"><td>int ept_violation_vmexit_handler(struct vcpu *vcpu)</td>
-<td>EPT violation handling</td>
-</tr>
-<tr class="row-odd"><td>int ept_misconfig_vmexit_handler(__unused struct vcpu *vcpu)</td>
-<td>EPT misconfiguration handling</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="id5">
-<h4>Virtual MTRR<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>void init_mtrr(struct vcpu *vcpu)</td>
-<td>Virtual MTRR initialization</td>
-</tr>
-<tr class="row-odd"><td>void mtrr_wrmsr(struct vcpu *vcpu, uint32_t msr, uint64_t value)</td>
-<td>Virtual MTRR MSR write</td>
-</tr>
-<tr class="row-even"><td>uint64_t mtrr_rdmsr(struct vcpu *vcpu, uint32_t msr)</td>
-<td>Virtual MTRR MSR read</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="vpid">
-<h4>VPID<a class="headerlink" href="#vpid" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>uint16_t allocate_vpid(void)</td>
-<td>VPID allocation</td>
-</tr>
-<tr class="row-odd"><td>void flush_vpid_single(uint16_t vpid)</td>
-<td>Specified VPID flush</td>
-</tr>
-<tr class="row-even"><td>void flush_vpid_global(void)</td>
-<td>All VPID flush</td>
-</tr>
-</tbody>
-</table>
+<div class="section" id="lapic">
+<h3>LAPIC<a class="headerlink" href="#lapic" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for LAPIC related operations.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">write_lapic_reg32</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">offset</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">value</span><span class="p">)</span>
+   <span class="cm">/*   Write to lapic register. */</span>
+
+<span class="kt">void</span> <span class="n">early_init_lapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   To get the local apic base addr, map lapic registers and check the</span>
+<span class="cm">    *   xAPIC/x2APIC capability.</span>
+<span class="cm">    */</span>
+
+<span class="kt">void</span> <span class="n">save_lapic</span><span class="p">(</span><span class="k">struct</span> <span class="n">lapic_regs</span> <span class="o">*</span><span class="n">regs</span><span class="p">)</span>
+   <span class="cm">/*   Save context of lapic before entering s3. */</span>
+
+<span class="kt">void</span> <span class="n">restore_lapic</span><span class="p">(</span><span class="k">struct</span> <span class="n">lapic_regs</span> <span class="o">*</span><span class="n">regs</span><span class="p">)</span>
+   <span class="cm">/*   Restore context of lapic when resume from s3. */</span>
+
+<span class="kt">void</span> <span class="n">resume_lapic</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   Resume lapic by setting the apic base addr and restore the registers. */</span>
+
+<span class="kt">uint8_t</span> <span class="n">get_cur_lapic_id</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+   <span class="cm">/*   Get the lapic id. */</span>
+</pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="service-os-memory-management">
-<h2>Service OS Memory Management<a class="headerlink" href="#service-os-memory-management" title="Permalink to this headline">¶</a></h2>
-<p>After the ACRN hypervisor starts, it creates the Service OS as its first
-VM. The Service OS runs all the native device drivers, manage the
-hardware devices, and provides I/O mediation to guest VMs. The Service
-OS is in charge of the memory allocation for Guest VMs as well.</p>
-<p>ACRN hypervisor passes the whole system memory access (except its own
-part) to the Service OS. The Service OS must be able to access all of
-the system memory except the hypervisor part.</p>
-<div class="section" id="guest-physical-memory-layout-e820">
-<h3>Guest Physical Memory Layout - E820<a class="headerlink" href="#guest-physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
-<p>The ACRN hypervisor passes the original E820 table to the Service OS
-after filtering out its own part. So from Service OS’s view, it sees
-almost all the system memory as shown here:</p>
-<div class="figure align-center" id="sos-mem-layout">
-<a class="reference internal image-reference" href="../../_images/mem-image3.png"><img alt="../../_images/mem-image3.png" src="../../_images/mem-image3.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 41 </span><span class="caption-text">SOS Physical Memory Layout</span></p>
+<div class="section" id="ipi">
+<h3>IPI<a class="headerlink" href="#ipi" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for IPI related operations.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="n">send_startup_ipi</span><span class="p">(</span><span class="k">enum</span> <span class="n">intr_cpu_startup_shorthand</span> <span class="n">cpu_startup_shorthand</span><span class="p">,</span>
+                      <span class="kt">uint16_t</span> <span class="n">dest_pcpu_id</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">cpu_startup_start_address</span><span class="p">)</span>
+   <span class="cm">/*   Send an SIPI to a specific cpu, to notify the cpu to start booting. */</span>
+
+<span class="kt">void</span> <span class="n">send_dest_ipi</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">dest</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">vector</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">dest_mode</span><span class="p">)</span>
+   <span class="cm">/*   Send an IPI to a specific cpu with dest mode specified. */</span>
+
+<span class="kt">void</span> <span class="n">send_single_ipi</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">pcpu_id</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">vector</span><span class="p">)</span>
+   <span class="cm">/*   Send an IPI to a specific cpu with physical dest mode. */</span>
+</pre></div>
 </div>
 </div>
-<div class="section" id="host-to-guest-mapping">
-<h3>Host to Guest Mapping<a class="headerlink" href="#host-to-guest-mapping" title="Permalink to this headline">¶</a></h3>
-<p>ACRN hypervisor creates Service OS’s host (HPA) to guest (GPA) mapping
-(EPT mapping) through the function <code class="docutils literal notranslate"><span class="pre">prepare_vm0_memmap_and_e820()</span></code>
-when it creates the SOS VM. It follows these rules:</p>
-<ul class="simple">
-<li>Identical mapping</li>
-<li>Map all memory range with UNCACHED type</li>
-<li>Remap RAM entries in E820 (revised) with WRITE-BACK type</li>
-<li>Unmap ACRN hypervisor memory range</li>
-<li>Unmap ACRN hypervisor emulated vLAPIC/vIOAPIC MMIO range</li>
-</ul>
-<p>The host to guest mapping is static for the Service OS; it will not
-change after the Service OS begins running. Each native device driver
-can access its MMIO through this static mapping. EPT violation is only
-serving for vLAPIC/vIOAPIC’s emulation in the hypervisor for Service OS
-VM.</p>
+<div class="section" id="physical-interrupt">
+<h3>Physical Interrupt<a class="headerlink" href="#physical-interrupt" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for physical interrupt
+related operations.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int32_t</span> <span class="n">request_irq</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">req_irq</span><span class="p">,</span> <span class="n">irq_action_t</span> <span class="n">action_fn</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">priv_data</span><span class="p">,</span>
+                    <span class="kt">uint32_t</span> <span class="n">flags</span><span class="p">)</span>
+   <span class="cm">/*   Request interrupt num if not specified, and register irq action for the</span>
+<span class="cm">    *   specified/allocated irq.</span>
+<span class="cm">    */</span>
+
+<span class="kt">void</span> <span class="n">free_irq</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">)</span>
+   <span class="cm">/*   Free irq num and unregister the irq action. */</span>
+
+<span class="kt">void</span> <span class="n">set_irq_trigger_mode</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is_level_trigger</span><span class="p">)</span>
+   <span class="cm">/*   Set the irq trigger mode: edge-triggered or level-triggered */</span>
+
+<span class="kt">uint32_t</span> <span class="n">irq_to_vector</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">)</span>
+   <span class="cm">/*  Convert irq num to vector */</span>
+
+<span class="kt">void</span> <span class="n">get_cpu_interrupt_info</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">str_arg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">str_max</span><span class="p">)</span>
+   <span class="cm">/*  To dump interrupt statistics info, such as irq num, vector,</span>
+<span class="cm">    *  irq count on each physical cpu.</span>
+<span class="cm">    */</span>
+
+<span class="kt">void</span> <span class="n">dispatch_interrupt</span><span class="p">(</span><span class="k">struct</span> <span class="n">intr_excp_ctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">)</span>
+   <span class="cm">/*  To dispatch an interrupt, an action callback will be called if registered. */</span>
+
+<span class="kt">void</span> <span class="n">interrupt_init</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">pcpu_id</span><span class="p">)</span>
+   <span class="cm">/*  To do interrupt initialization for a cpu, will be called for</span>
+<span class="cm">    *  each physical cpu.</span>
+<span class="cm">    */</span>
+</pre></div>
 </div>
-</div>
-<div class="section" id="trusty">
-<h2>Trusty<a class="headerlink" href="#trusty" title="Permalink to this headline">¶</a></h2>
-<p>For an Android User OS, there is a secure world named trusty world
-support, whose memory must be secured by the ACRN hypervisor and
-must not be accessible by SOS and UOS normal world.</p>
-<div class="figure align-center" id="id6">
-<img alt="../../_images/mem-image18.png" src="../../_images/mem-image18.png" />
-<p class="caption"><span class="caption-number">Figure 42 </span><span class="caption-text">UOS Physical Memory Layout with Trusty</span></p>
 </div>
 </div>
 </div>
@@ -1201,7 +984,7 @@ must not be accessible by SOS and UOS normal world.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 25, 2018.
+      Last updated on Oct 26, 2018.
 
     </p>
   </div> 

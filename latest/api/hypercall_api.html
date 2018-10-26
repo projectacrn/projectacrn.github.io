@@ -224,9 +224,10 @@
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-hypervisor.html">Hypervisor</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-startup.html">Hypervisor Startup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-cpu-virt.html">CPU Virtualization</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/memmgt-hld.html">Memory management</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hld-io-emulation.html">I/O Emulation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/interrupt-hld.html">Physical Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-memmgt.html">Memory management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-io-emulation.html">I/O Emulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-interrupt.html">Physical Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-timer.html">Timer</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-devicemodel.html">Device Model</a><ul>
@@ -1239,6 +1240,25 @@ for the Device Model are found in the <a class="reference external" href="https:
 </dd></dl>
 
 <dl class="function">
+<dt id="_CPPv319hcall_profiling_opsP2vm8uint64_t8uint64_t">
+<span id="_CPPv219hcall_profiling_opsP2vm8uint64_t8uint64_t"></span><span id="hcall_profiling_ops__vmP.uint64_t.uint64_t"></span><span class="target" id="group__acrn__hypercall_1ga344cd250feb85d456ebfe600b6599a2a"></span>int32_t <code class="descname">hcall_profiling_ops</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv319hcall_profiling_opsP2vm8uint64_t8uint64_t" title="hcall_profiling_ops::vm">vm</a> *<em>vm</em>, uint64_t <em>cmd</em>, uint64_t <em>param</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319hcall_profiling_opsP2vm8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Execute profiling operation. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success, non-zero on error. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">cmd</span></code>: profiling command to be executed </li>
+<li><code class="docutils literal notranslate"><span class="pre">cmd</span></code>: profiling command to be executed </li>
+<li><code class="docutils literal notranslate"><span class="pre">param</span></code>: guest physical address. This gpa points to data structure required by each command</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="_CPPv322hcall_get_cpu_pm_stateP2vm8uint64_t8uint64_t">
 <span id="_CPPv222hcall_get_cpu_pm_stateP2vm8uint64_t8uint64_t"></span><span id="hcall_get_cpu_pm_state__vmP.uint64_t.uint64_t"></span><span class="target" id="group__acrn__hypercall_1ga95093f2d86dd474f11c4c9a15a42fd03"></span>int32_t <code class="descname">hcall_get_cpu_pm_state</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv322hcall_get_cpu_pm_stateP2vm8uint64_t8uint64_t" title="hcall_get_cpu_pm_state::vm">vm</a> *<em>vm</em>, uint64_t <em>cmd</em>, uint64_t <em>param</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv322hcall_get_cpu_pm_stateP2vm8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get VCPU Power state. </p>
@@ -1484,7 +1504,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <li>One vCPU cannot trigger another I/O request before the previous one has completed (i.e. the state switched to FREE)</li>
 </ol>
 </p>
-<p>Accesses to the state of a <a class="reference internal" href="../developer-guides/hld/hld-io-emulation.html#structvhm__request"><span class="std std-ref">vhm_request</span></a> shall be atomic and proper barriers are needed to ensure that:</p>
+<p>Accesses to the state of a <a class="reference internal" href="../developer-guides/hld/hv-io-emulation.html#structvhm__request"><span class="std std-ref">vhm_request</span></a> shall be atomic and proper barriers are needed to ensure that:</p>
 <p><ol class="arabic simple">
 <li>Setting state to PENDING is the last operation when issuing a request in the hypervisor, as the hypervisor shall not access the request any more.</li>
 <li>Due to similar reasons, setting state to COMPLETE is the last operation of request handling in VHM or clients in SOS. </li>
@@ -1509,7 +1529,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dl class="member">
 <dt id="_CPPv3N11vhm_request4reqsE">
 <span id="_CPPv2N11vhm_request4reqsE"></span><span id="vhm_request::reqs__vhm_io_request"></span><span class="target" id="structvhm__request_1aef162f2ad5070f4b3ba9f1e72117b21e"></span><em class="property">union</em> <a class="reference internal" href="#_CPPv314vhm_io_request" title="vhm_io_request">vhm_io_request</a> <code class="descname">reqs</code><a class="headerlink" href="#_CPPv3N11vhm_request4reqsE" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Details about this request. For REQ_PORTIO, this has type <a class="reference internal" href="../developer-guides/hld/hld-io-emulation.html#structpio__request"><span class="std std-ref">pio_request</span></a>. For REQ_MMIO and REQ_WP, this has type <a class="reference internal" href="../developer-guides/hld/hld-io-emulation.html#structmmio__request"><span class="std std-ref">mmio_request</span></a>. For REQ_PCICFG, this has type <a class="reference internal" href="../developer-guides/hld/hld-io-emulation.html#structpci__request"><span class="std std-ref">pci_request</span></a>.</p>
+<dd><p>Details about this request. For REQ_PORTIO, this has type <a class="reference internal" href="../developer-guides/hld/hv-io-emulation.html#structpio__request"><span class="std std-ref">pio_request</span></a>. For REQ_MMIO and REQ_WP, this has type <a class="reference internal" href="../developer-guides/hld/hv-io-emulation.html#structmmio__request"><span class="std std-ref">mmio_request</span></a>. For REQ_PCICFG, this has type <a class="reference internal" href="../developer-guides/hld/hv-io-emulation.html#structpci__request"><span class="std std-ref">pci_request</span></a>.</p>
 <p>Byte offset: 64. </p>
 </dd></dl>
 
@@ -2689,7 +2709,7 @@ for the Device Model are found in the <a class="reference external" href="https:
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 25, 2018.
+      Last updated on Oct 26, 2018.
 
     </p>
   </div> 
