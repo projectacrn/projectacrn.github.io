@@ -229,6 +229,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-interrupt.html">Physical Interrupt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-timer.html">Timer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-virt-interrupt.html">Virtual Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-vt-d.html">VT-d</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-devicemodel.html">Device Model</a><ul>
@@ -1074,17 +1075,18 @@ as below:</p>
         <span class="p">.</span><span class="n">detach_vgpu</span> <span class="o">=</span> <span class="n">acrngt_detach_vgpu</span><span class="p">,</span>
         <span class="p">.</span><span class="n">inject_msi</span> <span class="o">=</span> <span class="n">acrngt_inject_msi</span><span class="p">,</span>
         <span class="p">.</span><span class="n">from_virt_to_mfn</span> <span class="o">=</span> <span class="n">acrngt_virt_to_mfn</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">set_wp_page</span> <span class="o">=</span> <span class="n">acrngt_set_wp_page</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">unset_wp_page</span> <span class="o">=</span> <span class="n">acrngt_unset_wp_page</span><span class="p">,</span>
+        <span class="p">.</span><span class="n">enable_page_track</span> <span class="o">=</span> <span class="n">acrngt_page_track_add</span><span class="p">,</span>
+        <span class="p">.</span><span class="n">disable_page_track</span> <span class="o">=</span> <span class="n">acrngt_page_track_remove</span><span class="p">,</span>
         <span class="p">.</span><span class="n">read_gpa</span> <span class="o">=</span> <span class="n">acrngt_read_gpa</span><span class="p">,</span>
         <span class="p">.</span><span class="n">write_gpa</span> <span class="o">=</span> <span class="n">acrngt_write_gpa</span><span class="p">,</span>
         <span class="p">.</span><span class="n">gfn_to_mfn</span> <span class="o">=</span> <span class="n">acrngt_gfn_to_pfn</span><span class="p">,</span>
         <span class="p">.</span><span class="n">map_gfn_to_mfn</span> <span class="o">=</span> <span class="n">acrngt_map_gfn_to_mfn</span><span class="p">,</span>
+        <span class="p">.</span><span class="n">dma_map_guest_page</span> <span class="o">=</span> <span class="n">acrngt_dma_map_guest_page</span><span class="p">,</span>
+        <span class="p">.</span><span class="n">dma_unmap_guest_page</span> <span class="o">=</span> <span class="n">acrngt_dma_unmap_guest_page</span><span class="p">,</span>
         <span class="p">.</span><span class="n">set_trap_area</span> <span class="o">=</span> <span class="n">acrngt_set_trap_area</span><span class="p">,</span>
         <span class="p">.</span><span class="n">set_pvmmio</span> <span class="o">=</span> <span class="n">acrngt_set_pvmmio</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">pause_domain</span> <span class="o">=</span> <span class="n">acrn_pause_domain</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">unpause_domain</span><span class="o">=</span> <span class="n">acrn_unpause_domain</span><span class="p">,</span>
         <span class="p">.</span><span class="n">dom0_ready</span> <span class="o">=</span> <span class="n">acrngt_dom0_ready</span><span class="p">,</span>
+
 <span class="p">};</span>
 <span class="n">EXPORT_SYMBOL_GPL</span><span class="p">(</span><span class="n">acrn_gvt_mpt</span><span class="p">);</span>
 </pre></div>
@@ -1102,11 +1104,11 @@ int <code class="descname">intel_gvt_hypervisor_host_init</code><span class="sig
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">device</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>i915 device</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span> <span class="pre">gvt</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>GVT device</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">void</span> <span class="pre">*</span> <span class="pre">ops</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>intel_gvt_ops interface</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>Zero on success, negative error code if failed</p>
@@ -1119,9 +1121,9 @@ void <code class="descname">intel_gvt_hypervisor_host_exit</code><span class="si
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">device</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>i915 device</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span> <span class="pre">gvt</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>GVT device</dd>
 </dl>
 <dl class="function">
 <dt id="c.intel_gvt_hypervisor_attach_vgpu">
@@ -1132,7 +1134,7 @@ int <code class="descname">intel_gvt_hypervisor_attach_vgpu</code><span class="s
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>a vGPU</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>Zero on success, negative error code if failed.</p>
@@ -1145,7 +1147,7 @@ void <code class="descname">intel_gvt_hypervisor_detach_vgpu</code><span class="
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>a vGPU</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>Zero on success, negative error code if failed.</p>
@@ -1158,7 +1160,7 @@ int <code class="descname">intel_gvt_hypervisor_inject_msi</code><span class="si
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>a vGPU</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>Zero on success, negative error code if failed.</p>
@@ -1175,6 +1177,36 @@ unsigned long <code class="descname">intel_gvt_hypervisor_virt_to_mfn</code><spa
 </dl>
 <p><strong>Return</strong></p>
 <p>MFN on success, INTEL_GVT_INVALID_ADDR if failed.</p>
+<dl class="function">
+<dt id="c.intel_gvt_hypervisor_enable_page_track">
+int <code class="descname">intel_gvt_hypervisor_enable_page_track</code><span class="sig-paren">(</span>struct intel_vgpu *<em>&nbsp;vgpu</em>, unsigned long<em>&nbsp;gfn</em><span class="sig-paren">)</span><a class="headerlink" href="#c.intel_gvt_hypervisor_enable_page_track" title="Permalink to this definition">¶</a></dt>
+<dd><p>track a guest page</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
+<dd>a vGPU</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">gfn</span></code></dt>
+<dd>the gfn of guest</dd>
+</dl>
+<p><strong>Return</strong></p>
+<p>Zero on success, negative error code if failed.</p>
+<dl class="function">
+<dt id="c.intel_gvt_hypervisor_disable_page_track">
+int <code class="descname">intel_gvt_hypervisor_disable_page_track</code><span class="sig-paren">(</span>struct intel_vgpu *<em>&nbsp;vgpu</em>, unsigned long<em>&nbsp;gfn</em><span class="sig-paren">)</span><a class="headerlink" href="#c.intel_gvt_hypervisor_disable_page_track" title="Permalink to this definition">¶</a></dt>
+<dd><p>untrack a guest page</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
+<dd>a vGPU</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">gfn</span></code></dt>
+<dd>the gfn of guest</dd>
+</dl>
+<p><strong>Return</strong></p>
+<p>Zero on success, negative error code if failed.</p>
 <dl class="function">
 <dt id="c.intel_gvt_hypervisor_read_gpa">
 int <code class="descname">intel_gvt_hypervisor_read_gpa</code><span class="sig-paren">(</span>struct intel_vgpu *<em>&nbsp;vgpu</em>, unsigned long<em>&nbsp;gpa</em>, void *<em>&nbsp;buf</em>, unsigned long<em>&nbsp;len</em><span class="sig-paren">)</span><a class="headerlink" href="#c.intel_gvt_hypervisor_read_gpa" title="Permalink to this definition">¶</a></dt>
@@ -1224,10 +1256,42 @@ unsigned long <code class="descname">intel_gvt_hypervisor_gfn_to_mfn</code><span
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
 <dd>a vGPU</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">gfn</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>guest pfn</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>MFN on success, INTEL_GVT_INVALID_ADDR if failed.</p>
+<dl class="function">
+<dt id="c.intel_gvt_hypervisor_dma_map_guest_page">
+int <code class="descname">intel_gvt_hypervisor_dma_map_guest_page</code><span class="sig-paren">(</span>struct intel_vgpu *<em>&nbsp;vgpu</em>, unsigned long<em>&nbsp;gfn</em>, unsigned long<em>&nbsp;size</em>, dma_addr_t *<em>&nbsp;dma_addr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.intel_gvt_hypervisor_dma_map_guest_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>setup dma map for guest page</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
+<dd>a vGPU</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">gfn</span></code></dt>
+<dd>guest pfn</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">size</span></code></dt>
+<dd>page size</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">dma_addr_t</span> <span class="pre">*</span> <span class="pre">dma_addr</span></code></dt>
+<dd>retrieve allocated dma addr</dd>
+</dl>
+<p><strong>Return</strong></p>
+<p>0 on success, negative error code if failed.</p>
+<dl class="function">
+<dt id="c.intel_gvt_hypervisor_dma_unmap_guest_page">
+void <code class="descname">intel_gvt_hypervisor_dma_unmap_guest_page</code><span class="sig-paren">(</span>struct intel_vgpu *<em>&nbsp;vgpu</em>, dma_addr_t<em>&nbsp;dma_addr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.intel_gvt_hypervisor_dma_unmap_guest_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>cancel dma map for guest page</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
+<dd>a vGPU</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">dma_addr_t</span> <span class="pre">dma_addr</span></code></dt>
+<dd>the mapped dma addr</dd>
+</dl>
 <dl class="function">
 <dt id="c.intel_gvt_hypervisor_map_gfn_to_mfn">
 int <code class="descname">intel_gvt_hypervisor_map_gfn_to_mfn</code><span class="sig-paren">(</span>struct intel_vgpu *<em>&nbsp;vgpu</em>, unsigned long<em>&nbsp;gfn</em>, unsigned long<em>&nbsp;mfn</em>, unsigned int<em>&nbsp;nr</em>, bool<em>&nbsp;map</em><span class="sig-paren">)</span><a class="headerlink" href="#c.intel_gvt_hypervisor_map_gfn_to_mfn" title="Permalink to this definition">¶</a></dt>
@@ -1287,6 +1351,22 @@ int <code class="descname">intel_gvt_hypervisor_set_pvmmio</code><span class="si
 </dl>
 <p><strong>Return</strong></p>
 <p>Zero on success, negative error code if failed.</p>
+<dl class="function">
+<dt id="c.intel_gvt_hypervisor_dom0_ready">
+int <code class="descname">intel_gvt_hypervisor_dom0_ready</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.intel_gvt_hypervisor_dom0_ready" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signal Dom 0 is ready for Dom U</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">void</span></code></dt>
+<dd>no arguments</dd>
+</dl>
+<p><strong>Description</strong></p>
+<p>It’s to raise a uevent to notify Dom 0 is ready to start a Dom U, so that
+Dom U can be started as early as possible</p>
+<p><strong>Return</strong></p>
+<p>Zero on success, negative error code if failed</p>
 </div>
 <div class="section" id="gvt-g-intel-gvt-ops-interface">
 <span id="intel-gvt-ops-interface"></span><h2>GVT-g intel_gvt_ops interface<a class="headerlink" href="#gvt-g-intel-gvt-ops-interface" title="Permalink to this headline">¶</a></h2>
@@ -1314,13 +1394,13 @@ int <code class="descname">intel_vgpu_emulate_cfg_read</code><span class="sig-pa
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>a vGPU</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">offset</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>offset into the PCI configuration space</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span> <span class="pre">p_data</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>data buffer read from vGPU’s emulated configure space</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">bytes</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>size of data to read in bytes</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>Zero on success, negative error code if failed.</p>
@@ -1333,13 +1413,13 @@ int <code class="descname">intel_vgpu_emulate_cfg_write</code><span class="sig-p
 <p><strong>Parameters</strong></p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">intel_vgpu</span> <span class="pre">*</span> <span class="pre">vgpu</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>a vGPU</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">offset</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>offset into the PCI configuration space</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span> <span class="pre">p_data</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>data buffer write to vGPU’s emulated configure space</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">bytes</span></code></dt>
-<dd><em>undescribed</em></dd>
+<dd>size of data to write in bytes</dd>
 </dl>
 <p><strong>Return</strong></p>
 <p>Zero on success, negative error code if failed.</p>
@@ -1492,7 +1572,7 @@ N.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 26, 2018.
+      Last updated on Oct 29, 2018.
 
     </p>
   </div> 
