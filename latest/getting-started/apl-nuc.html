@@ -230,6 +230,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-timer.html">Timer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-virt-interrupt.html">Virtual Interrupt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-vt-d.html">VT-d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-dev-passthrough.html">Device Passthrough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-pm.html">Power Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-console.html">Console, Shell, and vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-hypercall.html">Hypercall / VHM upcall</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-config.html">Compile-time configuration</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-devicemodel.html">Device Model</a><ul>
@@ -939,7 +944,7 @@ acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s
         <span class="k">fi</span>
 <span class="k">done</span>
 
-launch_clear <span class="m">1</span> <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00 clear
+launch_clear <span class="m">1</span> <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00
 </pre></div>
 </div>
 </div>
@@ -1128,7 +1133,7 @@ $ make
 <p class="first admonition-title">Note</p>
 <p class="last">if you wish to use a different target folder for the build
 artefacts, set the <code class="docutils literal notranslate"><span class="pre">O</span></code> (that is capital letter ‘O’) to the
-desired value. Example: <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">O=build-uefi</span> <span class="pre">PLATFORM=uefi</span></code>.</p>
+desired value. Example: <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">O=build-nuc</span> <span class="pre">BOARD=nuc6cayh</span></code>.</p>
 </div>
 <p>Generating the documentation is decribed in details in the <a class="reference internal" href="../tutorials/docbuild.html#acrn-doc"><span class="std std-ref">ACRN documentation generation</span></a>
 tutorial.</p>
@@ -1138,7 +1143,7 @@ and are using it as the current working directory.</p>
 <ol class="arabic">
 <li><p class="first">Build the ACRN hypervisor.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd hypervisor
-$ make PLATFORM=uefi
+$ make BOARD=nuc6cayh
 </pre></div>
 </div>
 <p>The build results are found in the <code class="docutils literal notranslate"><span class="pre">build</span></code> directory.</p>
@@ -1163,8 +1168,8 @@ from your build.</p>
 <div class="section" id="generate-the-hypervisor-configurations">
 <h3>Generate the hypervisor configurations<a class="headerlink" href="#generate-the-hypervisor-configurations" title="Permalink to this headline">¶</a></h3>
 <p>The ACRN hypervisor leverages Kconfig to manage configurations, powered by
-Kconfiglib. A default configuration is generated based on the platform you have
-selected via the <code class="docutils literal notranslate"><span class="pre">PLATFORM=</span></code> command line parameter. You can make further
+Kconfiglib. A default configuration is generated based on the board you have
+selected via the <code class="docutils literal notranslate"><span class="pre">BOARD=</span></code> command line parameter. You can make further
 changes to that default configuration to adjust to your specific
 requirements.</p>
 <p>To generate hypervisor configurations, you need to build the hypervisor
@@ -1174,11 +1179,11 @@ directory of acrn-hypervisor. The configuration file, named <code class="docutil
 found under the target folder of your build.</p>
 <blockquote>
 <div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd hypervisor
-$ make defconfig PLATFORM=uefi
+$ make defconfig BOARD=nuc6cayh
 </pre></div>
 </div>
 </div></blockquote>
-<p>The PLATFORM specified is used to select a defconfig under
+<p>The BOARD specified is used to select a defconfig under
 <code class="docutils literal notranslate"><span class="pre">arch/x86/configs/</span></code>. The other command-line based options (e.g. <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code>)
 take no effects when generating a defconfig.</p>
 </div>
@@ -1192,7 +1197,7 @@ configuration file for UEFI, allow you to modify some configurations and build
 the hypervisor using the updated <code class="docutils literal notranslate"><span class="pre">.config</span></code>.</p>
 <blockquote>
 <div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd hypervisor
-$ make defconfig PLATFORM=uefi
+$ make defconfig BOARD=nuc6cayh
 $ make menuconfig              # Modify the configurations per your needs
 $ make                         # Build the hypervisor with the new .config
 </pre></div>
@@ -1212,12 +1217,12 @@ $ make                         # Build the hypervisor with the new .config
 <div class="section" id="create-a-new-default-configuration">
 <h3>Create a new default configuration<a class="headerlink" href="#create-a-new-default-configuration" title="Permalink to this headline">¶</a></h3>
 <p>Currently the ACRN hypervisor looks for default configurations under
-<code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/&lt;PLATFORM&gt;.config</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;PLATFORM&gt;</span></code> is the
+<code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/&lt;BOARD&gt;.config</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;BOARD&gt;</span></code> is the
 specified platform. The following steps allow you to create a defconfig for
 another platform based on a current one.</p>
 <blockquote>
 <div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd hypervisor
-$ make defconfig PLATFORM=uefi
+$ make defconfig BOARD=nuc6cayh
 $ make menuconfig         # Modify the configurations
 $ make savedefconfig      # The minimized config reside at build/defconfig
 $ cp build/defconfig arch/x86/configs/xxx.config
@@ -1225,9 +1230,9 @@ $ cp build/defconfig arch/x86/configs/xxx.config
 </div>
 </div></blockquote>
 <p>Then you can re-use that configuration by passing the name (<code class="docutils literal notranslate"><span class="pre">xxx</span></code> in the
-example above) to ‘PLATFORM=’:</p>
+example above) to ‘BOARD=’:</p>
 <blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make defconfig PLATFORM=xxx
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make defconfig BOARD=xxx
 </pre></div>
 </div>
 </div></blockquote>
@@ -1247,7 +1252,7 @@ example above) to ‘PLATFORM=’:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 29, 2018.
+      Last updated on Oct 30, 2018.
 
     </p>
   </div> 
