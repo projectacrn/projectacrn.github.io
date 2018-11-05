@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guides/l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api/index.html">API Documentation</a><ul>
@@ -774,7 +797,7 @@ as shown here:</p>
 <div class="code-block-caption"><span class="caption-number">Code Block 1 </span><span class="caption-text">hypervisor/bsp/uefi/clearlinux/acrn.conf</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">title</span> <span class="n">The</span> <span class="n">ACRN</span> <span class="n">Service</span> <span class="n">OS</span>
 <span class="n">linux</span>   <span class="o">/</span><span class="n">EFI</span><span class="o">/</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">/</span><span class="n">kernel</span><span class="o">-</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">.</span><span class="n">pk414</span><span class="o">-</span><span class="n">sos</span><span class="o">.</span><span class="mf">4.14</span><span class="o">.</span><span class="mi">52</span><span class="o">-</span><span class="mi">63</span>
-<span class="n">options</span> <span class="n">pci_devices_ignore</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">1</span><span class="p">)</span> <span class="n">console</span><span class="o">=</span><span class="n">tty0</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS0</span> <span class="n">i915</span><span class="o">.</span><span class="n">nuclear_pageflip</span><span class="o">=</span><span class="mi">1</span> <span class="n">root</span><span class="o">=</span><span class="n">PARTUUID</span><span class="o">=&lt;</span><span class="n">UUID</span> <span class="n">of</span> <span class="n">rootfs</span> <span class="n">partition</span><span class="o">&gt;</span> <span class="n">rw</span> <span class="n">rootwait</span> <span class="n">ignore_loglevel</span> <span class="n">no_timer_check</span> <span class="n">consoleblank</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_init</span><span class="o">=</span><span class="mi">7</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_delay</span><span class="o">=</span><span class="mi">2000</span> <span class="n">i915</span><span class="o">.</span><span class="n">avail_planes_per_pipe</span><span class="o">=</span><span class="mh">0x01010F</span> <span class="n">i915</span><span class="o">.</span><span class="n">domain_plane_owners</span><span class="o">=</span><span class="mh">0x011111110000</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_loading</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_submission</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_preemption</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">context_priority_mode</span><span class="o">=</span><span class="mi">2</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_gvt</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_initial_modeset</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc</span><span class="o">=</span><span class="mi">0</span> <span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="nd">@0x1FE00000</span>
+<span class="n">options</span> <span class="n">pci_devices_ignore</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">1</span><span class="p">)</span> <span class="n">console</span><span class="o">=</span><span class="n">tty0</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS2</span> <span class="n">i915</span><span class="o">.</span><span class="n">nuclear_pageflip</span><span class="o">=</span><span class="mi">1</span> <span class="n">root</span><span class="o">=</span><span class="n">PARTUUID</span><span class="o">=&lt;</span><span class="n">UUID</span> <span class="n">of</span> <span class="n">rootfs</span> <span class="n">partition</span><span class="o">&gt;</span> <span class="n">rw</span> <span class="n">rootwait</span> <span class="n">ignore_loglevel</span> <span class="n">no_timer_check</span> <span class="n">consoleblank</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_init</span><span class="o">=</span><span class="mi">7</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_delay</span><span class="o">=</span><span class="mi">2000</span> <span class="n">i915</span><span class="o">.</span><span class="n">avail_planes_per_pipe</span><span class="o">=</span><span class="mh">0x01010F</span> <span class="n">i915</span><span class="o">.</span><span class="n">domain_plane_owners</span><span class="o">=</span><span class="mh">0x011111110000</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_loading</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_submission</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_preemption</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">context_priority_mode</span><span class="o">=</span><span class="mi">2</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_gvt</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_initial_modeset</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc</span><span class="o">=</span><span class="mi">0</span> <span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="nd">@0x1FE00000</span>
 </pre></div>
 </div>
 </div>
@@ -1024,11 +1047,9 @@ configuring hypervisor options and using python’s <code class="docutils litera
 </div>
 </div></blockquote>
 <ul>
-<li><p class="first">On a Clear Linux development system, install the <code class="docutils literal notranslate"><span class="pre">os-clr-on-clr</span></code> bundle to get
-the necessary tools:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add os-clr-on-clr
-$ sudo swupd bundle-add python3-basic
-$ sudo pip3 install kconfiglib
+<li><p class="first">On a Clear Linux development system, install the necessary tools:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add os-clr-on-clr os-core-dev python3-basic
+$ pip3 install --user kconfiglib
 </pre></div>
 </div>
 </li>
@@ -1259,7 +1280,7 @@ example above) to ‘BOARD=’:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

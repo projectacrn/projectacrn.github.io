@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
@@ -713,72 +736,74 @@ of physical memory management.</p>
 <h3>Interfaces Design<a class="headerlink" href="#interfaces-design" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="mmu-initialization">
 <h4>MMU Initialization<a class="headerlink" href="#mmu-initialization" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>void enable_smep(void)</td>
-<td>Supervisor-mode execution prevention (SMEP) enable</td>
-</tr>
-<tr class="row-odd"><td>void enable_paging(uint64_t pml64_base_addr)</td>
-<td>MMU paging enable</td>
-</tr>
-<tr class="row-even"><td>void init_paging(void)</td>
-<td>MMU page tables initialization</td>
-</tr>
-<tr class="row-odd"><td>uint64_t get_paging_pml4(void)</td>
-<td>Page map level 4 (PML4) table start address getting</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="page-allocation">
-<h4>Page Allocation<a class="headerlink" href="#page-allocation" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>void * alloc_paging_struct(void)</td>
-<td>Allocate one page from memory page pool</td>
-</tr>
-</tbody>
-</table>
+<dl class="function">
+<dt id="_CPPv311enable_smepv">
+<span id="_CPPv211enable_smepv"></span><span id="enable_smep__void"></span><span class="target" id="group__acrn__mem_ga7bb574e29bce9e800481c5db00ef3cd3_1ga7bb574e29bce9e800481c5db00ef3cd3"></span>void <code class="descname">enable_smep</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311enable_smepv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Supervisor-mode execution prevention (SMEP) enable. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313enable_pagingv">
+<span id="_CPPv213enable_pagingv"></span><span id="enable_paging__void"></span><span class="target" id="group__acrn__mem_ga0ad77ccada03a5abedf6917e6f2649a5_1ga0ad77ccada03a5abedf6917e6f2649a5"></span>void <code class="descname">enable_paging</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313enable_pagingv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>MMU paging enable. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311init_pagingv">
+<span id="_CPPv211init_pagingv"></span><span id="init_paging__void"></span><span class="target" id="group__acrn__mem_gac3abd519b92ce6ac308db69e4c4ff04e_1gac3abd519b92ce6ac308db69e4c4ff04e"></span>void <code class="descname">init_paging</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311init_pagingv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>MMU page tables initialization. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="address-space-translation">
 <h4>Address Space Translation<a class="headerlink" href="#address-space-translation" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>HPA2HVA(x)</td>
-<td>Translate host-physical address to host-virtual address</td>
-</tr>
-<tr class="row-odd"><td>HVA2HPA(x)</td>
-<td>Translate host-virtual address to host-physical address</td>
-</tr>
-</tbody>
-</table>
+<dl class="function">
+<dt id="_CPPv37hpa2hva8uint64_t">
+<span id="_CPPv27hpa2hva8uint64_t"></span><span id="hpa2hva__uint64_t"></span><span class="target" id="group__acrn__mem_ga30c6f3439527ad05a3a70f384e14faf9_1ga30c6f3439527ad05a3a70f384e14faf9"></span><em class="property">static</em> void *<code class="descname">hpa2hva</code><span class="sig-paren">(</span>uint64_t <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv37hpa2hva8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate host-physical address to host-virtual address. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void pointer - The host-virtual address </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">x</span></code>: The specified host-physical address</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv37hva2hpaPv">
+<span id="_CPPv27hva2hpaPv"></span><span id="hva2hpa__voidP"></span><span class="target" id="group__acrn__mem_gaa27dc61923169ac81da8fbe66bccf786_1gaa27dc61923169ac81da8fbe66bccf786"></span><em class="property">static</em> uint64_t <code class="descname">hva2hpa</code><span class="sig-paren">(</span>void *<em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv37hva2hpaPv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate host-virtual address to host-physical address. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>unsigned long integer - The host-physical address </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">x</span></code>: The specified host-virtual address</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 </div>
 </div>
@@ -968,189 +993,399 @@ violation handling data flow is described in the
 <p>Here is a list of major memory related APIs in HV:</p>
 <div class="section" id="ept-vpid-capability-checking">
 <h4>EPT/VPID Capability Checking<a class="headerlink" href="#ept-vpid-capability-checking" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>int check_vmx_mmu_cap(void)</td>
-<td>EPT and VPID capability checking</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="gb-hugepage-supporting-checking">
-<h4>1GB Hugepage Supporting Checking<a class="headerlink" href="#gb-hugepage-supporting-checking" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>bool check_mmu_1gb_support(enum _page_table_type page_table_type)</td>
-<td>1GB page supporting capability checking</td>
-</tr>
-</tbody>
-</table>
+<dl class="function">
+<dt id="_CPPv317check_vmx_mmu_capv">
+<span id="_CPPv217check_vmx_mmu_capv"></span><span id="check_vmx_mmu_cap__void"></span><span class="target" id="group__acrn__mem_ga5e3ceb46177a3b7f44c37f3b99fb9939_1ga5e3ceb46177a3b7f44c37f3b99fb9939"></span>int <code class="descname">check_vmx_mmu_cap</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317check_vmx_mmu_capv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT and VPID capability checking. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 - on success </dd>
+<dt><strong>Return</strong></dt>
+<dd>-ENODEV - Don’t support EPT or VPID capability </dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="data-transferring-between-hypervisor-and-vm">
 <h4>Data Transferring between hypervisor and VM<a class="headerlink" href="#data-transferring-between-hypervisor-and-vm" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>int copy_from_gpa(const struct vm *vm, void *h_ptr, uint64_t gpa, uint32_t size)</td>
-<td>Copy data from VM GPA space to HV address space</td>
-</tr>
-<tr class="row-odd"><td>int copy_to_gpa(const struct vm *vm, void *h_ptr, uint64_t gpa, uint32_t size)</td>
-<td>Copy data from HV address space to VM GPA space</td>
-</tr>
-<tr class="row-even"><td>int copy_from_gva(struct vcpu *vcpu, void *h_ptr, uint64_t gva,
-uint32_t size, uint32_t *err_code, uint64_t *fault_addr)</td>
-<td>Copy data from VM GVA space to HV address space</td>
-</tr>
-<tr class="row-odd"><td>int copy_to_gva(struct vcpu *vcpu, void *h_ptr, uint64_t gva,
-uint32_t size, uint32_t *err_code, uint64_t *fault_addr)</td>
-<td>Copy data from HV address space to VM GVA space</td>
-</tr>
-</tbody>
-</table>
+<dl class="function">
+<dt id="_CPPv313copy_from_gpaP2vmPv8uint64_t8uint32_t">
+<span id="_CPPv213copy_from_gpaP2vmPv8uint64_t8uint32_t"></span><span id="copy_from_gpa__vmP.voidP.uint64_t.uint32_t"></span><span class="target" id="group__acrn__mem_ga378451c98bb9b7fe8cf63cfdb6e359e3_1ga378451c98bb9b7fe8cf63cfdb6e359e3"></span>int <code class="descname">copy_from_gpa</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv313copy_from_gpaP2vmPv8uint64_t8uint32_t" title="copy_from_gpa::vm">vm</a> *<em>vm</em>, void *<em>h_ptr</em>, uint64_t <em>gpa</em>, uint32_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313copy_from_gpaP2vmPv8uint64_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Copy data from VM GPA space to HV address space. </p>
+<p><dl class="docutils">
+<dt><strong>Pre</strong></dt>
+<dd>Caller(Guest) should make sure gpa is continuous.<ul class="simple">
+<li>gpa from hypercall input which from kernel stack is gpa continuous, not support kernel stack from vmap</li>
+<li>some other gpa from hypercall parameters, VHM should make sure it’s continuous </li>
+</ul>
+</dd>
+<dt><strong>Pre</strong></dt>
+<dd>Pointer vm is non-NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: The pointer that points to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">h_ptr</span></code>: The pointer that points the start HV address of HV memory region which data is stored in </li>
+<li><code class="docutils literal notranslate"><span class="pre">gpa</span></code>: The start GPA address of GPA memory region which data will be copied into </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: The size (bytes) of GPA memory region which data is stored in</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311copy_to_gpaP2vmPv8uint64_t8uint32_t">
+<span id="_CPPv211copy_to_gpaP2vmPv8uint64_t8uint32_t"></span><span id="copy_to_gpa__vmP.voidP.uint64_t.uint32_t"></span><span class="target" id="group__acrn__mem_ga62768cf74769a36ca45df927a714aef1_1ga62768cf74769a36ca45df927a714aef1"></span>int <code class="descname">copy_to_gpa</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv311copy_to_gpaP2vmPv8uint64_t8uint32_t" title="copy_to_gpa::vm">vm</a> *<em>vm</em>, void *<em>h_ptr</em>, uint64_t <em>gpa</em>, uint32_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311copy_to_gpaP2vmPv8uint64_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Copy data from HV address space to VM GPA space. </p>
+<p><dl class="docutils">
+<dt><strong>Pre</strong></dt>
+<dd>Caller(Guest) should make sure gpa is continuous.<ul class="simple">
+<li>gpa from hypercall input which from kernel stack is gpa continuous, not support kernel stack from vmap</li>
+<li>some other gpa from hypercall parameters, VHM should make sure it’s continuous </li>
+</ul>
+</dd>
+<dt><strong>Pre</strong></dt>
+<dd>Pointer vm is non-NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: The pointer that points to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">h_ptr</span></code>: The pointer that points the start HV address of HV memory region which data is stored in </li>
+<li><code class="docutils literal notranslate"><span class="pre">gpa</span></code>: The start GPA address of GPA memory region which data will be copied into </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: The size (bytes) of GPA memory region which data will be copied into</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313copy_from_gvaP4vcpuPv8uint64_t8uint32_tP8uint32_tP8uint64_t">
+<span id="_CPPv213copy_from_gvaP4vcpuPv8uint64_t8uint32_tP8uint32_tP8uint64_t"></span><span id="copy_from_gva__vcpuP.voidP.uint64_t.uint32_t.uint32_tP.uint64_tP"></span><span class="target" id="group__acrn__mem_gae8863ffda23fe7d43a9ec5cb803607f0_1gae8863ffda23fe7d43a9ec5cb803607f0"></span>int <code class="descname">copy_from_gva</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv313copy_from_gvaP4vcpuPv8uint64_t8uint32_tP8uint32_tP8uint64_t" title="copy_from_gva::vcpu">vcpu</a> *<em>vcpu</em>, void *<em>h_ptr</em>, uint64_t <em>gva</em>, uint32_t <em>size</em>, uint32_t *<em>err_code</em>, uint64_t *<em>fault_addr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313copy_from_gvaP4vcpuPv8uint64_t8uint32_tP8uint32_tP8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Copy data from VM GVA space to HV address space. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: The pointer that points to vcpu data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">h_ptr</span></code>: The pointer that returns the start HV address of HV memory region which data will be copied to </li>
+<li><code class="docutils literal notranslate"><span class="pre">gva</span></code>: The start GVA address of GVA memory region which data is stored in </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: The size (bytes) of GVA memory region which data is stored in </li>
+<li><code class="docutils literal notranslate"><span class="pre">err_code</span></code>: The page fault flags </li>
+<li><code class="docutils literal notranslate"><span class="pre">fault_addr</span></code>: The GVA address that causes a page fault </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311copy_to_gvaP4vcpuPv8uint64_t8uint32_tP8uint32_tP8uint64_t">
+<span id="_CPPv211copy_to_gvaP4vcpuPv8uint64_t8uint32_tP8uint32_tP8uint64_t"></span><span id="copy_to_gva__vcpuP.voidP.uint64_t.uint32_t.uint32_tP.uint64_tP"></span><span class="target" id="group__acrn__mem_ga133d7718cc68705652976b6fa1609c9e_1ga133d7718cc68705652976b6fa1609c9e"></span>int <code class="descname">copy_to_gva</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv311copy_to_gvaP4vcpuPv8uint64_t8uint32_tP8uint32_tP8uint64_t" title="copy_to_gva::vcpu">vcpu</a> *<em>vcpu</em>, void *<em>h_ptr</em>, uint64_t <em>gva</em>, uint32_t <em>size</em>, uint32_t *<em>err_code</em>, uint64_t *<em>fault_addr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311copy_to_gvaP4vcpuPv8uint64_t8uint32_tP8uint32_tP8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Copy data from HV address space to VM GVA space. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: The pointer that points to vcpu data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">h_ptr</span></code>: The pointer that points the start HV address of HV memory region which data is stored in </li>
+<li><code class="docutils literal notranslate"><span class="pre">gva</span></code>: The start GVA address of GVA memory region which data will be copied into </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: The size (bytes) of GVA memory region which data will be copied into </li>
+<li><code class="docutils literal notranslate"><span class="pre">err_code</span></code>: The page fault flags </li>
+<li><code class="docutils literal notranslate"><span class="pre">fault_addr</span></code>: The GVA address that causes a page fault </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="id4">
 <h4>Address Space Translation<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>uint64_t gpa2hpa(const struct vm *vm, uint64_t gpa)</td>
-<td>Translating from guest-physical address to host-physical address</td>
-</tr>
-<tr class="row-odd"><td>uint64_t hpa2gpa(const struct vm *vm, uint64_t hpa)</td>
-<td>Translating from host-physical address to guest-physical address</td>
-</tr>
-<tr class="row-even"><td>bool check_continuous_hpa(struct vm *vm, uint64_t gpa_arg, uint64_t size_arg)</td>
-<td>Host-physical address continuous checking</td>
-</tr>
-</tbody>
-</table>
+<dl class="function">
+<dt id="_CPPv37gpa2hpaP2vm8uint64_t">
+<span id="_CPPv27gpa2hpaP2vm8uint64_t"></span><span id="gpa2hpa__vmP.uint64_t"></span><span class="target" id="group__acrn__mem_gacc24f6ed5de5cf04bd7c12b8468342cf_1gacc24f6ed5de5cf04bd7c12b8468342cf"></span>uint64_t <code class="descname">gpa2hpa</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv37gpa2hpaP2vm8uint64_t" title="gpa2hpa::vm">vm</a> *<em>vm</em>, uint64_t <em>gpa</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv37gpa2hpaP2vm8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translating from guest-physical address to host-physcial address. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>INVALID_HPA - the HPA of parameter gpa is unmapping </dd>
+<dt><strong>Return</strong></dt>
+<dd>hpa - the HPA of parameter gpa is hpa </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: the pointer that points to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">gpa</span></code>: the specified guest-physical address</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311vm0_hpa2gpa8uint64_t">
+<span id="_CPPv211vm0_hpa2gpa8uint64_t"></span><span id="vm0_hpa2gpa__uint64_t"></span><span class="target" id="group__acrn__mem_gaa9fc301c844218369a7bf6860765a841_1gaa9fc301c844218369a7bf6860765a841"></span>uint64_t <code class="descname">vm0_hpa2gpa</code><span class="sig-paren">(</span>uint64_t <em>hpa</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311vm0_hpa2gpa8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translating from host-physical address to guest-physical address for VM0. </p>
+<p><dl class="docutils">
+<dt><strong>Pre</strong></dt>
+<dd>: the gpa and hpa are identical mapping in SOS. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">hpa</span></code>: the specified host-physical address</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv320check_continuous_hpaP2vm8uint64_t8uint64_t">
+<span id="_CPPv220check_continuous_hpaP2vm8uint64_t8uint64_t"></span><span id="check_continuous_hpa__vmP.uint64_t.uint64_t"></span><span class="target" id="group__acrn__mem_ga7c8caf6e6d65035adb46391b98a23107_1ga7c8caf6e6d65035adb46391b98a23107"></span>bool <code class="descname">check_continuous_hpa</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv320check_continuous_hpaP2vm8uint64_t8uint64_t" title="check_continuous_hpa::vm">vm</a> *<em>vm</em>, uint64_t <em>gpa_arg</em>, uint64_t <em>size_arg</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320check_continuous_hpaP2vm8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Host-physical address continous checking. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>true - The HPA of the guest memory region is continuous </dd>
+<dt><strong>Return</strong></dt>
+<dd>false - The HPA of the guest memory region is non-continuous </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: the pointer that points the VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">gpa_arg</span></code>: the start GPA address of the guest memory region </li>
+<li><code class="docutils literal notranslate"><span class="pre">size_arg</span></code>: the size of the guest memory region</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="ept">
 <h4>EPT<a class="headerlink" href="#ept" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>int ept_mr_add(const struct vm *vm, uint64_t hpa_arg, uint64_t gpa_arg,
-uint64_t size, uint32_t prot_arg)</td>
-<td>Guest-physical memory region mapping</td>
-</tr>
-<tr class="row-odd"><td>int ept_mr_del(const struct vm *vm, uint64_t *pml4_page, uint64_t gpa,
-uint64_t size)</td>
-<td>Guest-physical memory region unmapping</td>
-</tr>
-<tr class="row-even"><td>int ept_mr_modify(const struct vm *vm, uint64_t *pml4_page, uint64_t gpa,
-uint64_t size, uint64_t prot_set, uint64_t prot_clr)</td>
-<td>Guest-physical memory page access right or memory type updating</td>
-</tr>
-<tr class="row-odd"><td>void destroy_ept(struct vm *vm)</td>
-<td>EPT page tables destroy</td>
-</tr>
-<tr class="row-even"><td>void free_ept_mem(void *pml4_addr)</td>
-<td>EPT page tables free</td>
-</tr>
-<tr class="row-odd"><td>void invept(struct vcpu *vcpu)</td>
-<td>Guest-physical mappings and combined mappings invalidation</td>
-</tr>
-<tr class="row-even"><td>int ept_violation_vmexit_handler(struct vcpu *vcpu)</td>
-<td>EPT violation handling</td>
-</tr>
-<tr class="row-odd"><td>int ept_misconfig_vmexit_handler(__unused struct vcpu *vcpu)</td>
-<td>EPT misconfiguration handling</td>
-</tr>
-</tbody>
-</table>
+<dl class="function">
+<dt id="_CPPv310ept_mr_addP2vmP8uint64_t8uint64_t8uint64_t8uint64_t8uint64_t">
+<span id="_CPPv210ept_mr_addP2vmP8uint64_t8uint64_t8uint64_t8uint64_t8uint64_t"></span><span id="ept_mr_add__vmP.uint64_tP.uint64_t.uint64_t.uint64_t.uint64_t"></span><span class="target" id="group__acrn__mem_ga8a5f7d1308d4ac4a62adfa091a02b6d3_1ga8a5f7d1308d4ac4a62adfa091a02b6d3"></span>void <code class="descname">ept_mr_add</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv310ept_mr_addP2vmP8uint64_t8uint64_t8uint64_t8uint64_t8uint64_t" title="ept_mr_add::vm">vm</a> *<em>vm</em>, uint64_t *<em>pml4_page</em>, uint64_t <em>hpa</em>, uint64_t <em>gpa</em>, uint64_t <em>size</em>, uint64_t <em>prot_orig</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310ept_mr_addP2vmP8uint64_t8uint64_t8uint64_t8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Guest-physical memory region mapping. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: the pointer that points to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">pml4_page</span></code>: The physical address of The EPTP </li>
+<li><code class="docutils literal notranslate"><span class="pre">hpa</span></code>: The specified start host physical address of host physical memory region that GPA will be mapped </li>
+<li><code class="docutils literal notranslate"><span class="pre">gpa</span></code>: The specified start guest physical address of guest physical memory region that needs to be mapped </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: The size of guest physical memory region that needs to be mapped </li>
+<li><code class="docutils literal notranslate"><span class="pre">prot_orig</span></code>: The specified memory access right and memory type</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv310ept_mr_delP2vmP8uint64_t8uint64_t8uint64_t">
+<span id="_CPPv210ept_mr_delP2vmP8uint64_t8uint64_t8uint64_t"></span><span id="ept_mr_del__vmP.uint64_tP.uint64_t.uint64_t"></span><span class="target" id="group__acrn__mem_gaa48d0a1ac6911384bf23d79cd79d8320_1gaa48d0a1ac6911384bf23d79cd79d8320"></span>void <code class="descname">ept_mr_del</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv310ept_mr_delP2vmP8uint64_t8uint64_t8uint64_t" title="ept_mr_del::vm">vm</a> *<em>vm</em>, uint64_t *<em>pml4_page</em>, uint64_t <em>gpa</em>, uint64_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310ept_mr_delP2vmP8uint64_t8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Guest-physical memory region unmapping. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None</dd>
+<dt><strong>Pre</strong></dt>
+<dd>[gpa,gpa+size) has been mapped into host physical memory region </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: the pointer that points to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">pml4_page</span></code>: The physical address of The EPTP </li>
+<li><code class="docutils literal notranslate"><span class="pre">gpa</span></code>: The specified start guest physical address of guest physical memory region whoes mapping needs to be deleted </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: The size of guest physical memory region</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313ept_mr_modifyP2vmP8uint64_t8uint64_t8uint64_t8uint64_t8uint64_t">
+<span id="_CPPv213ept_mr_modifyP2vmP8uint64_t8uint64_t8uint64_t8uint64_t8uint64_t"></span><span id="ept_mr_modify__vmP.uint64_tP.uint64_t.uint64_t.uint64_t.uint64_t"></span><span class="target" id="group__acrn__mem_gaa7c7c70a87c33a7e9a42be1a5b8f3b7b_1gaa7c7c70a87c33a7e9a42be1a5b8f3b7b"></span>void <code class="descname">ept_mr_modify</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv313ept_mr_modifyP2vmP8uint64_t8uint64_t8uint64_t8uint64_t8uint64_t" title="ept_mr_modify::vm">vm</a> *<em>vm</em>, uint64_t *<em>pml4_page</em>, uint64_t <em>gpa</em>, uint64_t <em>size</em>, uint64_t <em>prot_set</em>, uint64_t <em>prot_clr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313ept_mr_modifyP2vmP8uint64_t8uint64_t8uint64_t8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Guest-physical memory page access right or memory type updating. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: the pointer that points to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">pml4_page</span></code>: The physical address of The EPTP </li>
+<li><code class="docutils literal notranslate"><span class="pre">gpa</span></code>: The specified start guest physical address of guest physical memory region whoes mapping needs to be updated </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: The size of guest physical memory region </li>
+<li><code class="docutils literal notranslate"><span class="pre">prot_set</span></code>: The specified memory access right and memory type that will be set </li>
+<li><code class="docutils literal notranslate"><span class="pre">prot_clr</span></code>: The specified memory access right and memory type that will be cleared</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311destroy_eptP2vm">
+<span id="_CPPv211destroy_eptP2vm"></span><span id="destroy_ept__vmP"></span><span class="target" id="group__acrn__mem_ga3739b0817b27d4bebd52711669b973b6_1ga3739b0817b27d4bebd52711669b973b6"></span>void <code class="descname">destroy_ept</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv311destroy_eptP2vm" title="destroy_ept::vm">vm</a> *<em>vm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311destroy_eptP2vm" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT page tables destroy. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: the pointer that points to VM data structure</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv36inveptPK4vcpu">
+<span id="_CPPv26inveptPK4vcpu"></span><span id="invept__vcpuCP"></span><span class="target" id="group__acrn__mem_ga6808b20f9ff571bc78f330e9f6cc0259_1ga6808b20f9ff571bc78f330e9f6cc0259"></span>void <code class="descname">invept</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> <a class="reference internal" href="#_CPPv36inveptPK4vcpu" title="invept::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36inveptPK4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Guest-physical mappings and combined mappings invalidation. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: the pointer that points the vcpu data structure</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv328ept_violation_vmexit_handlerP4vcpu">
+<span id="_CPPv228ept_violation_vmexit_handlerP4vcpu"></span><span id="ept_violation_vmexit_handler__vcpuP"></span><span class="target" id="group__acrn__mem_ga090ebeccb1dda40192c5d67177ae90aa_1ga090ebeccb1dda40192c5d67177ae90aa"></span>int <code class="descname">ept_violation_vmexit_handler</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv328ept_violation_vmexit_handlerP4vcpu" title="ept_violation_vmexit_handler::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv328ept_violation_vmexit_handlerP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT violation handling. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>-EINVAL - fail to handle the EPT violation </dd>
+<dt><strong>Return</strong></dt>
+<dd>0 - Success to handle the EPT violation </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: the pointer that points to vcpu data structure</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv328ept_misconfig_vmexit_handlerP4vcpu">
+<span id="_CPPv228ept_misconfig_vmexit_handlerP4vcpu"></span><span id="ept_misconfig_vmexit_handler__vcpuP"></span><span class="target" id="group__acrn__mem_ga96a66ccaccfcff98c93a865517cbf35f_1ga96a66ccaccfcff98c93a865517cbf35f"></span>int <code class="descname">ept_misconfig_vmexit_handler</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv328ept_misconfig_vmexit_handlerP4vcpu" title="ept_misconfig_vmexit_handler::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv328ept_misconfig_vmexit_handlerP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT misconfiguration handling. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>-EINVAL - fail to handle the EPT misconfig </dd>
+<dt><strong>Return</strong></dt>
+<dd>0 - Success to handle the EPT misconfig </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: the pointer that points to vcpu data structure</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="id5">
 <h4>Virtual MTRR<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>void init_mtrr(struct vcpu *vcpu)</td>
-<td>Virtual MTRR initialization</td>
-</tr>
-<tr class="row-odd"><td>void mtrr_wrmsr(struct vcpu *vcpu, uint32_t msr, uint64_t value)</td>
-<td>Virtual MTRR MSR write</td>
-</tr>
-<tr class="row-even"><td>uint64_t mtrr_rdmsr(struct vcpu *vcpu, uint32_t msr)</td>
-<td>Virtual MTRR MSR read</td>
-</tr>
-</tbody>
-</table>
+<dl class="function">
+<dt id="_CPPv39init_mtrrP4vcpu">
+<span id="_CPPv29init_mtrrP4vcpu"></span><span id="init_mtrr__vcpuP"></span><span class="target" id="group__acrn__mem_ga824154b8025b840159e7038db06d79b0_1ga824154b8025b840159e7038db06d79b0"></span>void <code class="descname">init_mtrr</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv39init_mtrrP4vcpu" title="init_mtrr::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39init_mtrrP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Virtual MTRR initialization. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: The pointer that points VCPU data structure</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv310mtrr_wrmsrP4vcpu8uint32_t8uint64_t">
+<span id="_CPPv210mtrr_wrmsrP4vcpu8uint32_t8uint64_t"></span><span id="mtrr_wrmsr__vcpuP.uint32_t.uint64_t"></span><span class="target" id="group__acrn__mem_ga8c05fcadbc20a0e20836bfc0d5aac9f0_1ga8c05fcadbc20a0e20836bfc0d5aac9f0"></span>void <code class="descname">mtrr_wrmsr</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv310mtrr_wrmsrP4vcpu8uint32_t8uint64_t" title="mtrr_wrmsr::vcpu">vcpu</a> *<em>vcpu</em>, uint32_t <em>msr</em>, uint64_t <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310mtrr_wrmsrP4vcpu8uint32_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Virtual MTRR MSR write. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: The pointer that points VCPU data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">msr</span></code>: Virtual MTRR MSR Address </li>
+<li><code class="docutils literal notranslate"><span class="pre">value</span></code>: The value that will be writen into virtual MTRR MSR</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv310mtrr_rdmsrPK4vcpu8uint32_t">
+<span id="_CPPv210mtrr_rdmsrPK4vcpu8uint32_t"></span><span id="mtrr_rdmsr__vcpuCP.uint32_t"></span><span class="target" id="group__acrn__mem_gaec434ef6e59b0add934989e2079a0256_1gaec434ef6e59b0add934989e2079a0256"></span>uint64_t <code class="descname">mtrr_rdmsr</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> <a class="reference internal" href="#_CPPv310mtrr_rdmsrPK4vcpu8uint32_t" title="mtrr_rdmsr::vcpu">vcpu</a> *<em>vcpu</em>, uint32_t <em>msr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310mtrr_rdmsrPK4vcpu8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Virtual MTRR MSR read. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>unsigned long integer - The specified virtual MTRR MSR value </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: The pointer that points VCPU data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">msr</span></code>: Virtual MTRR MSR Address</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="vpid">
 <h4>VPID<a class="headerlink" href="#vpid" title="Permalink to this headline">¶</a></h4>
-<table border="1" class="colwidths-given docutils">
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">APIs</th>
-<th class="head">Description</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>uint16_t allocate_vpid(void)</td>
-<td>VPID allocation</td>
-</tr>
-<tr class="row-odd"><td>void flush_vpid_single(uint16_t vpid)</td>
-<td>Specified VPID flush</td>
-</tr>
-<tr class="row-even"><td>void flush_vpid_global(void)</td>
-<td>All VPID flush</td>
-</tr>
-</tbody>
-</table>
+<dl class="function">
+<dt id="_CPPv313allocate_vpidv">
+<span id="_CPPv213allocate_vpidv"></span><span id="allocate_vpid__void"></span><span class="target" id="group__acrn__mem_gade89b29d886fa5eaaa08878ab8b0e2a0_1gade89b29d886fa5eaaa08878ab8b0e2a0"></span>uint16_t <code class="descname">allocate_vpid</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313allocate_vpidv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>VPID allocation. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 - VPID overflow </dd>
+<dt><strong>Return</strong></dt>
+<dd>more than 0 - the valid VPID </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317flush_vpid_single8uint16_t">
+<span id="_CPPv217flush_vpid_single8uint16_t"></span><span id="flush_vpid_single__uint16_t"></span><span class="target" id="group__acrn__mem_gacfc5041fe000c3cc78e1063a1f51207a_1gacfc5041fe000c3cc78e1063a1f51207a"></span>void <code class="descname">flush_vpid_single</code><span class="sig-paren">(</span>uint16_t <em>vpid</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317flush_vpid_single8uint16_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Specified signle VPID flush. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vpid</span></code>: the specified VPID</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317flush_vpid_globalv">
+<span id="_CPPv217flush_vpid_globalv"></span><span id="flush_vpid_global__void"></span><span class="target" id="group__acrn__mem_ga5c02afec6c9e9ecbdda3ff5b93f4b579_1ga5c02afec6c9e9ecbdda3ff5b93f4b579"></span>void <code class="descname">flush_vpid_global</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317flush_vpid_globalv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>All VPID flush. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 </div>
 </div>
@@ -1216,7 +1451,7 @@ must not be accessible by SOS and UOS normal world.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
@@ -637,27 +660,165 @@ an interrupt, for example:</p>
 <li>from an emulated device for a MSI</li>
 </ul>
 <p>These APIs will finish by making a request for <em>ACRN_REQUEST_EVENT.</em></p>
-<dl class="docutils">
-<dt>lapic_intr_level</dt>
-<dd>used by HV to issue a level triggered vector to vLAPIC. This vector
-will update into IRR registers</dd>
-<dt>lapic_intr_edge</dt>
-<dd>used by HV to issue an edge triggered vector to vLAPIC. This vector
-will update into IRR registers</dd>
-<dt>lapic_intr_msi</dt>
-<dd>Used by HV to issue a MSI to vLAPIC. This vector will update into IRR
-registers</dd>
-<dt>vlapic_set_local_intr</dt>
-<dd>Triggers the LAPIC local interrupt (LVT) ‘vector’ on ‘cpu’. ‘cpu’ can
-be set to -1 to trigger the interrupt on all CPUs.</dd>
-<dt>vlapic_pending_intr</dt>
-<dd>Check if vLAPIC has pending vector and return the vector with highest
-priority if there is pending virtual interrupts.</dd>
-<dt>vlapic_intr_accepted</dt>
-<dd>Used in case of no APICv support. If a vector triggers the vLAPIC,
-this vector is then moved from IRR registers to ISR registers. It
-indicates the vector is accepted by Guest and Guest is processing it.</dd>
+<dl class="function">
+<dt id="_CPPv317vlapic_intr_levelP4vcpu8uint32_t">
+<span id="_CPPv217vlapic_intr_levelP4vcpu8uint32_t"></span><span id="vlapic_intr_level__vcpuP.uint32_t"></span><span class="target" id="group__acrn__vlapic_ga8c49ab2cb33d4036b158d486168c0df6_1ga8c49ab2cb33d4036b158d486168c0df6"></span><em class="property">static</em> int <code class="descname">vlapic_intr_level</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv317vlapic_intr_levelP4vcpu8uint32_t" title="vlapic_intr_level::vcpu">vcpu</a> *<em>vcpu</em>, uint32_t <em>vector</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317vlapic_intr_levelP4vcpu8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pend level-trigger mode virtual interrupt to vCPU. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success. </dd>
+<dt><strong>Return</strong></dt>
+<dd>-EINVAL on error that vector is invalid or vcpu is NULL. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to target vCPU data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">vector</span></code>: Vector to be injected.</li>
+</ul>
+</dd>
 </dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316vlapic_intr_edgeP4vcpu8uint32_t">
+<span id="_CPPv216vlapic_intr_edgeP4vcpu8uint32_t"></span><span id="vlapic_intr_edge__vcpuP.uint32_t"></span><span class="target" id="group__acrn__vlapic_ga438e5eb7847fdf4e2c21e74c4cc2035e_1ga438e5eb7847fdf4e2c21e74c4cc2035e"></span><em class="property">static</em> int <code class="descname">vlapic_intr_edge</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv316vlapic_intr_edgeP4vcpu8uint32_t" title="vlapic_intr_edge::vcpu">vcpu</a> *<em>vcpu</em>, uint32_t <em>vector</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316vlapic_intr_edgeP4vcpu8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pend edge-trigger mode virtual interrupt to vCPU. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success. </dd>
+<dt><strong>Return</strong></dt>
+<dd>-EINVAL on error that vector is invalid or vcpu is NULL. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to target vCPU data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">vector</span></code>: Vector to be injected.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv320vlapic_intr_acceptedP11acrn_vlapic8uint32_t">
+<span id="_CPPv220vlapic_intr_acceptedP11acrn_vlapic8uint32_t"></span><span id="vlapic_intr_accepted__acrn_vlapicP.uint32_t"></span><span class="target" id="group__acrn__vlapic_ga0e08cff2f9f47a933b12a2d57922aa1f_1ga0e08cff2f9f47a933b12a2d57922aa1f"></span>void <code class="descname">vlapic_intr_accepted</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vlapic *<em>vlapic</em>, uint32_t <em>vector</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320vlapic_intr_acceptedP11acrn_vlapic8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Accept virtual interrupt. </p>
+<p>Transition ‘vector’ from IRR to ISR. This function is called with the vector returned by ‘<a class="reference internal" href="#group__acrn__vlapic_ga7c0d308aefe80ae03141900ea9cd5b57_1ga7c0d308aefe80ae03141900ea9cd5b57"><span class="std std-ref">vlapic_pending_intr()</span></a>’ when the guest is able to accept this interrupt (i.e. RFLAGS.IF = 1 and no conditions exist that block interrupt delivery).</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vlapic != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vlapic</span></code>: Pointer to target vLAPIC data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">vector</span></code>: Target virtual interrupt vector</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv319vlapic_pending_intrPK11acrn_vlapicP8uint32_t">
+<span id="_CPPv219vlapic_pending_intrPK11acrn_vlapicP8uint32_t"></span><span id="vlapic_pending_intr__acrn_vlapicCP.uint32_tP"></span><span class="target" id="group__acrn__vlapic_ga7c0d308aefe80ae03141900ea9cd5b57_1ga7c0d308aefe80ae03141900ea9cd5b57"></span>int <code class="descname">vlapic_pending_intr</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> acrn_vlapic *<em>vlapic</em>, uint32_t *<em>vecptr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319vlapic_pending_intrPK11acrn_vlapicP8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get pending virtual interrupts for vLAPIC. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 - There is no eligible pending vector. </dd>
+<dt><strong>Return</strong></dt>
+<dd>1 - There is pending vector.</dd>
+<dt><strong>Remark</strong></dt>
+<dd>The vector does not automatically transition to the ISR as a result of calling this function. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vlapic</span></code>: Pointer to target vLAPIC data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">vecptr</span></code>: Pointer to vector buffer and will be filled with eligible vector if any.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv321vlapic_set_local_intrP2vm8uint16_t8uint32_t">
+<span id="_CPPv221vlapic_set_local_intrP2vm8uint16_t8uint32_t"></span><span id="vlapic_set_local_intr__vmP.uint16_t.uint32_t"></span><span class="target" id="group__acrn__vlapic_ga5127b09d892819c6c631ba9da9eb1b84_1ga5127b09d892819c6c631ba9da9eb1b84"></span>int <code class="descname">vlapic_set_local_intr</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv321vlapic_set_local_intrP2vm8uint16_t8uint32_t" title="vlapic_set_local_intr::vm">vm</a> *<em>vm</em>, uint16_t <em>vcpu_id_arg</em>, uint32_t <em>vector</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv321vlapic_set_local_intrP2vm8uint16_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Triggers LAPIC local interrupt(LVT). </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success. </dd>
+<dt><strong>Return</strong></dt>
+<dd>-EINVAL on error that vcpu_id_arg or vector is invalid.</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">vcpu_id_arg</span></code>: ID of vCPU, BROADCAST_CPU_ID means triggering interrupt to all vCPUs. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vector</span></code>: Vector to be fired.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv315vlapic_intr_msiP2vm8uint64_t8uint64_t">
+<span id="_CPPv215vlapic_intr_msiP2vm8uint64_t8uint64_t"></span><span id="vlapic_intr_msi__vmP.uint64_t.uint64_t"></span><span class="target" id="group__acrn__vlapic_gaf055d2392538cf12fbaa5b19cb6ecf81_1gaf055d2392538cf12fbaa5b19cb6ecf81"></span>int <code class="descname">vlapic_intr_msi</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv315vlapic_intr_msiP2vm8uint64_t8uint64_t" title="vlapic_intr_msi::vm">vm</a> *<em>vm</em>, uint64_t <em>addr</em>, uint64_t <em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv315vlapic_intr_msiP2vm8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject MSI to target VM. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success. </dd>
+<dt><strong>Return</strong></dt>
+<dd>non-zero on error that addr is invalid.</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">addr</span></code>: MSI address. </li>
+<li><code class="docutils literal notranslate"><span class="pre">msg</span></code>: MSI data.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316vlapic_post_intr8uint16_t">
+<span id="_CPPv216vlapic_post_intr8uint16_t"></span><span id="vlapic_post_intr__uint16_t"></span><span class="target" id="group__acrn__vlapic_gadae5d9e916a84879e01ea5ebd59867f5_1gadae5d9e916a84879e01ea5ebd59867f5"></span>void <code class="descname">vlapic_post_intr</code><span class="sig-paren">(</span>uint16_t <em>dest_pcpu_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316vlapic_post_intr8uint16_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Send notification vector to target pCPU. </p>
+<p>If APICv Posted-Interrupt is enabled and target pCPU is in non-root mode, pCPU will sync pending virtual interrupts from PIR to vIRR automatically, without VM exit. If pCPU in root-mode, virtual interrupt will be injected in next VM entry.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dest_pcpu_id</span></code>: Target CPU ID.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv324apicv_get_pir_desc_paddrP4vcpu">
+<span id="_CPPv224apicv_get_pir_desc_paddrP4vcpu"></span><span id="apicv_get_pir_desc_paddr__vcpuP"></span><span class="target" id="group__acrn__vlapic_ga1bcc948fe51a43b5be2184b0771f7b1d_1ga1bcc948fe51a43b5be2184b0771f7b1d"></span>uint64_t <code class="descname">apicv_get_pir_desc_paddr</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv324apicv_get_pir_desc_paddrP4vcpu" title="apicv_get_pir_desc_paddr::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv324apicv_get_pir_desc_paddrP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get physical address to PIR description. </p>
+<p>If APICv Posted-interrupt is supported, this address will be configured to VMCS “Posted-interrupt descriptor address” field.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>physicall address to PIR</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Target vCPU</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="eoi-processing">
 <h3>EOI processing<a class="headerlink" href="#eoi-processing" title="Permalink to this headline">¶</a></h3>
@@ -681,15 +842,47 @@ always associated with vLAPIC, the virtual interrupt injection from
 vIOAPIC will finally trigger a request for vLAPIC event by calling
 vLAPIC APIs.</p>
 <p><strong>Supported APIs:</strong></p>
-<dl class="docutils">
-<dt>vioapic_assert_irq</dt>
-<dd>assert a PIN according to active low or active high.</dd>
-<dt>vioapic_deassert_irq</dt>
-<dd>de-assert a PIN according to assigned device or emulated device
-status.</dd>
-<dt>vioapic_pulse_irq</dt>
-<dd>trigger an edge interrupt.</dd>
+<dl class="function">
+<dt id="_CPPv315vioapic_set_irqP2vm8uint32_t8uint32_t">
+<span id="_CPPv215vioapic_set_irqP2vm8uint32_t8uint32_t"></span><span id="vioapic_set_irq__vmP.uint32_t.uint32_t"></span><span class="target" id="group__acrn__vioapic_ga1cdd85c0e2d2c5bcf442823c3f755f97_1ga1cdd85c0e2d2c5bcf442823c3f755f97"></span>void <code class="descname">vioapic_set_irq</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv315vioapic_set_irqP2vm8uint32_t8uint32_t" title="vioapic_set_irq::vm">vm</a> *<em>vm</em>, uint32_t <em>irq</em>, uint32_t <em>operation</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv315vioapic_set_irqP2vm8uint32_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set vIOAPIC IRQ line status. </p>
+<p><dl class="docutils">
+<dt><strong>Pre</strong></dt>
+<dd>irq &lt; vioapic_pincount(vm)</dd>
+<dt><strong>Return</strong></dt>
+<dd>void </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to target VM </li>
+<li><code class="docutils literal notranslate"><span class="pre">irq</span></code>: Target IRQ number </li>
+<li><code class="docutils literal notranslate"><span class="pre">operation</span></code>: Action options: GSI_SET_HIGH/GSI_SET_LOW/ GSI_RAISING_PULSE/GSI_FALLING_PULSE</li>
+</ul>
+</dd>
 </dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv322vioapic_set_irq_nolockP2vm8uint32_t8uint32_t">
+<span id="_CPPv222vioapic_set_irq_nolockP2vm8uint32_t8uint32_t"></span><span id="vioapic_set_irq_nolock__vmP.uint32_t.uint32_t"></span><span class="target" id="group__acrn__vioapic_ga58e7479afb127e130b71f0a4e4158ec6_1ga58e7479afb127e130b71f0a4e4158ec6"></span>void <code class="descname">vioapic_set_irq_nolock</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv322vioapic_set_irq_nolockP2vm8uint32_t8uint32_t" title="vioapic_set_irq_nolock::vm">vm</a> *<em>vm</em>, uint32_t <em>irq</em>, uint32_t <em>operation</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv322vioapic_set_irq_nolockP2vm8uint32_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set vIOAPIC IRQ line status. </p>
+<p>Similar with <a class="reference internal" href="#group__acrn__vioapic_ga1cdd85c0e2d2c5bcf442823c3f755f97_1ga1cdd85c0e2d2c5bcf442823c3f755f97"><span class="std std-ref">vioapic_set_irq()</span></a>,but would not make sure operation be done with ioapic lock.</p>
+<p><dl class="docutils">
+<dt><strong>Pre</strong></dt>
+<dd>irq &lt; vioapic_pincount(vm) </dd>
+<dt><strong>Return</strong></dt>
+<dd>void </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to target VM </li>
+<li><code class="docutils literal notranslate"><span class="pre">irq</span></code>: Target IRQ number </li>
+<li><code class="docutils literal notranslate"><span class="pre">operation</span></code>: Action options: GSI_SET_HIGH/GSI_SET_LOW/ GSI_RAISING_PULSE/GSI_FALLING_PULSE</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="virtual-pic">
 <h2>Virtual PIC<a class="headerlink" href="#virtual-pic" title="Permalink to this headline">¶</a></h2>
@@ -702,18 +895,63 @@ vPIC APIs usage are similar to vIOAPIC.</p>
 <p>If an interrupt source from vPIC need to inject an interrupt, the
 following APIs need be called, which will finally make a request for
 <em>ACRN_REQUEST_EXTINT or ACRN_REQUEST_EVENT</em>:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">vpic_assert_irq</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">);</span>
-<span class="kt">int</span> <span class="nf">vpic_deassert_irq</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">);</span>
-<span class="kt">int</span> <span class="nf">vpic_pulse_irq</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">irq</span><span class="p">);</span>
-</pre></div>
-</div>
+<dl class="function">
+<dt id="_CPPv312vpic_set_irqP2vm8uint32_t8uint32_t">
+<span id="_CPPv212vpic_set_irqP2vm8uint32_t8uint32_t"></span><span id="vpic_set_irq__vmP.uint32_t.uint32_t"></span><span class="target" id="group__acrn__vpic_ga0d1539e01b631c26f15ad046f69a3131_1ga0d1539e01b631c26f15ad046f69a3131"></span>void <code class="descname">vpic_set_irq</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv312vpic_set_irqP2vm8uint32_t8uint32_t" title="vpic_set_irq::vm">vm</a> *<em>vm</em>, uint32_t <em>irq</em>, uint32_t <em>operation</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv312vpic_set_irqP2vm8uint32_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set vPIC IRQ line status. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to target VM </li>
+<li><code class="docutils literal notranslate"><span class="pre">irq</span></code>: Target IRQ number </li>
+<li><code class="docutils literal notranslate"><span class="pre">operation</span></code>: action options:GSI_SET_HIGH/GSI_SET_LOW/ GSI_RAISING_PULSE/GSI_FALLING_PULSE</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 <p>The following APIs are used to query the vector needed to be injected and ACK
 the service (means move the interrupt from request service - IRR to in
 service - ISR):</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">vpic_pending_intr</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">vecptr</span><span class="p">);</span>
-<span class="kt">void</span> <span class="nf">vpic_intr_accepted</span><span class="p">(</span><span class="k">struct</span> <span class="n">vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">vector</span><span class="p">);</span>
-</pre></div>
-</div>
+<dl class="function">
+<dt id="_CPPv317vpic_pending_intrP2vmP8uint32_t">
+<span id="_CPPv217vpic_pending_intrP2vmP8uint32_t"></span><span id="vpic_pending_intr__vmP.uint32_tP"></span><span class="target" id="group__acrn__vpic_ga2c77675944c61c817f5a0daaf817fa16_1ga2c77675944c61c817f5a0daaf817fa16"></span>void <code class="descname">vpic_pending_intr</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv317vpic_pending_intrP2vmP8uint32_t" title="vpic_pending_intr::vm">vm</a> *<em>vm</em>, uint32_t *<em>vecptr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317vpic_pending_intrP2vmP8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get pending virtual interrupts for vPIC. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to target VM </li>
+<li><code class="docutils literal notranslate"><span class="pre">vecptr</span></code>: Pointer to vector buffer and will be filled with eligible vector if any.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv318vpic_intr_acceptedP2vm8uint32_t">
+<span id="_CPPv218vpic_intr_acceptedP2vm8uint32_t"></span><span id="vpic_intr_accepted__vmP.uint32_t"></span><span class="target" id="group__acrn__vpic_ga5931771d6c0ff7d233da8942f05a594e_1ga5931771d6c0ff7d233da8942f05a594e"></span>void <code class="descname">vpic_intr_accepted</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv318vpic_intr_acceptedP2vm8uint32_t" title="vpic_intr_accepted::vm">vm</a> *<em>vm</em>, uint32_t <em>vector</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv318vpic_intr_acceptedP2vm8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Accept virtual interrupt for vPIC. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to target VM </li>
+<li><code class="docutils literal notranslate"><span class="pre">vector</span></code>: Target virtual interrupt vector</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="virtual-exception">
 <h2>Virtual Exception<a class="headerlink" href="#virtual-exception" title="Permalink to this headline">¶</a></h2>
@@ -726,11 +964,158 @@ hypervisor, for example:</p>
 a non-exist page from rip_gva, at that time a #PF need be injected.</li>
 </ul>
 <p>ACRN hypervisor implements virtual exception injection using these APIs:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">vcpu_queue_exception</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">vector</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">err_code</span><span class="p">);</span>
-<span class="kt">int</span> <span class="nf">vcpu_inject_gp</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">err_code</span><span class="p">);</span>
-<span class="kt">int</span> <span class="nf">vcpu_inject_pf</span><span class="p">(</span><span class="k">struct</span> <span class="n">vcpu</span> <span class="o">*</span><span class="n">vcpu</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">addr</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">err_code</span><span class="p">);</span>
-</pre></div>
-</div>
+<dl class="function">
+<dt id="_CPPv320vcpu_queue_exceptionP4vcpu8uint32_t8uint32_t">
+<span id="_CPPv220vcpu_queue_exceptionP4vcpu8uint32_t8uint32_t"></span><span id="vcpu_queue_exception__vcpuP.uint32_t.uint32_t"></span><span class="target" id="group__acrn__virq_ga65bbac1dd13d487f7e036f6d6e271cf6_1ga65bbac1dd13d487f7e036f6d6e271cf6"></span>int <code class="descname">vcpu_queue_exception</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv320vcpu_queue_exceptionP4vcpu8uint32_t8uint32_t" title="vcpu_queue_exception::vcpu">vcpu</a> *<em>vcpu</em>, uint32_t <em>vector</em>, uint32_t <em>err_code</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320vcpu_queue_exceptionP4vcpu8uint32_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Queue exception to guest. </p>
+<p>This exception may be injected immediately or later, depends on the exeception class.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success </dd>
+<dt><strong>Return</strong></dt>
+<dd>-EINVAL on error that vector is invalid.</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vector</span></code>: Vector of the exeception. </li>
+<li><code class="docutils literal notranslate"><span class="pre">err_code</span></code>: Error Code to be injected.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv318vcpu_inject_extintP4vcpu">
+<span id="_CPPv218vcpu_inject_extintP4vcpu"></span><span id="vcpu_inject_extint__vcpuP"></span><span class="target" id="group__acrn__virq_ga8356300abefece6c5ea95746cb5a1223_1ga8356300abefece6c5ea95746cb5a1223"></span>void <code class="descname">vcpu_inject_extint</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv318vcpu_inject_extintP4vcpu" title="vcpu_inject_extint::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv318vcpu_inject_extintP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject external interrupt to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv315vcpu_inject_nmiP4vcpu">
+<span id="_CPPv215vcpu_inject_nmiP4vcpu"></span><span id="vcpu_inject_nmi__vcpuP"></span><span class="target" id="group__acrn__virq_ga77714b9a0816c97341ab833214ded1fb_1ga77714b9a0816c97341ab833214ded1fb"></span>void <code class="descname">vcpu_inject_nmi</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv315vcpu_inject_nmiP4vcpu" title="vcpu_inject_nmi::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv315vcpu_inject_nmiP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject NMI to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314vcpu_inject_gpP4vcpu8uint32_t">
+<span id="_CPPv214vcpu_inject_gpP4vcpu8uint32_t"></span><span id="vcpu_inject_gp__vcpuP.uint32_t"></span><span class="target" id="group__acrn__virq_ga35970b08eeeae90050b16656c64f5261_1ga35970b08eeeae90050b16656c64f5261"></span>void <code class="descname">vcpu_inject_gp</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv314vcpu_inject_gpP4vcpu8uint32_t" title="vcpu_inject_gp::vcpu">vcpu</a> *<em>vcpu</em>, uint32_t <em>err_code</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314vcpu_inject_gpP4vcpu8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject general protection exeception(GP) to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU. </li>
+<li><code class="docutils literal notranslate"><span class="pre">err_code</span></code>: Error Code to be injected.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314vcpu_inject_pfP4vcpu8uint64_t8uint32_t">
+<span id="_CPPv214vcpu_inject_pfP4vcpu8uint64_t8uint32_t"></span><span id="vcpu_inject_pf__vcpuP.uint64_t.uint32_t"></span><span class="target" id="group__acrn__virq_ga77bf6acbab5105ed3823fbaa2ccdbfd6_1ga77bf6acbab5105ed3823fbaa2ccdbfd6"></span>void <code class="descname">vcpu_inject_pf</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv314vcpu_inject_pfP4vcpu8uint64_t8uint32_t" title="vcpu_inject_pf::vcpu">vcpu</a> *<em>vcpu</em>, uint64_t <em>addr</em>, uint32_t <em>err_code</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314vcpu_inject_pfP4vcpu8uint64_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject page fault exeception(PF) to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU. </li>
+<li><code class="docutils literal notranslate"><span class="pre">addr</span></code>: Address that result in PF. </li>
+<li><code class="docutils literal notranslate"><span class="pre">err_code</span></code>: Error Code to be injected.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314vcpu_inject_udP4vcpu">
+<span id="_CPPv214vcpu_inject_udP4vcpu"></span><span id="vcpu_inject_ud__vcpuP"></span><span class="target" id="group__acrn__virq_ga930bb7bb63ab34aaea00049f387ab2eb_1ga930bb7bb63ab34aaea00049f387ab2eb"></span>void <code class="descname">vcpu_inject_ud</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv314vcpu_inject_udP4vcpu" title="vcpu_inject_ud::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314vcpu_inject_udP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject invalid opcode exeception(UD) to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314vcpu_inject_acP4vcpu">
+<span id="_CPPv214vcpu_inject_acP4vcpu"></span><span id="vcpu_inject_ac__vcpuP"></span><span class="target" id="group__acrn__virq_ga60be5ae8a31e49750c115da728cecd3b_1ga60be5ae8a31e49750c115da728cecd3b"></span>void <code class="descname">vcpu_inject_ac</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv314vcpu_inject_acP4vcpu" title="vcpu_inject_ac::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314vcpu_inject_acP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject alignment check exeception(AC) to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314vcpu_inject_ssP4vcpu">
+<span id="_CPPv214vcpu_inject_ssP4vcpu"></span><span id="vcpu_inject_ss__vcpuP"></span><span class="target" id="group__acrn__virq_ga3ee2a6df4f88cfc48faa6022403e773b_1ga3ee2a6df4f88cfc48faa6022403e773b"></span>void <code class="descname">vcpu_inject_ss</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv314vcpu_inject_ssP4vcpu" title="vcpu_inject_ss::vcpu">vcpu</a> *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314vcpu_inject_ssP4vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject stack fault exeception(SS) to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>void</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 <p>ACRN hypervisor uses the <em>vcpu_inject_gp/vcpu_inject_pf</em> functions
 to queue exception request, and follows SDM vol3 - 6.15, Table 6-5 to
 generate double fault if the condition is met.</p>
@@ -792,7 +1177,7 @@ injected or acknowledged.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

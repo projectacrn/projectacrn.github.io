@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guides/l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="index.html">API Documentation</a><ul class="current">
@@ -850,7 +873,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to VM data structure </li>
 <li><code class="docutils literal notranslate"><span class="pre">vmid</span></code>: ID of the VM </li>
-<li><code class="docutils literal notranslate"><span class="pre">param</span></code>: guest physical address. This gpa points to struct <a class="reference internal" href="#structacrn__create__vcpu"><span class="std std-ref">acrn_create_vcpu</span></a></li>
+<li><code class="docutils literal notranslate"><span class="pre">param</span></code>: guest physical address. This gpa points to struct <a class="reference internal" href="../developer-guides/hld/hv-cpu-virt.html#structacrn__create__vcpu"><span class="std std-ref">acrn_create_vcpu</span></a></li>
 </ul>
 </dd>
 </dl>
@@ -869,7 +892,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to VM data structure </li>
 <li><code class="docutils literal notranslate"><span class="pre">vmid</span></code>: ID of the VM </li>
-<li><code class="docutils literal notranslate"><span class="pre">param</span></code>: guest physical address. This gpa points to struct <a class="reference internal" href="#structacrn__vcpu__regs"><span class="std std-ref">acrn_vcpu_regs</span></a></li>
+<li><code class="docutils literal notranslate"><span class="pre">param</span></code>: guest physical address. This gpa points to struct <a class="reference internal" href="../developer-guides/hld/hv-cpu-virt.html#structacrn__vcpu__regs"><span class="std std-ref">acrn_vcpu_regs</span></a></li>
 </ul>
 </dd>
 </dl>
@@ -1010,27 +1033,6 @@ for the Device Model are found in the <a class="reference external" href="https:
 <li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to VM data structure </li>
 <li><code class="docutils literal notranslate"><span class="pre">vmid</span></code>: ID of the VM </li>
 <li><code class="docutils literal notranslate"><span class="pre">wp_gpa</span></code>: guest physical address. This gpa points to struct <a class="reference internal" href="#structwp__data"><span class="std std-ref">wp_data</span></a></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv320hcall_remap_pci_msixP2vm8uint16_t8uint64_t">
-<span id="_CPPv220hcall_remap_pci_msixP2vm8uint16_t8uint64_t"></span><span id="hcall_remap_pci_msix__vmP.uint16_t.uint64_t"></span><span class="target" id="group__acrn__hypercall_1ga84818574782060a86b8847ab70629b39"></span>int32_t <code class="descname">hcall_remap_pci_msix</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="#_CPPv320hcall_remap_pci_msixP2vm8uint16_t8uint64_t" title="hcall_remap_pci_msix::vm">vm</a> *<em>vm</em>, uint16_t <em>vmid</em>, uint64_t <em>param</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320hcall_remap_pci_msixP2vm8uint16_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>remap PCI MSI interrupt </p>
-<p>Remap a PCI MSI interrupt from a VM’s virtual vector to native vector. The function will return -1 if the target VM does not exist.</p>
-<p><dl class="docutils">
-<dt><strong>Pre</strong></dt>
-<dd>Pointer vm shall point to VM0 </dd>
-<dt><strong>Return</strong></dt>
-<dd>0 on success, non-zero on error. </dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: Pointer to VM data structure </li>
-<li><code class="docutils literal notranslate"><span class="pre">vmid</span></code>: ID of the VM </li>
-<li><code class="docutils literal notranslate"><span class="pre">param</span></code>: guest physical address. This gpa points to struct <a class="reference internal" href="#structacrn__vm__pci__msix__remap"><span class="std std-ref">acrn_vm_pci_msix_remap</span></a></li>
 </ul>
 </dd>
 </dl>
@@ -1259,32 +1261,39 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dl class="class">
 <dt id="_CPPv312mmio_request">
 <span id="_CPPv212mmio_request"></span><span id="mmio_request"></span><span class="target" id="structmmio__request"></span><em class="property">struct </em><code class="descname">mmio_request</code><a class="headerlink" href="#_CPPv312mmio_request" title="Permalink to this definition">¶</a><br /></dt>
-<dd><em>#include &lt;acrn_common.h&gt;</em><div class="breathe-sectiondef docutils container">
+<dd><em>#include &lt;acrn_common.h&gt;</em><p>Representation of a MMIO request. </p>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Members</p>
 <dl class="member">
 <dt id="_CPPv3N12mmio_request9directionE">
 <span id="_CPPv2N12mmio_request9directionE"></span><span id="mmio_request::direction__uint32_t"></span><span class="target" id="structmmio__request_1a5ee5d2ef58edfa75b454de67d6065b38"></span>uint32_t <code class="descname">direction</code><a class="headerlink" href="#_CPPv3N12mmio_request9directionE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Direction of the access. </p>
+<p>Either <code class="docutils literal notranslate"><span class="pre">REQUEST_READ</span></code> or <code class="docutils literal notranslate"><span class="pre">REQUEST_WRITE</span></code>. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N12mmio_request8reservedE">
 <span id="_CPPv2N12mmio_request8reservedE"></span><span id="mmio_request::reserved__uint32_t"></span><span class="target" id="structmmio__request_1a6068a4375866ddd11ca232cefe1c94e4"></span>uint32_t <code class="descname">reserved</code><a class="headerlink" href="#_CPPv3N12mmio_request8reservedE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>reserved </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N12mmio_request7addressE">
 <span id="_CPPv2N12mmio_request7addressE"></span><span id="mmio_request::address__uint64_t"></span><span class="target" id="structmmio__request_1ace9d10b323354405ec72a0aeec2ed3a8"></span>uint64_t <code class="descname">address</code><a class="headerlink" href="#_CPPv3N12mmio_request7addressE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Address of the I/O access. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N12mmio_request4sizeE">
 <span id="_CPPv2N12mmio_request4sizeE"></span><span id="mmio_request::size__uint64_t"></span><span class="target" id="structmmio__request_1ad0bbe4e98701765e1fa73a5c5d5ea559"></span>uint64_t <code class="descname">size</code><a class="headerlink" href="#_CPPv3N12mmio_request4sizeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Width of the I/O access in byte. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N12mmio_request5valueE">
 <span id="_CPPv2N12mmio_request5valueE"></span><span id="mmio_request::value__uint64_t"></span><span class="target" id="structmmio__request_1a75c57764821580a65fc44c155d5d4606"></span>uint64_t <code class="descname">value</code><a class="headerlink" href="#_CPPv3N12mmio_request5valueE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>The value read for I/O reads or to be written for I/O writes. </p>
+</dd></dl>
 
 </div>
 </dd></dl>
@@ -1292,32 +1301,39 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dl class="class">
 <dt id="_CPPv311pio_request">
 <span id="_CPPv211pio_request"></span><span id="pio_request"></span><span class="target" id="structpio__request"></span><em class="property">struct </em><code class="descname">pio_request</code><a class="headerlink" href="#_CPPv311pio_request" title="Permalink to this definition">¶</a><br /></dt>
-<dd><em>#include &lt;acrn_common.h&gt;</em><div class="breathe-sectiondef docutils container">
+<dd><em>#include &lt;acrn_common.h&gt;</em><p>Representation of a port I/O request. </p>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Members</p>
 <dl class="member">
 <dt id="_CPPv3N11pio_request9directionE">
 <span id="_CPPv2N11pio_request9directionE"></span><span id="pio_request::direction__uint32_t"></span><span class="target" id="structpio__request_1ab6678a312ecd518ff756ae3c996f64ff"></span>uint32_t <code class="descname">direction</code><a class="headerlink" href="#_CPPv3N11pio_request9directionE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Direction of the access. </p>
+<p>Either <code class="docutils literal notranslate"><span class="pre">REQUEST_READ</span></code> or <code class="docutils literal notranslate"><span class="pre">REQUEST_WRITE</span></code>. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pio_request8reservedE">
 <span id="_CPPv2N11pio_request8reservedE"></span><span id="pio_request::reserved__uint32_t"></span><span class="target" id="structpio__request_1ac3f904d7697bab25b57aadd7486e8ec5"></span>uint32_t <code class="descname">reserved</code><a class="headerlink" href="#_CPPv3N11pio_request8reservedE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>reserved </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pio_request7addressE">
 <span id="_CPPv2N11pio_request7addressE"></span><span id="pio_request::address__uint64_t"></span><span class="target" id="structpio__request_1a3b47a8a43247497d55ad168184d2f1a0"></span>uint64_t <code class="descname">address</code><a class="headerlink" href="#_CPPv3N11pio_request7addressE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Port address of the I/O access. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pio_request4sizeE">
 <span id="_CPPv2N11pio_request4sizeE"></span><span id="pio_request::size__uint64_t"></span><span class="target" id="structpio__request_1ab6950f482e3f0ae85f5748d04f8f1e68"></span>uint64_t <code class="descname">size</code><a class="headerlink" href="#_CPPv3N11pio_request4sizeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Width of the I/O access in byte. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pio_request5valueE">
 <span id="_CPPv2N11pio_request5valueE"></span><span id="pio_request::value__uint32_t"></span><span class="target" id="structpio__request_1af328e5ae161c2304adb58874341ccee9"></span>uint32_t <code class="descname">value</code><a class="headerlink" href="#_CPPv3N11pio_request5valueE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>The value read for I/O reads or to be written for I/O writes. </p>
+</dd></dl>
 
 </div>
 </dd></dl>
@@ -1325,47 +1341,57 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dl class="class">
 <dt id="_CPPv311pci_request">
 <span id="_CPPv211pci_request"></span><span id="pci_request"></span><span class="target" id="structpci__request"></span><em class="property">struct </em><code class="descname">pci_request</code><a class="headerlink" href="#_CPPv311pci_request" title="Permalink to this definition">¶</a><br /></dt>
-<dd><em>#include &lt;acrn_common.h&gt;</em><div class="breathe-sectiondef docutils container">
+<dd><em>#include &lt;acrn_common.h&gt;</em><p>Representation of a PCI configuration space access. </p>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Members</p>
 <dl class="member">
 <dt id="_CPPv3N11pci_request9directionE">
 <span id="_CPPv2N11pci_request9directionE"></span><span id="pci_request::direction__uint32_t"></span><span class="target" id="structpci__request_1a8daeb6cfa8686b496f0a7ea35d17ff7e"></span>uint32_t <code class="descname">direction</code><a class="headerlink" href="#_CPPv3N11pci_request9directionE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Direction of the access. </p>
+<p>Either <code class="docutils literal notranslate"><span class="pre">REQUEST_READ</span></code> or <code class="docutils literal notranslate"><span class="pre">REQUEST_WRITE</span></code>. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pci_request8reservedE">
 <span id="_CPPv2N11pci_request8reservedE"></span><span id="pci_request::reserved__uint32_tA"></span><span class="target" id="structpci__request_1a9102ebef6413b1a5899ea4bdfbfb10b0"></span>uint32_t <code class="descname">reserved</code>[3]<a class="headerlink" href="#_CPPv3N11pci_request8reservedE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Reserved. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pci_request4sizeE">
 <span id="_CPPv2N11pci_request4sizeE"></span><span id="pci_request::size__int64_t"></span><span class="target" id="structpci__request_1aa8491df28ed5b4e0310e6ed8fe6e4e16"></span>int64_t <code class="descname">size</code><a class="headerlink" href="#_CPPv3N11pci_request4sizeE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>Width of the I/O access in byte. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pci_request5valueE">
 <span id="_CPPv2N11pci_request5valueE"></span><span id="pci_request::value__int32_t"></span><span class="target" id="structpci__request_1a7f1fc2c1edd7e085c6f53f0528094601"></span>int32_t <code class="descname">value</code><a class="headerlink" href="#_CPPv3N11pci_request5valueE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>The value read for I/O reads or to be written for I/O writes. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pci_request3busE">
 <span id="_CPPv2N11pci_request3busE"></span><span id="pci_request::bus__int32_t"></span><span class="target" id="structpci__request_1a2aadc0b5232c4849e4e7ac6fd3d464bb"></span>int32_t <code class="descname">bus</code><a class="headerlink" href="#_CPPv3N11pci_request3busE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">bus</span></code> part of the BDF of the device. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pci_request3devE">
 <span id="_CPPv2N11pci_request3devE"></span><span id="pci_request::dev__int32_t"></span><span class="target" id="structpci__request_1af806ad26912aa92883a9466f20def433"></span>int32_t <code class="descname">dev</code><a class="headerlink" href="#_CPPv3N11pci_request3devE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">device</span></code> part of the BDF of the device. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pci_request4funcE">
 <span id="_CPPv2N11pci_request4funcE"></span><span id="pci_request::func__int32_t"></span><span class="target" id="structpci__request_1a8f7df06a9c156899ce7aef0597764db4"></span>int32_t <code class="descname">func</code><a class="headerlink" href="#_CPPv3N11pci_request4funcE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">function</span></code> part of the BDF of the device. </p>
+</dd></dl>
 
 <dl class="member">
 <dt id="_CPPv3N11pci_request3regE">
 <span id="_CPPv2N11pci_request3regE"></span><span id="pci_request::reg__int32_t"></span><span class="target" id="structpci__request_1af589874f0283c655839d6f8f7ea7b584"></span>int32_t <code class="descname">reg</code><a class="headerlink" href="#_CPPv3N11pci_request3regE" title="Permalink to this definition">¶</a><br /></dt>
-<dd></dd></dl>
+<dd><p>The register to be accessed in the configuration space. </p>
+</dd></dl>
 
 </div>
 </dd></dl>
@@ -1406,32 +1432,80 @@ for the Device Model are found in the <a class="reference external" href="https:
 <p>FREE -&gt; PENDING -&gt; PROCESSING -&gt; COMPLETE -&gt; FREE -&gt; …</p>
 <p>When a request is in COMPLETE or FREE state, the request is owned by the hypervisor. SOS (VHM or DM) shall not read or write the internals of the request except the state.</p>
 <p>When a request is in PENDING or PROCESSING state, the request is owned by SOS. The hypervisor shall not read or write the request other than the state.</p>
-<p>Based on the rules above, a typical VHM request lifecycle should looks like the following. <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                <span class="p">(</span><span class="n">assume</span> <span class="n">the</span> <span class="n">initial</span> <span class="n">state</span> <span class="ow">is</span> <span class="n">FREE</span><span class="p">)</span>
-
-  <span class="n">SOS</span> <span class="n">vCPU</span> <span class="mi">0</span>                <span class="n">SOS</span> <span class="n">vCPU</span> <span class="n">x</span>                    <span class="n">UOS</span> <span class="n">vCPU</span> <span class="n">y</span>
-
-                                            <span class="n">hypervisor</span><span class="p">:</span>
-                                                <span class="n">fill</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">,</span> <span class="n">addr</span><span class="p">,</span> <span class="n">etc</span><span class="o">.</span>
-                                                <span class="n">pause</span> <span class="n">UOS</span> <span class="n">vcpu</span> <span class="n">y</span>
-                                                <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">PENDING</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span>
-                                                <span class="n">fire</span> <span class="n">upcall</span> <span class="n">to</span> <span class="n">SOS</span> <span class="n">vCPU</span> <span class="mi">0</span>
-</pre></div>
-</div>
-</p>
-<p>VHM: scan for pending requests set state to PROCESSING (b) assign requests to clients (c) <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                  <span class="n">client</span><span class="p">:</span>
-                      <span class="n">scan</span> <span class="k">for</span> <span class="n">assigned</span> <span class="n">requests</span>
-                      <span class="n">handle</span> <span class="n">the</span> <span class="n">requests</span> <span class="p">(</span><span class="n">d</span><span class="p">)</span>
-                      <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">COMPLETE</span>
-                      <span class="n">notify</span> <span class="n">the</span> <span class="n">hypervisor</span>
-
-                  <span class="n">hypervisor</span><span class="p">:</span>
-                      <span class="n">resume</span> <span class="n">UOS</span> <span class="n">vcpu</span> <span class="n">y</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-                                       <span class="n">hypervisor</span><span class="p">:</span>
-                                           <span class="n">post</span><span class="o">-</span><span class="n">work</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                                           <span class="nb">set</span> <span class="n">state</span> <span class="n">to</span> <span class="n">FREE</span>
-</pre></div>
-</div>
+<p>Based on the rules above, a typical VHM request lifecycle should looks like the following.</p>
+<p><table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="36%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">SOS vCPU 0</th>
+<th class="head">SOS vCPU x</th>
+<th class="head">UOS vCPU y</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#160;</td>
+<td>&#160;</td>
+<td><p class="first"><strong>Hypervisor</strong>:</p>
+<ul class="last simple">
+<li>Fill in type,
+addr, etc.</li>
+<li>Pause UOS vCPU y</li>
+<li>Set state to
+PENDING <strong>(a)</strong></li>
+<li>Fire upcall to
+SOS vCPU 0</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p class="first"><strong>VHM</strong>:</p>
+<ul class="last simple">
+<li>Scan for pending
+requests</li>
+<li>Set state to
+PROCESSING <strong>(b)</strong></li>
+<li>Assign requests to
+clients <strong>(c)</strong></li>
+</ul>
+</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td><p class="first"><strong>Client</strong>:</p>
+<ul class="last simple">
+<li>Scan for assigned
+requests</li>
+<li>Handle the
+requests <strong>(d)</strong></li>
+<li>Set state to COMPLETE</li>
+<li>Notify the hypervisor</li>
+</ul>
+</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td>&#160;</td>
+<td><p class="first"><strong>Hypervisor</strong>:</p>
+<ul class="last simple">
+<li>resume UOS vCPU y
+<strong>(e)</strong></li>
+</ul>
+</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td>&#160;</td>
+<td>&#160;</td>
+<td><p class="first"><strong>Hypervisor</strong>:</p>
+<ul class="last simple">
+<li>Post-work <strong>(f)</strong></li>
+<li>set state to FREE</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </p>
 <p>Note that the following shall hold.</p>
 <p><ol class="arabic simple">
@@ -1699,7 +1773,8 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dl class="class">
 <dt id="_CPPv314acrn_vcpu_regs">
 <span id="_CPPv214acrn_vcpu_regs"></span><span id="acrn_vcpu_regs"></span><span class="target" id="structacrn__vcpu__regs"></span><em class="property">struct </em><code class="descname">acrn_vcpu_regs</code><a class="headerlink" href="#_CPPv314acrn_vcpu_regs" title="Permalink to this definition">¶</a><br /></dt>
-<dd><em>#include &lt;acrn_common.h&gt;</em><div class="breathe-sectiondef docutils container">
+<dd><em>#include &lt;acrn_common.h&gt;</em><p>registers info for vcpu. </p>
+<div class="breathe-sectiondef docutils container">
 <p class="breathe-sectiondef-title rubric">Public Members</p>
 <dl class="member">
 <dt id="_CPPv3N14acrn_vcpu_regs4gprsE">
@@ -1762,8 +1837,13 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd></dd></dl>
 
 <dl class="member">
+<dt id="_CPPv3N14acrn_vcpu_regs8cs_limitE">
+<span id="_CPPv2N14acrn_vcpu_regs8cs_limitE"></span><span id="acrn_vcpu_regs::cs_limit__uint32_t"></span><span class="target" id="structacrn__vcpu__regs_1af4a7fcd2427e3e3e2d5491a885ebc601"></span>uint32_t <code class="descname">cs_limit</code><a class="headerlink" href="#_CPPv3N14acrn_vcpu_regs8cs_limitE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
 <dt id="_CPPv3N14acrn_vcpu_regs11reserved_32E">
-<span id="_CPPv2N14acrn_vcpu_regs11reserved_32E"></span><span id="acrn_vcpu_regs::reserved_32__uint32_tA"></span><span class="target" id="structacrn__vcpu__regs_1a431c2d667627f83cef88177522bfb7a8"></span>uint32_t <code class="descname">reserved_32</code>[4]<a class="headerlink" href="#_CPPv3N14acrn_vcpu_regs11reserved_32E" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv2N14acrn_vcpu_regs11reserved_32E"></span><span id="acrn_vcpu_regs::reserved_32__uint32_tA"></span><span class="target" id="structacrn__vcpu__regs_1af7f61942ca0860c65beb7686b7065450"></span>uint32_t <code class="descname">reserved_32</code>[3]<a class="headerlink" href="#_CPPv3N14acrn_vcpu_regs11reserved_32E" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="member">
@@ -2600,7 +2680,7 @@ for the Device Model are found in the <a class="reference external" href="https:
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

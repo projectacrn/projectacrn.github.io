@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>NUM_ALLOC_PAGES &mdash; Project ACRN™ v 0.3-unstable documentation</title>
+  <title>HV_RAM_START &mdash; Project ACRN™ v 0.3-unstable documentation</title>
   
 
   
@@ -247,9 +247,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../developer-guides/hld/hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/hld/usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../developer-guides/hld/uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../developer-guides/hld/watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/hld/random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../developer-guides/hld/hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -354,6 +356,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../../developer-guides/trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../developer-guides/l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guides/l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guides/l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guides/l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../developer-guides/l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guides/l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../developer-guides/l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
@@ -531,7 +554,7 @@
     
       <li><a href="../../index.html">Docs</a> &raquo;</li>
         
-      <li>NUM_ALLOC_PAGES</li>
+      <li>HV_RAM_START</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -549,29 +572,47 @@
            <div itemprop="articleBody">
             
   <dl class="option">
-<dt id="cmdoption-arg-config-num-alloc-pages">
-<code class="descname">CONFIG_NUM_ALLOC_PAGES</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-arg-config-num-alloc-pages" title="Permalink to this definition">¶</a></dt>
+<dt id="cmdoption-arg-config-hv-ram-start">
+<code class="descname">CONFIG_HV_RAM_START</code><code class="descclassname"></code><a class="headerlink" href="#cmdoption-arg-config-hv-ram-start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p><em>Capacity in pages of the heap for page_alloc()</em></p>
+<p><em>Start physical address of the RAM region used by the hypervisor</em></p>
 <p>Type: <code class="docutils literal notranslate"><span class="pre">hex</span></code></p>
+<div class="section" id="help">
+<h1>Help<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h1>
+<p>A 64-bit integer indicating the base physical address to where the hypervisor
+should be loaded to. If RELOC is disabled the bootloader is required
+to load the hypervisor to this specific address. Otherwise the
+hypervisor will not boot. With RELOC enabled the hypervisor is capable
+of relocating its symbols to where it is placed at, and thus the
+bootloader may not place the hypervisor at this specific address.</p>
+</div>
 <div class="section" id="defaults">
 <h1>Defaults<a class="headerlink" href="#defaults" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li>0x1000</li>
+<li>0x6e000000 if <a class="reference internal" href="CONFIG_PLATFORM_SBL.html#cmdoption-arg-config-platform-sbl"><code class="xref std std-option docutils literal notranslate"><span class="pre">PLATFORM_SBL</span></code></a></li>
+<li>0x00100000 if <a class="reference internal" href="CONFIG_PLATFORM_UEFI.html#cmdoption-arg-config-platform-uefi"><code class="xref std std-option docutils literal notranslate"><span class="pre">PLATFORM_UEFI</span></code></a></li>
 </ul>
 </div>
 <div class="section" id="kconfig-definition">
 <h1>Kconfig definition<a class="headerlink" href="#kconfig-definition" title="Permalink to this headline">¶</a></h1>
-<p>At <code class="docutils literal notranslate"><span class="pre">arch/x86/Kconfig:163</span></code></p>
+<p>At <code class="docutils literal notranslate"><span class="pre">arch/x86/Kconfig:208</span></code></p>
 <p>Included via <code class="docutils literal notranslate"><span class="pre">Kconfig:3</span></code></p>
 <p>Menu path: (top menu)</p>
-<div class="highlight-kconfig notranslate"><div class="highlight"><pre><span></span><span class="k">config</span> NUM_ALLOC_PAGES
-    <span class="nb">hex</span>
-    <span class="k">prompt</span> <span class="s2">&quot;Capacity in pages of the heap for page_alloc()&quot;</span>
-    <span class="k">default</span> <span class="mi">0</span>x1000
-</pre></div>
-</div>
+<pre class="literal-block">
+config HV_RAM_START
+    hex
+    prompt &quot;Start physical address of the RAM region used by the hypervisor&quot;
+    default 0x6e000000 if <a class="reference internal" href="CONFIG_PLATFORM_SBL.html#cmdoption-arg-config-platform-sbl"><code class="xref std std-option docutils literal notranslate"><span class="pre">PLATFORM_SBL</span></code></a>
+    default 0x00100000 if <a class="reference internal" href="CONFIG_PLATFORM_UEFI.html#cmdoption-arg-config-platform-uefi"><code class="xref std std-option docutils literal notranslate"><span class="pre">PLATFORM_UEFI</span></code></a>
+    help
+      A 64-bit integer indicating the base physical address to where the hypervisor
+      should be loaded to. If RELOC is disabled the bootloader is required
+      to load the hypervisor to this specific address. Otherwise the
+      hypervisor will not boot. With RELOC enabled the hypervisor is capable
+      of relocating its symbols to where it is placed at, and thus the
+      bootloader may not place the hypervisor at this specific address.
+</pre>
 <p><em>(Definitions include propagated dependencies, including from if’s and menus.)</em></p>
 </div>
 
@@ -587,7 +628,7 @@
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

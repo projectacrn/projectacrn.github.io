@@ -31,7 +31,7 @@
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="API Documentation" href="../api/index.html" />
+    <link rel="next" title="L1 Terminal Fault Mitigation" href="l1tf.html" />
     <link rel="prev" title="GVT-g Enabling and Porting Guide" href="GVT-g-porting.html" /> 
 
   
@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld/hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld/usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld/uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld/watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld/random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld/hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api/index.html">API Documentation</a><ul>
@@ -664,7 +687,7 @@ there’s a desire to keep things small and lightweight. LK has been chosen as t
    uosl2 [label=&quot;UOS_Loader&quot;]
    uosl1 -&gt; acrn_init -&gt; &quot;Trusty&quot; -&gt; acrn_switch -&gt; uosl2;
 }" />
-<p class="caption"><span class="caption-number">Figure 148 </span><span class="caption-text">Trusty Boot Flow</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 152 </span><span class="caption-text">Trusty Boot Flow</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 <p>As shown in the above figure, here are some details about the Trusty boot flow processing:</p>
 <ol class="arabic simple">
@@ -758,7 +781,7 @@ be updated.</p>
 
 <dl class="function">
 <dt id="_CPPv314copy_smc_paramPK11run_contextP11run_context">
-<span id="_CPPv214copy_smc_paramPK11run_contextP11run_context"></span><span id="copy_smc_param__run_contextCP.run_contextP"></span><span class="target" id="group__trusty__apis_1gaa92334437bb51a2759c3f8d4d23dc7e4"></span><em class="property">static</em> void <code class="descname">copy_smc_param</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> run_context *<em>prev_ctx</em>, <em class="property">struct</em> run_context *<em>next_ctx</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314copy_smc_paramPK11run_contextP11run_context" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv214copy_smc_paramPK11run_contextP11run_context"></span><span id="copy_smc_param__run_contextCP.run_contextP"></span><span class="target" id="group__trusty__apis_1gaa92334437bb51a2759c3f8d4d23dc7e4"></span><em class="property">static</em> void <code class="descname">copy_smc_param</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> <a class="reference internal" href="hld/hv-cpu-virt.html#_CPPv311run_context" title="run_context">run_context</a> *<em>prev_ctx</em>, <em class="property">struct</em> <a class="reference internal" href="hld/hv-cpu-virt.html#_CPPv311run_context" title="run_context">run_context</a> *<em>next_ctx</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314copy_smc_paramPK11run_contextP11run_context" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -812,7 +835,7 @@ be updated.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

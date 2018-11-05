@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
@@ -816,66 +839,149 @@ handler will be called to report error event.</p>
 </div>
 <div class="section" id="data-structures-and-interfaces">
 <h2>Data structures and interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Needs API reference to include/arch/x86/vtd.h</p>
-</div>
 <div class="section" id="initialization-and-deinitialization">
 <h3>initialization and deinitialization<a class="headerlink" href="#initialization-and-deinitialization" title="Permalink to this headline">¶</a></h3>
 <p>The following APIs are provided during initialization and
 deinitialization:</p>
-<ul class="simple">
-<li>void init_iommu(void)</li>
+<dl class="function">
+<dt id="_CPPv310init_iommuv">
+<span id="_CPPv210init_iommuv"></span><span id="init_iommu__void"></span><span class="target" id="group__acrn__vtd_gad4c38f032530d969830b92a34fc87275_1gad4c38f032530d969830b92a34fc87275"></span>int <code class="descname">init_iommu</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310init_iommuv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Init IOMMUs. </p>
+<p>Register DMAR units on the platform according to the pre-parsed information or DMAR table.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 - on success </dd>
+<dt><strong>Return</strong></dt>
+<dd>non-zero - iommu is a must have feature, if init_iommu failed, the system should not continue booting </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv321init_iommu_vm0_domainP2vm">
+<span id="_CPPv221init_iommu_vm0_domainP2vm"></span><span id="init_iommu_vm0_domain__vmP"></span><span class="target" id="group__acrn__vtd_ga231fd0044f8ca4ed9935e623594975d6_1ga231fd0044f8ca4ed9935e623594975d6"></span>void <code class="descname">init_iommu_vm0_domain</code><span class="sig-paren">(</span><em class="property">struct</em> vm *<em>vm0</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv321init_iommu_vm0_domainP2vm" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Init VM0 domain of iommu. </p>
+<p>Create VM0 domain using the Normal World’s EPT table of VM0 as address translation table. All PCI devices are added to the VM0 domain when creating it.</p>
+<p><dl class="docutils">
+<dt><strong>Pre</strong></dt>
+<dd>vm0 shall point to VM0</dd>
+<dt><strong>Remark</strong></dt>
+<dd>to reduce boot time &amp; memory cost, a config IOMMU_INIT_BUS_LIMIT, which limit the bus number. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm0</span></code>: pointer to VM0</li>
 </ul>
-<p>Register DMAR units on the platform according to the reparsed
-information or DMAR table.</p>
-<ul>
-<li><p class="first">void init_iommu_vm0_domain(struct vm *vm0)</p>
-<p>Create VM0 domain using the Normal World’s EPT table of VM0 as address
-translation table. Add all PCI devices on the platform to VM0 domain. Then enable
-DMAR translation.</p>
-</li>
-<li><p class="first">void destroy_iommu_domain(struct iommu_domain *domain)</p>
-<p>Destroy the iommu domain.</p>
-</li>
-</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
-<div class="section" id="id1">
-<h3>VT-d<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="runtime">
+<h3>runtime<a class="headerlink" href="#runtime" title="Permalink to this headline">¶</a></h3>
 <p>The following API are provided during runtime:</p>
-<ul>
-<li><p class="first">void suspend_iommu(void)</p>
-<p>Suspend IOMMU.</p>
-</li>
-<li><p class="first">void resume_iommu(void)</p>
-<p>Resume IOMMU.</p>
-</li>
-<li><p class="first">struct iommu_domain *create_iommu_domain(uint16_t vm_id,
-uint64_t translation_table, uint32_t addr_width)</p>
-<p>Create a iommu domain for a VM specified by vm_id.
-translation_table should be the physical address of EPT table of the VM
-specified by the vm_id, the value cannot be NULL.
-Return the iommu_domain created for the VM if not NULL.
-Error if the return NULL.</p>
-</li>
-<li><p class="first">int assign_iommu_device(struct iommu_domain *domain, uint8_t
-bus, uint8_t devfun)</p>
-<p>Assign a device specified by bus &amp; devfun to a iommu domain. The device
-is removed from VM0 domain and added to the domain specified.</p>
-<p>domain: specified the domain the device should be assigned to.</p>
-<p>bus: the 8-bit bus value of the pass-through device.</p>
-<p>devfun: the 8-bit device function value of the pass-through device.</p>
-<p>return: return 0 if success, other if error.</p>
-</li>
-<li><p class="first">int unassign_iommu_device(struct iommu_domain *domain,</p>
-<p>uint8_t bus, uint8_t devfun);</p>
-<p>Unassign a device specified by bus &amp; devfun from a iommu domain.</p>
-<p>domain: specified the domain the device should be removed from.</p>
-<p>bus: the 8-bit bus value of the pass-through device.</p>
-<p>devfun: the 8-bit device function value of the pass-through device.</p>
-<p>return: return 0 if success, other if error.</p>
-</li>
+<dl class="function">
+<dt id="_CPPv319create_iommu_domain8uint16_t8uint64_t8uint32_t">
+<span id="_CPPv219create_iommu_domain8uint16_t8uint64_t8uint32_t"></span><span id="create_iommu_domain__uint16_t.uint64_t.uint32_t"></span><span class="target" id="group__acrn__vtd_gaba95f222a198012d104904b2af05c41d_1gaba95f222a198012d104904b2af05c41d"></span><em class="property">struct</em> iommu_domain *<code class="descname">create_iommu_domain</code><span class="sig-paren">(</span>uint16_t <em>vm_id</em>, uint64_t <em>translation_table</em>, uint32_t <em>addr_width</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319create_iommu_domain8uint16_t8uint64_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create a iommu domain for a VM specified by vm_id. </p>
+<p>Create a iommu domain for a VM specified by vm_id, along with address translation table and address width.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>Pointer pointer to iommu_domain </dd>
+<dt><strong>Return</strong></dt>
+<dd>NULL if translation_table is 0</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm_id is valid </dd>
+<dt><strong>Pre</strong></dt>
+<dd>translation_table != 0 </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm_id</span></code>: vm_id of the VM the domain created for </li>
+<li><code class="docutils literal notranslate"><span class="pre">translation_table</span></code>: the physcial address of EPT table of the VM specified by the vm_id </li>
+<li><code class="docutils literal notranslate"><span class="pre">addr_width</span></code>: address width of the VM</li>
 </ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv320destroy_iommu_domainP12iommu_domain">
+<span id="_CPPv220destroy_iommu_domainP12iommu_domain"></span><span id="destroy_iommu_domain__iommu_domainP"></span><span class="target" id="group__acrn__vtd_gaa16e8c3c620417c727777046afb4f7b9_1gaa16e8c3c620417c727777046afb4f7b9"></span>void <code class="descname">destroy_iommu_domain</code><span class="sig-paren">(</span><em class="property">struct</em> iommu_domain *<em>domain</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320destroy_iommu_domainP12iommu_domain" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Destroy the specific iommu domain. </p>
+<p>Destroy the specific iommu domain when a VM no longer needs it.</p>
+<p><dl class="docutils">
+<dt><strong>Pre</strong></dt>
+<dd>domain != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">domain</span></code>: iommu domain to destroy</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313suspend_iommuv">
+<span id="_CPPv213suspend_iommuv"></span><span id="suspend_iommu__void"></span><span class="target" id="group__acrn__vtd_gae85498d73de3c208c8a91c81ea66bf15_1gae85498d73de3c208c8a91c81ea66bf15"></span>void <code class="descname">suspend_iommu</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313suspend_iommuv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Suspend IOMMUs. </p>
+<p>Suspend all IOMMUs, which are not ignored on the platform. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv312resume_iommuv">
+<span id="_CPPv212resume_iommuv"></span><span id="resume_iommu__void"></span><span class="target" id="group__acrn__vtd_gad36722b1490fc891f9e13632c5da5eaf_1gad36722b1490fc891f9e13632c5da5eaf"></span>void <code class="descname">resume_iommu</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv312resume_iommuv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Resume IOMMUs. </p>
+<p>Resume all IOMMUs, which are not ignored on the platform. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv319assign_iommu_devicePK12iommu_domain7uint8_t7uint8_t">
+<span id="_CPPv219assign_iommu_devicePK12iommu_domain7uint8_t7uint8_t"></span><span id="assign_iommu_device__iommu_domainCP.uint8_t.uint8_t"></span><span class="target" id="group__acrn__vtd_ga58fb441f8d4dfd8d4b2a56129a2371df_1ga58fb441f8d4dfd8d4b2a56129a2371df"></span>int <code class="descname">assign_iommu_device</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> iommu_domain *<em>domain</em>, uint8_t <em>bus</em>, uint8_t <em>devfun</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319assign_iommu_devicePK12iommu_domain7uint8_t7uint8_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Assign a device specified by bus &amp; devfun to a iommu domain. </p>
+<p>Remove the device from the VM0 domain (if present), and add it to the specific domain.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 - on success. </dd>
+<dt><strong>Return</strong></dt>
+<dd>1 - fail to unassign the device</dd>
+<dt><strong>Pre</strong></dt>
+<dd>domain != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">domain</span></code>: iommu domain the device is assigned to </li>
+<li><code class="docutils literal notranslate"><span class="pre">bus</span></code>: the 8-bit bus number of the device </li>
+<li><code class="docutils literal notranslate"><span class="pre">devfun</span></code>: the 8-bit device(5-bit):function(3-bit) of the device</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv321unassign_iommu_devicePK12iommu_domain7uint8_t7uint8_t">
+<span id="_CPPv221unassign_iommu_devicePK12iommu_domain7uint8_t7uint8_t"></span><span id="unassign_iommu_device__iommu_domainCP.uint8_t.uint8_t"></span><span class="target" id="group__acrn__vtd_gafe4a7e6acf9b0948eb5eccdc7a186e4f_1gafe4a7e6acf9b0948eb5eccdc7a186e4f"></span>int <code class="descname">unassign_iommu_device</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> iommu_domain *<em>domain</em>, uint8_t <em>bus</em>, uint8_t <em>devfun</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv321unassign_iommu_devicePK12iommu_domain7uint8_t7uint8_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Unassign a device specified by bus &amp; devfun from a iommu domain . </p>
+<p>Remove the device from the specific domain, and then add it to the VM0 domain (if present).</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 - on success. </dd>
+<dt><strong>Return</strong></dt>
+<dd>1 - fail to unassign the device</dd>
+<dt><strong>Pre</strong></dt>
+<dd>domain != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">domain</span></code>: iommu domain the device is assigned to </li>
+<li><code class="docutils literal notranslate"><span class="pre">bus</span></code>: the 8-bit bus number of the device </li>
+<li><code class="docutils literal notranslate"><span class="pre">devfun</span></code>: the 8-bit device(5-bit):function(3-bit) of the device</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 </div>
 </div>
@@ -892,7 +998,7 @@ is removed from VM0 domain and added to the domain specified.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

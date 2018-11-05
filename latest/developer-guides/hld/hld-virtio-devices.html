@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Virtio-blk" href="virtio-blk.html" />
-    <link rel="prev" title="Watchdog Virtualization in Device Model" href="watchdog-hld.html" /> 
+    <link rel="prev" title="GVT-g high-level design" href="hld-APL_GVT-g.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Virtio Devices</a><ul>
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
@@ -568,10 +591,10 @@ virtio drivers, the hypervisor  provides the virtio backend service
 device in the hypervisor.</p>
 <p>The virtio APIs can be divided into 3 groups: DM APIs, virtio backend
 service (VBS) APIs, and virtqueue (VQ) APIs, as shown in
-<a class="reference internal" href="#be-interface"><span class="std std-numref">Figure 110</span></a>.</p>
+<a class="reference internal" href="#be-interface"><span class="std std-numref">Figure 114</span></a>.</p>
 <div class="figure align-center" id="be-interface">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image0.png"><img alt="../../_images/virtio-hld-image0.png" src="../../_images/virtio-hld-image0.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 110 </span><span class="caption-text">ACRN Virtio Backend Service Interface</span></p>
+<p class="caption"><span class="caption-number">Figure 114 </span><span class="caption-text">ACRN Virtio Backend Service Interface</span></p>
 </div>
 <ul class="simple">
 <li><strong>DM APIs</strong> are exported by the DM, and are mainly used during the
@@ -652,7 +675,7 @@ possible. This will give an efficient implementation for
 performance-critical devices.</dd>
 <dt>Standard: virtqueue</dt>
 <dd><p class="first">All virtio devices share a standard ring buffer and descriptor
-mechanism, called a virtqueue, shown in <a class="reference internal" href="#virtqueue"><span class="std std-numref">Figure 111</span></a>. A virtqueue is a
+mechanism, called a virtqueue, shown in <a class="reference internal" href="#virtqueue"><span class="std std-numref">Figure 115</span></a>. A virtqueue is a
 queue of scatter-gather buffers. There are three important methods on
 virtqueues:</p>
 <ul class="simple">
@@ -672,7 +695,7 @@ OS for more details about the virtqueue implementation.)</p>
 </dl>
 <div class="figure align-center" id="virtqueue">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image2.png"><img alt="../../_images/virtio-hld-image2.png" src="../../_images/virtio-hld-image2.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 111 </span><span class="caption-text">Virtqueue</span></p>
+<p class="caption"><span class="caption-number">Figure 115 </span><span class="caption-text">Virtqueue</span></p>
 </div>
 <dl class="docutils">
 <dt>Extensible: feature bits</dt>
@@ -715,7 +738,7 @@ introduce ACRN specific implementations of the virtio framework.</p>
 <div class="section" id="architecture">
 <h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
 <p>Virtio adopts a frontend-backend
-architecture, as shown in <a class="reference internal" href="#virtio-arch"><span class="std std-numref">Figure 112</span></a>. Basically the FE and BE driver
+architecture, as shown in <a class="reference internal" href="#virtio-arch"><span class="std std-numref">Figure 116</span></a>. Basically the FE and BE driver
 communicate with each other through shared memory, via the
 virtqueues. The FE driver talks to the BE driver in the same way it
 would talk to a real PCIe device. The BE driver handles requests
@@ -723,17 +746,17 @@ from the FE driver, and notifies the FE driver if the request has been
 processed.</p>
 <div class="figure align-center" id="virtio-arch">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image1.png"><img alt="../../_images/virtio-hld-image1.png" src="../../_images/virtio-hld-image1.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 112 </span><span class="caption-text">Virtio Architecture</span></p>
+<p class="caption"><span class="caption-number">Figure 116 </span><span class="caption-text">Virtio Architecture</span></p>
 </div>
 <p>In addition to virtio’s frontend-backend architecture, both FE and BE
 drivers follow a layered architecture, as shown in
-<a class="reference internal" href="#virtio-fe-be"><span class="std std-numref">Figure 113</span></a>. Each
+<a class="reference internal" href="#virtio-fe-be"><span class="std std-numref">Figure 117</span></a>. Each
 side has three layers: transports, core models, and device types.
 All virtio devices share the same virtio infrastructure, including
 virtqueues, feature mechanisms, configuration space, and buses.</p>
 <div class="figure align-center" id="virtio-fe-be">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image4.png"><img alt="../../_images/virtio-hld-image4.png" src="../../_images/virtio-hld-image4.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 113 </span><span class="caption-text">Virtio Frontend/Backend Layered Architecture</span></p>
+<p class="caption"><span class="caption-number">Figure 117 </span><span class="caption-text">Virtio Frontend/Backend Layered Architecture</span></p>
 </div>
 </div>
 <div class="section" id="virtio-framework-considerations">
@@ -756,7 +779,7 @@ framework.</p>
 <div class="section" id="user-land-virtio-framework">
 <h3>User-Land Virtio Framework<a class="headerlink" href="#user-land-virtio-framework" title="Permalink to this headline">¶</a></h3>
 <p>The architecture of ACRN user-land virtio framework (VBS-U) is shown in
-<a class="reference internal" href="#virtio-userland"><span class="std std-numref">Figure 114</span></a>.</p>
+<a class="reference internal" href="#virtio-userland"><span class="std std-numref">Figure 118</span></a>.</p>
 <p>The FE driver talks to the BE driver as if it were talking with a PCIe
 device. This means for “control plane”, the FE driver could poke device
 registers through PIO or MMIO, and the device will interrupt the FE
@@ -772,13 +795,13 @@ remote memory map APIs and notification APIs. VBS-U accesses the
 virtqueue through the user-level vring service API helpers.</p>
 <div class="figure align-center" id="virtio-userland">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image3.png"><img alt="../../_images/virtio-hld-image3.png" src="../../_images/virtio-hld-image3.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 114 </span><span class="caption-text">ACRN User-Land Virtio Framework</span></p>
+<p class="caption"><span class="caption-number">Figure 118 </span><span class="caption-text">ACRN User-Land Virtio Framework</span></p>
 </div>
 </div>
 <div class="section" id="kernel-land-virtio-framework">
 <h3>Kernel-Land Virtio Framework<a class="headerlink" href="#kernel-land-virtio-framework" title="Permalink to this headline">¶</a></h3>
 <p>The architecture of ACRN kernel-land virtio framework (VBS-K) is shown
-in <a class="reference internal" href="#virtio-kernelland"><span class="std std-numref">Figure 115</span></a>.</p>
+in <a class="reference internal" href="#virtio-kernelland"><span class="std std-numref">Figure 119</span></a>.</p>
 <p>VBS-K provides acceleration for performance critical devices emulated by
 VBS-U modules by handling the “data plane” of the devices directly in
 the kernel. When VBS-K is enabled for certain device, the kernel-land
@@ -798,7 +821,7 @@ in the VBS-U or VBS-K model. This saves engineering effort regarding FE
 driver development.</p>
 <div class="figure align-center" id="virtio-kernelland">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image6.png"><img alt="../../_images/virtio-hld-image6.png" src="../../_images/virtio-hld-image6.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 115 </span><span class="caption-text">ACRN Kernel-Land Virtio Framework</span></p>
+<p class="caption"><span class="caption-number">Figure 119 </span><span class="caption-text">ACRN Kernel-Land Virtio Framework</span></p>
 </div>
 </div>
 </div>
@@ -811,7 +834,7 @@ these APIs.</p>
 <div class="section" id="vbs-u-key-data-structures">
 <h3>VBS-U Key Data Structures<a class="headerlink" href="#vbs-u-key-data-structures" title="Permalink to this headline">¶</a></h3>
 <p>The key data structures for VBS-U are listed as following, and their
-relationships are shown in <a class="reference internal" href="#vbs-u-data"><span class="std std-numref">Figure 116</span></a>.</p>
+relationships are shown in <a class="reference internal" href="#vbs-u-data"><span class="std std-numref">Figure 120</span></a>.</p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">pci_virtio_blk</span></code></dt>
 <dd>An example virtio device, such as virtio-blk.</dd>
@@ -830,7 +853,7 @@ of device.</dd>
 </dl>
 <div class="figure align-center" id="vbs-u-data">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image5.png"><img alt="../../_images/virtio-hld-image5.png" src="../../_images/virtio-hld-image5.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 116 </span><span class="caption-text">VBS-U Key Data Structures</span></p>
+<p class="caption"><span class="caption-number">Figure 120 </span><span class="caption-text">VBS-U Key Data Structures</span></p>
 </div>
 <p>Each virtio device is a PCIe device. In addition, each virtio device
 could have none or multiple virtqueues, depending on the device type.
@@ -842,7 +865,7 @@ device owner.</p>
 <div class="section" id="vbs-k-key-data-structures">
 <h3>VBS-K Key Data Structures<a class="headerlink" href="#vbs-k-key-data-structures" title="Permalink to this headline">¶</a></h3>
 <p>The key data structures for VBS-K are listed as follows, and their
-relationships are shown in <a class="reference internal" href="#vbs-k-data"><span class="std std-numref">Figure 117</span></a>.</p>
+relationships are shown in <a class="reference internal" href="#vbs-k-data"><span class="std std-numref">Figure 121</span></a>.</p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">vbs_k_rng</span></code></dt>
 <dd>In-kernel VBS-K component handling data plane of a
@@ -864,7 +887,7 @@ to be synchronized from VBS-U to VBS-K kernel module.</dd>
 </dl>
 <div class="figure align-center" id="vbs-k-data">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image8.png"><img alt="../../_images/virtio-hld-image8.png" src="../../_images/virtio-hld-image8.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 117 </span><span class="caption-text">VBS-K Key Data Structures</span></p>
+<p class="caption"><span class="caption-number">Figure 121 </span><span class="caption-text">VBS-K Key Data Structures</span></p>
 </div>
 <p>In VBS-K, the struct vbs_k_xxx represents the in-kernel component
 handling a virtio device’s data plane. It presents a char device for VBS-U
@@ -879,11 +902,303 @@ common to all VBS-K modules, are the counterparts to preserve the
 related information. The related information is necessary to kernel-land
 vring service API helpers.</p>
 </div>
+<div class="section" id="vhost-key-data-structures">
+<h3>VHOST Key Data Structures<a class="headerlink" href="#vhost-key-data-structures" title="Permalink to this headline">¶</a></h3>
+<p>The key data structures for vhost are listed as follows.</p>
+<dl class="class">
+<dt id="_CPPv39vhost_dev">
+<span id="_CPPv29vhost_dev"></span><span id="vhost_dev"></span><span class="target" id="structvhost__dev"></span><em class="property">struct </em><code class="descname">vhost_dev</code><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev4baseE">
+<span id="_CPPv2N9vhost_dev4baseE"></span><span id="vhost_dev::base__virtio_baseP"></span><span class="target" id="structvhost__dev_1a10abac3d807b2d5a5d3053e74c0956ed"></span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<code class="descname">base</code><br /></dt>
+<dd><p>backpointer to <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a> </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev3vqsE">
+<span id="_CPPv2N9vhost_dev3vqsE"></span><span id="vhost_dev::vqs__vhost_vqP"></span><span class="target" id="structvhost__dev_1a4dedabe176e36265df328de91e98a7cf"></span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv38vhost_vq" title="vhost_vq">vhost_vq</a> *<code class="descname">vqs</code><br /></dt>
+<dd><p>pointer to <a class="reference internal" href="#structvhost__vq"><span class="std std-ref">vhost_vq</span></a> array </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev4nvqsE">
+<span id="_CPPv2N9vhost_dev4nvqsE"></span><span id="vhost_dev::nvqs__i"></span><span class="target" id="structvhost__dev_1a330822a8e9e1a1026e88714f38ca93c5"></span>int <code class="descname">nvqs</code><br /></dt>
+<dd><p>number of virtqueues </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev2fdE">
+<span id="_CPPv2N9vhost_dev2fdE"></span><span id="vhost_dev::fd__i"></span><span class="target" id="structvhost__dev_1aa306906f69edb8ae63babe809f93fa18"></span>int <code class="descname">fd</code><br /></dt>
+<dd><p>vhost chardev fd </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev6vq_idxE">
+<span id="_CPPv2N9vhost_dev6vq_idxE"></span><span id="vhost_dev::vq_idx__i"></span><span class="target" id="structvhost__dev_1af36066bae94445b716e013c5cbf3c629"></span>int <code class="descname">vq_idx</code><br /></dt>
+<dd><p>first vq’s index in <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a> </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev14vhost_featuresE">
+<span id="_CPPv2N9vhost_dev14vhost_featuresE"></span><span id="vhost_dev::vhost_features__uint64_t"></span><span class="target" id="structvhost__dev_1a6fee409d54e412f1f9edc32f12c38c77"></span>uint64_t <code class="descname">vhost_features</code><br /></dt>
+<dd><p>supported virtio defined features </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev18vhost_ext_featuresE">
+<span id="_CPPv2N9vhost_dev18vhost_ext_featuresE"></span><span id="vhost_dev::vhost_ext_features__uint64_t"></span><span class="target" id="structvhost__dev_1a502bf71d018c42ee01c854877f016a01"></span>uint64_t <code class="descname">vhost_ext_features</code><br /></dt>
+<dd><p>vhost self-defined internal features bits used for communicate between vhost user-space and kernel-space modules </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev16busyloop_timeoutE">
+<span id="_CPPv2N9vhost_dev16busyloop_timeoutE"></span><span id="vhost_dev::busyloop_timeout__uint32_t"></span><span class="target" id="structvhost__dev_1a4b2c85c512ca6c9699ed49813abbeab8"></span>uint32_t <code class="descname">busyloop_timeout</code><br /></dt>
+<dd><p>vq busyloop timeout in us </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N9vhost_dev7startedE">
+<span id="_CPPv2N9vhost_dev7startedE"></span><span id="vhost_dev::started__b"></span><span class="target" id="structvhost__dev_1ad8b623a504a600b17d206522cd8f63b7"></span>bool <code class="descname">started</code><br /></dt>
+<dd><p>whether vhost is started </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="_CPPv38vhost_vq">
+<span id="_CPPv28vhost_vq"></span><span id="vhost_vq"></span><span class="target" id="structvhost__vq"></span><em class="property">struct </em><code class="descname">vhost_vq</code><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N8vhost_vq7kick_fdE">
+<span id="_CPPv2N8vhost_vq7kick_fdE"></span><span id="vhost_vq::kick_fd__i"></span><span class="target" id="structvhost__vq_1a45fee69c676a0ad317020bb9935525e6"></span>int <code class="descname">kick_fd</code><br /></dt>
+<dd><p>fd of kick eventfd </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N8vhost_vq7call_fdE">
+<span id="_CPPv2N8vhost_vq7call_fdE"></span><span id="vhost_vq::call_fd__i"></span><span class="target" id="structvhost__vq_1a888d0b963986ce93f6d819c5e290052e"></span>int <code class="descname">call_fd</code><br /></dt>
+<dd><p>fd of call eventfd </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N8vhost_vq3idxE">
+<span id="_CPPv2N8vhost_vq3idxE"></span><span id="vhost_vq::idx__i"></span><span class="target" id="structvhost__vq_1a443f2b32acc22cc112d9af0a74a81b99"></span>int <code class="descname">idx</code><br /></dt>
+<dd><p>index of this vq in vhost dev </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N8vhost_vq4mevpE">
+<span id="_CPPv2N8vhost_vq4mevpE"></span><span id="vhost_vq::mevp__meventP"></span><span class="target" id="structvhost__vq_1a1521be04fd1c165701222ffcd72eab83"></span><em class="property">struct</em> mevent *<code class="descname">mevp</code><br /></dt>
+<dd><p>mevent for call eventfd </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N8vhost_vq3devE">
+<span id="_CPPv2N8vhost_vq3devE"></span><span id="vhost_vq::dev__vhost_devP"></span><span class="target" id="structvhost__vq_1a1b2f4c43e79ec489420465834de968a5"></span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv39vhost_dev" title="vhost_dev">vhost_dev</a> *<code class="descname">dev</code><br /></dt>
+<dd><p>pointer to <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a> </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</div>
 <div class="section" id="dm-apis">
 <h3>DM APIs<a class="headerlink" href="#dm-apis" title="Permalink to this headline">¶</a></h3>
 <p>The DM APIs are exported by DM, and they should be used when realizing
 BE device drivers on ACRN.</p>
-<p>[API Material from doxygen comments]</p>
+<dl class="function">
+<dt id="_CPPv316paddr_guest2hostP5vmctx9uintptr_t6size_t">
+<span id="_CPPv216paddr_guest2hostP5vmctx9uintptr_t6size_t"></span><span id="paddr_guest2host__vmctxP.uintptr_t.s"></span><span class="target" id="dm_8h_a0786526ab7fe72a62139d716002252b2_1a0786526ab7fe72a62139d716002252b2"></span>void *<code class="descname">paddr_guest2host</code><span class="sig-paren">(</span><em class="property">struct</em> vmctx *<em>ctx</em>, uintptr_t <em>gaddr</em>, size_t <em>len</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316paddr_guest2hostP5vmctx9uintptr_t6size_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Convert guest physical address to host virtual address. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>NULL on convert failed and host virtual address on successful. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">ctx</span></code>: Pointer to to struct vmctx representing VM context. </li>
+<li><code class="docutils literal notranslate"><span class="pre">gaddr</span></code>: Guest physical address base. </li>
+<li><code class="docutils literal notranslate"><span class="pre">len</span></code>: Guest physical address length.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316pci_set_cfgdata8P8pci_vdevi7uint8_t">
+<span id="_CPPv216pci_set_cfgdata8P8pci_vdevi7uint8_t"></span><span id="pci_set_cfgdata8__pci_vdevP.i.uint8_t"></span><span class="target" id="pci__core_8h_a6264ffd9fa24869901a64734fa546d44_1a6264ffd9fa24869901a64734fa546d44"></span><em class="property">static</em> void <code class="descname">pci_set_cfgdata8</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>offset</em>, uint8_t <em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316pci_set_cfgdata8P8pci_vdevi7uint8_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set virtual PCI device’s configuration space in 1 byte width. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">offset</span></code>: Offset in configuration space. </li>
+<li><code class="docutils literal notranslate"><span class="pre">val</span></code>: Value in 1 byte.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317pci_set_cfgdata16P8pci_vdevi8uint16_t">
+<span id="_CPPv217pci_set_cfgdata16P8pci_vdevi8uint16_t"></span><span id="pci_set_cfgdata16__pci_vdevP.i.uint16_t"></span><span class="target" id="pci__core_8h_a5cb403e54fe234f2d579f57d639936c6_1a5cb403e54fe234f2d579f57d639936c6"></span><em class="property">static</em> void <code class="descname">pci_set_cfgdata16</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>offset</em>, uint16_t <em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317pci_set_cfgdata16P8pci_vdevi8uint16_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set virtual PCI device’s configuration space in 2 bytes width. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">offset</span></code>: Offset in configuration space. </li>
+<li><code class="docutils literal notranslate"><span class="pre">val</span></code>: Value in 2 bytes.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317pci_set_cfgdata32P8pci_vdevi8uint32_t">
+<span id="_CPPv217pci_set_cfgdata32P8pci_vdevi8uint32_t"></span><span id="pci_set_cfgdata32__pci_vdevP.i.uint32_t"></span><span class="target" id="pci__core_8h_a80c9634b8fa82a1d967084f221f9ac40_1a80c9634b8fa82a1d967084f221f9ac40"></span><em class="property">static</em> void <code class="descname">pci_set_cfgdata32</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>offset</em>, uint32_t <em>val</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317pci_set_cfgdata32P8pci_vdevi8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set virtual PCI device’s configuration space in 4 bytes width. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">offset</span></code>: Offset in configuration space. </li>
+<li><code class="docutils literal notranslate"><span class="pre">val</span></code>: Value in 4 bytes.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316pci_get_cfgdata8P8pci_vdevi">
+<span id="_CPPv216pci_get_cfgdata8P8pci_vdevi"></span><span id="pci_get_cfgdata8__pci_vdevP.i"></span><span class="target" id="pci__core_8h_ad034a56fee14a18fca72ac07e40e29b2_1ad034a56fee14a18fca72ac07e40e29b2"></span><em class="property">static</em> uint8_t <code class="descname">pci_get_cfgdata8</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>offset</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316pci_get_cfgdata8P8pci_vdevi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get virtual PCI device’s configuration space in 1 byte width. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The configuration value in 1 byte. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">offset</span></code>: Offset in configuration space.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317pci_get_cfgdata16P8pci_vdevi">
+<span id="_CPPv217pci_get_cfgdata16P8pci_vdevi"></span><span id="pci_get_cfgdata16__pci_vdevP.i"></span><span class="target" id="pci__core_8h_a3acaa9c40c11340ab28223e2d126dbad_1a3acaa9c40c11340ab28223e2d126dbad"></span><em class="property">static</em> uint16_t <code class="descname">pci_get_cfgdata16</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>offset</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317pci_get_cfgdata16P8pci_vdevi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get virtual PCI device’s configuration space in 2 byte width. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The configuration value in 2 bytes. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">offset</span></code>: Offset in configuration space.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317pci_get_cfgdata32P8pci_vdevi">
+<span id="_CPPv217pci_get_cfgdata32P8pci_vdevi"></span><span id="pci_get_cfgdata32__pci_vdevP.i"></span><span class="target" id="pci__core_8h_a48f74f44bf24eb0da4269e0f31fff32c_1a48f74f44bf24eb0da4269e0f31fff32c"></span><em class="property">static</em> uint32_t <code class="descname">pci_get_cfgdata32</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>offset</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317pci_get_cfgdata32P8pci_vdevi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get virtual PCI device’s configuration space in 4 byte width. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The configuration value in 4 bytes. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">offset</span></code>: Offset in configuration space.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316pci_lintr_assertP8pci_vdev">
+<span id="_CPPv216pci_lintr_assertP8pci_vdev"></span><span id="pci_lintr_assert__pci_vdevP"></span><span class="target" id="pci__core_8h_a951af567a09e5fb452dd5cc23d0a769d_1a951af567a09e5fb452dd5cc23d0a769d"></span>void <code class="descname">pci_lintr_assert</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316pci_lintr_assertP8pci_vdev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Assert INTx pin of virtual PCI device. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv318pci_lintr_deassertP8pci_vdev">
+<span id="_CPPv218pci_lintr_deassertP8pci_vdev"></span><span id="pci_lintr_deassert__pci_vdevP"></span><span class="target" id="pci__core_8h_a8ffb472d1b181f406d3272525c1cba9f_1a8ffb472d1b181f406d3272525c1cba9f"></span>void <code class="descname">pci_lintr_deassert</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv318pci_lintr_deassertP8pci_vdev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Deassert INTx pin of virtual PCI device. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316pci_generate_msiP8pci_vdevi">
+<span id="_CPPv216pci_generate_msiP8pci_vdevi"></span><span id="pci_generate_msi__pci_vdevP.i"></span><span class="target" id="pci__core_8h_a1a4de8a361b9557cb43b3fd6faa6a122_1a1a4de8a361b9557cb43b3fd6faa6a122"></span>void <code class="descname">pci_generate_msi</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316pci_generate_msiP8pci_vdevi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Generate a MSI interrupt to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">index</span></code>: Message data index.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317pci_generate_msixP8pci_vdevi">
+<span id="_CPPv217pci_generate_msixP8pci_vdevi"></span><span id="pci_generate_msix__pci_vdevP.i"></span><span class="target" id="pci__core_8h_aca11504b194a6b93387b88c6ee34009a_1aca11504b194a6b93387b88c6ee34009a"></span>void <code class="descname">pci_generate_msix</code><span class="sig-paren">(</span><em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317pci_generate_msixP8pci_vdevi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Generate a MSI-X interrupt to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev representing virtual PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">index</span></code>: MSIs table entry index.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="vbs-apis">
 <h3>VBS APIs<a class="headerlink" href="#vbs-apis" title="Permalink to this headline">¶</a></h3>
@@ -894,7 +1209,283 @@ listed as follows.</p>
 <h4>VBS-U APIs<a class="headerlink" href="#vbs-u-apis" title="Permalink to this headline">¶</a></h4>
 <p>These APIs provided by VBS-U are callbacks to be registered to DM, and
 the virtio framework within DM will invoke them appropriately.</p>
-<p>[API Material from doxygen comments]</p>
+<dl class="class">
+<dt id="_CPPv310virtio_ops">
+<span id="_CPPv210virtio_ops"></span><span id="virtio_ops"></span><span class="target" id="structvirtio__ops"></span><em class="property">struct </em><code class="descname">virtio_ops</code><br /></dt>
+<dd><p>Virtio specific operation functions for this type of virtio device. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops4nameE">
+<span id="_CPPv2N10virtio_ops4nameE"></span><span id="virtio_ops::name__cCP"></span><span class="target" id="structvirtio__ops_aa720435650ac37c1d8871bc46cb27408_1aa720435650ac37c1d8871bc46cb27408"></span><em class="property">const</em> char *<code class="descname">name</code><br /></dt>
+<dd><p>name of driver (for diagnostics) </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops3nvqE">
+<span id="_CPPv2N10virtio_ops3nvqE"></span><span id="virtio_ops::nvq__i"></span><span class="target" id="structvirtio__ops_a6864da48732afe577d0aa1387b9109f3_1a6864da48732afe577d0aa1387b9109f3"></span>int <code class="descname">nvq</code><br /></dt>
+<dd><p>number of virtual queues </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops7cfgsizeE">
+<span id="_CPPv2N10virtio_ops7cfgsizeE"></span><span id="virtio_ops::cfgsize__s"></span><span class="target" id="structvirtio__ops_ad949d3f6a3e7ad177920b03250d00858_1ad949d3f6a3e7ad177920b03250d00858"></span>size_t <code class="descname">cfgsize</code><br /></dt>
+<dd><p>size of dev-specific config regs </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops5resetE">
+<span id="_CPPv2N10virtio_ops5resetE"></span><span class="target" id="structvirtio__ops_a2f1937d6b9f77bba4c970c7e34357127_1a2f1937d6b9f77bba4c970c7e34357127"></span>void (*<code class="descname">reset</code>)<span class="sig-paren">(</span>void *<span class="sig-paren">)</span><br /></dt>
+<dd><p>called on virtual device reset </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops7qnotifyE">
+<span id="_CPPv2N10virtio_ops7qnotifyE"></span><span class="target" id="structvirtio__ops_a7cc877a8ceedb62170b7efe5f9c05c07_1a7cc877a8ceedb62170b7efe5f9c05c07"></span>void (*<code class="descname">qnotify</code>)<span class="sig-paren">(</span>void *, <em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv314virtio_vq_info" title="virtio_vq_info">virtio_vq_info</a> *<span class="sig-paren">)</span><br /></dt>
+<dd><p>called on QNOTIFY if no VQ notify </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops7cfgreadE">
+<span id="_CPPv2N10virtio_ops7cfgreadE"></span><span class="target" id="structvirtio__ops_a01ef568be15481d1a1f1993bebd5c0ba_1a01ef568be15481d1a1f1993bebd5c0ba"></span>int (*<code class="descname">cfgread</code>)<span class="sig-paren">(</span>void *, int, int, uint32_t *<span class="sig-paren">)</span><br /></dt>
+<dd><p>to read config regs </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops8cfgwriteE">
+<span id="_CPPv2N10virtio_ops8cfgwriteE"></span><span class="target" id="structvirtio__ops_aa9c07b86d04a5e0b0be9019b8b75e47f_1aa9c07b86d04a5e0b0be9019b8b75e47f"></span>int (*<code class="descname">cfgwrite</code>)<span class="sig-paren">(</span>void *, int, int, uint32_t<span class="sig-paren">)</span><br /></dt>
+<dd><p>to write config regs </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops14apply_featuresE">
+<span id="_CPPv2N10virtio_ops14apply_featuresE"></span><span class="target" id="structvirtio__ops_a6d43e204b685db7fed9153bce64a67b6_1a6d43e204b685db7fed9153bce64a67b6"></span>void (*<code class="descname">apply_features</code>)<span class="sig-paren">(</span>void *, uint64_t<span class="sig-paren">)</span><br /></dt>
+<dd><p>to apply negotiated features </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10virtio_ops10set_statusE">
+<span id="_CPPv2N10virtio_ops10set_statusE"></span><span class="target" id="structvirtio__ops_a074e3cd37173e7cb6fa4fe07f409a40c_1a074e3cd37173e7cb6fa4fe07f409a40c"></span>void (*<code class="descname">set_status</code>)<span class="sig-paren">(</span>void *, uint64_t<span class="sig-paren">)</span><br /></dt>
+<dd><p>called to set device status </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv315virtio_pci_readP5vmctxiP8pci_vdevi8uint64_ti">
+<span id="_CPPv215virtio_pci_readP5vmctxiP8pci_vdevi8uint64_ti"></span><span id="virtio_pci_read__vmctxP.i.pci_vdevP.i.uint64_t.i"></span><span class="target" id="group__acrn__virtio_ga870a59e709a2f2df8d189fbb9afc8977_1ga870a59e709a2f2df8d189fbb9afc8977"></span>uint64_t <code class="descname">virtio_pci_read</code><span class="sig-paren">(</span><em class="property">struct</em> vmctx *<em>ctx</em>, int <em>vcpu</em>, <em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>baridx</em>, uint64_t <em>offset</em>, int <em>size</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Handle PCI configuration space reads. </p>
+<p>Handle virtio standard register reads, and dispatch other reads to actual virtio device driver.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>register value. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">ctx</span></code>: Pointer to struct vmctx representing VM context. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: VCPU ID. </li>
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev which emulates a PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">baridx</span></code>: Which BAR[0..5] to use. </li>
+<li><code class="docutils literal notranslate"><span class="pre">offset</span></code>: Register offset in bytes within a BAR region. </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: Access range in bytes.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316virtio_pci_writeP5vmctxiP8pci_vdevi8uint64_ti8uint64_t">
+<span id="_CPPv216virtio_pci_writeP5vmctxiP8pci_vdevi8uint64_ti8uint64_t"></span><span id="virtio_pci_write__vmctxP.i.pci_vdevP.i.uint64_t.i.uint64_t"></span><span class="target" id="group__acrn__virtio_ga7c84301965b6a744ffaa05c9534d3776_1ga7c84301965b6a744ffaa05c9534d3776"></span>void <code class="descname">virtio_pci_write</code><span class="sig-paren">(</span><em class="property">struct</em> vmctx *<em>ctx</em>, int <em>vcpu</em>, <em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>baridx</em>, uint64_t <em>offset</em>, int <em>size</em>, uint64_t <em>value</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Handle PCI configuration space writes. </p>
+<p>Handle virtio standard register writes, and dispatch other writes to actual virtio device driver.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">ctx</span></code>: Pointer to struct vmctx representing VM context. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: VCPU ID. </li>
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev which emulates a PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">baridx</span></code>: Which BAR[0..5] to use. </li>
+<li><code class="docutils literal notranslate"><span class="pre">offset</span></code>: Register offset in bytes within a BAR region. </li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: Access range in bytes. </li>
+<li><code class="docutils literal notranslate"><span class="pre">value</span></code>: Data value to be written into register.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316virtio_dev_errorP11virtio_base">
+<span id="_CPPv216virtio_dev_errorP11virtio_base"></span><span id="virtio_dev_error__virtio_baseP"></span><span class="target" id="group__acrn__virtio_ga1b4299c937d7c32f99f65953705a4280_1ga1b4299c937d7c32f99f65953705a4280"></span>void <code class="descname">virtio_dev_error</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>base</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Indicate the device has experienced an error. </p>
+<p>This is called when the device has experienced an error from which it cannot re-cover. DEVICE_NEEDS_RESET is set to the device status register and a config change intr is sent to the guest driver.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv321virtio_interrupt_initP11virtio_basei">
+<span id="_CPPv221virtio_interrupt_initP11virtio_basei"></span><span id="virtio_interrupt_init__virtio_baseP.i"></span><span class="target" id="group__acrn__virtio_ga632fc0b42bdaa53abc5a70237560b115_1ga632fc0b42bdaa53abc5a70237560b115"></span>int <code class="descname">virtio_interrupt_init</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>base</em>, int <em>use_msix</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Initialize MSI-X vector capabilities if we’re to use MSI-X, or MSI capabilities if not. </p>
+<p>Wrapper function for virtio_intr_init() for cases we directly use BAR 1 for MSI-X capabilities.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success and non-zero on fail. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">use_msix</span></code>: If using MSI-X.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313virtio_linkupP11virtio_baseP10virtio_opsPvP8pci_vdevP14virtio_vq_info">
+<span id="_CPPv213virtio_linkupP11virtio_baseP10virtio_opsPvP8pci_vdevP14virtio_vq_info"></span><span id="virtio_linkup__virtio_baseP.virtio_opsP.voidP.pci_vdevP.virtio_vq_infoP"></span><span class="target" id="group__acrn__virtio_ga21c677ddba89fc36d17bb343a31f2e83_1ga21c677ddba89fc36d17bb343a31f2e83"></span>void <code class="descname">virtio_linkup</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>base</em>, <em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv310virtio_ops" title="virtio_ops">virtio_ops</a> *<em>vops</em>, void *<em>pci_virtio_dev</em>, <em class="property">struct</em> pci_vdev *<em>dev</em>, <em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv314virtio_vq_info" title="virtio_vq_info">virtio_vq_info</a> *<em>queues</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Link a <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a> to its constants, the virtio device, and the PCI emulation. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vops</span></code>: Pointer to struct <a class="reference internal" href="#structvirtio__ops"><span class="std std-ref">virtio_ops</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">pci_virtio_dev</span></code>: Pointer to instance of certain virtio device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev which emulates a PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">queues</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>, normally an array.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316virtio_reset_devP11virtio_base">
+<span id="_CPPv216virtio_reset_devP11virtio_base"></span><span id="virtio_reset_dev__virtio_baseP"></span><span class="target" id="group__acrn__virtio_ga27308a4652e4afcfecb6d6b3a593dff4_1ga27308a4652e4afcfecb6d6b3a593dff4"></span>void <code class="descname">virtio_reset_dev</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>base</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Reset device (device-wide). </p>
+<p>This erases all queues, i.e., all the queues become invalid. But we don’t wipe out the internal pointers, by just clearing the VQ_ALLOC flag.</p>
+<p>It resets negotiated features to “none”. If MSI-X is enabled, this also resets all the vectors to NO_VECTOR.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317virtio_set_io_barP11virtio_basei">
+<span id="_CPPv217virtio_set_io_barP11virtio_basei"></span><span id="virtio_set_io_bar__virtio_baseP.i"></span><span class="target" id="group__acrn__virtio_ga865818acaf99dbe32274184404694bd4_1ga865818acaf99dbe32274184404694bd4"></span>void <code class="descname">virtio_set_io_bar</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>base</em>, int <em>barnum</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set I/O BAR (usually 0) to map PCI config registers. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">barnum</span></code>: Which BAR[0..5] to use.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv321virtio_set_modern_barP11virtio_baseb">
+<span id="_CPPv221virtio_set_modern_barP11virtio_baseb"></span><span id="virtio_set_modern_bar__virtio_baseP.b"></span><span class="target" id="group__acrn__virtio_gab44a15ccd237384a0417e59251c61a44_1gab44a15ccd237384a0417e59251c61a44"></span>int <code class="descname">virtio_set_modern_bar</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>base</em>, bool <em>use_notify_pio</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set modern BAR (usually 4) to map PCI config registers. </p>
+<p>Set modern MMIO BAR (usually 4) to map virtio 1.0 capabilities and optional set modern PIO BAR (usually 2) to map notify capability. This interface is only valid for modern virtio.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success and non-zero on fail. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">use_notify_pio</span></code>: Whether use pio for notify capability.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv325virtio_pci_modern_cfgreadP5vmctxiP8pci_vdeviiP8uint32_t">
+<span id="_CPPv225virtio_pci_modern_cfgreadP5vmctxiP8pci_vdeviiP8uint32_t"></span><span id="virtio_pci_modern_cfgread__vmctxP.i.pci_vdevP.i.i.uint32_tP"></span><span class="target" id="group__acrn__virtio_ga262a216d30cb75d6539689a946f5566c_1ga262a216d30cb75d6539689a946f5566c"></span>int <code class="descname">virtio_pci_modern_cfgread</code><span class="sig-paren">(</span><em class="property">struct</em> vmctx *<em>ctx</em>, int <em>vcpu</em>, <em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>coff</em>, int <em>bytes</em>, uint32_t *<em>rv</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Handle PCI configuration space reads. </p>
+<p>Handle virtio PCI configuration space reads. Only the specific registers that need speical operation are handled in this callback. For others just fallback to pci core. This interface is only valid for virtio modern.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on handled and non-zero on non-handled. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">ctx</span></code>: Pointer to struct vmctx representing VM context. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: VCPU ID. </li>
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev which emulates a PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">coff</span></code>: Register offset in bytes within PCI configuration space. </li>
+<li><code class="docutils literal notranslate"><span class="pre">bytes</span></code>: Access range in bytes. </li>
+<li><code class="docutils literal notranslate"><span class="pre">rv</span></code>: The value returned as read.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv326virtio_pci_modern_cfgwriteP5vmctxiP8pci_vdevii8uint32_t">
+<span id="_CPPv226virtio_pci_modern_cfgwriteP5vmctxiP8pci_vdevii8uint32_t"></span><span id="virtio_pci_modern_cfgwrite__vmctxP.i.pci_vdevP.i.i.uint32_t"></span><span class="target" id="group__acrn__virtio_ga5b4a1995280d5f87c3183cddd32a484c_1ga5b4a1995280d5f87c3183cddd32a484c"></span>int <code class="descname">virtio_pci_modern_cfgwrite</code><span class="sig-paren">(</span><em class="property">struct</em> vmctx *<em>ctx</em>, int <em>vcpu</em>, <em class="property">struct</em> pci_vdev *<em>dev</em>, int <em>coff</em>, int <em>bytes</em>, uint32_t <em>val</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Handle PCI configuration space writes. </p>
+<p>Handle virtio PCI configuration space writes. Only the specific registers that need speical operation are handled in this callback. For others just fallback to pci core. This interface is only valid for virtio modern.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on handled and non-zero on non-handled. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">ctx</span></code>: Pointer to struct vmctx representing VM context. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: VCPU ID. </li>
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct pci_vdev which emulates a PCI device. </li>
+<li><code class="docutils literal notranslate"><span class="pre">coff</span></code>: Register offset in bytes within PCI configuration space. </li>
+<li><code class="docutils literal notranslate"><span class="pre">bytes</span></code>: Access range in bytes. </li>
+<li><code class="docutils literal notranslate"><span class="pre">val</span></code>: The value to write.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv321virtio_config_changedP11virtio_base">
+<span id="_CPPv221virtio_config_changedP11virtio_base"></span><span id="virtio_config_changed__virtio_baseP"></span><span class="target" id="group__acrn__virtio_ga1cb99243ea7470fb699614f1250ad2f9_1ga1cb99243ea7470fb699614f1250ad2f9"></span><em class="property">static</em> void <code class="descname">virtio_config_changed</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>vb</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Deliver an config changed interrupt to guest. </p>
+<p>MSI-X or a generic MSI interrupt with config changed event.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>NULL. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vb</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="vbs-k-apis">
 <h4>VBS-K APIs<a class="headerlink" href="#vbs-k-apis" title="Permalink to this headline">¶</a></h4>
@@ -902,12 +1493,372 @@ the virtio framework within DM will invoke them appropriately.</p>
 the following APIs to implement their VBS-K modules.</p>
 <div class="section" id="apis-provided-by-dm">
 <h5>APIs provided by DM<a class="headerlink" href="#apis-provided-by-dm" title="Permalink to this headline">¶</a></h5>
-<p>[API Material from doxygen comments]</p>
+<dl class="function">
+<dt id="_CPPv316vbs_kernel_reseti">
+<span id="_CPPv216vbs_kernel_reseti"></span><span id="vbs_kernel_reset__i"></span><span class="target" id="group__acrn__virtio_ga3ba613b74f38a172eee96af7051623ce_1ga3ba613b74f38a172eee96af7051623ce"></span>int <code class="descname">vbs_kernel_reset</code><span class="sig-paren">(</span>int <em>fd</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Virtio kernel module reset. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on OK and non-zero on error. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">fd</span></code>: File descriptor representing virtio backend in kernel module.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316vbs_kernel_startiP12vbs_dev_infoP12vbs_vqs_info">
+<span id="_CPPv216vbs_kernel_startiP12vbs_dev_infoP12vbs_vqs_info"></span><span id="vbs_kernel_start__i.vbs_dev_infoP.vbs_vqs_infoP"></span><span class="target" id="group__acrn__virtio_gadbf23e7f64582b751f98a5101d41b1aa_1gadbf23e7f64582b751f98a5101d41b1aa"></span>int <code class="descname">vbs_kernel_start</code><span class="sig-paren">(</span>int <em>fd</em>, <em class="property">struct</em> vbs_dev_info *<em>dev</em>, <em class="property">struct</em> vbs_vqs_info *<em>vqs</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Virtio kernel module start. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on OK and non-zero on error. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">fd</span></code>: File descriptor representing virtio backend in kernel module. </li>
+<li><code class="docutils literal notranslate"><span class="pre">dev</span></code>: Pointer to struct vbs_dev_info. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vqs</span></code>: Pointer to struct vbs_vqs_info.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv315vbs_kernel_stopi">
+<span id="_CPPv215vbs_kernel_stopi"></span><span id="vbs_kernel_stop__i"></span><span class="target" id="group__acrn__virtio_ga1855aabe947afeebe1ed6de66abc39da_1ga1855aabe947afeebe1ed6de66abc39da"></span>int <code class="descname">vbs_kernel_stop</code><span class="sig-paren">(</span>int <em>fd</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Virtio kernel module stop. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on OK and non-zero on error. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">fd</span></code>: File descriptor representing virtio backend in kernel module.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="apis-provided-by-vbs-k-modules-in-service-os">
 <h5>APIs provided by VBS-K modules in service OS<a class="headerlink" href="#apis-provided-by-vbs-k-modules-in-service-os" title="Permalink to this headline">¶</a></h5>
-<p>[API Material from doxygen comments]</p>
+<dl class="function">
+<dt id="c.virtio_dev_init">
+long <code class="descname">virtio_dev_init</code><span class="sig-paren">(</span>struct virtio_dev_info *<em>&nbsp;dev</em>, struct virtio_vq_info *<em>&nbsp;vqs</em>, int<em>&nbsp;nvq</em><span class="sig-paren">)</span><a class="headerlink" href="#c.virtio_dev_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize VBS-K device data structures</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_dev_info</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
+<dd>Pointer to VBS-K device data struct</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_vq_info</span> <span class="pre">*</span> <span class="pre">vqs</span></code></dt>
+<dd>Pointer to VBS-K virtqueue data struct, normally in an array</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">nvq</span></code></dt>
+<dd>Number of virtqueues this device has</dd>
+</dl>
+<p><strong>Return</strong></p>
+<p>0 on success, &lt;0 on error</p>
+<dl class="function">
+<dt id="c.virtio_dev_ioctl">
+long <code class="descname">virtio_dev_ioctl</code><span class="sig-paren">(</span>struct virtio_dev_info *<em>&nbsp;dev</em>, unsigned int<em>&nbsp;ioctl</em>, void __user *<em>&nbsp;argp</em><span class="sig-paren">)</span><a class="headerlink" href="#c.virtio_dev_ioctl" title="Permalink to this definition">¶</a></dt>
+<dd><p>VBS-K device’s common ioctl routine</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_dev_info</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
+<dd>Pointer to VBS-K device data struct</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">ioctl</span></code></dt>
+<dd>Command of ioctl to device</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">__user</span> <span class="pre">*</span> <span class="pre">argp</span></code></dt>
+<dd>Data from user space</dd>
+</dl>
+<p><strong>Return</strong></p>
+<p>0 on success, &lt;0 on error</p>
+<dl class="function">
+<dt id="c.virtio_vqs_ioctl">
+long <code class="descname">virtio_vqs_ioctl</code><span class="sig-paren">(</span>struct virtio_dev_info *<em>&nbsp;dev</em>, unsigned int<em>&nbsp;ioctl</em>, void __user *<em>&nbsp;argp</em><span class="sig-paren">)</span><a class="headerlink" href="#c.virtio_vqs_ioctl" title="Permalink to this definition">¶</a></dt>
+<dd><p>VBS-K vq’s common ioctl routine</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_dev_info</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
+<dd>Pointer to VBS-K device data struct</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">int</span> <span class="pre">ioctl</span></code></dt>
+<dd>Command of ioctl to virtqueue</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">__user</span> <span class="pre">*</span> <span class="pre">argp</span></code></dt>
+<dd>Data from user space</dd>
+</dl>
+<p><strong>Return</strong></p>
+<p>0 on success, &lt;0 on error</p>
+<dl class="function">
+<dt id="c.virtio_dev_register">
+long <code class="descname">virtio_dev_register</code><span class="sig-paren">(</span>struct virtio_dev_info *<em>&nbsp;dev</em><span class="sig-paren">)</span><a class="headerlink" href="#c.virtio_dev_register" title="Permalink to this definition">¶</a></dt>
+<dd><p>register a VBS-K device to VHM</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_dev_info</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
+<dd>Pointer to VBS-K device data struct</dd>
+</dl>
+<p><strong>Description</strong></p>
+<p>Each VBS-K device will be registered as a VHM client, with the
+information including “kick” register location, callback, etc.</p>
+<p><strong>Return</strong></p>
+<p>0 on success, &lt;0 on error</p>
+<dl class="function">
+<dt id="c.virtio_dev_deregister">
+long <code class="descname">virtio_dev_deregister</code><span class="sig-paren">(</span>struct virtio_dev_info *<em>&nbsp;dev</em><span class="sig-paren">)</span><a class="headerlink" href="#c.virtio_dev_deregister" title="Permalink to this definition">¶</a></dt>
+<dd><p>unregister a VBS-K device from VHM</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_dev_info</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
+<dd>Pointer to VBS-K device data struct</dd>
+</dl>
+<p><strong>Description</strong></p>
+<p>Destroy the client corresponding to the VBS-K device specified.</p>
+<p><strong>Return</strong></p>
+<p>0 on success, &lt;0 on error</p>
+<dl class="function">
+<dt id="c.virtio_vqs_index_get">
+int <code class="descname">virtio_vqs_index_get</code><span class="sig-paren">(</span>struct virtio_dev_info *<em>&nbsp;dev</em>, unsigned long *<em>&nbsp;ioreqs_map</em>, int *<em>&nbsp;vqs_index</em>, int<em>&nbsp;max_vqs_index</em><span class="sig-paren">)</span><a class="headerlink" href="#c.virtio_vqs_index_get" title="Permalink to this definition">¶</a></dt>
+<dd><p>get virtqueue indexes that frontend kicks</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_dev_info</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
+<dd>Pointer to VBS-K device data struct</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">unsigned</span> <span class="pre">long</span> <span class="pre">*</span> <span class="pre">ioreqs_map</span></code></dt>
+<dd>requests bitmap need to handle, provided by VHM</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">*</span> <span class="pre">vqs_index</span></code></dt>
+<dd>array to store the vq indexes</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">max_vqs_index</span></code></dt>
+<dd>size of vqs_index array</dd>
+</dl>
+<p><strong>Description</strong></p>
+<p>This API is normally called in the VBS-K device’s callback
+function, to get value write to the “kick” register from
+frontend.</p>
+<p><strong>Return</strong></p>
+<p>Number of vq request</p>
+<dl class="function">
+<dt id="c.virtio_dev_reset">
+long <code class="descname">virtio_dev_reset</code><span class="sig-paren">(</span>struct virtio_dev_info *<em>&nbsp;dev</em><span class="sig-paren">)</span><a class="headerlink" href="#c.virtio_dev_reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>reset a VBS-K device</p>
+</dd></dl>
+
+<p><strong>Parameters</strong></p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_dev_info</span> <span class="pre">*</span> <span class="pre">dev</span></code></dt>
+<dd>Pointer to VBS-K device data struct</dd>
+</dl>
+<p><strong>Return</strong></p>
+<p>0 on success, &lt;0 on error</p>
 </div>
+</div>
+</div>
+<div class="section" id="vhost-apis">
+<h3>VHOST APIS<a class="headerlink" href="#vhost-apis" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id1">
+<h4>APIs provided by DM<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="_CPPv314vhost_dev_initP9vhost_devP11virtio_baseii8uint64_t8uint64_t8uint32_t">
+<span id="_CPPv214vhost_dev_initP9vhost_devP11virtio_baseii8uint64_t8uint64_t8uint32_t"></span><span id="vhost_dev_init__vhost_devP.virtio_baseP.i.i.uint64_t.uint64_t.uint32_t"></span><span class="target" id="group__acrn__virtio_ga8dc97b068b037992400bf5bf1b3003e5_1ga8dc97b068b037992400bf5bf1b3003e5"></span>int <code class="descname">vhost_dev_init</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv39vhost_dev" title="vhost_dev">vhost_dev</a> *<em>vdev</em>, <em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>base</em>, int <em>fd</em>, int <em>vq_idx</em>, uint64_t <em>vhost_features</em>, uint64_t <em>vhost_ext_features</em>, uint32_t <em>busyloop_timeout</em><span class="sig-paren">)</span><br /></dt>
+<dd><p><a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a> initialization. </p>
+<p>This interface is called to initialize the <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>. It must be called before the actual feature negotiation with the guest OS starts.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success and -1 on failure. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vdev</span></code>: Pointer to struct <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">fd</span></code>: fd of the vhost chardev. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vq_idx</span></code>: The first virtqueue which would be used by this vhost dev. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vhost_features</span></code>: Subset of vhost features which would be enabled. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vhost_ext_features</span></code>: Specific vhost internal features to be enabled. </li>
+<li><code class="docutils literal notranslate"><span class="pre">busyloop_timeout</span></code>: Busy loop timeout in us.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316vhost_dev_deinitP9vhost_dev">
+<span id="_CPPv216vhost_dev_deinitP9vhost_dev"></span><span id="vhost_dev_deinit__vhost_devP"></span><span class="target" id="group__acrn__virtio_gaf1f298cb8a5cd78b94d2a0f694032528_1gaf1f298cb8a5cd78b94d2a0f694032528"></span>int <code class="descname">vhost_dev_deinit</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv39vhost_dev" title="vhost_dev">vhost_dev</a> *<em>vdev</em><span class="sig-paren">)</span><br /></dt>
+<dd><p><a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a> cleanup. </p>
+<p>This interface is called to cleanup the <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success and -1 on failure. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vdev</span></code>: Pointer to struct <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv315vhost_dev_startP9vhost_dev">
+<span id="_CPPv215vhost_dev_startP9vhost_dev"></span><span id="vhost_dev_start__vhost_devP"></span><span class="target" id="group__acrn__virtio_gae52620479a2a3a8f9dd63a1a6cb9d1e2_1gae52620479a2a3a8f9dd63a1a6cb9d1e2"></span>int <code class="descname">vhost_dev_start</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv39vhost_dev" title="vhost_dev">vhost_dev</a> *<em>vdev</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>start vhost data plane. </p>
+<p>This interface is called to start the data plane in vhost.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success and -1 on failure. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vdev</span></code>: Pointer to struct <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314vhost_dev_stopP9vhost_dev">
+<span id="_CPPv214vhost_dev_stopP9vhost_dev"></span><span id="vhost_dev_stop__vhost_devP"></span><span class="target" id="group__acrn__virtio_ga63bd8dc90015ca243c17243eb3e5a4e5_1ga63bd8dc90015ca243c17243eb3e5a4e5"></span>int <code class="descname">vhost_dev_stop</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv39vhost_dev" title="vhost_dev">vhost_dev</a> *<em>vdev</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>stop vhost data plane. </p>
+<p>This interface is called to stop the data plane in vhost.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>0 on success and -1 on failure. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vdev</span></code>: Pointer to struct <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="section" id="linux-vhost-ioctls">
+<h4>Linux vhost IOCTLs<a class="headerlink" href="#linux-vhost-ioctls" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_GET_FEATURES</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">_IOR(VHOST_VIRTIO,</span> <span class="pre">0x00,</span> <span class="pre">__u64)</span></code></dt>
+<dd>This IOCTL is used to get the supported feature flags by vhost kernel driver.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_FEATURES</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x00,</span> <span class="pre">__u64)</span></code></dt>
+<dd>This IOCTL is used to set the supported feature flags to vhost kernel driver.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_OWNER</span> <span class="pre">_IO(VHOST_VIRTIO,</span> <span class="pre">0x01)</span></code></dt>
+<dd>This IOCTL is used to set current process as the exclusive owner of the vhost
+char device. It must be called before any other vhost commands.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_RESET_OWNER</span> <span class="pre">_IO(VHOST_VIRTIO,</span> <span class="pre">0x02)</span></code></dt>
+<dd>This IOCTL is used to give up the ownership of the vhost char device.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_MEM_TABLE</span>&#160;&#160;&#160;&#160; <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x03,</span> <span class="pre">struct</span> <span class="pre">vhost_memory)</span></code></dt>
+<dd>This IOCTL is used to convey the guest OS memory layout to vhost kernel driver.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_NUM</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x10,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_state)</span></code></dt>
+<dd>This IOCTL is used to set the number of descriptors in virtio ring. It cannot
+be modified while the virtio ring is running.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_ADDR</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x11,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_addr)</span></code></dt>
+<dd>This IOCTL is used to set the address of the virtio ring.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_BASE</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x12,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_state)</span></code></dt>
+<dd>This IOCTL is used to set the base value where virtqueue looks for available
+descriptors.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_GET_VRING_BASE</span> <span class="pre">_IOWR(VHOST_VIRTIO,</span> <span class="pre">0x12,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_state)</span></code></dt>
+<dd>This IOCTL is used to get the base value where virtqueue looks for available
+descriptors.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_KICK</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x20,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_file)</span></code></dt>
+<dd>This IOCTL is used to set the eventfd on which vhost can poll for guest
+virtqueue kicks.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_CALL</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x21,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_file)</span></code></dt>
+<dd>This IOCTL is used to set the eventfd which is used by vhost do inject
+virtual interrupt.</dd>
+</dl>
+</div>
+<div class="section" id="vhm-eventfd-ioctls">
+<h4>VHM eventfd IOCTLs<a class="headerlink" href="#vhm-eventfd-ioctls" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="_CPPv314acrn_ioeventfd">
+<span id="_CPPv214acrn_ioeventfd"></span><span id="acrn_ioeventfd"></span><span class="target" id="structacrn__ioeventfd"></span><em class="property">struct </em><code class="descname">acrn_ioeventfd</code><a class="headerlink" href="#_CPPv314acrn_ioeventfd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N14acrn_ioeventfd2fdE">
+<span id="_CPPv2N14acrn_ioeventfd2fdE"></span><span id="acrn_ioeventfd::fd__int32_t"></span><span class="target" id="structacrn__ioeventfd_1ad9b91c5054afbc57abb281bdfa23e029"></span>int32_t <code class="descname">fd</code><a class="headerlink" href="#_CPPv3N14acrn_ioeventfd2fdE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>file descriptor of the eventfd of this ioeventfd </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N14acrn_ioeventfd5flagsE">
+<span id="_CPPv2N14acrn_ioeventfd5flagsE"></span><span id="acrn_ioeventfd::flags__uint32_t"></span><span class="target" id="structacrn__ioeventfd_1a7beb7403124e65f81dbe54318f81b8a6"></span>uint32_t <code class="descname">flags</code><a class="headerlink" href="#_CPPv3N14acrn_ioeventfd5flagsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>flag for ioeventfd ioctl </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N14acrn_ioeventfd4addrE">
+<span id="_CPPv2N14acrn_ioeventfd4addrE"></span><span id="acrn_ioeventfd::addr__uint64_t"></span><span class="target" id="structacrn__ioeventfd_1ab9f354d6ef8b0a588f4df9e16ab3bba3"></span>uint64_t <code class="descname">addr</code><a class="headerlink" href="#_CPPv3N14acrn_ioeventfd4addrE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>base address to be monitored </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N14acrn_ioeventfd3lenE">
+<span id="_CPPv2N14acrn_ioeventfd3lenE"></span><span id="acrn_ioeventfd::len__uint32_t"></span><span class="target" id="structacrn__ioeventfd_1a3f20ba032f193740a991d2396d8e9b07"></span>uint32_t <code class="descname">len</code><a class="headerlink" href="#_CPPv3N14acrn_ioeventfd3lenE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>address length </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N14acrn_ioeventfd8reservedE">
+<span id="_CPPv2N14acrn_ioeventfd8reservedE"></span><span id="acrn_ioeventfd::reserved__uint32_t"></span><span class="target" id="structacrn__ioeventfd_1a6bcf8674973480be8b465649e7b24743"></span>uint32_t <code class="descname">reserved</code><a class="headerlink" href="#_CPPv3N14acrn_ioeventfd8reservedE" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N14acrn_ioeventfd4dataE">
+<span id="_CPPv2N14acrn_ioeventfd4dataE"></span><span id="acrn_ioeventfd::data__uint64_t"></span><span class="target" id="structacrn__ioeventfd_1a1c0b17ea568cb5cf798dd58fd76592ca"></span>uint64_t <code class="descname">data</code><a class="headerlink" href="#_CPPv3N14acrn_ioeventfd4dataE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>data to be matched </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">IC_EVENT_IOEVENTFD</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">_IC_ID(IC_ID,</span> <span class="pre">IC_ID_EVENT_BASE</span> <span class="pre">+</span> <span class="pre">0x00)</span></code></dt>
+<dd>This IOCTL is used to register/unregister ioeventfd with appropriate address,
+length and data value.</dd>
+</dl>
+<dl class="class">
+<dt id="_CPPv310acrn_irqfd">
+<span id="_CPPv210acrn_irqfd"></span><span id="acrn_irqfd"></span><span class="target" id="structacrn__irqfd"></span><em class="property">struct </em><code class="descname">acrn_irqfd</code><a class="headerlink" href="#_CPPv310acrn_irqfd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric">Public Members</p>
+<dl class="member">
+<dt id="_CPPv3N10acrn_irqfd2fdE">
+<span id="_CPPv2N10acrn_irqfd2fdE"></span><span id="acrn_irqfd::fd__int32_t"></span><span class="target" id="structacrn__irqfd_1a36a9d29cb559afc31a78fcd926592d62"></span>int32_t <code class="descname">fd</code><a class="headerlink" href="#_CPPv3N10acrn_irqfd2fdE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>file descriptor of the eventfd of this irqfd </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10acrn_irqfd5flagsE">
+<span id="_CPPv2N10acrn_irqfd5flagsE"></span><span id="acrn_irqfd::flags__uint32_t"></span><span class="target" id="structacrn__irqfd_1a39afe5459cd3437abcfc3449a97570ed"></span>uint32_t <code class="descname">flags</code><a class="headerlink" href="#_CPPv3N10acrn_irqfd5flagsE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>flag for irqfd ioctl </p>
+</dd></dl>
+
+<dl class="member">
+<dt id="_CPPv3N10acrn_irqfd3msiE">
+<span id="_CPPv2N10acrn_irqfd3msiE"></span><span id="acrn_irqfd::msi__acrn_msi_entry"></span><span class="target" id="structacrn__irqfd_1ae6bf2d213fa9f6b792339cafde5e0187"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#_CPPv314acrn_msi_entry" title="acrn_msi_entry">acrn_msi_entry</a> <code class="descname">msi</code><a class="headerlink" href="#_CPPv3N10acrn_irqfd3msiE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>MSI interrupt to be injected </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">IC_EVENT_IRQFD</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">_IC_ID(IC_ID,</span> <span class="pre">IC_ID_EVENT_BASE</span> <span class="pre">+</span> <span class="pre">0x01)</span></code></dt>
+<dd>This IOCTL is used to register/unregister irqfd with appropriate MSI information.</dd>
+</dl>
 </div>
 </div>
 <div class="section" id="vq-apis">
@@ -919,7 +1870,96 @@ structures within the virtqueues. In addition, the VQ APIs are designed
 to be identical between VBS-U and VBS-K, so that users don’t need to
 learn different APIs when implementing BE drivers based on VBS-U and
 VBS-K.</p>
-<p>[API Material from doxygen comments]</p>
+<dl class="function">
+<dt id="_CPPv312vq_interruptP11virtio_baseP14virtio_vq_info">
+<span id="_CPPv212vq_interruptP11virtio_baseP14virtio_vq_info"></span><span id="vq_interrupt__virtio_baseP.virtio_vq_infoP"></span><span class="target" id="group__acrn__virtio_gab9ac943633756d546f493cdf599be2d0_1gab9ac943633756d546f493cdf599be2d0"></span><em class="property">static</em> void <code class="descname">vq_interrupt</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv311virtio_base" title="virtio_base">virtio_base</a> *<em>vb</em>, <em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv314virtio_vq_info" title="virtio_vq_info">virtio_vq_info</a> *<em>vq</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Deliver an interrupt to guest on the given virtqueue. </p>
+<p>The interrupt could be MSI-X or a generic MSI interrupt.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vb</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">vq</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311vq_getchainP14virtio_vq_infoP8uint16_tP5ioveciP8uint16_t">
+<span id="_CPPv211vq_getchainP14virtio_vq_infoP8uint16_tP5ioveciP8uint16_t"></span><span id="vq_getchain__virtio_vq_infoP.uint16_tP.iovecP.i.uint16_tP"></span><span class="target" id="group__acrn__virtio_ga6151242983e210464a81191ab08dc65e_1ga6151242983e210464a81191ab08dc65e"></span>int <code class="descname">vq_getchain</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv314virtio_vq_info" title="virtio_vq_info">virtio_vq_info</a> *<em>vq</em>, uint16_t *<em>pidx</em>, <em class="property">struct</em> iovec *<em>iov</em>, int <em>n_iov</em>, uint16_t *<em>flags</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Walk through the chain of descriptors involved in a request and put them into a given iov[] array. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>number of descriptors. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vq</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">pidx</span></code>: Pointer to available ring position. </li>
+<li><code class="docutils literal notranslate"><span class="pre">iov</span></code>: Pointer to iov[] array prepared by caller. </li>
+<li><code class="docutils literal notranslate"><span class="pre">n_iov</span></code>: Size of iov[] array. </li>
+<li><code class="docutils literal notranslate"><span class="pre">flags</span></code>: Pointer to a uint16_t array which will contain flag of each descriptor.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311vq_retchainP14virtio_vq_info">
+<span id="_CPPv211vq_retchainP14virtio_vq_info"></span><span id="vq_retchain__virtio_vq_infoP"></span><span class="target" id="group__acrn__virtio_ga4ef2599c65a377ad557dbe22a740cae0_1ga4ef2599c65a377ad557dbe22a740cae0"></span>void <code class="descname">vq_retchain</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv314virtio_vq_info" title="virtio_vq_info">virtio_vq_info</a> *<em>vq</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Return the currently-first request chain back to the available ring. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vq</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311vq_relchainP14virtio_vq_info8uint16_t8uint32_t">
+<span id="_CPPv211vq_relchainP14virtio_vq_info8uint16_t8uint32_t"></span><span id="vq_relchain__virtio_vq_infoP.uint16_t.uint32_t"></span><span class="target" id="group__acrn__virtio_ga16a059574b916608a272e33ba11ce919_1ga16a059574b916608a272e33ba11ce919"></span>void <code class="descname">vq_relchain</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv314virtio_vq_info" title="virtio_vq_info">virtio_vq_info</a> *<em>vq</em>, uint16_t <em>idx</em>, uint32_t <em>iolen</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Return specified request chain to the guest, setting its I/O length to the provided value. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vq</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">idx</span></code>: Pointer to available ring position, returned by <a class="reference internal" href="#group__acrn__virtio_ga6151242983e210464a81191ab08dc65e_1ga6151242983e210464a81191ab08dc65e"><span class="std std-ref">vq_getchain()</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">iolen</span></code>: Number of data bytes to be returned to frontend.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv312vq_endchainsP14virtio_vq_infoi">
+<span id="_CPPv212vq_endchainsP14virtio_vq_infoi"></span><span id="vq_endchains__virtio_vq_infoP.i"></span><span class="target" id="group__acrn__virtio_ga8f921c6bccf1b9770f16bcc8c0590698_1ga8f921c6bccf1b9770f16bcc8c0590698"></span>void <code class="descname">vq_endchains</code><span class="sig-paren">(</span><em class="property">struct</em> <a class="reference internal" href="../../api/devicemodel_api.html#_CPPv314virtio_vq_info" title="virtio_vq_info">virtio_vq_info</a> *<em>vq</em>, int <em>used_all_avail</em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Driver has finished processing “available” chains and calling vq_relchain on each one. </p>
+<p>If driver used all the available chains, used_all_avail need to be set to 1.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>N/A </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vq</span></code>: Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>. </li>
+<li><code class="docutils literal notranslate"><span class="pre">used_all_avail</span></code>: Flag indicating if driver used all available chains.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 <p>Below is an example showing a typical logic of how a BE driver handles
 requests from a FE driver.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">BE_callback</span><span class="p">(</span><span class="k">struct</span> <span class="n">pci_virtio_xxx</span> <span class="o">*</span><span class="n">pv</span><span class="p">,</span> <span class="k">struct</span> <span class="n">vqueue_info</span> <span class="o">*</span><span class="n">vq</span> <span class="p">)</span> <span class="p">{</span>
@@ -1039,7 +2079,7 @@ supported in ACRN.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

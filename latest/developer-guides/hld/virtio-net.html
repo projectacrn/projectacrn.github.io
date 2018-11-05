@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a><ul class="current">
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
@@ -575,12 +598,12 @@ the virtio specification. (Refer to <a class="reference internal" href="../../in
 <div class="section" id="network-virtualization-architecture">
 <h2>Network Virtualization Architecture<a class="headerlink" href="#network-virtualization-architecture" title="Permalink to this headline">¶</a></h2>
 <p>ACRN’s network virtualization architecture is shown below in
-<a class="reference internal" href="#net-virt-arch"><span class="std std-numref">Figure 120</span></a>, and illustrates the many necessary network
+<a class="reference internal" href="#net-virt-arch"><span class="std std-numref">Figure 124</span></a>, and illustrates the many necessary network
 virtualization components that must cooperate for the UOS to send and
 receive data from the outside world.</p>
 <div class="figure align-center" id="net-virt-arch">
 <a class="reference internal image-reference" href="../../_images/network-virt-arch.png"><img alt="../../_images/network-virt-arch.png" src="../../_images/network-virt-arch.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 120 </span><span class="caption-text">Network Virtualization Architecture</span></p>
+<p class="caption"><span class="caption-number">Figure 124 </span><span class="caption-text">Network Virtualization Architecture</span></p>
 </div>
 <p>(The green components are parts of the ACRN solution, while the gray
 components are parts of the Linux kernel.)</p>
@@ -635,7 +658,7 @@ returning data from the NIC to the frontend.</p>
 <div class="section" id="acrn-virtio-network-calling-stack">
 <h2>ACRN Virtio-Network Calling Stack<a class="headerlink" href="#acrn-virtio-network-calling-stack" title="Permalink to this headline">¶</a></h2>
 <p>Various components of ACRN network virtualization are shown in the
-architecture diagram shows in <a class="reference internal" href="#net-virt-arch"><span class="std std-numref">Figure 120</span></a>.  In this section,
+architecture diagram shows in <a class="reference internal" href="#net-virt-arch"><span class="std std-numref">Figure 124</span></a>.  In this section,
 we will use UOS data transmission (TX) and reception (RX) examples to
 explain step-by-step how these components work together to implement
 ACRN network virtualization.</p>
@@ -892,13 +915,13 @@ cases.)</p>
 </div>
 <div class="section" id="how-to-use">
 <h3>How to Use<a class="headerlink" href="#how-to-use" title="Permalink to this headline">¶</a></h3>
-<p>The network infrastructure shown in <a class="reference internal" href="#net-virt-infra"><span class="std std-numref">Figure 121</span></a> needs to be
+<p>The network infrastructure shown in <a class="reference internal" href="#net-virt-infra"><span class="std std-numref">Figure 125</span></a> needs to be
 prepared in the SOS before we start. We need to create a bridge and at
 least one tap device (two tap devices are needed to create a dual
 virtual NIC) and attach a physical NIC and tap device to the bridge.</p>
 <div class="figure align-center" id="net-virt-infra">
 <a class="reference internal image-reference" href="../../_images/network-virt-sos-infrastruct.png"><img alt="../../_images/network-virt-sos-infrastruct.png" src="../../_images/network-virt-sos-infrastruct.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 121 </span><span class="caption-text">Network Infrastructure in SOS</span></p>
+<p class="caption"><span class="caption-number">Figure 125 </span><span class="caption-text">Network Infrastructure in SOS</span></p>
 </div>
 <p>You can use Linux commands (e.g. ip, brctl) to create this network. In
 our case, we use systemd to automatically create the network by default.
@@ -1008,7 +1031,7 @@ is simple and reasonable.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 

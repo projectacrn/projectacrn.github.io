@@ -249,9 +249,11 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-emulated-devices.html">Emulated Devices</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/usb-virt-hld.html">USB Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/uart-virt-hld.html">UART virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/hld/hld-virtio-devices.html">Virtio Devices</a><ul>
@@ -356,6 +358,27 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/trusty.html#api">API</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../developer-guides/l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../developer-guides/l1tf.html#mitigation-status">Mitigation Status</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api/index.html">API Documentation</a><ul>
@@ -666,6 +689,9 @@ git config --global user.email <span class="s2">&quot;david.developer@company.co
 </ul>
 <p>Depending on your Linux version, install the needed tools:</p>
 <ul>
+<li><p class="first">For Clear Linux: follow the <a class="reference internal" href="../getting-started/apl-nuc.html#getting-started-apl-nuc"><span class="std std-ref">Getting started guide for Intel NUC</span></a> to install
+all the tools required</p>
+</li>
 <li><p class="first">For Ubuntu use:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install doxygen python3-pip <span class="se">\</span>
   python3-wheel make graphviz
@@ -678,11 +704,22 @@ git config --global user.email <span class="s2">&quot;david.developer@company.co
 </div>
 </li>
 </ul>
-<p>And for either Linux environment, install the remaining python-based
+<p>And for any of these Linux environments, install the remaining python-based
 tools:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/projectacrn/acrn-hypervisor/doc
 pip3 install --user -r scripts/requirements.txt
 </pre></div>
+</div>
+<p>Add <code class="docutils literal notranslate"><span class="pre">$HOME/.local/bin</span></code> to the front of your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> so the system will
+find expected versions of python utilities such as <code class="docutils literal notranslate"><span class="pre">sphinx-build</span></code> and
+<code class="docutils literal notranslate"><span class="pre">breathe</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">printf</span> <span class="s2">&quot;\nexport PATH=\$HOME/.local/bin:\$PATH&quot;</span> &gt;&gt; ~/.bashrc
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You will need to open a new terminal for this change to be effective.
+Adding this to your <code class="docutils literal notranslate"><span class="pre">~/.bashrc</span></code> file ensures it is set by default.</p>
 </div>
 <p>And with that you’re ready to generate the documentation.</p>
 <div class="admonition note">
@@ -821,7 +858,7 @@ found there.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Oct 31, 2018.
+      Last updated on Nov 04, 2018.
 
     </p>
   </div> 
