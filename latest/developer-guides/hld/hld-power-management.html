@@ -270,7 +270,11 @@
 <li class="toctree-l4"><a class="reference internal" href="hld-vm-management.html#vm-state-management">VM State management</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Power Management</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Power Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#p-state-c-state-management">P-state/C-state management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#s3-s5">S3/S5</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hld-vsbl.html">Virtual Bootloader</a></li>
 <li class="toctree-l3"><a class="reference internal" href="hld-security.html">Security</a><ul>
@@ -584,6 +588,160 @@
             
   <div class="section" id="power-management-high-level-design">
 <span id="hld-power-management"></span><h1>Power Management high-level design<a class="headerlink" href="#power-management-high-level-design" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="p-state-c-state-management">
+<h2>P-state/C-state management<a class="headerlink" href="#p-state-c-state-management" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="acpi-px-cx-data">
+<h3>ACPI Px/Cx data<a class="headerlink" href="#acpi-px-cx-data" title="Permalink to this headline">¶</a></h3>
+<p>CPU P-state/C-state are controlled by the guest OS. The ACPI
+P/C-state driver relies on some P/C-state-related ACPI data in the guest
+ACPI table.</p>
+<p>SOS could run ACPI driver with no problem because it can access native
+the ACPI table. For UOS though, we need to prepare the corresponding ACPI data
+for Device Model to build virtual ACPI table.</p>
+<p>The Px/Cx data includes four
+ACPI objects: _PCT, _PPC, and _PSS for P-state management, and _CST for
+C-state management. All these ACPI data must  be consistent with the
+native data because the control method is a kind of pass through.</p>
+<p>These ACPI objects data are parsed by an offline tool and hard-coded in a
+Hypervisor module named CPU state table:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">cpu_px_data</span> <span class="p">{</span>
+    <span class="kt">uint64_t</span> <span class="n">core_frequency</span><span class="p">;</span>        <span class="cm">/* megahertz */</span>
+    <span class="kt">uint64_t</span> <span class="n">power</span><span class="p">;</span>                 <span class="cm">/* milliWatts */</span>
+    <span class="kt">uint64_t</span> <span class="n">transition_latency</span><span class="p">;</span>    <span class="cm">/* microseconds */</span>
+    <span class="kt">uint64_t</span> <span class="n">bus_master_latency</span><span class="p">;</span>    <span class="cm">/* microseconds */</span>
+    <span class="kt">uint64_t</span> <span class="n">control</span><span class="p">;</span>               <span class="cm">/* control value */</span>
+    <span class="kt">uint64_t</span> <span class="n">status</span><span class="p">;</span>                <span class="cm">/* success indicator */</span>
+<span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
+
+<span class="k">struct</span> <span class="n">acpi_generic_address</span> <span class="p">{</span>
+    <span class="kt">uint8_t</span>     <span class="n">space_id</span><span class="p">;</span>
+    <span class="kt">uint8_t</span>     <span class="n">bit_width</span><span class="p">;</span>
+    <span class="kt">uint8_t</span>     <span class="n">bit_offset</span><span class="p">;</span>
+    <span class="kt">uint8_t</span>     <span class="n">access_size</span><span class="p">;</span>
+    <span class="kt">uint64_t</span>    <span class="n">address</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
+
+<span class="k">struct</span> <span class="n">cpu_cx_data</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">acpi_generic_address</span> <span class="n">cx_reg</span><span class="p">;</span>
+    <span class="kt">uint8_t</span>     <span class="n">type</span><span class="p">;</span>
+    <span class="kt">uint32_t</span>    <span class="n">latency</span><span class="p">;</span>
+    <span class="kt">uint64_t</span>    <span class="n">power</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
+</pre></div>
+</div>
+<p>With these Px/Cx data, the Hypervisor is able to intercept guest’s
+P/C-state requests with desired restrictions.</p>
+</div>
+<div class="section" id="virtual-acpi-table-build-flow">
+<h3>Virtual ACPI table build flow<a class="headerlink" href="#virtual-acpi-table-build-flow" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#vacpitable"><span class="std std-numref">Figure 132</span></a> shows how to build virtual ACPI table with
+Px/Cx data for UOS P/C-state management:</p>
+<div class="figure align-center" id="vacpitable">
+<img alt="../../_images/hld-pm-image28.png" src="../../_images/hld-pm-image28.png" />
+<p class="caption"><span class="caption-number">Figure 132 </span><span class="caption-text">System block for building vACPI table with Px/Cx data</span></p>
+</div>
+<p>Some ioctl APIs are defined for Device model to query Px/Cx data from
+SOS VHM. The Hypervisor needs to provide hypercall APIs to transit Px/Cx
+data from CPU state table to SOS VHM.</p>
+<p>The build flow is:</p>
+<ol class="arabic simple">
+<li>Use offline tool (e.g. <strong>iasl</strong>) to parse the Px/Cx data and hard-code to
+CPU state table in Hypervisor. Hypervisor loads the data after
+system boot up.</li>
+<li>Before UOS launching, Device mode queries the Px/Cx data from SOS VHM
+via ioctl interface.</li>
+<li>VHM transmits the query request to Hypervisor by hypercall.</li>
+<li>Hypervisor returns the Px/Cx data.</li>
+<li>Device model builds the virtual ACPI table with these Px/Cx data</li>
+</ol>
+</div>
+<div class="section" id="intercept-policy">
+<h3>Intercept Policy<a class="headerlink" href="#intercept-policy" title="Permalink to this headline">¶</a></h3>
+<p>Hypervisor should be able to restrict guest’s
+P/C-state request, with a user-customized poligy.</p>
+<p>Hypervisor should intercept guest P-state request and validate whether
+it is a valid P-state. Any invalid P-state (e.g. doesn’t exist in CPU state
+table) should be rejected.</p>
+<p>It is better not to intercept C-state request because the trap would
+impact both power and performance.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For P-state control you should pay attention to SoC core
+voltage domain design when doing P-state measurement. The highest
+P-state would win if different P-state requests on the cores shared
+same voltage domain. In this case APERF/MPERF must be used to see
+what P-state was granted on that core.</p>
+</div>
+</div>
+</div>
+<div class="section" id="s3-s5">
+<h2>S3/S5<a class="headerlink" href="#s3-s5" title="Permalink to this headline">¶</a></h2>
+<p>ACRN assumes guest has complete S3/S5 power state management and follows
+the ACPI standard exactly. System S3/S5 needs to follow well-defined
+enter/exit paths and cooperate among different components.</p>
+<div class="section" id="system-low-power-state-enter-process">
+<h3>System low power state enter process<a class="headerlink" href="#system-low-power-state-enter-process" title="Permalink to this headline">¶</a></h3>
+<p>Each time, when OSPM of UOS starts power state transition, it will
+finally write the ACPI register per ACPI spec requirement.
+With help of ACRN I/O emulation framework, the UOS ACPI
+register writing will be dispatched to Device Model and Device Model
+will emulate the UOS power state (pause UOS VM for S3 and power off UOS
+VM for S5)</p>
+<p>The VM Manager monitors all UOS. If all active UOSes are in required power
+state, VM Manager will notify OSPM of SOS to start SOS power state
+transition. OSPM of SOS follows a very similar process as UOS for power
+state transition. The difference is SOS ACPI register writing is trapped
+to ACRN HV. And ACRN HV will emulate SOS power state (pause SOS VM for
+S3 and no special action for S5)</p>
+<p>Once SOS low power state is done, ACRN HV will go through its own low
+power state enter path.</p>
+<p>The whole system is finally put into low power state.</p>
+</div>
+<div class="section" id="system-low-power-state-exit-process">
+<h3>System low power state exit process<a class="headerlink" href="#system-low-power-state-exit-process" title="Permalink to this headline">¶</a></h3>
+<p>The low power state exit process is in reverse order. The ACRN
+hypervisor is woken up at first. It will go through its own low power
+state exit path. Then ACRN hypervisor will resume the SOS to let SOS go
+through SOS low power state exit path. After that, the DM is resumed and
+let UOS go through UOS low power state exit path. The system is resumed
+to running state after at least one UOS is resumed to running state.</p>
+<p><a class="reference internal" href="#pmworkflow"><span class="std std-numref">Figure 133</span></a> shows the flow of low power S3 enter/exit process (S5 follows
+very similar process)</p>
+<div class="figure align-center" id="pmworkflow">
+<img alt="../../_images/hld-pm-image62.png" src="../../_images/hld-pm-image62.png" />
+<p class="caption"><span class="caption-number">Figure 133 </span><span class="caption-text">ACRN system power management workflow</span></p>
+</div>
+<p>For system power state entry:</p>
+<ol class="arabic simple">
+<li>UOS OSPM start UOS S3 entry</li>
+<li>The UOS S3 entering request is trapped ACPI PM Device of DM</li>
+<li>DM pauses UOS VM to emulate UOS S3 and notifies VM Manager that the UOS
+dedicated to it is in S3</li>
+<li>If all UOSes are in S3, VM Manager will notify OSPM of SOS</li>
+<li>SOS OSPM starts SOS S3 enter</li>
+<li>SOS S3 entering request is trapped to Sx Agency in ACRN HV</li>
+<li>ACRN HV pauses SOS VM to emulate SOS S3 and starts ACRN HV S3 entry.</li>
+</ol>
+<p>For system power state exit:</p>
+<ol class="arabic simple">
+<li>When system is resumed from S3, native bootloader will jump to wake
+up vector of HV</li>
+<li>HV resumes S3 and jumps to wake up vector to emulate SOS resume from S3</li>
+<li>OSPM of SOS is running</li>
+<li>OSPM of SOS notifies VM Manager that it’s ready to wake up UOS</li>
+<li>VM Manager will notify DM to resume the UOS</li>
+<li>DM resets the UOS VM to emulate UOS resume from S3</li>
+</ol>
+<p>According to ACPI standard, S3 is mapped to suspend to RAM and S5 is
+mapped to shutdown. So the S5 process is a little different:</p>
+<ul class="simple">
+<li>UOS enters S3 -&gt; UOS powers off</li>
+<li>System enters S3 -&gt; System powers off</li>
+<li>System resumes From S3 -&gt; System fresh start</li>
+<li>UOS resumes from S3 -&gt; UOS fresh startup</li>
+</ul>
+</div>
+</div>
 </div>
 
 
