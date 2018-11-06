@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Virtio-rnd" href="virtio-rnd.html" />
-    <link rel="prev" title="Virtio-net" href="virtio-net.html" /> 
+    <link rel="prev" title="Virtio-input" href="virtio-input.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -599,13 +599,28 @@ device was successfully added, or a port opened or closed.</p>
 <p>The virtio-console architecture diagram in ACRN is shown below.</p>
 <div class="figure align-center" id="virtio-console-arch">
 <a class="reference internal image-reference" href="../../_images/virtio-console-arch.png"><img alt="../../_images/virtio-console-arch.png" src="../../_images/virtio-console-arch.png" style="width: 700px;" /></a>
-<p class="caption"><span class="caption-number">Figure 126 </span><span class="caption-text">Virtio-console architecture diagram</span></p>
+<p class="caption"><span class="caption-number">Figure 130 </span><span class="caption-text">Virtio-console architecture diagram</span></p>
 </div>
-<p>Virtio-console is implemented as a virtio legacy device in the ACRN device
-model (DM), and is registered as a PCI virtio device to the guest OS. No changes
-are required in the frontend Linux virtio-console except that the guest
-(UOS) kernel should be built with <code class="docutils literal notranslate"><span class="pre">CONFIG_VIRTIO_CONSOLE=y</span></code>.</p>
-<p>Currently the feature bits supported by the BE device are:</p>
+<p>Virtio-console is implemented as a virtio legacy device in the ACRN
+device model (DM), and is registered as a PCI virtio device to the guest
+OS. No changes are required in the frontend Linux virtio-console except
+that the guest (UOS) kernel should be built with
+<code class="docutils literal notranslate"><span class="pre">CONFIG_VIRTIO_CONSOLE=y</span></code>.</p>
+<p>The virtio console FE driver registers a HVC console to the kernel if
+the port is configured as console. Otherwise it registers a char device
+named <code class="docutils literal notranslate"><span class="pre">/dev/vportXpY</span></code> to the kernel, and can be read and written from
+the user space. There are two virtqueues for a port, one is for
+transmitting and the other is for receiving. The FE driver places empty
+buffers onto the receiving virtqueue for incoming data, and enqueues
+outgoing characters onto the transmitting virtqueue.</p>
+<p>The virtio console BE driver copies data from the FE’s transmitting
+virtqueue when it receives a kick on the virtqueue (implemented as a
+vmexit).  The BE driver then writes the data to the backend,  and can be
+implemented as PTY, TTY, STDIO, and a regular file. BE driver uses
+mevent to poll the available data from the backend file descriptor. When
+new data is available, the BE driver reads it to the receiving virtqueue
+of the FE, followed by an interrupt injection.</p>
+<p>The feature bits currently supported by the BE device are:</p>
 <table border="1" class="colwidths-given docutils" id="id2">
 <caption><span class="caption-number">Table 3 </span><span class="caption-text">Feature bits supported by BE drivers</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
 <colgroup>
@@ -787,7 +802,7 @@ adjusting the <code class="docutils literal notranslate"><span class="pre">&lt;/
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Nov 04, 2018.
+      Last updated on Nov 06, 2018.
 
     </p>
   </div> 

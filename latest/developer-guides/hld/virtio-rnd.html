@@ -581,12 +581,24 @@
             
   <div class="section" id="virtio-rnd">
 <span id="id1"></span><h1>Virtio-rnd<a class="headerlink" href="#virtio-rnd" title="Permalink to this headline">¶</a></h1>
-<p>The virtio-rnd entropy device supplies high-quality randomness for guest
-use. The virtio device ID of the virtio-rnd device is 4, and it supports
-one virtqueue, the size of which is 64, configurable in the source code.
-It has no feature bits defined.</p>
+<p>virtio-rnd provides a hardware random source for UOS. The
+virtual random device is based on virtio user mode framework and
+simulates a PCI device based on virtio specification.</p>
+<p><a class="reference internal" href="#virtio-rnd-arch"><span class="std std-numref">Figure 131</span></a> shows the Random Device Virtualization
+Architecture in ACRN.  virtio-rnd is implemented as a virtio legacy
+device in the ACRN device model (DM), and is registered as a PCI virtio
+device to the guest OS (UOS).</p>
 <p>When the FE driver requires some random bytes, the BE device will place
 bytes of random data onto the virtqueue.</p>
+<p>Tools such as <code class="docutils literal notranslate"><span class="pre">od</span></code> can be used to read randomness from
+<code class="docutils literal notranslate"><span class="pre">/dev/random</span></code>.  This device file in UOS is bound with frontend
+virtio-rng driver (The guest kernel must be built with
+<code class="docutils literal notranslate"><span class="pre">CONFIG_HW_RANDOM_VIRTIO=y</span></code>). The backend virtio-rnd reads the HW
+randomness from <code class="docutils literal notranslate"><span class="pre">/dev/random</span></code> in SOS and sends them to frontend.</p>
+<div class="figure align-center" id="virtio-rnd-arch">
+<img alt="../../_images/virtio-hld-image61.png" src="../../_images/virtio-hld-image61.png" />
+<p class="caption"><span class="caption-number">Figure 131 </span><span class="caption-text">Virtio-rnd Architecture on ACRN</span></p>
+</div>
 <p>To launch the virtio-rnd device, use the following virtio command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">slot</span><span class="o">&gt;</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">rnd</span>
 </pre></div>
@@ -610,7 +622,7 @@ command:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Nov 04, 2018.
+      Last updated on Nov 06, 2018.
 
     </p>
   </div> 
