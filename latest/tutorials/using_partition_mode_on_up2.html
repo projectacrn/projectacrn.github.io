@@ -152,6 +152,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../user-guides/index.html">User Guides</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../user-guides/acrn-shell.html">ACRN Shell Commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guides/tools.html">Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../tools/README.html">ACRN tools</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tools/acrn-crashlog/README.html">ACRN-Crashlog</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tools/acrn-crashlog/README.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tools/acrn-crashlog/README.html#building">Building</a></li>
@@ -469,9 +470,10 @@
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Using partition mode on UP2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#build-kernel-and-modules-for-partition-mode-guest">Build kernel and modules for partition mode guest</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#enabling-partition-mode">Enabling partition mode</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#playing-with-acrn-hypervisor-with-partition-mode">Playing with ACRN hypervisor with partition mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-kernel-and-modules-for-partition-mode-uos">Build kernel and modules for partition mode UOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enable-partition-mode-in-acrn-hypervisor">Enable partition mode in ACRN hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#switch-between-privileged-vms">Switch between privileged VMs</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
@@ -598,133 +600,288 @@
             
   <div class="section" id="using-partition-mode-on-up2">
 <span id="partition-mode"></span><h1>Using partition mode on UP2<a class="headerlink" href="#using-partition-mode-on-up2" title="Permalink to this headline">¶</a></h1>
-<p>This tutorial describes the steps needed to use partition mode with the ACRN
-hypervisor on UP2.</p>
-<div class="section" id="build-kernel-and-modules-for-partition-mode-guest">
-<h2>Build kernel and modules for partition mode guest<a class="headerlink" href="#build-kernel-and-modules-for-partition-mode-guest" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><p class="first">Build kernel and modules</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/projectacrn/acrn-kernel.git
-cd ~/acrn-kernel
-cp kernel_config_partition_os .config
-make oldconfig
-make
-</pre></div>
+<p>ACRN hypervisor supports partition mode, in which the User OS running in a
+privileged VM can bypass the ACRN hypervisor and directly access isolated
+PCI devices. This tutorial provides step by step instructions on how to set up
+the ACRN hypervisor partition mode on
+<a class="reference external" href="https://up-board.org/upsquared/specifications/">UP2</a> boards running two
+privileged VMs as shown in <a class="reference internal" href="#two-priv-vms"><span class="std std-numref">Figure 166</span></a>:</p>
+<div class="figure align-center" id="two-priv-vms">
+<img alt="../_images/partition_mode_up2.png" src="../_images/partition_mode_up2.png" />
+<p class="caption"><span class="caption-number">Figure 166 </span><span class="caption-text">Two privileged VMs running in partition mode</span></p>
 </div>
-</li>
-<li><p class="first">Install modules</p>
-<p>First of all, please prepare one USB flash drive and one SATA disk. Plug them
-in one PC and follow Clear Linux’s <cite>online instruction &lt;https://clearlinux.org/documentation/clear-linux/get-started/bare-metal-install#bare-metal-install&gt;</cite> to install Clear Linux on them.</p>
-<p>Plug the USB flash drive and SATA disk into your PC. Assuming Clear Linux
-rootfs is installed into /dev/sdx3.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mount /dev/sdx3 /mnt/sdx3
-cd ~/acrn-kernel
-make INSTALL_MOD_PATH=/mnt/sdx3/ modules_install
-</pre></div>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>In this tutorial two Linux privileged VMs are started by the ACRN hypervisor.
+To set up the Linux root filesystems for each VM, follow the Clear Linux
+<a class="reference external" href="https://clearlinux.org/documentation/clear-linux/get-started/bare-metal-install#bare-metal-install">bare metal installation guide</a>
+to install Clear Linux on a <strong>SATA disk</strong> and a <strong>USB flash disk</strong> prior the setup,
+as the two privileged VMs will mount the root filesystems via the SATA controller
+and the USB controller respectively.</p>
 </div>
-</li>
-<li><p class="first">Install kernel</p>
-<p>First, please following Ubuntu’s <cite>online instruction &lt;https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-desktop?_ga=2.114179015.1954550575.1530817291-1278304647.1523530035&gt;</cite> to install it on your UP2’s eMMC.</p>
-<p>Copy kernel image to EFI System Partition</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>scp username@IP:~/acrn-kernel/arch/x86/boot/bzImage /boot/efi/
-</pre></div>
-</div>
-</li>
-</ul>
-</div>
-<div class="section" id="enabling-partition-mode">
-<h2>Enabling partition mode<a class="headerlink" href="#enabling-partition-mode" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><p class="first">Clone ACRN source code</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/projectacrn/acrn-hypervisor.git
-</pre></div>
-</div>
-</li>
-<li><p class="first">Configure the ACRN hypervisor to use partition mode</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~/acrn-hypervisor/hypervisor
-make menuconfig
-</pre></div>
-</div>
-<p>Select entry <code class="docutils literal notranslate"><span class="pre">Hypervisor</span> <span class="pre">mode</span> <span class="pre">(Sharing</span> <span class="pre">mode)</span></code> and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code>.
-Then select <code class="docutils literal notranslate"><span class="pre">Partition</span> <span class="pre">mode</span></code> sub-entry.</p>
-</li>
-<li><p class="first">Configure the ACRN hypervisor’s <code class="docutils literal notranslate"><span class="pre">serial</span> <span class="pre">base</span> <span class="pre">address</span></code></p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~/acrn-hypervisor/hypervisor
-make menuconfig
-</pre></div>
-</div>
-<p>Select entry <code class="docutils literal notranslate"><span class="pre">Base</span> <span class="pre">address</span> <span class="pre">of</span> <span class="pre">serial</span> <span class="pre">MMIO</span> <span class="pre">region</span></code> and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code>.
-Then we will see a prompt msgbox with title <code class="docutils literal notranslate"><span class="pre">Value</span> <span class="pre">for</span> <span class="pre">`Base</span> <span class="pre">address</span> <span class="pre">of</span> <span class="pre">serial</span> <span class="pre">MMIO</span> <span class="pre">region`</span> <span class="pre">(hex)</span></code>.
-Please type the serial base mmio address of your UP2 board and press <code class="docutils literal notranslate"><span class="pre">Enter</span></code>.</p>
-</li>
-<li><p class="first">Configure the PCI info about devices assigned to vm.</p>
-<p>For the current code, we can only configure it by modifying the <code class="docutils literal notranslate"><span class="pre">vpci_vdev_arrary</span></code>
-structure (one per vm) in source code file <code class="docutils literal notranslate"><span class="pre">hypervisor/partition/vm_description.c</span></code>.</p>
-<p>Here is an reference patch for configuring vm1’s assgined PCI devices based on
-UP2 board. This patch can also apply to other vms you try to configure.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>diff --git a/hypervisor/partition/vm_description.c b/hypervisor/partition/vm_description.c
-index 12818185..88799b00 100644
---- a/hypervisor/partition/vm_description.c
-+++ b/hypervisor/partition/vm_description.c
-@@ -41,6 +41,7 @@ static struct vpci_vdev_array vpci_vdev_array1 = {
-                }
-         },
+<div class="section" id="build-kernel-and-modules-for-partition-mode-uos">
+<h2>Build kernel and modules for partition mode UOS<a class="headerlink" href="#build-kernel-and-modules-for-partition-mode-uos" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">On your development workstation, clone the ACRN kernel source tree, and
+build the Linux kernel image that will be used to boot the privileged VMs:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-kernel.git
+Cloning into &#39;acrn-kernel&#39;...
+...
+$ cd acrn-kernel
+$ cp kernel_config_uos .config
 
-         {/*vdev 1: SATA controller*/
-          .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x0U},
-          .ops = &amp;pci_ops_vdev_pt,
-@@ -65,23 +66,24 @@ static struct vpci_vdev_array vpci_vdev_array1 = {
-                .bdf.bits = {.b = 0x00U, .d = 0x12U, .f = 0x0U},
-                .bar = {
-                        [0] = {
--                       .base = 0xb3f10000UL,
-+                       .base = 0x91514000UL,
-                        .size = 0x2000UL,
-                        .type = PCIBAR_MEM32
-                        },
-                        [1] = {
--                       .base = 0xb3f53000UL,
-+                       .base = 0x91537000UL,
-                        .size = 0x100UL,
-                        .type = PCIBAR_MEM32
-                        },
-                        [5] = {
--                       .base = 0xb3f52000UL,
-+                       .base = 0x91536000UL,
-                        .size = 0x800UL,
-                        .type = PCIBAR_MEM32
-                        },
-                 }
-               }
-            },
+$ make olddefconfig
+scripts/kconfig/conf  --olddefconfig Kconfig
+#
+# configuration written to .config
+#
+
+$ make
+$ make modules_install INSTALL_MOD_PATH=out/
+</pre></div>
+</div>
+<p>The last two commands built the bootable kernel image <code class="docutils literal notranslate"><span class="pre">arch/x86/boot/bzImage</span></code>,
+and the loadable kernel modules under the <code class="docutils literal notranslate"><span class="pre">./out/</span></code> folder. Copy these files
+to a removable disk for installing on the UP2 board later.</p>
+</li>
+<li><p class="first">Current ACRN partition mode implementation requires a multi-boot capable
+bootloader to boot both ACRN hypervisor and the bootable kernel image
+built from the previous step. You could install Ubuntu OS to the UP2 board
+by following
+<a class="reference external" href="https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-desktop">this Ubuntu tutorial</a>.
+The Ubuntu installer creates 3 disk partitions on the on-board eMMC memory.
+By default, the GRUB bootloader is installed on the ESP (EFI System Partition)
+partition, which will be used to bootstrap the partiton mode ACRN hypervisor.</p>
+</li>
+<li><p class="first">After installing the Ubuntu OS, power off the UP2 board, attach the SATA disk
+and the USB flash disk to the board. Power on the board and make sure
+it boots the Ubuntu OS from the eMMC, then copy the loadable kernel modules
+built in Step 1 to the <code class="docutils literal notranslate"><span class="pre">/lib/modules/</span></code> folder on both the mounted SATA
+disk and USB disk. For example, assuming the SATA disk and USB flash disk
+are assigned to <code class="docutils literal notranslate"><span class="pre">/dev/sda</span></code> and <code class="docutils literal notranslate"><span class="pre">/dev/sdb</span></code> respectively, the following
+commands set up the partition mode loadable kernel modules onto the root
+filesystems to be loaded by the privileged VMs:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Mount the Clear Linux root filesystem on the SATA disk
+$ sudo mount /dev/sda3 /mnt
+$ sudo cp -r &lt;kernel-modules-folder-built-in-step1&gt;/lib/modules/* /mnt/lib/modules
+$ sudo umount /mnt
+
+# Mount the Clear Linux root filesystem on the USB flash disk
+$ sudo mount /dev/sdb3 /mnt
+$ sudo cp -r &lt;path-to-kernel-module-folder-built-in-step1&gt;/lib/modules/* /mnt/lib/modules
+$ sudo umount /mnt
+</pre></div>
+</div>
+</li>
+<li><p class="first">Copy the bootable kernel image to the <code class="docutils literal notranslate"><span class="pre">/boot</span></code> directory:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo cp &lt;path-to-kernel-image-built-in-step1&gt;/bzImage /boot/
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="enable-partition-mode-in-acrn-hypervisor">
+<h2>Enable partition mode in ACRN hypervisor<a class="headerlink" href="#enable-partition-mode-in-acrn-hypervisor" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Before building the ACRN hypervisor, you need to figure out the I/O address
+of the serial port, and the PCI BAR addresses of the SATA controller and
+the USB controller on your UP2 board.</p>
+<p>Enter the following command to get the I/O addresses of the serial ports.
+UP2 boards support two serial ports. The addresses from the command
+output represent the I/O addresses of the serial port of the 10-pin side
+connector and the 40-pin expansion header respectively. You will need to
+connect the serial port to the development host, in order to access
+the ACRN serial console to switch between privileged VMs.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span><span class="hll">$ dmesg | grep ttyS
+</span>[   10.552369] dw-apb-uart.8: ttyS4 at MMIO 0x91524000 (irq = 4, base_baud = 115200) is a 16550A
+[   10.552568] serial serial0: tty port ttyS4 registered
+[   10.572344] dw-apb-uart.9: ttyS5 at MMIO 0x91522000 (irq = 5, base_baud = 115200) is a 16550A
+[   10.572545] serial serial1: tty port ttyS5 registered
+</pre></div>
+</div>
+<p>The following command prints detailed information about all PCI buses
+and devices in the system. Look up the PCI BAR addresses of the SATA
+controller and the USB controller, record these addresses (highlighted below) for
+editing the source code later.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span><span class="hll">$ sudo lspci -vv
+</span>...
+00:12.0 SATA controller: Intel Corporation Device 5ae3 (rev 0b) (prog-if 01 [AHCI 1.0])
+    Subsystem: Intel Corporation Device 7270
+    Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+    Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-
+    Latency: 0
+    Interrupt: pin A routed to IRQ 123
+<span class="hll">    Region 0: Memory at 91514000 (32-bit, non-prefetchable) [size=8K]
+</span><span class="hll">    Region 1: Memory at 91537000 (32-bit, non-prefetchable) [size=256]
+</span>    Region 2: I/O ports at f090 [size=8]
+    Region 3: I/O ports at f080 [size=4]
+    Region 4: I/O ports at f060 [size=32]
+<span class="hll">    Region 5: Memory at 91536000 (32-bit, non-prefetchable) [size=2K]
+</span>...
+00:15.0 USB controller: Intel Corporation Device 5aa8 (rev 0b) (prog-if 30 [XHCI])
+    Subsystem: Intel Corporation Device 7270
+    Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
+    Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-
+    Latency: 0
+    Interrupt: pin A routed to IRQ 122
+<span class="hll">    Region 0: Memory at 91500000 (64-bit, non-prefetchable) [size=64K]
+</span></pre></div>
+</div>
+</li>
+<li><p class="first">Clone the ACRN source code and configure the build options with
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code> command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor.git
+$ cd acrn-hypervisor/hypervisor
+$ make menuconfig
+</pre></div>
+</div>
+<p>Set the <code class="docutils literal notranslate"><span class="pre">Hypervisor</span> <span class="pre">mode</span></code> option to <code class="docutils literal notranslate"><span class="pre">Partition</span> <span class="pre">mode</span></code>, and depending
+on the serial port you are using, enter its MMIO address to the configuration
+menu as shown in this screenshot. Finally, save the configuration.</p>
+<div class="figure align-center">
+<img alt="../_images/menuconfig-partition-mode.png" src="../_images/menuconfig-partition-mode.png" />
+</div>
+</li>
+<li><p class="first">Configure the PCI device info for each VM</p>
+<p>PCI devices that are available to the privileged VMs
+are hardcoded in the source file <code class="docutils literal notranslate"><span class="pre">hypervisor/partition/apl-mrb/vm_description.c</span></code>.
+You need to review and modify the <code class="docutils literal notranslate"><span class="pre">vpci_vdev_array1</span></code> and <code class="docutils literal notranslate"><span class="pre">vpci_vdev_array2</span></code>
+structures in the source code to match the PCI BAR addresses of the SATA
+controller and the USB controller noted in step 1:</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-number">Code Block 6 </span><span class="caption-text">hypervisor/partition/vm_description.c</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
+static struct vpci_vdev_array vpci_vdev_array1 = {
+<span class="hll">   .num_pci_vdev = 2,
+</span>
+   .vpci_vdev_list = {
+      {/*vdev 0: hostbridge */
+         .vbdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x0U},
+         .ops = &amp;pci_ops_vdev_hostbridge,
+         .bar = {},
+         .pdev = {
+            .bdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x0U},
          }
-  };
+      },
+
+   {/*vdev 1: SATA controller*/
+      .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x0U},
+      .ops = &amp;pci_ops_vdev_pt,
+      .bar = {
+         [0] = {
+           .base = 0UL,
+           .size = 0x2000UL,
+           .type = PCIBAR_MEM32
+         },
+         [1] = {
+           .base = 0UL,
+           .size = 0x1000UL,
+           .type = PCIBAR_MEM32
+         },
+         [5] = {
+           .base = 0UL,
+           .size = 0x1000UL,
+           .type = PCIBAR_MEM32
+         },
+      },
+      .pdev = {
+         .bdf.bits = {.b = 0x00U, .d = 0x12U, .f = 0x0U},
+         .bar = {
+         [0] = {
+<span class="hll">           .base = 0x91514000UL,
+</span>           .size = 0x2000UL,
+           .type = PCIBAR_MEM32
+         },
+         [1] = {
+<span class="hll">           .base = 0x91537000UL,
+</span>           .size = 0x100UL,
+           .type = PCIBAR_MEM32
+         },
+         [5] = {
+<span class="hll">           .base = 0x91536000UL,
+</span>           .size = 0x800UL,
+           .type = PCIBAR_MEM32
+         },
+      }
+      ...
+      static struct vpci_vdev_array vpci_vdev_array2 = {
+<span class="hll">         .num_pci_vdev = 3,
+</span>         ...
+         {/*vdev 1: USB controller*/
+            .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x0U},
+            .ops = &amp;pci_ops_vdev_pt,
+            .bar = {
+               [0] = {
+                 .base = 0UL,
+                 .size = 0x10000UL,
+                 .type = PCIBAR_MEM32
+               },
+            },
+            .pdev = {
+               .bdf.bits = {.b = 0x00U, .d = 0x15U, .f = 0x0U},
+               .bar = {
+                 [0] = {
+<span class="hll">                   .base = 0x91500000UL,
+</span>                   .size = 0x10000UL,
+                   .type = PCIBAR_MEM64
+                 },
+               }
+         ...
 </pre></div>
 </div>
-</li>
-<li><p class="first">Configure <code class="docutils literal notranslate"><span class="pre">.bootargs</span></code></p>
-<p>A default command line is pre-configured in the source code. Here we just
-configure <code class="docutils literal notranslate"><span class="pre">root=</span></code> option to help kernel locate the right rootfs and keep the
-other options as default.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>@@ -171,7 +180,8 @@ struct vm_description_array vm_desc_partition = {
-                                .start_hpa = 0x100000000UL,
-                                .mem_size = 0x20000000UL, /* uses contiguous memory from host */
-                                .vm_vuart = true,
--                               .bootargs = &quot;root=/dev/sda rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
-+                               .bootargs = &quot;root=PARTUUID=&lt;Your rootfs PARTUUID&gt; rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
-                                              console=ttyS0 no_timer_check ignore_loglevel log_buf_len=16M \
-                                              consoleblank=0 tsc=reliable xapic_phys&quot;,
-                                .vpci_vdev_array = &amp;vpci_vdev_array1,
-</pre></div>
 </div>
 </li>
-<li><p class="first">Build ACRN with the above changes.</p>
+<li><p class="first">Optionally, configure the <code class="docutils literal notranslate"><span class="pre">.bootargs</span></code> kernel command line arguments</p>
+<p>The kernel command line arguments used to boot the privileged VMs are
+hardcoded as <code class="docutils literal notranslate"><span class="pre">/dev/sda3</span></code> to meet the Clear Linux automatic installation.
+In case you plan to use your customized root
+filesystem, you may optionally edit the <code class="docutils literal notranslate"><span class="pre">root=</span></code> parameter specified
+in the <code class="docutils literal notranslate"><span class="pre">.bootargs</span></code> field of the <code class="docutils literal notranslate"><span class="pre">.vm_desc_array</span></code> structure, to
+instruct the Linux kernel to mount the right disk partition:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-number">Code Block 7 </span><span class="caption-text">hypervisor/partition/vm_description.c</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
+/* Virtual Machine descriptions */
+.vm_desc_array = {
+   {
+      /* Internal variable, MUSTBE init to -1 */
+      .vm_hw_num_cores = VM1_NUM_CPUS,
+      .vm_pcpu_ids = &amp;VM1_CPUS[0],
+      ...
+<span class="hll">      .bootargs = &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
+</span><span class="hll">                   console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
+</span><span class="hll">                   consoleblank=0 tsc=reliable xapic_phys&quot;,
+</span>      .vpci_vdev_array = &amp;vpci_vdev_array1,
+      .mptable = &amp;mptable_vm1,
+   },
+   {
+      /* Internal variable, MUSTBE init to -1 */
+      .vm_hw_num_cores = VM2_NUM_CPUS,
+      .vm_pcpu_ids = &amp;VM2_CPUS[0],
+      ...
+<span class="hll">      .bootargs = &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
+</span><span class="hll">                   console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
+</span><span class="hll">                   consoleblank=0 tsc=reliable xapic_phys&quot;,
+</span>      .vpci_vdev_array = &amp;vpci_vdev_array2,
+      .mptable = &amp;mptable_vm2,
+      .lapic_pt = true,
+   },
+}
+</pre></div>
+</div>
+</div>
+</li>
+<li><p class="first">Build the ACRN hypervisor and copy the artifact <code class="docutils literal notranslate"><span class="pre">acrn.32.out</span></code> to the
+<code class="docutils literal notranslate"><span class="pre">/boot</span></code> directory:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make PLATFORM=sbl
+...
+$ sudo cp build/acrn.32.out /boot
 </pre></div>
 </div>
 </li>
-<li><p class="first">Install ACRN</p>
-<p>First we should add one menuentry in <code class="docutils literal notranslate"><span class="pre">/boot/efi/grub/grub.cfg</span></code> on UP2 board</p>
+<li><p class="first">Modify the <code class="docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code> file to create a new GRUB entry
+that will multi-boot the ACRN hypervisor and the UOS kernel image</p>
+<p>Append the following configuration to the <code class="docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code> file:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>menuentry &#39;ACRN Partition Mode&#39; --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {
         recordfail
         load_video
@@ -734,63 +891,86 @@ other options as default.</p>
         insmod ext2
 
         echo &#39;Loading partition mode hypervisor ...&#39;
-        multiboot /acrn.32.out
-        module /bzImage
+        multiboot /boot/acrn.32.out
+        module /boot/bzImage
 }
 </pre></div>
 </div>
-<p>Copy <code class="docutils literal notranslate"><span class="pre">acrn.32.out</span></code> and bzImage to <code class="docutils literal notranslate"><span class="pre">/boot/efi</span></code></p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>scp username@IP:~/acrn-hypervisor/hypervisor/build/acrn.32.out /boot/efi
+<p>Modify the <code class="docutils literal notranslate"><span class="pre">/etc/default/grub</span></code> file as follows to make the GRUB menu visible
+when booting:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>#GRUB_HIDDEN_TIMEOUT=0
+GRUB_HIDDEN_TIMEOUT_QUIET=false
 </pre></div>
 </div>
-</li>
-<li><p class="first">Boot ACRN</p>
-<p>Plug the USB flash drive and SATA Disk into your UP2 board and then reboot the
-board to the built-in EFI shell. Then execute the following command to load
-the ACRN hypervisor.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>shell&gt; fs1:
-fs1:\&gt; EFI\ubuntu\grubx64.efi
+<p>Re-generate the GRUB configuration file and reboot the UP2 board. Select
+the <code class="docutils literal notranslate"><span class="pre">ACRN</span> <span class="pre">Partition</span> <span class="pre">Mode</span></code> entry to boot the partition mode of the ACRN
+hypervisor, the hypervisor will start the privileged VMs automatically.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo update-grub
 </pre></div>
 </div>
-<p>Here we will see the following GRUB menu. Select entry <code class="docutils literal notranslate"><span class="pre">ACRN</span> <span class="pre">Partition</span> <span class="pre">Mode</span></code> and
-press <code class="docutils literal notranslate"><span class="pre">Enter</span></code> and then the ACRN hypervisor will be loaded automatically.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">*Ubuntu</span>
-<span class="hll"><span class="go"> ACRN Partition Mode</span>
-</span><span class="go"> Advanced options for Ubuntu</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go"> Ubuntu</span>
+<span class="go"> Advanced options for Ubuntu</span>
 <span class="go"> System setup</span>
-<span class="go"> Restore Ubuntu 16.04 to factory state</span>
-</pre></div>
+<span class="hll"><span class="go">*ACRN Partition Mode</span>
+</span></pre></div>
 </div>
 </li>
-</ul>
+</ol>
 </div>
-<div class="section" id="playing-with-acrn-hypervisor-with-partition-mode">
-<h2>Playing with ACRN hypervisor with partition mode<a class="headerlink" href="#playing-with-acrn-hypervisor-with-partition-mode" title="Permalink to this headline">¶</a></h2>
-<ul>
-<li><p class="first">Connect the serial port of the UP2 board with another PC and use the following
-command to check if vms booted successfully. If vms are booted successfully,
-we will see the following message.</p>
-<blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ACRN:\&gt;sos_console 1
+<div class="section" id="switch-between-privileged-vms">
+<h2>Switch between privileged VMs<a class="headerlink" href="#switch-between-privileged-vms" title="Permalink to this headline">¶</a></h2>
+<p>Connect the serial port on the UP2 board to the development workstation.
+If you set the MMIO address of the serial port right while building the
+ACRN hypervisor, you should see the output from the ACRN serial console as below.
+You could then log in to the privileged VMs by <code class="docutils literal notranslate"><span class="pre">sos_console</span></code> command,
+and press <kbd class="kbd docutils literal notranslate">CTRL+Space</kbd> keys to return to the ACRN serial console.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ACRN Hypervisor</span>
+<span class="go">calibrate_tsc, tsc_khz=1094400</span>
+<span class="go">[21017289us][cpu=0][sev=2][seq=1]:HV version 0.3-unstable-2018-11-08 12:41:24-ef974d1a-dirty DBG (daily tag:acrn-2018w45.3-140000p) build by clear, start time 20997424us</span>
+<span class="go">[21034127us][cpu=0][sev=2][seq=2]:API version 1.0</span>
+<span class="go">[21039218us][cpu=0][sev=2][seq=3]:Detect processor: Intel(R) Pentium(R) CPU N4200 @ 1.10GHz</span>
+<span class="go">[21048422us][cpu=0][sev=2][seq=4]:hardware support HV</span>
+<span class="go">[21053897us][cpu=0][sev=1][seq=5]:SECURITY WARNING!!!!!!</span>
+<span class="go">[21059672us][cpu=0][sev=1][seq=6]:Please apply the latest CPU uCode patch!</span>
+<span class="go">[21074487us][cpu=0][sev=2][seq=28]:Start VM1</span>
+<span class="go">[21074488us][cpu=3][sev=2][seq=29]:Start VM2</span>
+<span class="go">[21885195us][cpu=0][sev=3][seq=34]:vlapic: Start Secondary VCPU1 for VM[1]...</span>
+<span class="go">[21889889us][cpu=3][sev=3][seq=35]:vlapic: Start Secondary VCPU1 for VM[2]...</span>
+<span class="go">ACRN:\&gt;</span>
+<span class="hll"><span class="go">ACRN:\&gt;sos_console 1</span>
+</span>
+<span class="go">----- Entering Guest 1 Shell -----</span>
+<span class="go">[    1.997439] systemd[1]: Listening on Network Service Netlink Socket.</span>
+<span class="go">[  OK  ] Listening on Network Service Netlink Socket.</span>
+<span class="go">[    1.999347] systemd[1]: Created slice system-serial\x2dgetty.slice.</span>
+<span class="go">[  OK  ] Created slice system-serial\x2dgetty.slice.</span>
+<span class="go">[  OK  ] Listening on Journal Socket (/dev/log).</span>
+<span class="go">...</span>
+<span class="go">clr-932c8a3012ec4dc6af53790b7afbf6ba login: root</span>
+<span class="go">Password:</span>
+<span class="gp">root@clr-932c8a3012ec4dc6af53790b7afbf6ba ~ #</span> lspci
+<span class="go">00:00.0 Host bridge: Intel Corporation Celeron N3350/Pentium N4200/Atom E3900 Series Host Bridge (rev 0b)</span>
+<span class="go">00:01.0 SATA controller: Intel Corporation Celeron N3350/Pentium N4200/Atom E3900 Series SATA AHCI Controller (rev 0b)</span>
+<span class="gp">root@clr-932c8a3012ec4dc6af53790b7afbf6ba ~ #</span>
 
------ Entering Guest 1 Shell -----
-
-root@clr-e8216ad453ad4f08914d83cbc50f838c ~ #
-
----Entering ACRN SHELL---
-ACRN:\&gt;sos_console 2
-
------ Entering Guest 2 Shell -----
-
-root@clr-bdbe97b256864a92b44a9449bf229769 ~ #
-
----Entering ACRN SHELL---
-ACRN:\&gt;
+<span class="go"> ---Entering ACRN SHELL---</span>
+<span class="hll"><span class="go">ACRN:\&gt;sos_console 2</span>
+</span>
+<span class="go">----- Entering Guest 2 Shell -----</span>
+<span class="go">[    1.490122] usb 1-4: new full-speed USB device number 2 using xhci_hcd</span>
+<span class="go">[    1.621311] usb 1-4: not running at top speed; connect to a high speed hub</span>
+<span class="go">[    1.627824] usb 1-4: New USB device found, idVendor=058f, idProduct=6387, bcdDevice= 1.01</span>
+<span class="go">[    1.628438] usb 1-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3</span>
+<span class="go">...</span>
+<span class="go">clr-2e8082cd4fc24d57a3c2d3db43368d36 login: root</span>
+<span class="go">Password:</span>
+<span class="gp">root@clr-2e8082cd4fc24d57a3c2d3db43368d36 ~ #</span> lspci
+<span class="go">00:00.0 Host bridge: Intel Corporation Celeron N3350/Pentium N4200/Atom E3900 Series Host Bridge (rev 0b)</span>
+<span class="go">00:01.0 USB controller: Intel Corporation Celeron N3350/Pentium N4200/Atom E3900 Series USB xHCI (rev 0b)</span>
+<span class="go">00:02.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller (rev 0c)</span>
+<span class="gp">root@clr-2e8082cd4fc24d57a3c2d3db43368d36 ~ #</span>
 </pre></div>
 </div>
-</div></blockquote>
-</li>
-</ul>
 </div>
 </div>
 
@@ -806,7 +986,7 @@ ACRN:\&gt;
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Nov 20, 2018.
+      Last updated on Nov 28, 2018.
 
     </p>
   </div> 

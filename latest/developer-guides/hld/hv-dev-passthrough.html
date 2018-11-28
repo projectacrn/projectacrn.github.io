@@ -152,6 +152,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../user-guides/index.html">User Guides</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../user-guides/acrn-shell.html">ACRN Shell Commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../user-guides/tools.html">Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/README.html">ACRN tools</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tools/acrn-crashlog/README.html">ACRN-Crashlog</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#building">Building</a></li>
@@ -469,9 +470,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html">Using partition mode on UP2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#build-kernel-and-modules-for-partition-mode-guest">Build kernel and modules for partition mode guest</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#enabling-partition-mode">Enabling partition mode</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#playing-with-acrn-hypervisor-with-partition-mode">Playing with ACRN hypervisor with partition mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#build-kernel-and-modules-for-partition-mode-uos">Build kernel and modules for partition mode UOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#enable-partition-mode-in-acrn-hypervisor">Enable partition mode in ACRN hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#switch-between-privileged-vms">Switch between privileged VMs</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
@@ -798,46 +800,188 @@ in scope of hypervisor.</p>
 </div>
 <div class="section" id="data-structures-and-interfaces">
 <h2>Data structures and interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">replace with reference to API docs</p>
-</div>
 <p>The following APIs are provided to initialize interrupt remapping for
 SOS:</p>
-<ul>
-<li><p class="first">int ptdev_intx_pin_remap(struct vm *vm, uint8_t virt_pin, enum
-ptdev_vpin_source vpin_src);</p>
-<p>Set up the remapping of the given virtual pin for the given vm.</p>
-</li>
-<li><p class="first">int ptdev_msix_remap(struct vm *vm, uint16_t virt_bdf, uint16_t
-entry_nr, struct ptdev_msi_info *info);</p>
+<dl class="function">
+<dt id="_CPPv320ptdev_intx_pin_remapP7acrn_vm7uint8_t17ptdev_vpin_source">
+<span id="_CPPv220ptdev_intx_pin_remapP7acrn_vm7uint8_t17ptdev_vpin_source"></span><span id="ptdev_intx_pin_remap__acrn_vmP.uint8_t.ptdev_vpin_source"></span><span class="target" id="group__acrn__passthrough_gac4fba127a52796a9c3e40233f2159ccc_1gac4fba127a52796a9c3e40233f2159ccc"></span>int <code class="descname">ptdev_intx_pin_remap</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint8_t <em>virt_pin</em>, <em class="property">enum</em> ptdev_vpin_source <em>vpin_src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320ptdev_intx_pin_remapP7acrn_vm7uint8_t17ptdev_vpin_source" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>INTx remapping for passthrough device. </p>
+<p>Set up the remapping of the given virtual pin for the given vm. This is the main entry for PCI/Legacy device assignment with INTx, calling from vIOAPIC or vPIC.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><ul class="simple">
+<li>0: on success</li>
+<li><code class="docutils literal notranslate"><span class="pre">-ENODEV</span></code>:<ul>
+<li>for SOS, the entry already be held by others</li>
+<li>for UOS, no pre-hold mapping found.</li>
+</ul>
 </li>
 </ul>
+</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
+<li><code class="docutils literal notranslate"><span class="pre">virt_pin</span></code>: virtual pin number associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">vpin_src</span></code>: ioapic or pic</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv316ptdev_msix_remapP7acrn_vm8uint16_t8uint16_tP14ptdev_msi_info">
+<span id="_CPPv216ptdev_msix_remapP7acrn_vm8uint16_t8uint16_tP14ptdev_msi_info"></span><span id="ptdev_msix_remap__acrn_vmP.uint16_t.uint16_t.ptdev_msi_infoP"></span><span class="target" id="group__acrn__passthrough_ga7e9d9151eb8138c69c42420323b9f404_1ga7e9d9151eb8138c69c42420323b9f404"></span>int <code class="descname">ptdev_msix_remap</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint16_t <em>virt_bdf</em>, uint16_t <em>entry_nr</em>, <em class="property">struct</em> ptdev_msi_info *<em>info</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316ptdev_msix_remapP7acrn_vm8uint16_t8uint16_tP14ptdev_msi_info" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>MSI/MSI-x remapping for passthrough device. </p>
+<p>Main entry for PCI device assignment with MSI and MSI-X. MSI can up to 8 vectors and MSI-X can up to 1024 Vectors.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><ul class="simple">
+<li>0: on success</li>
+<li><code class="docutils literal notranslate"><span class="pre">-ENODEV</span></code>:<ul>
+<li>for SOS, the entry already be held by others</li>
+<li>for UOS, no pre-hold mapping found.</li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Pre</strong></dt>
+<dd>info != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
+<li><code class="docutils literal notranslate"><span class="pre">virt_bdf</span></code>: virtual bdf associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">entry_nr</span></code>: indicate coming vectors, entry_nr = 0 means first vector </li>
+<li><code class="docutils literal notranslate"><span class="pre">info</span></code>: structure used for MSI/MSI-x remapping</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 <p>The following APIs are provided to manipulate the interrupt remapping
 for UOS.</p>
-<ul>
-<li><p class="first">int ptdev_add_intx_remapping(struct vm *vm, uint16_t virt_bdf,
-uint16_t phys_bdf, uint8_t virt_pin, uint8_t phys_pin, bool
-pic_pin);</p>
-<p>Add mapping between the given virtual and physical pin for the
-given vm.</p>
-</li>
-<li><p class="first">void ptdev_remove_intx_remapping(struct vm *vm, uint8_t
-virt_pin, bool pic_pin);</p>
-<p>Remove mapping of the given virtual pin for the given vm.</p>
-</li>
-<li><p class="first">int ptdev_add_msix_remapping(struct vm *vm, uint16_t virt_bdf,
-uint16_t phys_bdf, uint32_t vector_count);</p>
-<p>Add mapping of the given number of vectors between the given
-physical and virtual BDF for the given vm.</p>
-</li>
-<li><p class="first">void ptdev_remove_msix_remapping(struct vm *vm, uint16_t
-virt_bdf, uint32_t vector_count);</p>
-<p>Remove the mapping of given number of vectors of the given virtual
-BDF for the given vm.</p>
-</li>
+<dl class="function">
+<dt id="_CPPv324ptdev_add_intx_remappingP7acrn_vm7uint8_t7uint8_tb">
+<span id="_CPPv224ptdev_add_intx_remappingP7acrn_vm7uint8_t7uint8_tb"></span><span id="ptdev_add_intx_remapping__acrn_vmP.uint8_t.uint8_t.b"></span><span class="target" id="group__acrn__passthrough_ga060e4549ab5d982cf5f5cb7523b3389c_1ga060e4549ab5d982cf5f5cb7523b3389c"></span>int <code class="descname">ptdev_add_intx_remapping</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint8_t <em>virt_pin</em>, uint8_t <em>phys_pin</em>, bool <em>pic_pin</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv324ptdev_add_intx_remappingP7acrn_vm7uint8_t7uint8_tb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add an interrupt remapping entry for INTx as pre-hold mapping. </p>
+<p>Except vm0, Device Model should call this function to pre-hold ptdev intx The entry is identified by phys_pin, one entry vs. one phys_pin. Currently, one phys_pin can only be held by one pin source (vPIC or vIOAPIC).</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><ul class="simple">
+<li>0: on success</li>
+<li><code class="docutils literal notranslate"><span class="pre">-EINVAL</span></code>: invalid virt_pin value</li>
+<li><code class="docutils literal notranslate"><span class="pre">-ENODEV</span></code>: failed to add the remapping entry</li>
 </ul>
+</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
+<li><code class="docutils literal notranslate"><span class="pre">virt_pin</span></code>: virtual pin number associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">phys_pin</span></code>: physical pin number associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">pic_pin</span></code>: true for pic, false for ioapic</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv327ptdev_remove_intx_remappingP7acrn_vm7uint8_tb">
+<span id="_CPPv227ptdev_remove_intx_remappingP7acrn_vm7uint8_tb"></span><span id="ptdev_remove_intx_remapping__acrn_vmP.uint8_t.b"></span><span class="target" id="group__acrn__passthrough_gab3dc45a517f39d8e44f198b2490f6155_1gab3dc45a517f39d8e44f198b2490f6155"></span>void <code class="descname">ptdev_remove_intx_remapping</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint8_t <em>virt_pin</em>, bool <em>pic_pin</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv327ptdev_remove_intx_remappingP7acrn_vm7uint8_tb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Remove an interrupt remapping entry for INTx. </p>
+<p>Deactivate &amp; remove mapping entry of the given virt_pin for given vm.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
+<li><code class="docutils literal notranslate"><span class="pre">virt_pin</span></code>: virtual pin number associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">pic_pin</span></code>: true for pic, false for ioapic</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv324ptdev_add_msix_remappingP7acrn_vm8uint16_t8uint16_t8uint32_t">
+<span id="_CPPv224ptdev_add_msix_remappingP7acrn_vm8uint16_t8uint16_t8uint32_t"></span><span id="ptdev_add_msix_remapping__acrn_vmP.uint16_t.uint16_t.uint32_t"></span><span class="target" id="group__acrn__passthrough_ga2a06b6a402d9c761541a592443ab3c6d_1ga2a06b6a402d9c761541a592443ab3c6d"></span>int <code class="descname">ptdev_add_msix_remapping</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint16_t <em>virt_bdf</em>, uint16_t <em>phys_bdf</em>, uint32_t <em>vector_count</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv324ptdev_add_msix_remappingP7acrn_vm8uint16_t8uint16_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add interrupt remapping entry/entries for MSI/MSI-x as pre-hold mapping. </p>
+<p>Add pre-hold mapping of the given number of vectors between the given physical and virtual BDF for the given vm. Except vm0, Device Model should call this function to pre-hold ptdev MSI/MSI-x. The entry is identified by phys_bdf:msi_idx, one entry vs. one phys_bdf:msi_idx.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd><ul class="simple">
+<li>0: on success</li>
+<li><code class="docutils literal notranslate"><span class="pre">-ENODEV</span></code>: failed to add the remapping entry</li>
+</ul>
+</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
+<li><code class="docutils literal notranslate"><span class="pre">virt_bdf</span></code>: virtual bdf associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">phys_bdf</span></code>: physical bdf associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">vector_count</span></code>: number of vectors</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv327ptdev_remove_msix_remappingPK7acrn_vm8uint16_t8uint32_t">
+<span id="_CPPv227ptdev_remove_msix_remappingPK7acrn_vm8uint16_t8uint32_t"></span><span id="ptdev_remove_msix_remapping__acrn_vmCP.uint16_t.uint32_t"></span><span class="target" id="group__acrn__passthrough_ga66f5f3bac48584f78cd0b76e27a1c8a9_1ga66f5f3bac48584f78cd0b76e27a1c8a9"></span>void <code class="descname">ptdev_remove_msix_remapping</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> acrn_vm *<em>vm</em>, uint16_t <em>virt_bdf</em>, uint32_t <em>vector_count</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv327ptdev_remove_msix_remappingPK7acrn_vm8uint16_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Remove interrupt remapping entry/entries for MSI/MSI-x. </p>
+<p>Remove the mapping of given number of vectors of the given virtual BDF for the given vm.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
+<li><code class="docutils literal notranslate"><span class="pre">virt_bdf</span></code>: virtual bdf associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">vector_count</span></code>: number of vectors</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 <p>The following APIs are provided to acknowledge a virtual interrupt.</p>
+<dl class="function">
+<dt id="_CPPv314ptdev_intx_ackP7acrn_vm7uint8_t17ptdev_vpin_source">
+<span id="_CPPv214ptdev_intx_ackP7acrn_vm7uint8_t17ptdev_vpin_source"></span><span id="ptdev_intx_ack__acrn_vmP.uint8_t.ptdev_vpin_source"></span><span class="target" id="group__acrn__passthrough_ga26ae9447166e80d73babb6ab44dc9fdd_1ga26ae9447166e80d73babb6ab44dc9fdd"></span>void <code class="descname">ptdev_intx_ack</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint8_t <em>virt_pin</em>, <em class="property">enum</em> ptdev_vpin_source <em>vpin_src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314ptdev_intx_ackP7acrn_vm7uint8_t17ptdev_vpin_source" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Acknowledge a virtual interrupt for passthrough device. </p>
+<p>Acknowledge a virtual legacy interrupt for a passthrough device.</p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None</dd>
+<dt><strong>Pre</strong></dt>
+<dd>vm != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
+<li><code class="docutils literal notranslate"><span class="pre">virt_pin</span></code>: virtual pin number associated with the passthrough device </li>
+<li><code class="docutils literal notranslate"><span class="pre">vpin_src</span></code>: ioapic or pic</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 </div>
 
@@ -853,7 +997,7 @@ BDF for the given vm.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Nov 20, 2018.
+      Last updated on Nov 28, 2018.
 
     </p>
   </div> 
