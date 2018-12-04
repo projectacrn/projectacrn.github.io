@@ -870,12 +870,14 @@ deinitialization:</p>
 <dt id="_CPPv310init_iommuv">
 <span id="_CPPv210init_iommuv"></span><span id="init_iommu__void"></span><span class="target" id="group__acrn__vtd_gad4c38f032530d969830b92a34fc87275_1gad4c38f032530d969830b92a34fc87275"></span>int <code class="descname">init_iommu</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310init_iommuv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Init IOMMUs. </p>
-<p>Register DMAR units on the platform according to the pre-parsed information or DMAR table.</p>
+<p>Register DMAR units on the platform according to the pre-parsed information or DMAR table. IOMMU is a must have feature, if init_iommu failed, the system should not continue booting.</p>
 <p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>0 - on success </dd>
-<dt><strong>Return</strong></dt>
-<dd>non-zero - iommu is a must have feature, if init_iommu failed, the system should not continue booting </dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">0</span></code>: on success </li>
+<li><code class="docutils literal notranslate"><span class="pre">&lt;0</span></code>: on failure </li>
+</ul>
+</dd>
 </dl>
 </p>
 </dd></dl>
@@ -910,9 +912,7 @@ deinitialization:</p>
 <p>Create a iommu domain for a VM specified by vm_id, along with address translation table and address width.</p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
-<dd>Pointer pointer to iommu_domain </dd>
-<dt><strong>Return</strong></dt>
-<dd>NULL if translation_table is 0</dd>
+<dd>Pointer to the created iommu_domain</dd>
 <dt><strong>Pre</strong></dt>
 <dd>vm_id is valid </dd>
 <dt><strong>Pre</strong></dt>
@@ -922,6 +922,12 @@ deinitialization:</p>
 <li><code class="docutils literal notranslate"><span class="pre">vm_id</span></code>: vm_id of the VM the domain created for </li>
 <li><code class="docutils literal notranslate"><span class="pre">translation_table</span></code>: the physcial address of EPT table of the VM specified by the vm_id </li>
 <li><code class="docutils literal notranslate"><span class="pre">addr_width</span></code>: address width of the VM</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">NULL</span></code>: when <code class="docutils literal notranslate"><span class="pre">translation_table</span></code> is 0 </li>
+<li><code class="docutils literal notranslate"><span class="pre">!NULL</span></code>: when <code class="docutils literal notranslate"><span class="pre">translation_table</span></code> is not 0</li>
 </ul>
 </dd>
 </dl>
@@ -965,10 +971,6 @@ deinitialization:</p>
 <dd><p>Assign a device specified by bus &amp; devfun to a iommu domain. </p>
 <p>Remove the device from the VM0 domain (if present), and add it to the specific domain.</p>
 <p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>0 - on success. </dd>
-<dt><strong>Return</strong></dt>
-<dd>1 - fail to unassign the device</dd>
 <dt><strong>Pre</strong></dt>
 <dd>domain != NULL </dd>
 <dt><strong>Parameters</strong></dt>
@@ -976,6 +978,12 @@ deinitialization:</p>
 <li><code class="docutils literal notranslate"><span class="pre">domain</span></code>: iommu domain the device is assigned to </li>
 <li><code class="docutils literal notranslate"><span class="pre">bus</span></code>: the 8-bit bus number of the device </li>
 <li><code class="docutils literal notranslate"><span class="pre">devfun</span></code>: the 8-bit device(5-bit):function(3-bit) of the device</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">0</span></code>: on success. </li>
+<li><code class="docutils literal notranslate"><span class="pre">1</span></code>: fail to unassign the device</li>
 </ul>
 </dd>
 </dl>
@@ -988,10 +996,6 @@ deinitialization:</p>
 <dd><p>Unassign a device specified by bus &amp; devfun from a iommu domain . </p>
 <p>Remove the device from the specific domain, and then add it to the VM0 domain (if present).</p>
 <p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>0 - on success. </dd>
-<dt><strong>Return</strong></dt>
-<dd>1 - fail to unassign the device</dd>
 <dt><strong>Pre</strong></dt>
 <dd>domain != NULL </dd>
 <dt><strong>Parameters</strong></dt>
@@ -999,6 +1003,12 @@ deinitialization:</p>
 <li><code class="docutils literal notranslate"><span class="pre">domain</span></code>: iommu domain the device is assigned to </li>
 <li><code class="docutils literal notranslate"><span class="pre">bus</span></code>: the 8-bit bus number of the device </li>
 <li><code class="docutils literal notranslate"><span class="pre">devfun</span></code>: the 8-bit device(5-bit):function(3-bit) of the device</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">0</span></code>: on success. </li>
+<li><code class="docutils literal notranslate"><span class="pre">1</span></code>: fail to unassign the device</li>
 </ul>
 </dd>
 </dl>
@@ -1021,7 +1031,7 @@ deinitialization:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Nov 28, 2018.
+      Last updated on Dec 03, 2018.
 
     </p>
   </div> 
