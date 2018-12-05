@@ -633,39 +633,118 @@ tsc-deadline timer mode by writing the local APIC LVT register.</p>
 </div>
 <div class="section" id="data-structures-and-apis">
 <h2>Data Structures and APIs<a class="headerlink" href="#data-structures-and-apis" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">API link to hv_timer and per_cpu_timer structs in include/arch/x86/timer.h
-And to the function APIs there too.</p>
-</div>
-<p>Before adding a timer, we must initialize the timer with
-<em>initialize_timer</em>.  The processor generates a timer interrupt when the
-value of timer-stamp counter is greater than or equal to the <em>fire_tsc</em>
-field. If you want to add a periodic timer, you should also pass the
-period (unit in tsc cycles), otherwise, period_in_cycle will be ignored.
-When the timer interrupt is generated, it will call the callback
-function <em>func</em> with parameter <em>priv_data</em>.</p>
-<p>The <em>initialize_timer</em> function only initialize the timer data
-structure; it will not program the <code class="docutils literal notranslate"><span class="pre">IA32_TSC_DEADLINE_MSR</span></code> to generate
-the timer interrupt. If you want to generate a timer interrupt, you must
-call <em>add_timer</em> to add the timer to the <em>per_cpu_timer</em> timer_list. In
-return, we will chose the nearest expired timer on the timer_list and
-program <code class="docutils literal notranslate"><span class="pre">IA32_TSC_DEADLINE_MSR</span></code> by writing its value to fire_ts. Then
-when the fire_tsc expires, it raises the interrupt whose callback raises
-a softirq. We will handle the software interrupt before the VM reenters
-the guest. (Currently, the hypervisor only uses the timer for the
-console).</p>
-<p>The timer softirq handler will check each expired timer on its
-timer_list.  Before calling the expired timer callback handler, it will
-remove the timer from its logical cpu timer_list. After calling the
-timer callback handler, it will re-add the timer to the timer_list if
-it’s a periodic timer. If you want to modify a timer before it expires,
-you should call del_timer to remove the timer from the timer_list, then
-call add_timer again after updating the timer fields.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Only call initialize_timer only once for each timer.
-Don’t call add_timer or del_timer in the timer callback function.</p>
+<div class="section" id="interfaces-design">
+<h3>Interfaces Design<a class="headerlink" href="#interfaces-design" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="_CPPv316initialize_timerP8hv_timer14timer_handle_tPv8uint64_ti8uint64_t">
+<span id="_CPPv216initialize_timerP8hv_timer14timer_handle_tPv8uint64_ti8uint64_t"></span><span id="initialize_timer__hv_timerP.timer_handle_t.voidP.uint64_t.i.uint64_t"></span><span class="target" id="group__timer_gaa55912b962ee09b0202631347f61767d_1gaa55912b962ee09b0202631347f61767d"></span><em class="property">static</em> void <code class="descname">initialize_timer</code><span class="sig-paren">(</span><em class="property">struct</em> hv_timer *<em>timer</em>, timer_handle_t <em>func</em>, void *<em>priv_data</em>, uint64_t <em>fire_tsc</em>, int <em>mode</em>, uint64_t <em>period_in_cycle</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv316initialize_timerP8hv_timer14timer_handle_tPv8uint64_ti8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize a timer structure. </p>
+<p><dl class="docutils">
+<dt><strong>Remark</strong></dt>
+<dd>Don’t initialize a timer twice if it has been added to the timer list after calling add_timer. If you want to, delete the timer from the list first.</dd>
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">timer</span></code>: Pointer to timer. </li>
+<li><code class="docutils literal notranslate"><span class="pre">func</span></code>: irq callback if time reached. </li>
+<li><code class="docutils literal notranslate"><span class="pre">priv_data</span></code>: func private data. </li>
+<li><code class="docutils literal notranslate"><span class="pre">fire_tsc</span></code>: tsc deadline to interrupt. </li>
+<li><code class="docutils literal notranslate"><span class="pre">mode</span></code>: timer mode. </li>
+<li><code class="docutils literal notranslate"><span class="pre">period_in_cycle</span></code>: period of the periodic timer in unit of TSC cycles.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313timer_expiredPK8hv_timer">
+<span id="_CPPv213timer_expiredPK8hv_timer"></span><span id="timer_expired__hv_timerCP"></span><span class="target" id="group__timer_gacef22e70daa0fe5d5ed255cf68094c83_1gacef22e70daa0fe5d5ed255cf68094c83"></span><em class="property">static</em> bool <code class="descname">timer_expired</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> hv_timer *<em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313timer_expiredPK8hv_timer" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Check a timer whether expired. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">timer</span></code>: Pointer to timer.</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">true</span></code>: if the timer is expired, false otherwise. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv39add_timerP8hv_timer">
+<span id="_CPPv29add_timerP8hv_timer"></span><span id="add_timer__hv_timerP"></span><span class="target" id="group__timer_gac434e79244fa9f73aa9387b1404fbd3c_1gac434e79244fa9f73aa9387b1404fbd3c"></span>int <code class="descname">add_timer</code><span class="sig-paren">(</span><em class="property">struct</em> hv_timer *<em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39add_timerP8hv_timer" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Add a timer. </p>
+<p><dl class="docutils">
+<dt><strong>Remark</strong></dt>
+<dd>Don’t call it in the timer callback function or interrupt content. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">timer</span></code>: Pointer to timer.</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">0</span></code>: on success </li>
+<li><code class="docutils literal notranslate"><span class="pre">-EINVAL</span></code>: timer has an invalid value</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv39del_timerP8hv_timer">
+<span id="_CPPv29del_timerP8hv_timer"></span><span id="del_timer__hv_timerP"></span><span class="target" id="group__timer_ga2e71d588045badb04d691d403d1cc9c9_1ga2e71d588045badb04d691d403d1cc9c9"></span>void <code class="descname">del_timer</code><span class="sig-paren">(</span><em class="property">struct</em> hv_timer *<em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39del_timerP8hv_timer" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Delete a timer. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None</dd>
+<dt><strong>Remark</strong></dt>
+<dd>Don’t call it in the timer callback function or interrupt content. </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">timer</span></code>: Pointer to timer.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv310timer_initv">
+<span id="_CPPv210timer_initv"></span><span id="timer_init__void"></span><span class="target" id="group__timer_ga7b8ab79df77b57475a5494f5f81c3bd9_1ga7b8ab79df77b57475a5494f5f81c3bd9"></span>void <code class="descname">timer_init</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310timer_initv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize timer. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv39check_tscv">
+<span id="_CPPv29check_tscv"></span><span id="check_tsc__void"></span><span class="target" id="group__timer_ga5012ab592ad92a7cf7fa494b993a3b68_1ga5012ab592ad92a7cf7fa494b993a3b68"></span>void <code class="descname">check_tsc</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv39check_tscv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Check tsc to make sure rdtsc is enabled. </p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313calibrate_tscv">
+<span id="_CPPv213calibrate_tscv"></span><span id="calibrate_tsc__void"></span><span class="target" id="group__timer_gacae8d43dd141466cb0b762d9d6b06627_1gacae8d43dd141466cb0b762d9d6b06627"></span>void <code class="descname">calibrate_tsc</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313calibrate_tscv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Calibrate tsc. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 </div>
 </div>
@@ -682,7 +761,7 @@ Don’t call add_timer or del_timer in the timer callback function.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Dec 03, 2018.
+      Last updated on Dec 05, 2018.
 
     </p>
   </div> 
