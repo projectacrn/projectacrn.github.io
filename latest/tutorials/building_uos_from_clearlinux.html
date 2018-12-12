@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Using partition mode on UP2 &mdash; Project ACRN™ v 0.5-unstable documentation</title>
+  <title>Building UOS from Clear Linux &mdash; Project ACRN™ v 0.5-unstable documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Using Ubuntu as the Service OS" href="using_ubuntu_as_sos.html" />
-    <link rel="prev" title="Using a static IP address" href="static-ip.html" /> 
+    <link rel="next" title="ACRN documentation generation" href="docbuild.html" />
+    <link rel="prev" title="Tutorials" href="index.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -149,6 +149,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../user-guides/index.html">User Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guides/acrn-shell.html">ACRN Shell Commands</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../user-guides/tools.html">Tools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tools/README.html">ACRN tools</a></li>
@@ -462,9 +463,9 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="building_uos_from_clearlinux.html">Building UOS from Clear Linux</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="building_uos_from_clearlinux.html#build-uos-image-in-clear-linux-native">Build UOS image in Clear Linux native</a></li>
-<li class="toctree-l3"><a class="reference internal" href="building_uos_from_clearlinux.html#start-the-user-os-uos">Start the User OS (UOS)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Building UOS from Clear Linux</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#build-uos-image-in-clear-linux-native">Build UOS image in Clear Linux native</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#start-the-user-os-uos">Start the User OS (UOS)</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="docbuild.html">ACRN documentation generation</a><ul>
@@ -484,11 +485,11 @@
 <li class="toctree-l3"><a class="reference internal" href="static-ip.html#activate-the-new-configuration">Activate the new configuration</a></li>
 </ul>
 </li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Using partition mode on UP2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#build-kernel-and-modules-for-partition-mode-uos">Build kernel and modules for partition mode UOS</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#enable-partition-mode-in-acrn-hypervisor">Enable partition mode in ACRN hypervisor</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#switch-between-privileged-vms">Switch between privileged VMs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using_partition_mode_on_up2.html">Using partition mode on UP2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using_partition_mode_on_up2.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_partition_mode_on_up2.html#build-kernel-and-modules-for-partition-mode-uos">Build kernel and modules for partition mode UOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_partition_mode_on_up2.html#enable-partition-mode-in-acrn-hypervisor">Enable partition mode in ACRN hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using_partition_mode_on_up2.html#switch-between-privileged-vms">Switch between privileged VMs</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
@@ -603,7 +604,7 @@
         
           <li><a href="index.html">Tutorials</a> &raquo;</li>
         
-      <li>Using partition mode on UP2</li>
+      <li>Building UOS from Clear Linux</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -620,379 +621,153 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="using-partition-mode-on-up2">
-<span id="partition-mode"></span><h1>Using partition mode on UP2<a class="headerlink" href="#using-partition-mode-on-up2" title="Permalink to this headline">¶</a></h1>
-<p>ACRN hypervisor supports partition mode, in which the User OS running in a
-privileged VM can bypass the ACRN hypervisor and directly access isolated
-PCI devices. This tutorial provides step by step instructions on how to set up
-the ACRN hypervisor partition mode on
-<a class="reference external" href="https://up-board.org/upsquared/specifications/">UP2</a> boards running two
-privileged VMs as shown in <a class="reference internal" href="#two-priv-vms"><span class="std std-numref">Figure 167</span></a>:</p>
-<div class="figure align-center" id="two-priv-vms">
-<img alt="../_images/partition_mode_up2.png" src="../_images/partition_mode_up2.png" />
-<p class="caption"><span class="caption-number">Figure 167 </span><span class="caption-text">Two privileged VMs running in partition mode</span></p>
-</div>
-<div class="section" id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
-<p>In this tutorial two Linux privileged VMs are started by the ACRN hypervisor.
-To set up the Linux root filesystems for each VM, follow the Clear Linux
-<a class="reference external" href="https://clearlinux.org/documentation/clear-linux/get-started/bare-metal-install#bare-metal-install">bare metal installation guide</a>
-to install Clear Linux on a <strong>SATA disk</strong> and a <strong>USB flash disk</strong> prior the setup,
-as the two privileged VMs will mount the root filesystems via the SATA controller
-and the USB controller respectively.</p>
-</div>
-<div class="section" id="build-kernel-and-modules-for-partition-mode-uos">
-<h2>Build kernel and modules for partition mode UOS<a class="headerlink" href="#build-kernel-and-modules-for-partition-mode-uos" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="building-uos-from-clear-linux">
+<span id="build-uos-from-clearlinux"></span><h1>Building UOS from Clear Linux<a class="headerlink" href="#building-uos-from-clear-linux" title="Permalink to this headline">¶</a></h1>
+<p>This document builds on the <a class="reference internal" href="../getting-started/index.html#getting-started"><span class="std std-ref">Getting Started Guides</span></a>,
+and explains how to build UOS from Clear Linux.</p>
+<div class="section" id="build-uos-image-in-clear-linux-native">
+<h2>Build UOS image in Clear Linux native<a class="headerlink" href="#build-uos-image-in-clear-linux-native" title="Permalink to this headline">¶</a></h2>
+<p>In order to build out the image of UOS,
+follow these steps to build a UOS image from Clear Linux:</p>
 <ol class="arabic">
-<li><p class="first">On your development workstation, clone the ACRN kernel source tree, and
-build the Linux kernel image that will be used to boot the privileged VMs:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-kernel.git
-Cloning into &#39;acrn-kernel&#39;...
+<li><p class="first">In Clear Linux native, install <code class="docutils literal notranslate"><span class="pre">ister</span></code> (a template-based
+installer for Linux) included in the Clear Linux bundle
+<code class="docutils literal notranslate"><span class="pre">os-installer</span></code>.
+For more information about <code class="docutils literal notranslate"><span class="pre">ister</span></code>,
+please visit <a class="reference external" href="https://github.com/bryteise/ister">https://github.com/bryteise/ister</a>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add os-installer
+</pre></div>
+</div>
+</li>
+<li><p class="first">After installation is complete, use <code class="docutils literal notranslate"><span class="pre">ister.py</span></code> to
+generate the image for UOS with the configuration in
+<code class="docutils literal notranslate"><span class="pre">uos-image.json</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~
+$ sudo ister.py -t uos-image.json
+</pre></div>
+</div>
+<p>An example of the configuration file <code class="docutils literal notranslate"><span class="pre">uos-image.json</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+    &quot;DestinationType&quot; : &quot;virtual&quot;,
+    &quot;PartitionLayout&quot; : [ { &quot;disk&quot; : &quot;uos.img&quot;,
+                            &quot;partition&quot; : 1,
+                            &quot;size&quot; : &quot;512M&quot;,
+                            &quot;type&quot; : &quot;EFI&quot; },
+                          { &quot;disk&quot; : &quot;uos.img&quot;,
+                            &quot;partition&quot; : 2,
+                            &quot;size&quot; : &quot;1G&quot;,
+                            &quot;type&quot; : &quot;swap&quot; },
+                          { &quot;disk&quot; : &quot;uos.img&quot;,
+                            &quot;partition&quot; : 3,
+                            &quot;size&quot; : &quot;8G&quot;,
+                            &quot;type&quot; : &quot;linux&quot; } ],
+    &quot;FilesystemTypes&quot; : [ { &quot;disk&quot; : &quot;uos.img&quot;,
+                            &quot;partition&quot; : 1,
+                            &quot;type&quot; : &quot;vfat&quot; },
+                          { &quot;disk&quot; : &quot;uos.img&quot;,
+                            &quot;partition&quot; : 2,
+                            &quot;type&quot; : &quot;swap&quot; },
+                          { &quot;disk&quot; : &quot;uos.img&quot;,
+                            &quot;partition&quot; : 3,
+                            &quot;type&quot; : &quot;ext4&quot; } ],
+    &quot;PartitionMountPoints&quot; : [ { &quot;disk&quot; : &quot;uos.img&quot;,
+                                 &quot;partition&quot; : 1,
+                                 &quot;mount&quot; : &quot;/boot&quot; },
+                               { &quot;disk&quot; : &quot;uos.img&quot;,
+                                 &quot;partition&quot; : 3,
+                                 &quot;mount&quot; : &quot;/&quot; } ],
+    &quot;Version&quot;: &quot;latest&quot;,
+    &quot;Bundles&quot;: [&quot;bootloader&quot;,
+                &quot;editors&quot;,
+                &quot;kernel-iot-lts2018&quot;,
+                &quot;network-basic&quot;,
+                &quot;os-core-update&quot;,
+                &quot;os-core&quot;,
+                &quot;openssh-server&quot;,
+                &quot;sysadmin-basic&quot;]
+ }
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To generate the image with a specified version,
+please modify the <code class="docutils literal notranslate"><span class="pre">&quot;Version&quot;</span></code> argument,
+and we can set <code class="docutils literal notranslate"><span class="pre">&quot;Version&quot;:</span> <span class="pre">26550</span></code> instead of
+<code class="docutils literal notranslate"><span class="pre">&quot;Version&quot;:</span> <span class="pre">&quot;latest&quot;</span></code> for example.</p>
+</div>
+<p>Here we will use <code class="docutils literal notranslate"><span class="pre">&quot;Version&quot;:</span> <span class="pre">26550</span></code> for example,
+and the UOS image called <code class="docutils literal notranslate"><span class="pre">uos.img</span></code> will be generated
+after successful installation. An example output log is:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Reading configuration
+Validating configuration
+Creating virtual disk
+Creating partitions
+Mapping loop device
+Creating file systems
+Setting up mount points
+Starting swupd. May take several minutes
+Installing 9 bundles (and dependencies)...
+Verifying version 26550
+Downloading packs...
+
+Extracting emacs pack for version 26550
+
+Extracting vim pack for version 26550
 ...
-$ cd acrn-kernel
-$ cp kernel_config_uos .config
-
-$ make olddefconfig
-scripts/kconfig/conf  --olddefconfig Kconfig
-#
-# configuration written to .config
-#
-
-$ make
-$ make modules_install INSTALL_MOD_PATH=out/
-</pre></div>
-</div>
-<p>The last two commands built the bootable kernel image <code class="docutils literal notranslate"><span class="pre">arch/x86/boot/bzImage</span></code>,
-and the loadable kernel modules under the <code class="docutils literal notranslate"><span class="pre">./out/</span></code> folder. Copy these files
-to a removable disk for installing on the UP2 board later.</p>
-</li>
-<li><p class="first">Current ACRN partition mode implementation requires a multi-boot capable
-bootloader to boot both ACRN hypervisor and the bootable kernel image
-built from the previous step. You could install Ubuntu OS to the UP2 board
-by following
-<a class="reference external" href="https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-desktop">this Ubuntu tutorial</a>.
-The Ubuntu installer creates 3 disk partitions on the on-board eMMC memory.
-By default, the GRUB bootloader is installed on the ESP (EFI System Partition)
-partition, which will be used to bootstrap the partition mode ACRN hypervisor.</p>
-</li>
-<li><p class="first">After installing the Ubuntu OS, power off the UP2 board, attach the SATA disk
-and the USB flash disk to the board. Power on the board and make sure
-it boots the Ubuntu OS from the eMMC, then copy the loadable kernel modules
-built in Step 1 to the <code class="docutils literal notranslate"><span class="pre">/lib/modules/</span></code> folder on both the mounted SATA
-disk and USB disk. For example, assuming the SATA disk and USB flash disk
-are assigned to <code class="docutils literal notranslate"><span class="pre">/dev/sda</span></code> and <code class="docutils literal notranslate"><span class="pre">/dev/sdb</span></code> respectively, the following
-commands set up the partition mode loadable kernel modules onto the root
-filesystems to be loaded by the privileged VMs:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Mount the Clear Linux root filesystem on the SATA disk
-$ sudo mount /dev/sda3 /mnt
-$ sudo cp -r &lt;kernel-modules-folder-built-in-step1&gt;/lib/modules/* /mnt/lib/modules
-$ sudo umount /mnt
-
-# Mount the Clear Linux root filesystem on the USB flash disk
-$ sudo mount /dev/sdb3 /mnt
-$ sudo cp -r &lt;path-to-kernel-module-folder-built-in-step1&gt;/lib/modules/* /mnt/lib/modules
-$ sudo umount /mnt
+Cleaning up
+Successful installation
 </pre></div>
 </div>
 </li>
-<li><p class="first">Copy the bootable kernel image to the <code class="docutils literal notranslate"><span class="pre">/boot</span></code> directory:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo cp &lt;path-to-kernel-image-built-in-step1&gt;/bzImage /boot/
+<li><p class="first">On your target device, boot the system and select “The ACRN Service OS”, as shown below:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="go">=&gt; The ACRN Service OS</span>
+</span><span class="go">Clear Linux OS for Intel Architecture (Clear-linux-iot-lts2018-4.19.0-19)</span>
+<span class="go">Clear Linux OS for Intel Architecture (Clear-linux-iot-lts2018-sos-4.19.0-19)</span>
+<span class="go">Clear Linux OS for Intel Architecture (Clear-linux-native.4.19.1-654)</span>
+<span class="go">EFI Default Loader</span>
+<span class="go">Reboot Into Firmware Interface</span>
 </pre></div>
 </div>
 </li>
 </ol>
 </div>
-<div class="section" id="enable-partition-mode-in-acrn-hypervisor">
-<h2>Enable partition mode in ACRN hypervisor<a class="headerlink" href="#enable-partition-mode-in-acrn-hypervisor" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="start-the-user-os-uos">
+<h2>Start the User OS (UOS)<a class="headerlink" href="#start-the-user-os-uos" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first">Before building the ACRN hypervisor, you need to figure out the I/O address
-of the serial port, and the PCI BAR addresses of the SATA controller and
-the USB controller on your UP2 board.</p>
-<p>Enter the following command to get the I/O addresses of the serial ports.
-UP2 boards support two serial ports. The addresses from the command
-output represent the I/O addresses of the serial port of the 10-pin side
-connector and the 40-pin expansion header respectively. You will need to
-connect the serial port to the development host, in order to access
-the ACRN serial console to switch between privileged VMs.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span><span class="hll">$ dmesg | grep ttyS
-</span>[   10.552369] dw-apb-uart.8: ttyS4 at MMIO 0x91524000 (irq = 4, base_baud = 115200) is a 16550A
-[   10.552568] serial serial0: tty port ttyS4 registered
-[   10.572344] dw-apb-uart.9: ttyS5 at MMIO 0x91522000 (irq = 5, base_baud = 115200) is a 16550A
-[   10.572545] serial serial1: tty port ttyS5 registered
-</pre></div>
-</div>
-<p>The following command prints detailed information about all PCI buses
-and devices in the system. Look up the PCI BAR addresses of the SATA
-controller and the USB controller, record these addresses (highlighted below) for
-editing the source code later.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span><span class="hll">$ sudo lspci -vv
-</span>...
-00:12.0 SATA controller: Intel Corporation Device 5ae3 (rev 0b) (prog-if 01 [AHCI 1.0])
-    Subsystem: Intel Corporation Device 7270
-    Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
-    Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-
-    Latency: 0
-    Interrupt: pin A routed to IRQ 123
-<span class="hll">    Region 0: Memory at 91514000 (32-bit, non-prefetchable) [size=8K]
-</span><span class="hll">    Region 1: Memory at 91537000 (32-bit, non-prefetchable) [size=256]
-</span>    Region 2: I/O ports at f090 [size=8]
-    Region 3: I/O ports at f080 [size=4]
-    Region 4: I/O ports at f060 [size=32]
-<span class="hll">    Region 5: Memory at 91536000 (32-bit, non-prefetchable) [size=2K]
-</span>...
-00:15.0 USB controller: Intel Corporation Device 5aa8 (rev 0b) (prog-if 30 [XHCI])
-    Subsystem: Intel Corporation Device 7270
-    Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
-    Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-
-    Latency: 0
-    Interrupt: pin A routed to IRQ 122
-<span class="hll">    Region 0: Memory at 91500000 (64-bit, non-prefetchable) [size=64K]
-</span></pre></div>
-</div>
-</li>
-<li><p class="first">Clone the ACRN source code and configure the build options with
-<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code> command:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor.git
-$ cd acrn-hypervisor/hypervisor
-$ make menuconfig
-</pre></div>
-</div>
-<p>Set the <code class="docutils literal notranslate"><span class="pre">Hypervisor</span> <span class="pre">mode</span></code> option to <code class="docutils literal notranslate"><span class="pre">Partition</span> <span class="pre">mode</span></code>, and depending
-on the serial port you are using, enter its MMIO address to the configuration
-menu as shown in this screenshot. Finally, save the configuration.</p>
-<div class="figure align-center">
-<img alt="../_images/menuconfig-partition-mode.png" src="../_images/menuconfig-partition-mode.png" />
-</div>
-</li>
-<li><p class="first">Configure the PCI device info for each VM</p>
-<p>PCI devices that are available to the privileged VMs
-are hardcoded in the source file <code class="docutils literal notranslate"><span class="pre">hypervisor/partition/apl-mrb/vm_description.c</span></code>.
-You need to review and modify the <code class="docutils literal notranslate"><span class="pre">vpci_vdev_array1</span></code> and <code class="docutils literal notranslate"><span class="pre">vpci_vdev_array2</span></code>
-structures in the source code to match the PCI BAR addresses of the SATA
-controller and the USB controller noted in step 1:</p>
-<div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-number">Code Block 5 </span><span class="caption-text">hypervisor/partition/vm_description.c</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
-static struct vpci_vdev_array vpci_vdev_array1 = {
-<span class="hll">   .num_pci_vdev = 2,
-</span>
-   .vpci_vdev_list = {
-      {/*vdev 0: hostbridge */
-         .vbdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x0U},
-         .ops = &amp;pci_ops_vdev_hostbridge,
-         .bar = {},
-         .pdev = {
-            .bdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x0U},
-         }
-      },
+<li><p class="first">Mount the UOS image and check the UOS kernel:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># losetup -r -f -P --show ~/uos.img
+# mount /dev/loop0p3 /mnt
 
-   {/*vdev 1: SATA controller*/
-      .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x0U},
-      .ops = &amp;pci_ops_vdev_pt,
-      .bar = {
-         [0] = {
-           .base = 0UL,
-           .size = 0x2000UL,
-           .type = PCIBAR_MEM32
-         },
-         [1] = {
-           .base = 0UL,
-           .size = 0x1000UL,
-           .type = PCIBAR_MEM32
-         },
-         [5] = {
-           .base = 0UL,
-           .size = 0x1000UL,
-           .type = PCIBAR_MEM32
-         },
-      },
-      .pdev = {
-         .bdf.bits = {.b = 0x00U, .d = 0x12U, .f = 0x0U},
-         .bar = {
-         [0] = {
-<span class="hll">           .base = 0x91514000UL,
-</span>           .size = 0x2000UL,
-           .type = PCIBAR_MEM32
-         },
-         [1] = {
-<span class="hll">           .base = 0x91537000UL,
-</span>           .size = 0x100UL,
-           .type = PCIBAR_MEM32
-         },
-         [5] = {
-<span class="hll">           .base = 0x91536000UL,
-</span>           .size = 0x800UL,
-           .type = PCIBAR_MEM32
-         },
-      }
-      ...
-      static struct vpci_vdev_array vpci_vdev_array2 = {
-<span class="hll">         .num_pci_vdev = 3,
-</span>         ...
-         {/*vdev 1: USB controller*/
-            .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x0U},
-            .ops = &amp;pci_ops_vdev_pt,
-            .bar = {
-               [0] = {
-                 .base = 0UL,
-                 .size = 0x10000UL,
-                 .type = PCIBAR_MEM32
-               },
-            },
-            .pdev = {
-               .bdf.bits = {.b = 0x00U, .d = 0x15U, .f = 0x0U},
-               .bar = {
-                 [0] = {
-<span class="hll">                   .base = 0x91500000UL,
-</span>                   .size = 0x10000UL,
-                   .type = PCIBAR_MEM64
-                 },
-               }
-         ...
-</pre></div>
-</div>
-</div>
-</li>
-<li><p class="first">Optionally, configure the <code class="docutils literal notranslate"><span class="pre">.bootargs</span></code> kernel command line arguments</p>
-<p>The kernel command line arguments used to boot the privileged VMs are
-hardcoded as <code class="docutils literal notranslate"><span class="pre">/dev/sda3</span></code> to meet the Clear Linux automatic installation.
-In case you plan to use your customized root
-filesystem, you may optionally edit the <code class="docutils literal notranslate"><span class="pre">root=</span></code> parameter specified
-in the <code class="docutils literal notranslate"><span class="pre">.bootargs</span></code> field of the <code class="docutils literal notranslate"><span class="pre">.vm_desc_array</span></code> structure, to
-instruct the Linux kernel to mount the right disk partition:</p>
-<div class="literal-block-wrapper docutils container" id="id2">
-<div class="code-block-caption"><span class="caption-number">Code Block 6 </span><span class="caption-text">hypervisor/partition/vm_description.c</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
-/* Virtual Machine descriptions */
-.vm_desc_array = {
-   {
-      /* Internal variable, MUSTBE init to -1 */
-      .vm_hw_num_cores = VM1_NUM_CPUS,
-      .vm_pcpu_ids = &amp;VM1_CPUS[0],
-      ...
-<span class="hll">      .bootargs = &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
-</span><span class="hll">                   console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
-</span><span class="hll">                   consoleblank=0 tsc=reliable xapic_phys&quot;,
-</span>      .vpci_vdev_array = &amp;vpci_vdev_array1,
-      .mptable = &amp;mptable_vm1,
-   },
-   {
-      /* Internal variable, MUSTBE init to -1 */
-      .vm_hw_num_cores = VM2_NUM_CPUS,
-      .vm_pcpu_ids = &amp;VM2_CPUS[0],
-      ...
-<span class="hll">      .bootargs = &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
-</span><span class="hll">                   console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
-</span><span class="hll">                   consoleblank=0 tsc=reliable xapic_phys&quot;,
-</span>      .vpci_vdev_array = &amp;vpci_vdev_array2,
-      .mptable = &amp;mptable_vm2,
-      .lapic_pt = true,
-   },
-}
-</pre></div>
-</div>
-</div>
-</li>
-<li><p class="first">Build the ACRN hypervisor and copy the artifact <code class="docutils literal notranslate"><span class="pre">acrn.32.out</span></code> to the
-<code class="docutils literal notranslate"><span class="pre">/boot</span></code> directory:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make PLATFORM=sbl
-...
-$ sudo cp build/acrn.32.out /boot
-</pre></div>
-</div>
-</li>
-<li><p class="first">Modify the <code class="docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code> file to create a new GRUB entry
-that will multi-boot the ACRN hypervisor and the UOS kernel image</p>
-<p>Append the following configuration to the <code class="docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code> file:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>menuentry &#39;ACRN Partition Mode&#39; --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {
-        recordfail
-        load_video
-        gfxmode $linux_gfx_mode
-        insmod gzio
-        insmod part_gpt
-        insmod ext2
+# ls -l /mnt/usr/lib/kernel/
 
-        echo &#39;Loading partition mode hypervisor ...&#39;
-        multiboot /boot/acrn.32.out
-        module /boot/bzImage
-}
+cmdline-4.19.0-26.iot-lts2018
+config-4.19.0-26.iot-lts2018
+default-iot-lts2018 -&gt; org.clearlinux.iot-lts2018.4.19.0-26
+install.d
+org.clearlinux.iot-lts2018.4.19.0-26
 </pre></div>
 </div>
-<p>Modify the <code class="docutils literal notranslate"><span class="pre">/etc/default/grub</span></code> file as follows to make the GRUB menu visible
-when booting:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>#GRUB_HIDDEN_TIMEOUT=0
-GRUB_HIDDEN_TIMEOUT_QUIET=false
+</li>
+<li><p class="first">Adjust the <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_uos.sh</span></code>
+script to match your installation.
+These are the couple of lines you need to modify:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-s 3,virtio-blk,~/uos.img \
+-k /mnt/usr/lib/kernel/default-iot-lts2018  \
 </pre></div>
 </div>
-<p>Re-generate the GRUB configuration file and reboot the UP2 board. Select
-the <code class="docutils literal notranslate"><span class="pre">ACRN</span> <span class="pre">Partition</span> <span class="pre">Mode</span></code> entry to boot the partition mode of the ACRN
-hypervisor, the hypervisor will start the privileged VMs automatically.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo update-grub
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">UOS image <code class="docutils literal notranslate"><span class="pre">uos.img</span></code> is in the directory <code class="docutils literal notranslate"><span class="pre">~/</span></code>
+and UOS kernel <code class="docutils literal notranslate"><span class="pre">default-iot-lts2018</span></code> is in <code class="docutils literal notranslate"><span class="pre">/mnt/usr/lib/kernel/</span></code>.</p>
+</div>
+</li>
+<li><p class="first">You are now all set to start the User OS (UOS):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo /usr/share/acrn/samples/nuc/launch_uos.sh
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go"> Ubuntu</span>
-<span class="go"> Advanced options for Ubuntu</span>
-<span class="go"> System setup</span>
-<span class="hll"><span class="go">*ACRN Partition Mode</span>
-</span></pre></div>
-</div>
+<p>You are now watching the User OS booting up!</p>
 </li>
 </ol>
-</div>
-<div class="section" id="switch-between-privileged-vms">
-<h2>Switch between privileged VMs<a class="headerlink" href="#switch-between-privileged-vms" title="Permalink to this headline">¶</a></h2>
-<p>Connect the serial port on the UP2 board to the development workstation.
-If you set the MMIO address of the serial port right while building the
-ACRN hypervisor, you should see the output from the ACRN serial console as below.
-You could then log in to the privileged VMs by <code class="docutils literal notranslate"><span class="pre">sos_console</span></code> command,
-and press <kbd class="kbd docutils literal notranslate">CTRL+Space</kbd> keys to return to the ACRN serial console.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ACRN Hypervisor</span>
-<span class="go">calibrate_tsc, tsc_khz=1094400</span>
-<span class="go">[21017289us][cpu=0][sev=2][seq=1]:HV version 0.3-unstable-2018-11-08 12:41:24-ef974d1a-dirty DBG (daily tag:acrn-2018w45.3-140000p) build by clear, start time 20997424us</span>
-<span class="go">[21034127us][cpu=0][sev=2][seq=2]:API version 1.0</span>
-<span class="go">[21039218us][cpu=0][sev=2][seq=3]:Detect processor: Intel(R) Pentium(R) CPU N4200 @ 1.10GHz</span>
-<span class="go">[21048422us][cpu=0][sev=2][seq=4]:hardware support HV</span>
-<span class="go">[21053897us][cpu=0][sev=1][seq=5]:SECURITY WARNING!!!!!!</span>
-<span class="go">[21059672us][cpu=0][sev=1][seq=6]:Please apply the latest CPU uCode patch!</span>
-<span class="go">[21074487us][cpu=0][sev=2][seq=28]:Start VM1</span>
-<span class="go">[21074488us][cpu=3][sev=2][seq=29]:Start VM2</span>
-<span class="go">[21885195us][cpu=0][sev=3][seq=34]:vlapic: Start Secondary VCPU1 for VM[1]...</span>
-<span class="go">[21889889us][cpu=3][sev=3][seq=35]:vlapic: Start Secondary VCPU1 for VM[2]...</span>
-<span class="go">ACRN:\&gt;</span>
-<span class="hll"><span class="go">ACRN:\&gt;sos_console 1</span>
-</span>
-<span class="go">----- Entering Guest 1 Shell -----</span>
-<span class="go">[    1.997439] systemd[1]: Listening on Network Service Netlink Socket.</span>
-<span class="go">[  OK  ] Listening on Network Service Netlink Socket.</span>
-<span class="go">[    1.999347] systemd[1]: Created slice system-serial\x2dgetty.slice.</span>
-<span class="go">[  OK  ] Created slice system-serial\x2dgetty.slice.</span>
-<span class="go">[  OK  ] Listening on Journal Socket (/dev/log).</span>
-<span class="go">...</span>
-<span class="go">clr-932c8a3012ec4dc6af53790b7afbf6ba login: root</span>
-<span class="go">Password:</span>
-<span class="gp">root@clr-932c8a3012ec4dc6af53790b7afbf6ba ~ #</span> lspci
-<span class="go">00:00.0 Host bridge: Intel Corporation Celeron N3350/Pentium N4200/Atom E3900 Series Host Bridge (rev 0b)</span>
-<span class="go">00:01.0 SATA controller: Intel Corporation Celeron N3350/Pentium N4200/Atom E3900 Series SATA AHCI Controller (rev 0b)</span>
-<span class="gp">root@clr-932c8a3012ec4dc6af53790b7afbf6ba ~ #</span>
-
-<span class="go"> ---Entering ACRN SHELL---</span>
-<span class="hll"><span class="go">ACRN:\&gt;sos_console 2</span>
-</span>
-<span class="go">----- Entering Guest 2 Shell -----</span>
-<span class="go">[    1.490122] usb 1-4: new full-speed USB device number 2 using xhci_hcd</span>
-<span class="go">[    1.621311] usb 1-4: not running at top speed; connect to a high speed hub</span>
-<span class="go">[    1.627824] usb 1-4: New USB device found, idVendor=058f, idProduct=6387, bcdDevice= 1.01</span>
-<span class="go">[    1.628438] usb 1-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3</span>
-<span class="go">...</span>
-<span class="go">clr-2e8082cd4fc24d57a3c2d3db43368d36 login: root</span>
-<span class="go">Password:</span>
-<span class="gp">root@clr-2e8082cd4fc24d57a3c2d3db43368d36 ~ #</span> lspci
-<span class="go">00:00.0 Host bridge: Intel Corporation Celeron N3350/Pentium N4200/Atom E3900 Series Host Bridge (rev 0b)</span>
-<span class="go">00:01.0 USB controller: Intel Corporation Celeron N3350/Pentium N4200/Atom E3900 Series USB xHCI (rev 0b)</span>
-<span class="go">00:02.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller (rev 0c)</span>
-<span class="gp">root@clr-2e8082cd4fc24d57a3c2d3db43368d36 ~ #</span>
-</pre></div>
-</div>
 </div>
 </div>
 
