@@ -232,6 +232,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-virt-interrupt.html">Virtual Interrupt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-vt-d.html">VT-d</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-dev-passthrough.html">Device Passthrough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-partitionmode.html">Partition mode</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-pm.html">Power Management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-console.html">Console, Shell, and vUART</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-hypercall.html">Hypercall / VHM upcall</a></li>
@@ -795,7 +796,8 @@ default value is to use the Clearlinux bootloader, i.e.:
 <li><code class="docutils literal notranslate"><span class="pre">uart=</span></code>: this tells the hypervisor where the serial port (UART) is found or
 whether it should be disabled. There are three forms for this parameter:<ol class="arabic">
 <li><code class="docutils literal notranslate"><span class="pre">uart=disabled</span></code>: this disables the serial port completely</li>
-<li><code class="docutils literal notranslate"><span class="pre">uart=mmio&#64;&lt;MMIO</span> <span class="pre">address&gt;</span></code>: this sets the serial port MMIO address</li>
+<li><code class="docutils literal notranslate"><span class="pre">uart=bdf&#64;&lt;BDF</span> <span class="pre">value&gt;</span></code>:  this sets the PCI serial port based on its BDF.
+For example, use <code class="docutils literal notranslate"><span class="pre">bdf&#64;0:18.2</span></code> for a BDF of 0:18.2 ttyS2.</li>
 <li><code class="docutils literal notranslate"><span class="pre">uart=port&#64;&lt;port</span> <span class="pre">address&gt;</span></code>: this sets the serial port address</li>
 </ol>
 </li>
@@ -833,10 +835,10 @@ and editing it to account for the kernel versions noted in a previous step.</p>
 </tbody>
 </table>
 <p>A starter acrn.conf configuration file is included in the Clear Linux release and is
-also available in the acrn-hypervisor/hypervisor GitHub repo as <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/blob/master/hypervisor/bsp/uefi/clearlinux/acrn.conf">acrn.conf</a>
+also available in the acrn-hypervisor/hypervisor GitHub repo as <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/blob/master/efi-stub/clearlinux/acrn.conf">acrn.conf</a>
 as shown here:</p>
 <div class="literal-block-wrapper docutils container" id="id2">
-<div class="code-block-caption"><span class="caption-number">Code Block 1 </span><span class="caption-text">hypervisor/bsp/uefi/clearlinux/acrn.conf</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="code-block-caption"><span class="caption-number">Code Block 1 </span><span class="caption-text">efi-stub/clearlinux/acrn.conf</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">title</span> <span class="n">The</span> <span class="n">ACRN</span> <span class="n">Service</span> <span class="n">OS</span>
 <span class="n">linux</span>   <span class="o">/</span><span class="n">EFI</span><span class="o">/</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">/</span><span class="n">kernel</span><span class="o">-</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">.</span><span class="n">iot</span><span class="o">-</span><span class="n">lts2018</span><span class="o">-</span><span class="n">sos</span><span class="o">.</span><span class="mf">4.19</span><span class="o">.</span><span class="mi">5</span><span class="o">-</span><span class="mi">29</span>
 <span class="n">options</span> <span class="n">console</span><span class="o">=</span><span class="n">tty0</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS0</span> <span class="n">i915</span><span class="o">.</span><span class="n">nuclear_pageflip</span><span class="o">=</span><span class="mi">1</span> <span class="n">root</span><span class="o">=</span><span class="n">PARTUUID</span><span class="o">=&lt;</span><span class="n">UUID</span> <span class="n">of</span> <span class="n">rootfs</span> <span class="n">partition</span><span class="o">&gt;</span> <span class="n">rw</span> <span class="n">rootwait</span> <span class="n">ignore_loglevel</span> <span class="n">no_timer_check</span> <span class="n">consoleblank</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_init</span><span class="o">=</span><span class="mi">7</span> <span class="n">i915</span><span class="o">.</span><span class="n">tsd_delay</span><span class="o">=</span><span class="mi">2000</span> <span class="n">i915</span><span class="o">.</span><span class="n">avail_planes_per_pipe</span><span class="o">=</span><span class="mh">0x01010F</span> <span class="n">i915</span><span class="o">.</span><span class="n">domain_plane_owners</span><span class="o">=</span><span class="mh">0x011111110000</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_loading</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc_submission</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_preemption</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">context_priority_mode</span><span class="o">=</span><span class="mi">2</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_gvt</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc</span><span class="o">=</span><span class="mi">0</span> <span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="nd">@0x1FE00000</span>
@@ -855,9 +857,6 @@ add the <code class="docutils literal notranslate"><span class="pre">hugepagesz=
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">It is also possible to use the device name directly, e.g. <code class="docutils literal notranslate"><span class="pre">root=/dev/sda3</span></code></p>
-</div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>
-</pre></div>
 </div>
 </li>
 <li><p class="first">Add a timeout period for Systemd-Boot to wait, otherwise it will not
@@ -1280,7 +1279,7 @@ example above) to ‘BOARD=’:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Dec 15, 2018.
+      Last updated on Dec 20, 2018.
 
     </p>
   </div> 

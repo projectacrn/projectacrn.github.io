@@ -232,6 +232,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-virt-interrupt.html">Virtual Interrupt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-vt-d.html">VT-d</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-dev-passthrough.html">Device Passthrough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-partitionmode.html">Partition mode</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-pm.html">Power Management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-console.html">Console, Shell, and vUART</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/hld/hv-hypercall.html">Hypercall / VHM upcall</a></li>
@@ -635,10 +636,10 @@ privileged VM can bypass the ACRN hypervisor and directly access isolated
 PCI devices. This tutorial provides step by step instructions on how to set up
 the ACRN hypervisor partition mode on
 <a class="reference external" href="https://up-board.org/upsquared/specifications/">UP2</a> boards running two
-privileged VMs as shown in <a class="reference internal" href="#two-priv-vms"><span class="std std-numref">Figure 167</span></a>:</p>
+privileged VMs as shown in <a class="reference internal" href="#two-priv-vms"><span class="std std-numref">Figure 169</span></a>:</p>
 <div class="figure align-center" id="two-priv-vms">
 <img alt="../_images/partition_mode_up2.png" src="../_images/partition_mode_up2.png" />
-<p class="caption"><span class="caption-number">Figure 167 </span><span class="caption-text">Two privileged VMs running in partition mode</span></p>
+<p class="caption"><span class="caption-number">Figure 169 </span><span class="caption-text">Two privileged VMs running in partition mode</span></p>
 </div>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
@@ -722,11 +723,11 @@ output represent the I/O addresses of the serial port of the 10-pin side
 connector and the 40-pin expansion header respectively. You will need to
 connect the serial port to the development host, in order to access
 the ACRN serial console to switch between privileged VMs.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span><span class="hll">$ dmesg | grep ttyS
-</span>[   10.552369] dw-apb-uart.8: ttyS4 at MMIO 0x91524000 (irq = 4, base_baud = 115200) is a 16550A
-[   10.552568] serial serial0: tty port ttyS4 registered
-[   10.572344] dw-apb-uart.9: ttyS5 at MMIO 0x91522000 (irq = 5, base_baud = 115200) is a 16550A
-[   10.572545] serial serial1: tty port ttyS5 registered
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span><span class="hll">$ sudo lspci | grep UART
+</span>00:18.0 . Series HSUART Controller #1 (rev 0b)
+00:18.1 . Series HSUART Controller #2 (rev 0b)
+
+The second with ``00:18.1`` is the one on the 40-pin expansion connector.
 </pre></div>
 </div>
 <p>The following command prints detailed information about all PCI buses
@@ -766,7 +767,7 @@ $ make menuconfig
 </pre></div>
 </div>
 <p>Set the <code class="docutils literal notranslate"><span class="pre">Hypervisor</span> <span class="pre">mode</span></code> option to <code class="docutils literal notranslate"><span class="pre">Partition</span> <span class="pre">mode</span></code>, and depending
-on the serial port you are using, enter its MMIO address to the configuration
+on the serial port you are using, enter its BDF to the configuration
 menu as shown in this screenshot. Finally, save the configuration.</p>
 <div class="figure align-center">
 <img alt="../_images/menuconfig-partition-mode.png" src="../_images/menuconfig-partition-mode.png" />
@@ -950,8 +951,8 @@ hypervisor, the hypervisor will start the privileged VMs automatically.</p>
 <div class="section" id="switch-between-privileged-vms">
 <h2>Switch between privileged VMs<a class="headerlink" href="#switch-between-privileged-vms" title="Permalink to this headline">¶</a></h2>
 <p>Connect the serial port on the UP2 board to the development workstation.
-If you set the MMIO address of the serial port right while building the
-ACRN hypervisor, you should see the output from the ACRN serial console as below.
+If you set the BDF of the serial port right while building the ACRN hypervisor,
+you should see the output from the ACRN serial console as below.
 You could then log in to the privileged VMs by <code class="docutils literal notranslate"><span class="pre">sos_console</span></code> command,
 and press <kbd class="kbd docutils literal notranslate">CTRL+Space</kbd> keys to return to the ACRN serial console.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ACRN Hypervisor</span>
@@ -1016,7 +1017,7 @@ and press <kbd class="kbd docutils literal notranslate">CTRL+Space</kbd> keys to
   <div role="contentinfo">
     <p>
         &copy; Copyright 2018, Project ACRN.
-      Last updated on Dec 15, 2018.
+      Last updated on Dec 20, 2018.
 
     </p>
   </div> 
