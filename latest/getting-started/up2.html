@@ -508,6 +508,17 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_partition_mode_on_up2.html#switch-between-privileged-vms">Switch between privileged VMs</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html">Using SBL on UP2 Board</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#build-sbl">Build SBL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#flash-sbl-on-the-up2">Flash SBL on the UP2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#build-acrn-for-up2">Build ACRN for UP2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#download-and-install-flash-tool">Download and install flash tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#sos-and-laag-installation">SOS and LaaG Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#boot-to-sos">Boot to SOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#launch-uos">Launch UOS</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_ubuntu_as_sos.html#install-ubuntu-natively">Install Ubuntu (natively)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_ubuntu_as_sos.html#install-acrn">Install ACRN</a></li>
@@ -691,21 +702,27 @@ what is referenced in the <a class="reference internal" href="apl-nuc.html#getti
 </li>
 <li><p class="first">When configuring the EFI firmware to boot the ACRN hypervisor by default</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/mmcblk0 -p 1 -L &quot;ACRN Hypervisor&quot; \
-    -u &quot;bootloader=\EFI\org.clearlinux\bootloaderx64.efi uart=bdf@0:18.1&quot;
+    -u &quot;bootloader=\EFI\org.clearlinux\bootloaderx64.efi uart=bdf@0:18.1 vuart=ttyS1@irq5&quot;
 </pre></div>
 </div>
 </li>
 </ul>
 <div class="section" id="up2-serial-port-setting">
 <h3>UP2 serial port setting<a class="headerlink" href="#up2-serial-port-setting" title="Permalink to this headline">¶</a></h3>
-<p>The serial port in the 40-pin HAT connector is located at <code class="docutils literal notranslate"><span class="pre">serial</span> <span class="pre">PCI</span> <span class="pre">BDF</span> <span class="pre">0:18.1</span></code>.
-You can check this from the <code class="docutils literal notranslate"><span class="pre">lspci</span></code> output from the initial Clearlinux installation.</p>
+<p>The serial port (ttyS1) in the 40-pin HAT connector is located at <code class="docutils literal notranslate"><span class="pre">serial</span> <span class="pre">PCI</span> <span class="pre">BDF</span> <span class="pre">0:18.1</span></code>.
+You can check this from the <code class="docutils literal notranslate"><span class="pre">lspci</span></code> output from the initial Clearlinux installation.
+Also you can use <code class="docutils literal notranslate"><span class="pre">dmesg</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">tty</span></code> to get its IRQ information for vuart setting; and update
+SOS bootargs <code class="docutils literal notranslate"><span class="pre">console=ttyS1</span></code> in acrn.conf to match with vuart setting.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># lspci | grep UART
 00:18.0 . Series HSUART Controller #1 (rev 0b)
 00:18.1 . Series HSUART Controller #2 (rev 0b)
+
+# dmesg | grep tty
+dw-apb-uart.8: ttyS0 at MMIO 0x91524000 (irq = 4, base_baud = 115200) is a 16550A
+dw-apb-uart.9: ttyS1 at MMIO 0x91522000 (irq = 5, base_baud = 115200) is a 16550A
 </pre></div>
 </div>
-<p>The second entry associated with <code class="docutils literal notranslate"><span class="pre">00:18.1</span></code> is the one on the 40-pin HAT connector.</p>
+<p>The second entry associated with <code class="docutils literal notranslate"><span class="pre">00:18.1</span> <span class="pre">&#64;irq5</span></code> is the one on the 40-pin HAT connector.</p>
 </div>
 <div class="section" id="up2-block-device">
 <h3>UP2 block device<a class="headerlink" href="#up2-block-device" title="Permalink to this headline">¶</a></h3>
@@ -741,8 +758,8 @@ you can proceed with the rest of the instructions in the
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Project ACRN.
-      Last updated on Dec 26, 2018.
+        &copy; Copyright 2019, Project ACRN.
+      Last updated on Jan 07, 2019.
 
     </p>
   </div> 

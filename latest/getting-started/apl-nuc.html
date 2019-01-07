@@ -508,6 +508,17 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_partition_mode_on_up2.html#switch-between-privileged-vms">Switch between privileged VMs</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html">Using SBL on UP2 Board</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#build-sbl">Build SBL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#flash-sbl-on-the-up2">Flash SBL on the UP2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#build-acrn-for-up2">Build ACRN for UP2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#download-and-install-flash-tool">Download and install flash tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#sos-and-laag-installation">SOS and LaaG Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#boot-to-sos">Boot to SOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#launch-uos">Launch UOS</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../tutorials/using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_ubuntu_as_sos.html#install-ubuntu-natively">Install Ubuntu (natively)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_ubuntu_as_sos.html#install-acrn">Install ACRN</a></li>
@@ -794,7 +805,7 @@ decide to trigger an update manually. Whenever that happens,
 double-check the platform boot order using <code class="docutils literal notranslate"><span class="pre">efibootmgr</span> <span class="pre">-v</span></code> and
 modify it if needed.</p>
 </div>
-<p>The ACRN hypervisor (<code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code>) accepts two command-line parameters that
+<p>The ACRN hypervisor (<code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code>) accepts three command-line parameters that
 tweak its behaviour:</p>
 <ol class="arabic simple">
 <li><code class="docutils literal notranslate"><span class="pre">bootloader=</span></code>: this sets the EFI executable to be loaded once the hypervisor
@@ -805,10 +816,15 @@ default value is to use the Clearlinux bootloader, i.e.:
 whether it should be disabled. There are three forms for this parameter:<ol class="arabic">
 <li><code class="docutils literal notranslate"><span class="pre">uart=disabled</span></code>: this disables the serial port completely</li>
 <li><code class="docutils literal notranslate"><span class="pre">uart=bdf&#64;&lt;BDF</span> <span class="pre">value&gt;</span></code>:  this sets the PCI serial port based on its BDF.
-For example, use <code class="docutils literal notranslate"><span class="pre">bdf&#64;0:18.2</span></code> for a BDF of 0:18.2 ttyS2.</li>
+For example, use <code class="docutils literal notranslate"><span class="pre">bdf&#64;0:18.1</span></code> for a BDF of 0:18.1 ttyS1.</li>
 <li><code class="docutils literal notranslate"><span class="pre">uart=port&#64;&lt;port</span> <span class="pre">address&gt;</span></code>: this sets the serial port address</li>
 </ol>
 </li>
+<li><code class="docutils literal notranslate"><span class="pre">vuart=ttySn&#64;irqN</span></code>: this tells the hypervisor which virtual serial device SOS
+will use and its IRQ number. This is used to avoid conflict with SOS passthrough
+devices’ interrupt. If UART is set to ttyS1, and its native IRQ is 5, you’d better
+set <code class="docutils literal notranslate"><span class="pre">vuart=ttyS1&#64;irq5</span></code> (Use ‘dmesg | grep tty’ to get IRQ information).
+Also set <code class="docutils literal notranslate"><span class="pre">console=ttyS1</span></code> in <code class="docutils literal notranslate"><span class="pre">acrn.conf</span></code> to match the SOS boot args.</li>
 </ol>
 <p>Here is a more complete example of how to configure the EFI firmware to load the ACRN
 hypervisor and set these parameters.</p>
@@ -1051,8 +1067,8 @@ SOS, and UOS:</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Project ACRN.
-      Last updated on Dec 26, 2018.
+        &copy; Copyright 2019, Project ACRN.
+      Last updated on Jan 07, 2019.
 
     </p>
   </div> 
