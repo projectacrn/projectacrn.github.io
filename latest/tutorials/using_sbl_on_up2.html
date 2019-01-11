@@ -733,11 +733,11 @@ BIOS binary file <code class="docutils literal notranslate"><span class="pre">&l
     &quot;DestinationType&quot; : &quot;virtual&quot;,
     &quot;PartitionLayout&quot; : [ { &quot;disk&quot; : &quot;clearlinux.img&quot;, &quot;partition&quot; : 1, &quot;size&quot; : &quot;100M&quot;, &quot;type&quot; : &quot;EFI&quot; },
                           { &quot;disk&quot; : &quot;clearlinux.img&quot;, &quot;partition&quot; : 2, &quot;size&quot; : &quot;10G&quot;, &quot;type&quot; : &quot;linux&quot; } ],
-    &quot;FilesystemTypes&quot; : [ { &quot;disk&quot; : &quot;clearlinux.img&quot;, &quot;partition&quot; : 1, &quot;type&quot; : &quot;ext2&quot; },
+    &quot;FilesystemTypes&quot; : [ { &quot;disk&quot; : &quot;clearlinux.img&quot;, &quot;partition&quot; : 1, &quot;type&quot; : &quot;vfat&quot; },
                           { &quot;disk&quot; : &quot;clearlinux.img&quot;, &quot;partition&quot; : 2, &quot;type&quot; : &quot;ext4&quot; } ],
     &quot;PartitionMountPoints&quot; : [ { &quot;disk&quot; : &quot;clearlinux.img&quot;, &quot;partition&quot; : 1, &quot;mount&quot; : &quot;/boot&quot; },
                                { &quot;disk&quot; : &quot;clearlinux.img&quot;, &quot;partition&quot; : 2, &quot;mount&quot; : &quot;/&quot; } ],
-    &quot;Version&quot;: 26880,
+    &quot;Version&quot;: 27050,
     &quot;Bundles&quot;: [&quot;kernel-iot-lts2018&quot;, &quot;openssh-server&quot;, &quot;software-defined-cockpit&quot;, &quot;os-core&quot;, &quot;os-core-update&quot;]
 }
 </pre></div>
@@ -746,14 +746,40 @@ BIOS binary file <code class="docutils literal notranslate"><span class="pre">&l
 <p class="first admonition-title">Note</p>
 <p class="last">To generate the image with a specified version, please modify
 the “Version” argument, <code class="docutils literal notranslate"><span class="pre">&quot;Version&quot;:</span> <span class="pre">26000</span></code> instead
-of <code class="docutils literal notranslate"><span class="pre">&quot;Version&quot;:</span> <span class="pre">26880</span></code> for example.</p>
+of <code class="docutils literal notranslate"><span class="pre">&quot;Version&quot;:</span> <span class="pre">27050</span></code> for example.</p>
 </div>
-<p>Clone the source code of <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor</span></code> and build SOS and LaaG image:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
-git clone https://github.com/projectacrn/acrn-hypervisor
-sudo ./acrn-hypervisor/devicemodel/samples/up2/create-up2-images.sh --images-type all \
-   --clearlinux-version 26880 --laag-json uos.json --acrn-code-path ~/acrn-hypervisor/
+<p>Clone the source code of <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor</span></code> for building and use
+<code class="docutils literal notranslate"><span class="pre">v0.5</span></code> release for example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~
+$ git clone https://github.com/projectacrn/acrn-hypervisor
+$ cd acrn-hypervisor
+$ git checkout v0.5
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You can switch to other version with the command <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span></code> if needed.</p>
+</div>
+<p>Build SOS and LaaG image:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo -s
+# ./acrn-hypervisor/devicemodel/samples/up2/create-up2-images.sh --images-type all \
+   --clearlinux-version 27050 --laag-json uos.json --acrn-code-path /path/to/acrn-hypervisor/
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You must have root privileges to run <code class="docutils literal notranslate"><span class="pre">create-up2-images.sh</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Please modify the <code class="docutils literal notranslate"><span class="pre">--acrn-code-path</span></code> argument to the diretory
+of <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor</span></code>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When building images, you can modify the <code class="docutils literal notranslate"><span class="pre">--clearlinux-version</span></code> argument
+to a specific version (such as 26800). To generate the images of SOS only,
+modify the <code class="docutils literal notranslate"><span class="pre">--images-type</span></code> argument to <code class="docutils literal notranslate"><span class="pre">sos</span></code>.</p>
 </div>
 <p>This step will generate the images of SOS and LaaG:</p>
 <ul class="simple">
@@ -761,23 +787,16 @@ sudo ./acrn-hypervisor/devicemodel/samples/up2/create-up2-images.sh --images-typ
 <li>sos_rootfs.img</li>
 <li>up2_laag.img</li>
 </ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">When building images, you can modify the <code class="docutils literal notranslate"><span class="pre">--clearlinux-version</span></code> argument
-to a specific version (such as 26800). To generate the images of SOS only,
-modify the <code class="docutils literal notranslate"><span class="pre">--images-type</span></code> argument to <code class="docutils literal notranslate"><span class="pre">sos</span></code>.</p>
+<p>Build the binary image <code class="docutils literal notranslate"><span class="pre">partition_desc.bin</span></code> for
+GPT partitions, and change the partition layout
+in <code class="docutils literal notranslate"><span class="pre">partition_desc.ini</span></code> if needed.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~/acrn-hypervisor/doc/tutorials/doc/tutorials/
+$ sudo -s
+# python2 gpt_ini2bin.py partition_desc.ini&gt;partition_desc.bin
+</pre></div>
 </div>
-<p>We still need the binary image for GPT partitions and
-configuration file for flashing:</p>
-<ul class="simple">
-<li>partition_desc.bin</li>
-<li>flash_LaaG.json</li>
-</ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last"><code class="docutils literal notranslate"><span class="pre">partition_desc.bin</span></code> and <code class="docutils literal notranslate"><span class="pre">flash_LaaG.json</span></code> are in the directory
-<code class="docutils literal notranslate"><span class="pre">~/acrn-hypervisor/doc/tutorials/</span></code>.</p>
-</div>
+<p>We still need the configuration file <code class="docutils literal notranslate"><span class="pre">flash_LaaG.json</span></code> for flashing,
+which is also in the directory <code class="docutils literal notranslate"><span class="pre">~/acrn-hypervisor/doc/tutorials/</span></code>.</p>
 <table border="1" class="colwidths-auto docutils">
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Filename</th>
@@ -828,13 +847,13 @@ for example.</li>
 <li><p class="first">Connect a USB cable from the debug board to your Ubuntu host machine,
 and run the following command to verify that its USB serial port is
 discovered and showing under <code class="docutils literal notranslate"><span class="pre">/dev</span></code>.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ls /dev/ttyUSB*
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ls /dev/ttyUSB*
 /dev/ttyUSB0
 </pre></div>
 </div>
 </li>
 <li><p class="first">Connect to board via <code class="docutils literal notranslate"><span class="pre">minicom</span></code>, and use <code class="docutils literal notranslate"><span class="pre">/dev/ttyUSB0</span></code> for example:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo minicom -s /dev/ttyUSB0
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo minicom -s /dev/ttyUSB0
 </pre></div>
 </div>
 <div class="admonition note">
@@ -927,9 +946,9 @@ boot to ACRN hypervisor. And login SOS by following command:</p>
 <div class="section" id="launch-uos">
 <h2>Launch UOS<a class="headerlink" href="#launch-uos" title="Permalink to this headline">¶</a></h2>
 <p>Run the <code class="docutils literal notranslate"><span class="pre">launch_uos.sh</span></code> script to launch the UOS:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
-wget https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/doc/tutorials/launch_uos.sh
-sudo ./launch_uos.sh -V 1
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~
+$ wget https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/doc/tutorials/launch_uos.sh
+$ sudo ./launch_uos.sh -V 1
 </pre></div>
 </div>
 <p><strong>Congratulations</strong>, you are now watching the User OS booting up!</p>
@@ -948,7 +967,7 @@ sudo ./launch_uos.sh -V 1
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Jan 09, 2019.
+      Last updated on Jan 10, 2019.
 
     </p>
   </div> 
@@ -973,6 +992,8 @@ sudo ./launch_uos.sh -V 1
         <dt>Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/0.5/">0.5</a></dd>
         
           <dd><a href="/0.4/">0.4</a></dd>
         
