@@ -727,10 +727,10 @@ on your platform. You’ll need a network connection for your platform to
 complete this setup.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">ACRN v0.5 (and the current master branch) requires Clear Linux
-version 27230 or newer.  If you use a newer version of Clear Linux,
-you’ll need to adjust the instructions below to reference the version
-number of Clear Linux you are using.</p>
+<p class="last">Please refer to Release Note for the Clear Linux version number, and
+you will need to adjust the instruction below to reference the version
+number of Clear Linux you are using. Below document will use version
+27230 as example.</p>
 </div>
 <ol class="arabic">
 <li><p class="first">Download the compressed Clear installer image from
@@ -770,7 +770,7 @@ latest version available on your system. If you wish to use a specific version
 <li><p class="first">If you have an older version of Clear Linux already installed
 on your hardware, use this command to upgrade Clear Linux
 to version 27230 (or newer):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd update -m 26770     # or newer version
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd update -m 27230     # or newer version
 </pre></div>
 </div>
 </li>
@@ -791,7 +791,7 @@ to version 27230 (or newer):</p>
 Service OS kernel</td>
 </tr>
 <tr class="row-odd"><td>kernel-iot-lts2018</td>
-<td>Run the Intel kernel”kernel-iot-lts2018”
+<td>Run the Intel kernel “kernel-iot-lts2018”
 which is enterprise-style kernel with backports</td>
 </tr>
 </tbody>
@@ -992,7 +992,7 @@ image version 27230 (or newer) into your (root) home directory:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~
 $ mkdir uos
 $ cd uos
-$ curl -O https://download.clearlinux.org/releases/27230/clear/clear-27230-kvm.img.xz
+$ curl https://download.clearlinux.org/releases/27230/clear/clear-27230-kvm.img.xz -o uos.img.xz
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1003,15 +1003,15 @@ described below accordingly (image file name and kernel modules version).</p>
 </div>
 </li>
 <li><p class="first">Uncompress it:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ unxz clear-27230-kvm.img.xz
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ unxz uos.img.xz
 </pre></div>
 </div>
 </li>
 <li><p class="first">Deploy the UOS kernel modules to UOS virtual disk image (note: you’ll need to use
 the same <strong>iot-lts2018</strong> image version number noted in step 1 above):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo losetup -f -P --show clear-27230-kvm.img
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo losetup -f -P --show uos.img
 $ sudo mount /dev/loop0p3 /mnt
-$ sudo cp -r /usr/lib/modules/4.19.13-1901141830.iot-lts2018 /mnt/lib/modules/
+$ sudo cp -r /usr/lib/modules/&quot;`readlink /usr/lib/kernel/default-iot-lts2018 | awk -F &#39;2018.&#39; &#39;{print $2}&#39;`.iot-lts2018&quot; /mnt/lib/modules
 $ sudo umount /mnt
 $ sync
 </pre></div>
@@ -1047,14 +1047,14 @@ folder) as shown here:</p>
   <span class="nb">exit</span>
 <span class="k">fi</span>
 
-<span class="hll"><span class="c1">#for memsize setting</span>
-</span><span class="nv">mem_size</span><span class="o">=</span>2048M
+<span class="c1">#for memsize setting</span>
+<span class="nv">mem_size</span><span class="o">=</span>2048M
 
-<span class="hll">acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s <span class="m">0</span>:0,hostbridge -s <span class="m">1</span>:0,lpc -l com1,stdio <span class="se">\</span>
-</span>  -s <span class="m">2</span>,pci-gvt -G <span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span> <span class="se">\</span>
+acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s <span class="m">0</span>:0,hostbridge -s <span class="m">1</span>:0,lpc -l com1,stdio <span class="se">\</span>
+  -s <span class="m">2</span>,pci-gvt -G <span class="s2">&quot;</span><span class="nv">$3</span><span class="s2">&quot;</span> <span class="se">\</span>
   -s <span class="m">5</span>,virtio-console,@pty:pty_port <span class="se">\</span>
   -s <span class="m">6</span>,virtio-hyper_dmabuf <span class="se">\</span>
-  -s <span class="m">3</span>,virtio-blk,/home/clear/uos/clear-27230-kvm.img <span class="se">\</span>
+  -s <span class="m">3</span>,virtio-blk,/home/clear/uos/uos.img <span class="se">\</span>
   -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
   --mac_seed <span class="nv">$mac_seed</span> <span class="se">\</span>
   -k /usr/lib/kernel/default-iot-lts2018 <span class="se">\</span>
@@ -1086,17 +1086,8 @@ launch_clear <span class="m">1</span> <span class="m">1</span> <span class="s2">
 </pre></div>
 </div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">In case you have downloaded a different Clear Linux image than the one above
-(<code class="docutils literal notranslate"><span class="pre">clear-27230-kvm.img.xz</span></code>), you will need to modify the Clear Linux file name
-and version number highlighted above (the <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">3,virtio-blk</span></code> argument) to match
-what you have downloaded above. Likewise, you may need to adjust the kernel file
-name on the second line highlighted (check the exact name to be used using:
-<code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">/usr/lib/kernel/org.clearlinux.iot-lts2018*</span></code>).</p>
-</div>
 <p>By default, the script is located in the <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/</span></code>
-directory. You can edit it there, and then run it to launch the User OS:</p>
+directory. You can run it to launch the User OS:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd /usr/share/acrn/samples/nuc/
 $ sudo ./launch_uos.sh
 </pre></div>
@@ -1125,7 +1116,7 @@ SOS, and UOS:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Jan 29, 2019.
+      Last updated on Jan 30, 2019.
 
     </p>
   </div> 
