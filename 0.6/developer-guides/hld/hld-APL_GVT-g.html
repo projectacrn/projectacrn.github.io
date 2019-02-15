@@ -1,0 +1,1615 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>GVT-g high-level design &mdash; Project ACRN™ v 0.6-unstable documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Virtio devices high-level design" href="hld-virtio-devices.html" />
+    <link rel="prev" title="Random device virtualization" href="random-virt-hld.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Project ACRN™
+          
+
+          
+            
+            <img src="../../_static/ACRN_Logo_200w.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../introduction/index.html">Introduction to Project ACRN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#automotive-use-case-example">Automotive Use Case Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-service-os-and-user-os">ACRN Device Model, Service OS, and User OS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-hypervisor-architecture">ACRN Hypervisor Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#device-pass-through">Device pass through</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hardware-support-for-device-passthrough">Hardware support for device passthrough</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor support for device passthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-i-o-mediator">ACRN I/O mediator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#virtio-framework-architecture">Virtio framework architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/index.html">Getting Started Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/apl-nuc.html">Getting started guide for Intel NUC</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/apl-nuc.html#hardware-setup">Hardware setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/apl-nuc.html#firmware-update-on-the-nuc">Firmware update on the NUC</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/apl-nuc.html#software-setup">Software setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/apl-nuc.html#set-up-a-clear-linux-operating-system">Set up a Clear Linux Operating System</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/apl-nuc.html#add-the-acrn-hypervisor-to-the-efi-partition">Add the ACRN hypervisor to the EFI Partition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/apl-nuc.html#acrn-network-bridge">ACRN Network Bridge</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/apl-nuc.html#set-up-reference-uos">Set up Reference UOS</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/up2.html">Getting started guide for UP2 board</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/up2.html#hardware-setup">Hardware setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/up2.html#connecting-to-the-serial-port">Connecting to the serial port</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/up2.html#software-setup">Software setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/up2.html#up2-serial-port-setting">UP2 serial port setting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/up2.html#up2-block-device">UP2 block device</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/up2.html#running-the-hypervisor">Running the hypervisor</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/building-from-source.html">Build ACRN from Source</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#install-build-tools-and-dependencies">Install build tools and dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#build-the-hypervisor-device-model-and-tools">Build the hypervisor, device model and tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#configuring-the-hypervisor">Configuring the hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#modify-the-hypervisor-configurations">Modify the hypervisor configurations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#create-a-new-default-configuration">Create a new default configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../hardware.html">Supported Hardware</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../hardware.html#intel-apollo-lake-nuc">Intel Apollo Lake NUC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../hardware.html#intel-kaby-lake-nuc">Intel Kaby Lake NUC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../hardware.html#up-squared-board">UP Squared board</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../user-guides/index.html">User Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html">Device Model Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guides/acrn-shell.html">ACRN Shell Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../user-guides/tools.html">Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/README.html">ACRN tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/acrn-crashlog/README.html">ACRN-Crashlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#enabling-disabling">Enabling/Disabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/README.html">acrnprobe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/README.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/README.html#source-files">Source files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/README.html#configuration-files">Configuration files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/conf.html">acrnprobe Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/conf.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/conf.html#layout">Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/conf.html#properties-of-group-members">Properties of group members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/conf.html#crash-tree-in-acrnprobe">Crash tree in acrnprobe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/acrnprobe/conf.html#sections">Sections</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/acrn-crashlog/usercrash/README.html">usercrash</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/usercrash/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/usercrash/README.html#design">Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/usercrash/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-crashlog/usercrash/README.html#souce-code">Souce Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/acrn-manager/README.html">acrnctl and acrnd</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-manager/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-manager/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-manager/README.html#acrnd">acrnd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrn-manager/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/acrnlog/README.html">acrnlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrnlog/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrnlog/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrnlog/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tools/acrntrace/README.html">acrntrace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrntrace/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrntrace/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tools/acrntrace/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Developer Guides</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="hld-overview.html">Overview</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#acrn-supported-use-cases">ACRN Supported Use Cases</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#hardware-requirements">Hardware Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#acrn-architecture">ACRN Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#hypervisor">Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#sos">SOS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#uos">UOS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#freedom-from-interference">Freedom From Interference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#boot-flow">Boot Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html#power-management">Power Management</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hv-startup.html">Hypervisor Startup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-cpu-virt.html">CPU Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-memmgt.html">Memory management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-io-emulation.html">I/O Emulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-interrupt.html">Physical Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-timer.html">Timer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-virt-interrupt.html">Virtual Interrupt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-vt-d.html">VT-d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-dev-passthrough.html">Device Passthrough</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-partitionmode.html">Partition mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-pm.html">Power Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-console.html">Console, Shell, and vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-hypercall.html">Hypercall / VHM upcall</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hv-config.html">Compile-time configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hld-devicemodel.html">Device Model</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html#configuration">Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html#dm-initialization">DM Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html#vhm">VHM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html#i-o-emulation-in-sos">I/O Emulation in SOS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html#device-emulation">Device Emulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html#isa-and-pci-emulation">ISA and PCI Emulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html#acpi-virtualization">ACPI Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html#pm-in-device-model">PM in Device Model</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="usb-virt-hld.html">USB Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="random-virt-hld.html">Random device virtualization</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">GVT-g GPU Virtualization</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html#virtio-introduction">Virtio introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html#key-concepts">Key Concepts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html#virtio-frameworks">Virtio Frameworks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html#virtio-apis">Virtio APIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html#supported-virtio-devices">Supported Virtio Devices</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hld-vm-management.html">VM Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hld-vm-management.html#vm-state">VM state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-vm-management.html#scenarios-of-vm-state-change">Scenarios of VM state change</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-vm-management.html#vm-state-management">VM State management</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hld-power-management.html">Power Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hld-power-management.html#p-state-c-state-management">P-state/C-state management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-power-management.html#s3-s5">S3/S5</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html#shared-buffer">Shared Buffer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html#acrn-trace">ACRN Trace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html#acrn-log">ACRN Log</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hld-vsbl.html">Virtual Bootloader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hld-security.html">Security</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hld-security.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-security.html#background">Background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-security.html#acrn-high-level-security-architecture">ACRN High-Level Security Architecture</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../primer.html">Developer Primer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#source-tree-structure">Source Tree Structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#acrn-hypervisor-source-tree">ACRN hypervisor source tree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#acrn-device-model-source-tree">ACRN Device Model source tree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#acrn-tools-source-tree">ACRN Tools source tree</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#acrn-documentation-source-tree">ACRN documentation source tree</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#cpu-virtualization">CPU virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#host-gdt">Host GDT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#host-idt">Host IDT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#guest-smp-booting">Guest SMP Booting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#vmx-configuration">VMX configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#cpuid-and-guest-tsc-calibration">CPUID and Guest TSC calibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#rdtsc-rdtscp">RDTSC/RDTSCP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#cr-register-virtualization">CR Register virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#msr-bitmap">MSR BITMAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#i-o-bitmap">I/O BITMAP</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#exceptions">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#memory-virtualization">Memory virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#physical-memory-layout">Physical Memory Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#pv-mmu-memory-mapping-in-the-hypervisor">PV (MMU) Memory Mapping in the Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#pv-mmu-memory-mapping-in-vms">PV (MMU) Memory Mapping in VMs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#host-guest-ept-memory-mapping">Host-Guest (EPT) Memory Mapping</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#graphic-mediation">Graphic mediation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#i-o-emulation">I/O emulation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#device-assignment-management">Device Assignment Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#pio-mmio-trap-flow">PIO/MMIO trap Flow</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#virtual-interrupt">Virtual interrupt</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#virtual-lapic">Virtual LAPIC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#virtual-ioapic">Virtual IOAPIC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#virtual-pic">Virtual PIC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#virtual-interrupt-injection">Virtual Interrupt Injection</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#vt-x-and-vt-d">VT-x and VT-d</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#hypercall">Hypercall</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#device-emulation">Device emulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../primer.html#virtio-devices">Virtio Devices</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#virtio-rnd">Virtio-rnd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#virtio-blk">Virtio-blk</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#virtio-net">Virtio-net</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../primer.html#virtio-console">Virtio-console</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../GVT-g-porting.html">GVT-g Enabling and Porting Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-porting.html#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-porting.html#purpose-of-this-document">Purpose of this document</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-porting.html#overall-components">Overall Components</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-porting.html#core-scenario-interaction-sequences">Core scenario interaction sequences</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#vgpu-creation-scenario">vGPU creation scenario</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#vgpu-destroy-scenario">vGPU destroy scenario</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#vgpu-pci-configure-space-write-scenario">vGPU pci configure space write scenario</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#pci-configure-space-read-scenario">pci configure space read scenario</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#ggtt-read-write-scenario">GGTT read/write scenario</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#mmio-read-write-scenario">MMIO read/write scenario</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#ppgtt-write-protection-page-set-unset-scenario">PPGTT write protection page set/unset scenario</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#ppgtt-write-protection-page-write">PPGTT write protection page write</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-porting.html#api-details">API details</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../GVT-g-kernel-options.html">GVT-g (AcrnGT) Kernel Options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-enable-gvt">i915.enable_gvt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-enable-pvmmio">i915.enable_pvmmio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-gvt-workload-priority">i915.gvt_workload_priority</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-enable-initial-modeset">i915.enable_initial_modeset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-avail-planes-per-pipe-and-i915-domain-plane-owners">i915.avail_planes_per_pipe and i915.domain_plane_owners</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-domain-plane-owners">i915.domain_plane_owners</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-avail-planes-per-pipe">i915.avail_planes_per_pipe</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-domain-scaler-owner">i915.domain_scaler_owner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-kernel-options.html#i915-enable-hangcheck">i915.enable_hangcheck</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../trusty.html">Trusty TEE</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html#trusty-specific-hypercalls">Trusty specific Hypercalls</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html#trusty-boot-flow">Trusty Boot flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html#ept-hierarchy">EPT Hierarchy</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#design">Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#benefit">Benefit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#api">API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-hypervisor-attack">Guest -&gt; hypervisor Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#guest-guest-attack">Guest -&gt; guest Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#normal-world-secure-world-attack">Normal_world -&gt; Secure_world Attack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#affected-processors">Affected Processors</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-vmentry">L1D flush on VMENTRY</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#ept-sanitization">EPT Sanitization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#put-secret-data-into-uncached-memory">Put Secret Data into Uncached Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1d-flush-on-world-switch">L1D flush on World Switch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#core-based-scheduling">Core-based scheduling</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../modularity.html">ACRN Hypervisor: Modular Design</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html#principles">Principles</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#minimizing-cyclic-dependencies">Minimizing Cyclic Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#measuring-complexity">Measuring Complexity</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html#architecture">Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api/hypercall_api.html">Hypercall APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api/devicemodel_api.html">Device Model APIs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api/GVT-g_api.html">ACRN GVT-g APIs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/GVT-g_api.html#core-driver-infrastructure">Core Driver Infrastructure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/GVT-g_api.html#vhm-apis-called-from-acrngt">VHM APIs called from AcrnGT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/GVT-g_api.html#acrngt-mediated-pass-through-mpt-interface">AcrnGT mediated pass-through (MPT) interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/GVT-g_api.html#gvt-g-intel-gvt-ops-interface">GVT-g intel_gvt_ops interface</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/GVT-g_api.html#acrngt-sysfs-interface">AcrnGT sysfs interface</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/kconfig/index.html">Configuration Symbol Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/kconfig/index.html#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/kconfig/index.html#supported-options">Supported Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../index.html#contributing-to-the-project">Contributing to the project</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute_guidelines.html">Contribution Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#licensing">Licensing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#developer-certification-of-origin-dco">Developer Certification of Origin (DCO)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#repository-layout">Repository layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#submitting-issues">Submitting Issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-tools-and-git-setup">Contribution Tools and Git Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#coding-style">Coding Style</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-workflow">Contribution Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#commit-guidelines">Commit Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../coding_guidelines.html">Coding Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../coding_guidelines.html#preprocessor">Preprocessor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coding_guidelines.html#compilation-units">Compilation Units</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coding_guidelines.html#declarations-and-initialization">Declarations and Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coding_guidelines.html#functions">Functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coding_guidelines.html#statements">Statements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coding_guidelines.html#expressions">Expressions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coding_guidelines.html#types">Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../coding_guidelines.html#identifiers">Identifiers</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../doc_guidelines.html">Documentation Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#headings">Headings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#content-highlighting">Content Highlighting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#lists">Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#multi-column-lists">Multi-column lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#file-names-and-commands">File names and Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#internal-cross-reference-linking">Internal Cross-Reference Linking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#non-ascii-characters">Non-ASCII Characters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#code-and-command-examples">Code and Command Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tabs-spaces-and-indenting">Tabs, spaces, and indenting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#drawings">Drawings</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../graphviz.html">Drawings using graphviz</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#simple-directed-graph">Simple directed graph</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#adding-edge-labels">Adding edge labels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#finite-state-machine">Finite-State Machine</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/index.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/agl-vms.html">Running AGL as VMs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/agl-vms.html#hardware-setup">Hardware setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/agl-vms.html#connecting-hardware">Connecting hardware</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/agl-vms.html#software-setup">Software Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/agl-vms.html#service-os">Service OS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/agl-vms.html#building-acrn-kernel-for-agl-uos">Building ACRN kernel for AGL (UOS)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/agl-vms.html#setting-up-agls">Setting up AGLs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/building_uos_from_clearlinux.html">Building UOS from Clear Linux OS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/building_uos_from_clearlinux.html#build-uos-image-in-clear-linux-os">Build UOS image in Clear Linux OS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/building_uos_from_clearlinux.html#start-the-user-os-uos">Start the User OS (UOS)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/docbuild.html">ACRN documentation generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-overview">Documentation overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html#set-up-the-documentation-working-folders">Set up the documentation working folders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html#installing-the-documentation-tools">Installing the documentation tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-presentation-theme">Documentation presentation theme</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html#running-the-documentation-processors">Running the documentation processors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html#publishing-content">Publishing content</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html#document-versioning">Document Versioning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html#filtering-expected-warnings">Filtering expected warnings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/rt_linux.html">Using PREEMPT_RT-Linux for real-time UOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/skl-nuc.html">GPU Passthrough on Skylake NUC</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/skl-nuc.html#hardware-platform">Hardware platform</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/skl-nuc.html#software-configuration">Software Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/skl-nuc.html#software-setup">Software Setup</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/static-ip.html">Using a static IP address</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/static-ip.html#acrn-network-setup">ACRN Network Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/static-ip.html#setting-up-the-static-ip-address">Setting up the static IP address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/static-ip.html#activate-the-new-configuration">Activate the new configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/trustyACRN.html">Trusty and Security Services in ACRN</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-services">Trusty Services</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#keystore">Keystore</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#secure-storage-ss">Secure Storage (SS)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#one-vm-two-worlds">One-VM, Two-Worlds</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#secure-storage-virtualization">Secure Storage Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#references">References:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_agl_as_uos.html">Using AGL as the User OS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_agl_as_uos.html#introduction-to-agl">Introduction to AGL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_agl_as_uos.html#steps-for-using-agl-as-the-uos">Steps for using AGL as the UOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_agl_as_uos.html#enable-the-agl-display">Enable the AGL display</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_agl_as_uos.html#follow-up">Follow up</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html">Using partition mode on UP2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#build-kernel-and-modules-for-partition-mode-uos">Build kernel and modules for partition mode UOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#enable-partition-mode-in-acrn-hypervisor">Enable partition mode in ACRN hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_up2.html#switch-between-privileged-vms">Switch between privileged VMs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html">Using SBL on UP2 Board</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html#build-sbl">Build SBL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html#flash-sbl-on-the-up2">Flash SBL on the UP2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html#build-acrn-for-up2">Build ACRN for UP2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html#download-and-install-flash-tool">Download and install flash tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html#sos-and-laag-installation">SOS and LaaG Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html#boot-to-sos">Boot to SOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_sbl_on_up2.html#launch-uos">Launch UOS</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html">Using Ubuntu as the Service OS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-ubuntu-natively">Install Ubuntu (natively)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#install-the-service-os-kernel">Install the Service OS kernel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#prepare-the-user-os-uos">Prepare the User OS (UOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#start-the-user-os-uos">Start the User OS (UOS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#enabling-network-sharing">Enabling network sharing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_sos.html#enabling-usb-keyboard-and-mouse">Enabling USB keyboard and mouse</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../release_notes.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes_0.6.html">ACRN v0.6 (Feb 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.6.html#version-0-6-new-features">Version 0.6 new features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.6.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.6.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.6.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes_0.5.html">ACRN v0.5 (Jan 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.5.html#version-0-5-new-features">Version 0.5 new features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.5.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.5.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.5.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes_0.4.html">ACRN v0.4 (Dec 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.4.html#version-0-4-new-features">Version 0.4 new features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.4.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.4.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.4.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes_0.3.html">ACRN v0.3 (Nov 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.3.html#version-0-3-new-features">Version 0.3 new features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.3.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.3.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.3.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes_0.2.html">ACRN v0.2 (Sep 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.2.html#version-0-2-new-features">Version 0.2 new features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#vt-x-vt-d">VT-x, VT-d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#pic-ioapic-msi-msi-x-pci-lapic">PIC/IOAPIC/MSI/MSI-X/PCI/LAPIC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#ethernet">Ethernet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#storage-emmc">Storage (eMMC)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#usb-xdci">USB (xDCI)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#usb-mediator-xhci-and-drd">USB Mediator (xHCI and DRD)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#csme">CSME</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#wifi">WiFi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#ipu-mipi-cs2-hdmi-in">IPU (MIPI-CS2, HDMI-in)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#bluetooth">Bluetooth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#gpu-preemption">GPU  – Preemption</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#gpu-display-surface-sharing-via-hyper-dma">GPU – display surface sharing via Hyper DMA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.2.html#s3">S3</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.2.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.2.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.2.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes_0.1.html">ACRN v0.1 (July 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.1.html#version-0-1-new-features">Version 0.1 new features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.1.html#hardware-support">Hardware Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.1.html#gvt-g-for-acrn">GVT-g for ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.1.html#virtio-standard-is-supported">Virtio standard is supported</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.1.html#device-pass-through-support">Device pass-through support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.1.html#hypervisor-configuration">Hypervisor configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes_0.1.html#new-acrn-tools">New ACRN tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.1.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes_0.1.html#change-log">Change Log</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq.html#what-hardware-does-acrn-support">What hardware does ACRN support?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq.html#clear-linux-os-fails-to-boot-on-my-nuc">Clear Linux* OS fails to boot on my NUC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq.html#how-do-i-configure-acrn-s-memory-use">How do I configure ACRN’s memory use?</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Project ACRN™</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Developer Guides</a> &raquo;</li>
+        
+          <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
+        
+          <li><a href="hld-emulated-devices.html">Emulated devices high-level design</a> &raquo;</li>
+        
+      <li>GVT-g high-level design</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="gvt-g-high-level-design">
+<span id="apl-gvt-g-hld"></span><h1>GVT-g high-level design<a class="headerlink" href="#gvt-g-high-level-design" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="purpose-of-this-document">
+<h3>Purpose of this Document<a class="headerlink" href="#purpose-of-this-document" title="Permalink to this headline">¶</a></h3>
+<p>This high-level design (HLD) document describes the usage requirements
+and high level design for Intel® Graphics Virtualization Technology for
+shared virtual <a class="reference internal" href="../../glossary.html#term-gpu"><span class="xref std std-term">GPU</span></a> technology (<a class="reference internal" href="../../glossary.html#term-gvt-g"><span class="xref std std-term">GVT-g</span></a>) on Apollo Lake-I
+SoCs.</p>
+<p>This document describes:</p>
+<ul class="simple">
+<li>The different GPU virtualization techniques</li>
+<li>GVT-g mediated pass-through</li>
+<li>High level design</li>
+<li>Key components</li>
+<li>GVT-g new architecture differentiation</li>
+</ul>
+</div>
+<div class="section" id="audience">
+<h3>Audience<a class="headerlink" href="#audience" title="Permalink to this headline">¶</a></h3>
+<p>This document is for developers, validation teams, architects and
+maintainers of Intel® GVT-g for the Apollo Lake SoCs.</p>
+<p>The reader should have some familiarity with the basic concepts of
+system virtualization and Intel® processor graphics.</p>
+</div>
+<div class="section" id="reference-documents">
+<h3>Reference Documents<a class="headerlink" href="#reference-documents" title="Permalink to this headline">¶</a></h3>
+<p>The following documents were used as references for this specification:</p>
+<ul class="simple">
+<li>Paper in USENIX ATC ‘14 - <em>Full GPU Virtualization Solution with
+Mediated Pass-Through</em> - <a class="reference external" href="https://www.usenix.org/node/183932">https://www.usenix.org/node/183932</a></li>
+<li>Hardware Specification - PRMs -
+<a class="reference external" href="https://01.org/linuxgraphics/documentation/hardware-specification-prms">https://01.org/linuxgraphics/documentation/hardware-specification-prms</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="background">
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this headline">¶</a></h2>
+<p>Intel® GVT-g is an enabling technology in emerging graphics
+virtualization scenarios. It adopts a full GPU virtualization approach
+based on mediated pass-through technology, to achieve good performance,
+scalability and secure isolation among Virtual Machines (VMs). A virtual
+GPU (vGPU), with full GPU features, is presented to each VM so that a
+native graphics driver can run directly inside a VM.</p>
+<p>Intel® GVT-g technology for Apollo Lake (APL) has been implemented in
+open source hypervisors or Virtual Machine Monitors (VMMs):</p>
+<ul class="simple">
+<li>Intel® GVT-g for ACRN, also known as, “AcrnGT”</li>
+<li>Intel® GVT-g for KVM, also known as, “KVMGT”</li>
+<li>Intel® GVT-g for Xen, also known as, “XenGT”</li>
+</ul>
+<p>The core vGPU device model is released under BSD/MIT dual license, so it
+can be reused in other proprietary hypervisors.</p>
+<p>Intel has a portfolio of graphics virtualization technologies
+(<a class="reference internal" href="../../glossary.html#term-gvt-g"><span class="xref std std-term">GVT-g</span></a>, <a class="reference internal" href="../../glossary.html#term-gvt-d"><span class="xref std std-term">GVT-d</span></a> and <a class="reference internal" href="../../glossary.html#term-gvt-s"><span class="xref std std-term">GVT-s</span></a>). GVT-d and GVT-s are
+outside of the scope of this document.</p>
+<p>This HLD applies to the Apollo Lake platform only. Support of other
+hardware is outside the scope of this HLD.</p>
+<div class="section" id="targeted-usages">
+<h3>Targeted Usages<a class="headerlink" href="#targeted-usages" title="Permalink to this headline">¶</a></h3>
+<p>The main targeted usage of GVT-g is in automotive applications, such as:</p>
+<ul class="simple">
+<li>An Instrument cluster running in one domain</li>
+<li>An In Vehicle Infotainment (IVI) solution running in another domain</li>
+<li>Additional domains for specific purposes, such as Rear Seat
+Entertainment or video camera capturing.</li>
+</ul>
+<div class="figure align-center" id="ive-use-case">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-ive-use-case.png"><img alt="../../_images/APL_GVT-g-ive-use-case.png" src="../../_images/APL_GVT-g-ive-use-case.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 94 </span><span class="caption-text">IVE Use Case</span></p>
+</div>
+</div>
+<div class="section" id="existing-techniques">
+<h3>Existing Techniques<a class="headerlink" href="#existing-techniques" title="Permalink to this headline">¶</a></h3>
+<p>A graphics device is no different from any other I/O device, with
+respect to how the device I/O interface is virtualized. Therefore,
+existing I/O virtualization techniques can be applied to graphics
+virtualization. However, none of the existing techniques can meet the
+general requirement of performance, scalability, and secure isolation
+simultaneously. In this section, we review the pros and cons of each
+technique in detail, enabling the audience to understand the rationale
+behind the entire GVT-g effort.</p>
+<div class="section" id="emulation">
+<h4>Emulation<a class="headerlink" href="#emulation" title="Permalink to this headline">¶</a></h4>
+<p>A device can be emulated fully in software, including its I/O registers
+and internal functional blocks. There would be no dependency on the
+underlying hardware capability, therefore compatibility can be achieved
+across platforms. However, due to the CPU emulation cost, this technique
+is usually used for legacy devices, such as a keyboard, mouse, and VGA
+card.  There would be great complexity and extremely low performance to
+fully emulate a modern accelerator, such as a GPU. It may be acceptable
+for use in a simulation environment, but it is definitely not suitable
+for production usage.</p>
+</div>
+<div class="section" id="api-forwarding">
+<h4>API Forwarding<a class="headerlink" href="#api-forwarding" title="Permalink to this headline">¶</a></h4>
+<p>API forwarding, or a split driver model, is another widely-used I/O
+virtualization technology. It has been used in commercial virtualization
+productions, for example, VMware*, PCoIP*, and Microsoft* RemoteFx*.
+It is a natural path when researchers study a new type of
+I/O virtualization usage, for example, when GPGPU computing in VM was
+initially proposed. Intel® GVT-s is based on this approach.</p>
+<p>The architecture of API forwarding is shown in <a class="reference internal" href="#id1"><span class="std std-numref">Figure 95</span></a>:</p>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-api-forwarding.png"><img alt="../../_images/APL_GVT-g-api-forwarding.png" src="../../_images/APL_GVT-g-api-forwarding.png" style="width: 400px;" /></a>
+<p class="caption"><span class="caption-number">Figure 95 </span><span class="caption-text">API Forwarding</span></p>
+</div>
+<p>A frontend driver is employed to forward high-level API calls (OpenGL,
+Directx, and so on) inside a VM, to a Backend driver in the Hypervisor
+for acceleration. The Backend may be using a different graphics stack,
+so API translation between different graphics protocols may be required.
+The Backend driver allocates a physical GPU resource for each VM,
+behaving like a normal graphics application in a Hypervisor.  Shared
+memory may be used to reduce memory copying between the host and guest
+graphic stacks.</p>
+<p>API forwarding can bring hardware acceleration capability into a VM,
+with other merits such as vendor independence and high density. However, it
+also suffers from the following intrinsic limitations:</p>
+<ul class="simple">
+<li>Lagging features - Every new API version needs to be specifically
+handled, so it means slow time-to-market (TTM) to support new standards.
+For example,
+only DirectX9 is supported, when DirectX11 is already in the market.
+Also, there is a big gap in supporting media and compute usages.</li>
+<li>Compatibility issues - A GPU is very complex, and consequently so are
+high level graphics APIs. Different protocols are not 100% compatible
+on every subtle API, so the customer can observe feature/quality loss
+for specific applications.</li>
+<li>Maintenance burden - Occurs when supported protocols and specific
+versions are incremented.</li>
+<li>Performance overhead - Different API forwarding implementations
+exhibit quite different performance, which gives rise to a need for a
+fine-grained graphics tuning effort.</li>
+</ul>
+</div>
+<div class="section" id="direct-pass-through">
+<h4>Direct Pass-Through<a class="headerlink" href="#direct-pass-through" title="Permalink to this headline">¶</a></h4>
+<p>“Direct pass-through” dedicates the GPU to a single VM, providing full
+features and good performance, but at the cost of device sharing
+capability among VMs. Only one VM at a time can use the hardware
+acceleration capability of the GPU, which is a major limitation of this
+technique.  However, it is still a good approach to enable graphics
+virtualization usages on Intel server platforms, as an intermediate
+solution. Intel® GVT-d uses this mechanism.</p>
+<div class="figure align-center" id="gvt-pass-through">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-pass-through.png"><img alt="../../_images/APL_GVT-g-pass-through.png" src="../../_images/APL_GVT-g-pass-through.png" style="width: 400px;" /></a>
+<p class="caption"><span class="caption-number">Figure 96 </span><span class="caption-text">Pass-Through</span></p>
+</div>
+</div>
+<div class="section" id="sr-iov">
+<h4>SR-IOV<a class="headerlink" href="#sr-iov" title="Permalink to this headline">¶</a></h4>
+<p>Single Root IO Virtualization (SR-IOV) implements I/O virtualization
+directly on a device. Multiple Virtual Functions (VFs) are implemented,
+with each VF directly assignable to a VM.</p>
+</div>
+</div>
+</div>
+<div class="section" id="mediated-pass-through">
+<h2>Mediated Pass-Through<a class="headerlink" href="#mediated-pass-through" title="Permalink to this headline">¶</a></h2>
+<p>Intel® GVT-g achieves full GPU virtualization using a “mediated
+pass-through” technique.</p>
+<div class="section" id="concept">
+<h3>Concept<a class="headerlink" href="#concept" title="Permalink to this headline">¶</a></h3>
+<p>Mediated pass-through allows a VM to access performance-critical I/O
+resources (usually partitioned) directly, without intervention from the
+hypervisor in most cases. Privileged operations from this VM are
+trapped-and-emulated to provide secure isolation among VMs.</p>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-mediated-pass-through.png"><img alt="../../_images/APL_GVT-g-mediated-pass-through.png" src="../../_images/APL_GVT-g-mediated-pass-through.png" style="width: 400px;" /></a>
+<p class="caption"><span class="caption-number">Figure 97 </span><span class="caption-text">Mediated Pass-Through</span></p>
+</div>
+<p>The Hypervisor must ensure that no vulnerability is exposed when
+assigning performance-critical resource to each VM. When a
+performance-critical resource cannot be partitioned, a scheduler must be
+implemented (either in software or hardware) to allow time-based sharing
+among multiple VMs. In this case, the device must allow the hypervisor
+to save and restore the hardware state associated with the shared resource,
+either through direct I/O register reads and writes (when there is no software
+invisible state) or through a device-specific context save and restore
+mechanism (where there is a software invisible state).</p>
+<p>Examples of performance-critical I/O resources include the following:</p>
+<div class="figure align-center" id="perf-critical">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-perf-critical.png"><img alt="../../_images/APL_GVT-g-perf-critical.png" src="../../_images/APL_GVT-g-perf-critical.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 98 </span><span class="caption-text">Performance-Critical I/O Resources</span></p>
+</div>
+<p>The key to implementing mediated pass-through for a specific device is
+to define the right policy for various I/O resources.</p>
+</div>
+<div class="section" id="virtualization-policies-for-gpu-resources">
+<h3>Virtualization Policies for GPU Resources<a class="headerlink" href="#virtualization-policies-for-gpu-resources" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="#graphics-arch"><span class="std std-numref">Figure 99</span></a> shows how Intel Processor Graphics works at a high level.
+Software drivers write commands into a command buffer through the CPU.
+The Render Engine in the GPU fetches these commands and executes them.
+The Display Engine fetches pixel data from the Frame Buffer and sends
+them to the external monitors for display.</p>
+<div class="figure align-center" id="graphics-arch">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-graphics-arch.png"><img alt="../../_images/APL_GVT-g-graphics-arch.png" src="../../_images/APL_GVT-g-graphics-arch.png" style="width: 400px;" /></a>
+<p class="caption"><span class="caption-number">Figure 99 </span><span class="caption-text">Architecture of Intel Processor Graphics</span></p>
+</div>
+<p>This architecture abstraction applies to most modern GPUs, but may
+differ in how graphics memory is implemented. Intel Processor Graphics
+uses system memory as graphics memory. System memory can be mapped into
+multiple virtual address spaces by GPU page tables. A 4 GB global
+virtual address space called “global graphics memory”, accessible from
+both the GPU and CPU, is mapped through a global page table. Local
+graphics memory spaces are supported in the form of multiple 4 GB local
+virtual address spaces, but are only limited to access by the Render
+Engine through local page tables. Global graphics memory is mostly used
+for the Frame Buffer and also serves as the Command Buffer. Massive data
+accesses are made to local graphics memory when hardware acceleration is
+in progress. Other GPUs have similar page table mechanism accompanying
+the on-die memory.</p>
+<p>The CPU programs the GPU through GPU-specific commands, shown in
+<a class="reference internal" href="#graphics-arch"><span class="std std-numref">Figure 99</span></a>, using a producer-consumer model. The graphics
+driver programs GPU commands into the Command Buffer, including primary
+buffer and batch buffer, according to the high-level programming APIs,
+such as OpenGL* or DirectX*. Then, the GPU fetches and executes the
+commands. The primary buffer (called a ring buffer) may chain other
+batch buffers together. The primary buffer and ring buffer are used
+interchangeably thereafter. The batch buffer is used to convey the
+majority of the commands (up to ~98% of them) per programming model. A
+register tuple (head, tail) is used to control the ring buffer. The CPU
+submits the commands to the GPU by updating the tail, while the GPU
+fetches commands from the head, and then notifies the CPU by updating
+the head, after the commands have finished execution. Therefore, when
+the GPU has executed all commands from the ring buffer, the head and
+tail pointers are the same.</p>
+<p>Having introduced the GPU architecture abstraction, it is important for
+us to understand how real-world graphics applications use the GPU
+hardware so that we can virtualize it in VMs efficiently. To do so, we
+characterized, for some representative GPU-intensive 3D workloads (the
+Phoronix Test Suite), the usages of the four critical interfaces:</p>
+<ol class="arabic simple">
+<li>the Frame Buffer,</li>
+<li>the Command Buffer,</li>
+<li>the GPU Page Table Entries (PTEs), which carry the GPU page tables, and</li>
+<li>the I/O registers, including Memory-Mapped I/O (MMIO) registers,
+Port I/O (PIO) registers, and PCI configuration space registers
+for internal state.</li>
+</ol>
+<p><a class="reference internal" href="#access-patterns"><span class="std std-numref">Figure 100</span></a> shows the average access frequency of running
+Phoronix 3D workloads on the four interfaces.</p>
+<p>The Frame Buffer and Command Buffer exhibit the most
+performance-critical resources, as shown in <a class="reference internal" href="#access-patterns"><span class="std std-numref">Figure 100</span></a>.
+When the applications are being loaded, lots of source vertices and
+pixels are written by the CPU, so the Frame Buffer accesses occur in the
+range of hundreds of thousands per second. Then at run-time, the CPU
+programs the GPU through the commands, to render the Frame Buffer, so
+the Command Buffer accesses become the largest group, also in the
+hundreds of thousands per second. PTE and I/O accesses are minor in both
+load and run-time phases ranging in tens of thousands per second.</p>
+<div class="figure align-center" id="access-patterns">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-access-patterns.png"><img alt="../../_images/APL_GVT-g-access-patterns.png" src="../../_images/APL_GVT-g-access-patterns.png" style="width: 400px;" /></a>
+<p class="caption"><span class="caption-number">Figure 100 </span><span class="caption-text">Access Patterns of Running 3D Workloads</span></p>
+</div>
+</div>
+</div>
+<div class="section" id="high-level-architecture">
+<h2>High Level Architecture<a class="headerlink" href="#high-level-architecture" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="#gvt-arch"><span class="std std-numref">Figure 101</span></a> shows the overall architecture of GVT-g, based on the
+ACRN hypervisor, with SOS as the privileged VM, and multiple user
+guests. A GVT-g device model working with the ACRN hypervisor,
+implements the policies of trap and pass-through. Each guest runs the
+native graphics driver and can directly access performance-critical
+resources: the Frame Buffer and Command Buffer, with resource
+partitioning (as presented later). To protect privileged resources, that
+is, the I/O registers and PTEs, corresponding accesses from the graphics
+driver in user VMs are trapped and forwarded to the GVT device model in
+SOS for emulation. The device model leverages i915 interfaces to access
+the physical GPU.</p>
+<p>In addition, the device model implements a GPU scheduler that runs
+concurrently with the CPU scheduler in ACRN to share the physical GPU
+timeslot among the VMs. GVT-g uses the physical GPU to directly execute
+all the commands submitted from a VM, so it avoids the complexity of
+emulating the Render Engine, which is the most complex part of the GPU.
+In the meantime, the resource pass-through of both the Frame Buffer and
+Command Buffer minimizes the hypervisor’s intervention of CPU accesses,
+while the GPU scheduler guarantees every VM a quantum time-slice for
+direct GPU execution. With that, GVT-g can achieve near-native
+performance for a VM workload.</p>
+<p>In <a class="reference internal" href="#gvt-arch"><span class="std std-numref">Figure 101</span></a>, the yellow GVT device model works as a client on
+top of an i915 driver in the SOS. It has a generic Mediated Pass-Through
+(MPT) interface, compatible with all types of hypervisors. For ACRN,
+some extra development work is needed for such MPT interfaces. For
+example, we need some changes in ACRN-DM to make ACRN compatible with
+the MPT framework. The vGPU lifecycle is the same as the lifecycle of
+the guest VM creation through ACRN-DM. They interact through sysfs,
+exposed by the GVT device model.</p>
+<div class="figure align-center" id="gvt-arch">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-arch.png"><img alt="../../_images/APL_GVT-g-arch.png" src="../../_images/APL_GVT-g-arch.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 101 </span><span class="caption-text">AcrnGT High-level Architecture</span></p>
+</div>
+</div>
+<div class="section" id="key-techniques">
+<h2>Key Techniques<a class="headerlink" href="#key-techniques" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="vgpu-device-model">
+<h3>vGPU Device Model<a class="headerlink" href="#vgpu-device-model" title="Permalink to this headline">¶</a></h3>
+<p>The vGPU Device model is the main component because it constructs the
+vGPU instance for each guest to satisfy every GPU request from the guest
+and gives the corresponding result back to the guest.</p>
+<p>The vGPU Device Model provides the basic framework to do
+trap-and-emulation, including MMIO virtualization, interrupt
+virtualization, and display virtualization. It also handles and
+processes all the requests internally, such as, command scan and shadow,
+schedules them in the proper manner, and finally submits to
+the SOS i915 driver.</p>
+<div class="figure align-center" id="gvt-dm">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-DM.png"><img alt="../../_images/APL_GVT-g-DM.png" src="../../_images/APL_GVT-g-DM.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 102 </span><span class="caption-text">GVT-g Device Model</span></p>
+</div>
+<div class="section" id="mmio-virtualization">
+<h4>MMIO Virtualization<a class="headerlink" href="#mmio-virtualization" title="Permalink to this headline">¶</a></h4>
+<p>Intel Processor Graphics implements two PCI MMIO BARs:</p>
+<ul class="simple">
+<li><strong>GTTMMADR BAR</strong>: Combines both <a class="reference internal" href="../../glossary.html#term-ggtt"><span class="xref std std-term">GGTT</span></a> modification range and Memory
+Mapped IO range. It is 16 MB on <a class="reference internal" href="../../glossary.html#term-bdw"><span class="xref std std-term">BDW</span></a>, with 2 MB used by MMIO, 6 MB
+reserved and 8 MB allocated to GGTT. GGTT starts from
+<a class="reference internal" href="../../glossary.html#term-gttmmadr"><span class="xref std std-term">GTTMMADR</span></a> + 8 MB. In this section, we focus on virtualization of
+the MMIO range, discussing GGTT virtualization later.</li>
+<li><strong>GMADR BAR</strong>: As the PCI aperture is used by the CPU to access tiled
+graphics memory, GVT-g partitions this aperture range among VMs for
+performance reasons.</li>
+</ul>
+<p>A 2 MB virtual MMIO structure is allocated per vGPU instance.</p>
+<p>All the virtual MMIO registers are emulated as simple in-memory
+read-write, that is, guest driver will read back the same value that was
+programmed earlier. A common emulation handler (for example,
+intel_gvt_emulate_read/write) is enough to handle such general
+emulation requirements. However, some registers need to be emulated with
+specific logic, for example, affected by change of other states or
+additional audit or translation when updating the virtual register.
+Therefore, a specific emulation handler must be installed for those
+special registers.</p>
+<p>The graphics driver may have assumptions about the initial device state,
+which stays with the point when the BIOS transitions to the OS. To meet
+the driver expectation, we need to provide an initial state of vGPU that
+a driver may observe on a pGPU. So the host graphics driver is expected
+to generate a snapshot of physical GPU state, which it does before guest
+driver’s initialization. This snapshot is used as the initial vGPU state
+by the device model.</p>
+</div>
+<div class="section" id="pci-configuration-space-virtualization">
+<h4>PCI Configuration Space Virtualization<a class="headerlink" href="#pci-configuration-space-virtualization" title="Permalink to this headline">¶</a></h4>
+<p>PCI configuration space also needs to be virtualized in the device
+model. Different implementations may choose to implement the logic
+within the vGPU device model or in default system device model (for
+example, ACRN-DM). GVT-g emulates the logic in the device model.</p>
+<p>Some information is vital for the vGPU device model, including:
+Guest PCI BAR, Guest PCI MSI, and Base of ACPI OpRegion.</p>
+</div>
+<div class="section" id="legacy-vga-port-i-o-virtualization">
+<h4>Legacy VGA Port I/O Virtualization<a class="headerlink" href="#legacy-vga-port-i-o-virtualization" title="Permalink to this headline">¶</a></h4>
+<p>Legacy VGA is not supported in the vGPU device model. We rely on the
+default device model (for example, <a class="reference internal" href="../../glossary.html#term-qemu"><span class="xref std std-term">QEMU</span></a>) to provide legacy VGA
+emulation, which means either ISA VGA emulation or
+PCI VGA emulation.</p>
+</div>
+<div class="section" id="interrupt-virtualization">
+<h4>Interrupt Virtualization<a class="headerlink" href="#interrupt-virtualization" title="Permalink to this headline">¶</a></h4>
+<p>The GVT device model does not touch the hardware interrupt in the new
+architecture, since it is hard to combine the interrupt controlling
+logic between the virtual device model and the host driver. To prevent
+architectural changes in the host driver, the host GPU interrupt does
+not go to the virtual device model and the virtual device model has to
+handle the GPU interrupt virtualization by itself. Virtual GPU
+interrupts are categorized into three types:</p>
+<ul class="simple">
+<li>Periodic GPU interrupts are emulated by timers. However, a notable
+exception to this is the VBlank interrupt. Due to the demands of user
+space compositors, such as Wayland, which requires a flip done event
+to be synchronized with a VBlank, this interrupt is forwarded from
+SOS to UOS when SOS receives it from the hardware.</li>
+<li>Event-based GPU interrupts are emulated by the emulation logic. For
+example, AUX Channel Interrupt.</li>
+<li>GPU command interrupts are emulated by a command parser and workload
+dispatcher. The command parser marks out which GPU command interrupts
+are generated during the command execution and the workload
+dispatcher injects those interrupts into the VM after the workload is
+finished.</li>
+</ul>
+<div class="figure align-center" id="interrupt-virt">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-interrupt-virt.png"><img alt="../../_images/APL_GVT-g-interrupt-virt.png" src="../../_images/APL_GVT-g-interrupt-virt.png" style="width: 400px;" /></a>
+<p class="caption"><span class="caption-number">Figure 103 </span><span class="caption-text">Interrupt Virtualization</span></p>
+</div>
+</div>
+<div class="section" id="workload-scheduler">
+<h4>Workload Scheduler<a class="headerlink" href="#workload-scheduler" title="Permalink to this headline">¶</a></h4>
+<p>The scheduling policy and workload scheduler are decoupled for
+scalability reasons. For example, a future QoS enhancement will only
+impact the scheduling policy, any i915 interface change or HW submission
+interface change (from execlist to <a class="reference internal" href="../../glossary.html#term-guc"><span class="xref std std-term">GuC</span></a>) will only need workload
+scheduler updates.</p>
+<p>The scheduling policy framework is the core of the vGPU workload
+scheduling system. It controls all of the scheduling actions and
+provides the developer with a generic framework for easy development of
+scheduling policies. The scheduling policy framework controls the work
+scheduling process without caring about how the workload is dispatched
+or completed. All the detailed workload dispatching is hidden in the
+workload scheduler, which is the actual executer of a vGPU workload.</p>
+<p>The workload scheduler handles everything about one vGPU workload. Each
+hardware ring is backed by one workload scheduler kernel thread. The
+workload scheduler picks the workload from current vGPU workload queue
+and communicates with the virtual HW submission interface to emulate the
+“schedule-in” status for the vGPU. It performs context shadow, Command
+Buffer scan and shadow, PPGTT page table pin/unpin/out-of-sync, before
+submitting this workload to the host i915 driver. When the vGPU workload
+is completed, the workload scheduler asks the virtual HW submission
+interface to emulate the “schedule-out” status for the vGPU. The VM
+graphics driver then knows that a GPU workload is finished.</p>
+<div class="figure align-center" id="scheduling">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-scheduling.png"><img alt="../../_images/APL_GVT-g-scheduling.png" src="../../_images/APL_GVT-g-scheduling.png" style="width: 500px;" /></a>
+<p class="caption"><span class="caption-number">Figure 104 </span><span class="caption-text">GVT-g Scheduling Framework</span></p>
+</div>
+</div>
+<div class="section" id="workload-submission-path">
+<h4>Workload Submission Path<a class="headerlink" href="#workload-submission-path" title="Permalink to this headline">¶</a></h4>
+<p>Software submits the workload using the legacy ring buffer mode on Intel
+Processor Graphics before Broadwell, which is no longer supported by the
+GVT-g virtual device model. A new HW submission interface named
+“Execlist” is introduced since Broadwell. With the new HW submission
+interface, software can achieve better programmability and easier
+context management. In Intel GVT-g, the vGPU submits the workload
+through the virtual HW submission interface. Each workload in submission
+will be represented as an <code class="docutils literal notranslate"><span class="pre">intel_vgpu_workload</span></code> data structure, a vGPU
+workload, which will be put on a per-vGPU and per-engine workload queue
+later after performing a few basic checks and verifications.</p>
+<div class="figure align-center" id="workload">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-workload.png"><img alt="../../_images/APL_GVT-g-workload.png" src="../../_images/APL_GVT-g-workload.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 105 </span><span class="caption-text">GVT-g Workload Submission</span></p>
+</div>
+</div>
+<div class="section" id="display-virtualization">
+<h4>Display Virtualization<a class="headerlink" href="#display-virtualization" title="Permalink to this headline">¶</a></h4>
+<p>GVT-g reuses the i915 graphics driver in the SOS to initialize the Display
+Engine, and then manages the Display Engine to show different VM frame
+buffers. When two vGPUs have the same resolution, only the frame buffer
+locations are switched.</p>
+<div class="figure align-center" id="display-virt">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-display-virt.png"><img alt="../../_images/APL_GVT-g-display-virt.png" src="../../_images/APL_GVT-g-display-virt.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 106 </span><span class="caption-text">Display Virtualization</span></p>
+</div>
+</div>
+<div class="section" id="direct-display-model">
+<h4>Direct Display Model<a class="headerlink" href="#direct-display-model" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center" id="direct-display">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-direct-display.png"><img alt="../../_images/APL_GVT-g-direct-display.png" src="../../_images/APL_GVT-g-direct-display.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 107 </span><span class="caption-text">Direct Display Model</span></p>
+</div>
+<p>A typical automotive use case is where there are two displays in the car
+and each one needs to show one domain’s content, with the two domains
+being the Instrument cluster and the In Vehicle Infotainment (IVI). As
+shown in <a class="reference internal" href="#direct-display"><span class="std std-numref">Figure 107</span></a>, this can be accomplished through the direct
+display model of GVT-g, where the SOS and UOS are each assigned all HW
+planes of two different pipes. GVT-g has a concept of display owner on a
+per HW plane basis. If it determines that a particular domain is the
+owner of a HW plane, then it allows the domain’s MMIO register write to
+flip a frame buffer to that plane to go through to the HW. Otherwise,
+such writes are blocked by the GVT-g.</p>
+</div>
+<div class="section" id="indirect-display-model">
+<h4>Indirect Display Model<a class="headerlink" href="#indirect-display-model" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center" id="indirect-display">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-indirect-display.png"><img alt="../../_images/APL_GVT-g-indirect-display.png" src="../../_images/APL_GVT-g-indirect-display.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 108 </span><span class="caption-text">Indirect Display Model</span></p>
+</div>
+<p>For security or fastboot reasons, it may be determined that the UOS is
+either not allowed to display its content directly on the HW or it may
+be too late before it boots up and displays its content. In such a
+scenario, the responsibility of displaying content on all displays lies
+with the SOS. One of the use cases that can be realized is to display the
+entire frame buffer of the UOS on a secondary display. GVT-g allows for this
+model by first trapping all MMIO writes by the UOS to the HW. A proxy
+application can then capture the address in GGTT where the UOS has written
+its frame buffer and using the help of the Hypervisor and the SOS’s i915
+driver, can convert the Guest Physical Addresses (GPAs) into Host
+Physical Addresses (HPAs) before making a texture source or EGL image
+out of the frame buffer and then either post processing it further or
+simply displaying it on a HW plane of the secondary display.</p>
+</div>
+<div class="section" id="ggtt-based-surface-sharing">
+<h4>GGTT-Based Surface Sharing<a class="headerlink" href="#ggtt-based-surface-sharing" title="Permalink to this headline">¶</a></h4>
+<p>One of the major automotive use case is called “surface sharing”. This
+use case requires that the SOS accesses an individual surface or a set of
+surfaces from the UOS without having to access the entire frame buffer of
+the UOS. Unlike the previous two models, where the UOS did not have to do
+anything to show its content and therefore a completely unmodified UOS
+could continue to run, this model requires changes to the UOS.</p>
+<p>This model can be considered an extension of the indirect display model.
+Under the indirect display model, the UOS’s frame buffer was temporarily
+pinned by it in the video memory access through the Global graphics
+translation table. This GGTT-based surface sharing model takes this a
+step further by having a compositor of the UOS to temporarily pin all
+application buffers into GGTT. It then also requires the compositor to
+create a metadata table with relevant surface information such as width,
+height, and GGTT offset, and flip that in lieu of the frame buffer.
+In the SOS, the proxy application knows that the GGTT offset has been
+flipped, maps it, and through it can access the GGTT offset of an
+application that it wants to access. It is worth mentioning that in this
+model, UOS applications did not require any changes, and only the
+compositor, Mesa, and i915 driver had to be modified.</p>
+<p>This model has a major benefit and a major limitation. The
+benefit is that since it builds on top of the indirect display model,
+there are no special drivers necessary for it on either SOS or UOS.
+Therefore, any Real Time Operating System (RTOS) that use
+this model can simply do so without having to implement a driver, the
+infrastructure for which may not be present in their operating system.
+The limitation of this model is that video memory dedicated for a UOS is
+generally limited to a couple of hundred MBs. This can easily be
+exhausted by a few application buffers so the number and size of buffers
+is limited. Since it is not a highly-scalable model, in general, Intel
+recommends the Hyper DMA buffer sharing model, described next.</p>
+</div>
+<div class="section" id="hyper-dma-buffer-sharing">
+<h4>Hyper DMA Buffer Sharing<a class="headerlink" href="#hyper-dma-buffer-sharing" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center" id="hyper-dma">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-hyper-dma.png"><img alt="../../_images/APL_GVT-g-hyper-dma.png" src="../../_images/APL_GVT-g-hyper-dma.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 109 </span><span class="caption-text">Hyper DMA Buffer Design</span></p>
+</div>
+<p>Another approach to surface sharing is Hyper DMA Buffer sharing. This
+model extends the Linux DMA buffer sharing mechanism where one driver is
+able to share its pages with another driver within one domain.</p>
+<p>Applications buffers are backed by i915 Graphics Execution Manager
+Buffer Objects (GEM BOs).  As in GGTT surface
+sharing, this model also requires compositor changes. The compositor of
+UOS requests i915 to export these application GEM BOs and then passes
+them on to a special driver called the Hyper DMA Buf exporter whose job
+is to create a scatter gather list of pages mapped by PDEs and PTEs and
+export a Hyper DMA Buf ID back to the compositor.</p>
+<p>The compositor then shares this Hyper DMA Buf ID with the SOS’s Hyper DMA
+Buf importer driver which then maps the memory represented by this ID in
+the SOS. A proxy application in the SOS can then provide the ID of this driver
+to the SOS i915, which can create its own GEM BO. Finally, the application
+can use it as an EGL image and do any post processing required before
+either providing it to the SOS compositor or directly flipping it on a
+HW plane in the compositor’s absence.</p>
+<p>This model is highly scalable and can be used to share up to 4 GB worth
+of pages. It is also not limited to only sharing graphics buffers. Other
+buffers for the IPU and others, can also be shared with it. However, it
+does require that the SOS port the Hyper DMA Buffer importer driver. Also,
+the SOS OS must comprehend and implement the DMA buffer sharing model.</p>
+<p>For detailed information about this model, please refer to the <a class="reference external" href="https://github.com/downor/linux_hyper_dmabuf/blob/hyper_dmabuf_integration_v4/Documentation/hyper-dmabuf-sharing.txt">Linux
+HYPER_DMABUF Driver High Level Design</a>.</p>
+</div>
+<div class="section" id="plane-based-domain-ownership">
+<span id="plane-restriction"></span><h4>Plane-Based Domain Ownership<a class="headerlink" href="#plane-based-domain-ownership" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center" id="plane-based">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-plane-based.png"><img alt="../../_images/APL_GVT-g-plane-based.png" src="../../_images/APL_GVT-g-plane-based.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 110 </span><span class="caption-text">Plane-Based Domain Ownership</span></p>
+</div>
+<p>Yet another mechanism for showing content of both the SOS and UOS on the
+same physical display is called plane-based domain ownership. Under this
+model, both the SOS and UOS are provided a set of HW planes that they can
+flip their contents on to. Since each domain provides its content, there
+is no need for any extra composition to be done through the SOS. The display
+controller handles alpha blending contents of different domains on a
+single pipe. This saves on any complexity on either the SOS or the UOS
+SW stack.</p>
+<p>It is important to provide only specific planes and have them statically
+assigned to different Domains. To achieve this, the i915 driver of both
+domains is provided a command line parameter that specifies the exact
+planes that this domain has access to. The i915 driver then enumerates
+only those HW planes and exposes them to its compositor. It is then left
+to the compositor configuration to use these planes appropriately and
+show the correct content on them. No other changes are necessary.</p>
+<p>While the biggest benefit of this model is that is extremely simple and
+quick to implement, it also has some drawbacks. First, since each domain
+is responsible for showing the content on the screen, there is no
+control of the UOS by the SOS. If the UOS is untrusted, this could
+potentially cause some unwanted content to be displayed. Also, there is
+no post processing capability, except that provided by the display
+controller (for example, scaling, rotation, and so on). So each domain
+must provide finished buffers with the expectation that alpha blending
+with another domain will not cause any corruption or unwanted artifacts.</p>
+</div>
+</div>
+<div class="section" id="graphics-memory-virtualization">
+<h3>Graphics Memory Virtualization<a class="headerlink" href="#graphics-memory-virtualization" title="Permalink to this headline">¶</a></h3>
+<p>To achieve near-to-native graphics performance, GVT-g passes through the
+performance-critical operations, such as Frame Buffer and Command Buffer
+from the VM. For the global graphics memory space, GVT-g uses graphics
+memory resource partitioning and an address space ballooning mechanism.
+For local graphics memory spaces, GVT-g implements per-VM local graphics
+memory through a render context switch because local graphics memory is
+only accessible by the GPU.</p>
+<div class="section" id="global-graphics-memory">
+<h4>Global Graphics Memory<a class="headerlink" href="#global-graphics-memory" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="graphics-memory-resource-partitioning">
+<h5>Graphics Memory Resource Partitioning<a class="headerlink" href="#graphics-memory-resource-partitioning" title="Permalink to this headline">¶</a></h5>
+<p>GVT-g partitions the global graphics memory among VMs. Splitting the
+CPU/GPU scheduling mechanism requires that the global graphics memory of
+different VMs can be accessed by the CPU and the GPU simultaneously.
+Consequently, GVT-g must, at any time, present each VM with its own
+resource, leading to the resource partitioning approaching, for global
+graphics memory, as shown in <a class="reference internal" href="#mem-part"><span class="std std-numref">Figure 111</span></a>.</p>
+<div class="figure align-center" id="mem-part">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-mem-part.png"><img alt="../../_images/APL_GVT-g-mem-part.png" src="../../_images/APL_GVT-g-mem-part.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 111 </span><span class="caption-text">Memory Partition and Ballooning</span></p>
+</div>
+<p>The performance impact of reduced global graphics memory resource
+due to memory partitioning is very limited according to various test
+results.</p>
+</div>
+<div class="section" id="address-space-ballooning">
+<h5>Address Space Ballooning<a class="headerlink" href="#address-space-ballooning" title="Permalink to this headline">¶</a></h5>
+<p>The address space ballooning technique is introduced to eliminate the
+address translation overhead, shown in <a class="reference internal" href="#mem-part"><span class="std std-numref">Figure 111</span></a>. GVT-g exposes the
+partitioning information to the VM graphics driver through the PVINFO
+MMIO window. The graphics driver marks the other VMs’ regions as
+‘ballooned’, and reserves them as not being used from its graphics
+memory allocator. Under this design, the guest view of global graphics
+memory space is exactly the same as the host view and the driver
+programmed addresses, using guest physical address, can be directly used
+by the hardware. Address space ballooning is different from traditional
+memory ballooning techniques. Memory ballooning is for memory usage
+control concerning the number of ballooned pages, while address space
+ballooning is to balloon special memory address ranges.</p>
+<p>Another benefit of address space ballooning is that there is no address
+translation overhead as we use the guest Command Buffer for direct GPU
+execution.</p>
+</div>
+</div>
+<div class="section" id="per-vm-local-graphics-memory">
+<h4>Per-VM Local Graphics Memory<a class="headerlink" href="#per-vm-local-graphics-memory" title="Permalink to this headline">¶</a></h4>
+<p>GVT-g allows each VM to use the full local graphics memory spaces of its
+own, similar to the virtual address spaces on the CPU. The local
+graphics memory spaces are only visible to the Render Engine in the GPU.
+Therefore, any valid local graphics memory address, programmed by a VM,
+can be used directly by the GPU. The GVT-g device model switches the
+local graphics memory spaces, between VMs, when switching render
+ownership.</p>
+</div>
+</div>
+<div class="section" id="gpu-page-table-virtualization">
+<h3>GPU Page Table Virtualization<a class="headerlink" href="#gpu-page-table-virtualization" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="shared-shadow-ggtt">
+<h4>Shared Shadow GGTT<a class="headerlink" href="#shared-shadow-ggtt" title="Permalink to this headline">¶</a></h4>
+<p>To achieve resource partitioning and address space ballooning, GVT-g
+implements a shared shadow global page table for all VMs. Each VM has
+its own guest global page table to translate the graphics memory page
+number to the Guest memory Page Number (GPN). The shadow global page
+table is then translated from the graphics memory page number to the
+Host memory Page Number (HPN).</p>
+<p>The shared shadow global page table maintains the translations for all
+VMs to support concurrent accesses from the CPU and GPU concurrently.
+Therefore, GVT-g implements a single, shared shadow global page table by
+trapping guest PTE updates, as shown in <a class="reference internal" href="#shared-shadow"><span class="std std-numref">Figure 112</span></a>. The
+global page table, in MMIO space, has 1024K PTE entries, each pointing
+to a 4 KB system memory page, so the global page table overall creates a
+4 GB global graphics memory space. GVT-g audits the guest PTE values
+according to the address space ballooning information before updating
+the shadow PTE entries.</p>
+<div class="figure align-center" id="shared-shadow">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-shared-shadow.png"><img alt="../../_images/APL_GVT-g-shared-shadow.png" src="../../_images/APL_GVT-g-shared-shadow.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 112 </span><span class="caption-text">Shared Shadow Global Page Table</span></p>
+</div>
+</div>
+<div class="section" id="per-vm-shadow-ppgtt">
+<h4>Per-VM Shadow PPGTT<a class="headerlink" href="#per-vm-shadow-ppgtt" title="Permalink to this headline">¶</a></h4>
+<p>To support local graphics memory access pass-through, GVT-g implements
+per-VM shadow local page tables. The local graphics memory is only
+accessible from the Render Engine. The local page tables have two-level
+paging structures, as shown in <a class="reference internal" href="#per-vm-shadow"><span class="std std-numref">Figure 113</span></a>.</p>
+<p>The first level, Page Directory Entries (PDEs), located in the global
+page table, points to the second level, Page Table Entries (PTEs) in
+system memory, so guest accesses to the PDE are trapped and emulated,
+through the implementation of shared shadow global page table.</p>
+<p>GVT-g also write-protects a list of guest PTE pages for each VM. The
+GVT-g device model synchronizes the shadow page with the guest page, at
+the time of write-protection page fault, and switches the shadow local
+page tables at render context switches.</p>
+<div class="figure align-center" id="per-vm-shadow">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-per-vm-shadow.png"><img alt="../../_images/APL_GVT-g-per-vm-shadow.png" src="../../_images/APL_GVT-g-per-vm-shadow.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 113 </span><span class="caption-text">Per-VM Shadow PPGTT</span></p>
+</div>
+</div>
+</div>
+<div class="section" id="prioritized-rendering-and-preemption">
+<span id="gvt-g-prioritized-rendering"></span><h3>Prioritized Rendering and Preemption<a class="headerlink" href="#prioritized-rendering-and-preemption" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="different-schedulers-and-their-roles">
+<h4>Different Schedulers and Their Roles<a class="headerlink" href="#different-schedulers-and-their-roles" title="Permalink to this headline">¶</a></h4>
+<div class="figure align-center" id="scheduling-policy">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-scheduling-policy.png"><img alt="../../_images/APL_GVT-g-scheduling-policy.png" src="../../_images/APL_GVT-g-scheduling-policy.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 114 </span><span class="caption-text">Scheduling Policy</span></p>
+</div>
+<p>In the system, there are three different schedulers for the GPU:</p>
+<ul class="simple">
+<li>i915 UOS scheduler</li>
+<li>Mediator GVT scheduler</li>
+<li>i915 SOS scheduler</li>
+</ul>
+<p>Since UOS always uses the host-based command submission (ELSP) model,
+and it never accesses the GPU or the Graphic Micro Controller (GuC)
+directly, its scheduler cannot do any preemption by itself.
+The i915 scheduler does ensure batch buffers are
+submitted in dependency order, that is, if a compositor had to wait for
+an application buffer to finish before its workload can be submitted to
+the GPU, then the i915 scheduler of the UOS ensures that this happens.</p>
+<p>The UOS assumes that by submitting its batch buffers to the Execlist
+Submission Port (ELSP), the GPU will start working on them. However,
+the MMIO write to the ELSP is captured by the Hypervisor, which forwards
+these requests to the GVT module. GVT then creates a shadow context
+based on this batch buffer and submits the shadow context to the SOS
+i915 driver.</p>
+<p>However, it is dependent on a second scheduler called the GVT
+scheduler. This scheduler is time based and uses a round robin algorithm
+to provide a specific time for each UOS to submit its workload when it
+is considered as a “render owner”. The workload of the UOSs that are not
+render owners during a specific time period end up waiting in the
+virtual GPU context until the GVT scheduler makes them render owners.
+The GVT shadow context submits only one workload at
+a time, and once the workload is finished by the GPU, it copies any
+context state back to DomU and sends the appropriate interrupts before
+picking up any other workloads from either this UOS or another one. This
+also implies that this scheduler does not do any preemption of
+workloads.</p>
+<p>Finally, there is the i915 scheduler in the SOS. This scheduler uses the
+GuC or ELSP to do command submission of SOS local content as well as any
+content that GVT is submitting to it on behalf of the UOSs. This
+scheduler uses GuC or ELSP to preempt workloads. GuC has four different
+priority queues, but the SOS i915 driver uses only two of them. One of
+them is considered high priority and the other is normal priority with a
+GuC rule being that any command submitted on the high priority queue
+would immediately try to preempt any workload submitted on the normal
+priority queue. For ELSP submission, the i915 will submit a preempt
+context to preempt the current running context and then wait for the GPU
+engine to be idle.</p>
+<p>While the identification of workloads to be preempted is decided by
+customizable scheduling policies, once a candidate for preemption is
+identified, the i915 scheduler simply submits a preemption request to
+the GuC high-priority queue. Based on the HW’s ability to preempt (on an
+Apollo Lake SoC, 3D workload is preemptible on a 3D primitive level with
+some exceptions), the currently executing workload is saved and
+preempted. The GuC informs the driver using an interrupt of a preemption
+event occurring. After handling the interrupt, the driver submits the
+high-priority workload through the normal priority GuC queue. As such,
+the normal priority GuC queue is used for actual execbuf submission most
+of the time with the high-priority GuC queue only being used for the
+preemption of lower-priority workload.</p>
+<p>Scheduling policies are customizable and left to customers to change if
+they are not satisfied with the built-in i915 driver policy, where all
+workloads of the SOS are considered higher priority than those of the
+UOS. This policy can be enforced through an SOS i915 kernel command line
+parameter, and can replace the default in-order command submission (no
+preemption) policy.</p>
+</div>
+</div>
+</div>
+<div class="section" id="acrngt">
+<h2>AcrnGT<a class="headerlink" href="#acrngt" title="Permalink to this headline">¶</a></h2>
+<p>ACRN is a flexible, lightweight reference hypervisor, built with
+real-time and safety-criticality in mind, optimized to streamline
+embedded development through an open source platform.</p>
+<p>AcrnGT is the GVT-g implementation on the ACRN hypervisor. It adapts
+the MPT interface of GVT-g onto ACRN by using the kernel APIs provided
+by ACRN.</p>
+<p><a class="reference internal" href="#full-pic"><span class="std std-numref">Figure 115</span></a> shows the full architecture of AcrnGT with a Linux Guest
+OS and an Android Guest OS.</p>
+<div class="figure align-center" id="full-pic">
+<a class="reference internal image-reference" href="../../_images/APL_GVT-g-full-pic.png"><img alt="../../_images/APL_GVT-g-full-pic.png" src="../../_images/APL_GVT-g-full-pic.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 115 </span><span class="caption-text">Full picture of the AcrnGT</span></p>
+</div>
+<div class="section" id="acrngt-in-kernel">
+<h3>AcrnGT in kernel<a class="headerlink" href="#acrngt-in-kernel" title="Permalink to this headline">¶</a></h3>
+<p>The AcrnGT module in the SOS kernel acts as an adaption layer to connect
+between GVT-g in the i915, the VHM module, and the ACRN-DM user space
+application:</p>
+<ul class="simple">
+<li>AcrnGT module implements the MPT interface of GVT-g to provide
+services to it, including set and unset trap areas, set and unset
+write-protection pages, etc.</li>
+<li>It calls the VHM APIs provided by the ACRN VHM module in the SOS
+kernel, to eventually call into the routines provided by ACRN
+hypervisor through hyper-calls.</li>
+<li>It provides user space interfaces through <code class="docutils literal notranslate"><span class="pre">sysfs</span></code> to the user space
+ACRN-DM, so that DM can manage the lifecycle of the virtual GPUs.</li>
+</ul>
+</div>
+<div class="section" id="acrngt-in-dm">
+<h3>AcrnGT in DM<a class="headerlink" href="#acrngt-in-dm" title="Permalink to this headline">¶</a></h3>
+<p>To emulate a PCI device to a Guest, we need an AcrnGT sub-module in the
+ACRN-DM.  This sub-module is responsible for:</p>
+<ul class="simple">
+<li>registering the virtual GPU device to the PCI device tree presented to
+guest;</li>
+<li>registerng the MMIO resources to ACRN-DM so that it can reserve
+resources in ACPI table;</li>
+<li>managing the lifecycle of the virtual GPU device, such as creation,
+destruction, and resetting according to the state of the virtual
+machine.</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Project ACRN.
+      Last updated on Feb 15, 2019.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Project ACRN</span>
+      v: 0.6
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Versions</dt>
+        
+          <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/0.6/">0.6</a></dd>
+        
+          <dd><a href="/0.5/">0.5</a></dd>
+        
+          <dd><a href="/0.4/">0.4</a></dd>
+        
+          <dd><a href="/0.3/">0.3</a></dd>
+        
+          <dd><a href="/0.2/">0.2</a></dd>
+        
+          <dd><a href="/0.1/">0.1</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>On projectacrn.org</dt>
+          <dd>
+            <a href="https://www.projectacrn.org/">Project Home</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/projectacrn/acrn-hypervisor/wiki">Wiki</a>
+          </dd>
+      </dl>
+    </div>
+  </div>
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'v 0.6-unstable',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="../../_static/acrn-custom.js"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
