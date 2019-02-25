@@ -770,8 +770,7 @@ to a removable disk for installing on the UP2 board later.</p>
 <li><p class="first">Current ACRN partition mode implementation requires a multi-boot capable
 bootloader to boot both ACRN hypervisor and the bootable kernel image
 built from the previous step. You could install Ubuntu OS to the UP2 board
-by following
-<a class="reference external" href="https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-desktop">this Ubuntu tutorial</a>.
+by following <a class="reference external" href="https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-desktop">this Ubuntu tutorial</a>.
 The Ubuntu installer creates 3 disk partitions on the on-board eMMC memory.
 By default, the GRUB bootloader is installed on the ESP (EFI System Partition)
 partition, which will be used to bootstrap the partition mode ACRN hypervisor.</p>
@@ -807,7 +806,7 @@ $ sudo umount /mnt
 <h2>Enable partition mode in ACRN hypervisor<a class="headerlink" href="#enable-partition-mode-in-acrn-hypervisor" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p class="first">Before building the ACRN hypervisor, you need to figure out the I/O address
-of the serial port, and the PCI BAR addresses of the SATA controller and
+of the serial port, and the PCI BDF addresses of the SATA controller and
 the USB controller on your UP2 board.</p>
 <p>Enter the following command to get the I/O addresses of the serial ports.
 UP2 boards support two serial ports. The addresses from the command
@@ -822,32 +821,30 @@ the ACRN serial console to switch between privileged VMs.</p>
 </div>
 <p>The second with <code class="docutils literal notranslate"><span class="pre">00:18.1</span></code> is the one on the 40-pin expansion connector.</p>
 <p>The following command prints detailed information about all PCI buses
-and devices in the system. Look up the PCI BAR addresses of the SATA
-controller and the USB controller, record these addresses (highlighted below) for
-editing the source code later.</p>
+and devices in the system.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span><span class="hll">$ sudo lspci -vv
 </span>...
-00:12.0 SATA controller: Intel Corporation Device 5ae3 (rev 0b) (prog-if 01 [AHCI 1.0])
-    Subsystem: Intel Corporation Device 7270
+<span class="hll">00:12.0 SATA controller: Intel Corporation Device 5ae3 (rev 0b) (prog-if 01 [AHCI 1.0])
+</span>    Subsystem: Intel Corporation Device 7270
     Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
     Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-
     Latency: 0
     Interrupt: pin A routed to IRQ 123
-<span class="hll">    Region 0: Memory at 91514000 (32-bit, non-prefetchable) [size=8K]
-</span><span class="hll">    Region 1: Memory at 91537000 (32-bit, non-prefetchable) [size=256]
-</span>    Region 2: I/O ports at f090 [size=8]
+    Region 0: Memory at 91514000 (32-bit, non-prefetchable) [size=8K]
+    Region 1: Memory at 91537000 (32-bit, non-prefetchable) [size=256]
+    Region 2: I/O ports at f090 [size=8]
     Region 3: I/O ports at f080 [size=4]
     Region 4: I/O ports at f060 [size=32]
-<span class="hll">    Region 5: Memory at 91536000 (32-bit, non-prefetchable) [size=2K]
-</span>...
-00:15.0 USB controller: Intel Corporation Device 5aa8 (rev 0b) (prog-if 30 [XHCI])
-    Subsystem: Intel Corporation Device 7270
+    Region 5: Memory at 91536000 (32-bit, non-prefetchable) [size=2K]
+...
+<span class="hll">00:15.0 USB controller: Intel Corporation Device 5aa8 (rev 0b) (prog-if 30 [XHCI])
+</span>    Subsystem: Intel Corporation Device 7270
     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx+
     Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-
     Latency: 0
     Interrupt: pin A routed to IRQ 122
-<span class="hll">    Region 0: Memory at 91500000 (64-bit, non-prefetchable) [size=64K]
-</span></pre></div>
+    Region 0: Memory at 91500000 (64-bit, non-prefetchable) [size=64K]
+</pre></div>
 </div>
 </li>
 <li><p class="first">Clone the ACRN source code and configure the build options with
@@ -869,133 +866,134 @@ menu as shown in this screenshot. Finally, save the configuration.</p>
 to install all the ACRN build dependencies.</p>
 </div>
 </li>
-<li><p class="first">Configure the PCI device info for each VM</p>
-<p>PCI devices that are available to the privileged VMs
-are hardcoded in the source file <code class="docutils literal notranslate"><span class="pre">hypervisor/partition/apl-mrb/vm_description.c</span></code>.
-You need to review and modify the <code class="docutils literal notranslate"><span class="pre">vpci_vdev_array1</span></code> and <code class="docutils literal notranslate"><span class="pre">vpci_vdev_array2</span></code>
-structures in the source code to match the PCI BAR addresses of the SATA
-controller and the USB controller noted in step 1:</p>
+<li><p class="first">Prepare VM configurations for UP2 partition mode</p>
+<p>The BOARD specific VM configurations should be under the folder:
+<code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/$(CONFIG_BOARD)/</span></code>.</p>
+<p>For UP2 board, we can simply copy configurations of apl-mrb to the up2 folder:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cp hypervisor/arch/x86/configs/apl-mrb/* hypervisor/arch/x86/configs/up2/
+</pre></div>
+</div>
+</li>
+<li><p class="first">Configure the partition mode configuration arguments</p>
+<p>The partition mode configuration information is located in header file
+<code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/up2/partition_config.h</span></code> and configured by
+<code class="docutils literal notranslate"><span class="pre">VMx_CONFIG_XXXX</span></code> MACROs (where x is the VM id number and XXXX are arguments).
+The most frequent configure items for end user are:</p>
+<p><code class="docutils literal notranslate"><span class="pre">VMx_CONFIG_NAME</span></code>: the VMx name string, must less than 32 bytes;</p>
+<p><code class="docutils literal notranslate"><span class="pre">VMx_CONFIG_PCPU_BITMAP</span></code>: assign physical CPUs to VMx by MACRO of <code class="docutils literal notranslate"><span class="pre">PLUG_CPU(cpu_id)</span></code>;</p>
+<p>Below is an example of partition mode configuration for UP2:</p>
 <div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-number">Code Block 5 </span><span class="caption-text">hypervisor/partition/vm_description.c</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="code-block-caption"><span class="caption-number">Code Block 5 </span><span class="caption-text">hypervisor/arch/x86/configs/up2/partition_config.h</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
-static struct vpci_vdev_array vpci_vdev_array1 = {
-<span class="hll">   .num_pci_vdev = 2,
-</span>
-   .vpci_vdev_list = {
-      {/*vdev 0: hostbridge */
-         .vbdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x0U},
-         .ops = &amp;pci_ops_vdev_hostbridge,
-         .bar = {},
-         .pdev = {
-            .bdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x0U},
-         }
-      },
+#define    VM0_CONFIGURED
 
-   {/*vdev 1: SATA controller*/
-      .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x0U},
-      .ops = &amp;pci_ops_vdev_pt,
-      .bar = {
-         [0] = {
-           .base = 0UL,
-           .size = 0x2000UL,
-           .type = PCIBAR_MEM32
-         },
-         [1] = {
-           .base = 0UL,
-           .size = 0x1000UL,
-           .type = PCIBAR_MEM32
-         },
-         [5] = {
-           .base = 0UL,
-           .size = 0x1000UL,
-           .type = PCIBAR_MEM32
-         },
-      },
-      .pdev = {
-         .bdf.bits = {.b = 0x00U, .d = 0x12U, .f = 0x0U},
-         .bar = {
-         [0] = {
-<span class="hll">           .base = 0x91514000UL,
-</span>           .size = 0x2000UL,
-           .type = PCIBAR_MEM32
-         },
-         [1] = {
-<span class="hll">           .base = 0x91537000UL,
-</span>           .size = 0x100UL,
-           .type = PCIBAR_MEM32
-         },
-         [5] = {
-<span class="hll">           .base = 0x91536000UL,
-</span>           .size = 0x800UL,
-           .type = PCIBAR_MEM32
-         },
-      }
-      ...
-      static struct vpci_vdev_array vpci_vdev_array2 = {
-<span class="hll">         .num_pci_vdev = 3,
-</span>         ...
-         {/*vdev 1: USB controller*/
-            .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x0U},
-            .ops = &amp;pci_ops_vdev_pt,
-            .bar = {
-               [0] = {
-                 .base = 0UL,
-                 .size = 0x10000UL,
-                 .type = PCIBAR_MEM32
-               },
-            },
-            .pdev = {
-               .bdf.bits = {.b = 0x00U, .d = 0x15U, .f = 0x0U},
-               .bar = {
-                 [0] = {
-<span class="hll">                   .base = 0x91500000UL,
-</span>                   .size = 0x10000UL,
-                   .type = PCIBAR_MEM64
-                 },
-               }
-         ...
+#define VM0_CONFIG_NAME                    &quot;PRE-LAUNCHED VM1 for UP2&quot;
+#define VM0_CONFIG_TYPE                    PRE_LAUNCHED_VM
+#define VM0_CONFIG_PCPU_BITMAP             (PLUG_CPU(0) | PLUG_CPU(2))
+#define VM0_CONFIG_FLAGS                   IO_COMPLETION_POLLING
+#define VM0_CONFIG_MEM_START_HPA           0x100000000UL
+#define VM0_CONFIG_MEM_SIZE                0x20000000UL
+
+#define VM0_CONFIG_OS_NAME                 &quot;ClearLinux 26600&quot;
+#define VM0_CONFIG_OS_BOOTARGS             &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
+                                           console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
+                                           consoleblank=0 tsc=reliable xapic_phys&quot;
+
+#define    VM1_CONFIGURED
+
+#define VM1_CONFIG_NAME                    &quot;PRE-LAUNCHED VM2 for UP2&quot;
+#define VM1_CONFIG_TYPE                    PRE_LAUNCHED_VM
+#define VM1_CONFIG_PCPU_BITMAP             (PLUG_CPU(1) | PLUG_CPU(3))
+#define VM1_CONFIG_FLAGS                   IO_COMPLETION_POLLING
+#define VM1_CONFIG_MEM_START_HPA           0x120000000UL
+#define VM1_CONFIG_MEM_SIZE                0x20000000UL
+
+#define VM1_CONFIG_OS_NAME                 &quot;ClearLinux 26600&quot;
+#define VM1_CONFIG_OS_BOOTARGS             &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
+                                           console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
+                                           consoleblank=0 tsc=reliable xapic_phys&quot;
+
+#define VM0_CONFIG_PCI_PTDEV_NUM           2U
+#define VM1_CONFIG_PCI_PTDEV_NUM           3U
 </pre></div>
 </div>
 </div>
 </li>
-<li><p class="first">Optionally, configure the <code class="docutils literal notranslate"><span class="pre">.bootargs</span></code> kernel command line arguments</p>
+<li><p class="first">Configure the PCI device info for each VM</p>
+<p>PCI devices that are available to the privileged VMs
+are hardcoded in the source file <code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/up2/pt_dev.c</span></code>.
+You need to review and modify the <code class="docutils literal notranslate"><span class="pre">vm0_pci_ptdevs</span></code> and <code class="docutils literal notranslate"><span class="pre">vm1_pci_ptdevs</span></code>
+structures in the source code to match the PCI BDF addresses of the SATA
+controller and the USB controller noted in step 1:</p>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-number">Code Block 6 </span><span class="caption-text">hypervisor/arch/x86/configs/up2/pt_dev.c</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
+struct acrn_vm_pci_ptdev_config vm0_pci_ptdevs[2] = {
+   {
+           .vbdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x00U},
+<span class="hll">           .pbdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x00U},
+</span>   },
+   {
+           .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x00U},
+<span class="hll">           .pbdf.bits = {.b = 0x00U, .d = 0x12U, .f = 0x00U},
+</span>   },
+};
+
+...
+struct acrn_vm_pci_ptdev_config vm1_pci_ptdevs[3] = {
+   {
+           .vbdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x00U},
+<span class="hll">           .pbdf.bits = {.b = 0x00U, .d = 0x00U, .f = 0x00U},
+</span>   },
+   {
+           .vbdf.bits = {.b = 0x00U, .d = 0x01U, .f = 0x00U},
+<span class="hll">           .pbdf.bits = {.b = 0x00U, .d = 0x15U, .f = 0x00U},
+</span>   },
+   {
+           .vbdf.bits = {.b = 0x00U, .d = 0x02U, .f = 0x00U},
+<span class="hll">           .pbdf.bits = {.b = 0x02U, .d = 0x00U, .f = 0x00U},
+</span>   },
+};
+...
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The first BDF(0:0.0) is for host bridge;
+<code class="docutils literal notranslate"><span class="pre">vbdf.bits</span></code> in each VM could be any BDF if it is valid and no confliction.</p>
+</div>
+</li>
+<li><p class="first">Optionally, configure the <code class="docutils literal notranslate"><span class="pre">VMx_CONFIG_OS_BOOTARGS</span></code> kernel command line arguments</p>
 <p>The kernel command line arguments used to boot the privileged VMs are
 hardcoded as <code class="docutils literal notranslate"><span class="pre">/dev/sda3</span></code> to meet the Clear Linux OS automatic installation.
 In case you plan to use your customized root
 filesystem, you may optionally edit the <code class="docutils literal notranslate"><span class="pre">root=</span></code> parameter specified
-in the <code class="docutils literal notranslate"><span class="pre">.bootargs</span></code> field of the <code class="docutils literal notranslate"><span class="pre">.vm_desc_array</span></code> structure, to
-instruct the Linux kernel to mount the right disk partition:</p>
-<div class="literal-block-wrapper docutils container" id="id2">
-<div class="code-block-caption"><span class="caption-number">Code Block 6 </span><span class="caption-text">hypervisor/partition/vm_description.c</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+in the <code class="docutils literal notranslate"><span class="pre">VMx_CONFIG_OS_BOOTARGS</span></code> MACRO, to instruct the Linux kernel to
+mount the right disk partition:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-number">Code Block 7 </span><span class="caption-text">hypervisor/arch/x86/configs/up2/partition_config.h</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
-/* Virtual Machine descriptions */
-.vm_desc_array = {
-   {
-      /* Internal variable, MUSTBE init to -1 */
-      .vm_hw_num_cores = VM1_NUM_CPUS,
-      .vm_pcpu_ids = &amp;VM1_CPUS[0],
-      ...
-<span class="hll">      .bootargs = &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
-</span><span class="hll">                   console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
-</span><span class="hll">                   consoleblank=0 tsc=reliable xapic_phys&quot;,
-</span>      .vpci_vdev_array = &amp;vpci_vdev_array1,
-      .mptable = &amp;mptable_vm1,
-   },
-   {
-      /* Internal variable, MUSTBE init to -1 */
-      .vm_hw_num_cores = VM2_NUM_CPUS,
-      .vm_pcpu_ids = &amp;VM2_CPUS[0],
-      ...
-<span class="hll">      .bootargs = &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
-</span><span class="hll">                   console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
-</span><span class="hll">                   consoleblank=0 tsc=reliable xapic_phys&quot;,
-</span>      .vpci_vdev_array = &amp;vpci_vdev_array2,
-      .mptable = &amp;mptable_vm2,
-      .lapic_pt = true,
-   },
-}
-</pre></div>
+#define    VM0_CONFIGURED
+
+#define VM0_CONFIG_NAME                    &quot;PRE-LAUNCHED VM1 for UP2&quot;
+#define VM0_CONFIG_TYPE                    PRE_LAUNCHED_VM
+#define VM0_CONFIG_PCPU_BITMAP             (PLUG_CPU(0) | PLUG_CPU(2))
+#define VM0_CONFIG_FLAGS                   IO_COMPLETION_POLLING
+#define VM0_CONFIG_MEM_START_HPA           0x100000000UL
+#define VM0_CONFIG_MEM_SIZE                0x20000000UL
+
+#define VM0_CONFIG_OS_NAME                 &quot;ClearLinux 26600&quot;
+<span class="hll">#define VM0_CONFIG_OS_BOOTARGS             &quot;root=/dev/sda3 rw rootwait noxsave maxcpus=2 nohpet console=hvc0 \
+</span><span class="hll">                                           console=ttyS2 no_timer_check ignore_loglevel log_buf_len=16M \
+</span><span class="hll">                                           consoleblank=0 tsc=reliable xapic_phys&quot;
+</span></pre></div>
 </div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The root device for VM1 is also <code class="docutils literal notranslate"><span class="pre">/dev/sda3</span></code> since the USB
+controller is the only one seen in that VM.</p>
 </div>
 </li>
 <li><p class="first">Build the ACRN hypervisor and copy the artifact <code class="docutils literal notranslate"><span class="pre">acrn.32.out</span></code> to the
@@ -1053,18 +1051,18 @@ You could then log in to the privileged VMs by <code class="docutils literal not
 and press <kbd class="kbd docutils literal notranslate">CTRL+Space</kbd> keys to return to the ACRN serial console.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">ACRN Hypervisor</span>
 <span class="go">calibrate_tsc, tsc_khz=1094400</span>
-<span class="go">[21017289us][cpu=0][sev=2][seq=1]:HV version 0.3-unstable-2018-11-08 12:41:24-ef974d1a-dirty DBG (daily tag:acrn-2018w45.3-140000p) build by clear, start time 20997424us</span>
+<span class="go">[21017289us][cpu=0][sev=2][seq=1]:HV version 0.6-unstable-2019-02-02 22:30:31-d0c2a88-dirty DBG (daily tag:acrn-2019w05.4-140000p) build by clear, start time 20997424us</span>
 <span class="go">[21034127us][cpu=0][sev=2][seq=2]:API version 1.0</span>
 <span class="go">[21039218us][cpu=0][sev=2][seq=3]:Detect processor: Intel(R) Pentium(R) CPU N4200 @ 1.10GHz</span>
 <span class="go">[21048422us][cpu=0][sev=2][seq=4]:hardware support HV</span>
 <span class="go">[21053897us][cpu=0][sev=1][seq=5]:SECURITY WARNING!!!!!!</span>
 <span class="go">[21059672us][cpu=0][sev=1][seq=6]:Please apply the latest CPU uCode patch!</span>
-<span class="go">[21074487us][cpu=0][sev=2][seq=28]:Start VM1</span>
-<span class="go">[21074488us][cpu=3][sev=2][seq=29]:Start VM2</span>
+<span class="go">[21074487us][cpu=0][sev=2][seq=28]:Start VM id: 1 name: PRE-LAUNCHED VM2 for UP2</span>
+<span class="go">[21074488us][cpu=3][sev=2][seq=29]:Start VM id: 0 name: PRE-LAUNCHED VM1 for UP2</span>
 <span class="go">[21885195us][cpu=0][sev=3][seq=34]:vlapic: Start Secondary VCPU1 for VM[1]...</span>
 <span class="go">[21889889us][cpu=3][sev=3][seq=35]:vlapic: Start Secondary VCPU1 for VM[2]...</span>
 <span class="go">ACRN:\&gt;</span>
-<span class="hll"><span class="go">ACRN:\&gt;sos_console 1</span>
+<span class="hll"><span class="go">ACRN:\&gt;sos_console 0</span>
 </span>
 <span class="go">----- Entering Guest 1 Shell -----</span>
 <span class="go">[    1.997439] systemd[1]: Listening on Network Service Netlink Socket.</span>
@@ -1081,7 +1079,7 @@ and press <kbd class="kbd docutils literal notranslate">CTRL+Space</kbd> keys to
 <span class="gp">root@clr-932c8a3012ec4dc6af53790b7afbf6ba ~ #</span>
 
 <span class="go"> ---Entering ACRN SHELL---</span>
-<span class="hll"><span class="go">ACRN:\&gt;sos_console 2</span>
+<span class="hll"><span class="go">ACRN:\&gt;sos_console 1</span>
 </span>
 <span class="go">----- Entering Guest 2 Shell -----</span>
 <span class="go">[    1.490122] usb 1-4: new full-speed USB device number 2 using xhci_hcd</span>
@@ -1113,7 +1111,7 @@ and press <kbd class="kbd docutils literal notranslate">CTRL+Space</kbd> keys to
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Feb 18, 2019.
+      Last updated on Feb 25, 2019.
 
     </p>
   </div> 
@@ -1138,6 +1136,8 @@ and press <kbd class="kbd docutils literal notranslate">CTRL+Space</kbd> keys to
         <dt>Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/0.6/">0.6</a></dd>
         
           <dd><a href="/0.5/">0.5</a></dd>
         
