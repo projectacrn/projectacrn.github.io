@@ -228,6 +228,7 @@
 <li class="toctree-l4"><a class="reference internal" href="hld/hv-cpu-virt.html">CPU Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld/hv-memmgt.html">Memory management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld/hv-io-emulation.html">I/O Emulation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld/hv-ioc-virt.html">IOC Virtualization</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld/hv-interrupt.html">Physical Interrupt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld/hv-timer.html">Timer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld/hv-virt-interrupt.html">Virtual Interrupt</a></li>
@@ -798,7 +799,7 @@ High Level Design for more information about this feature.)</p>
 <p>In the current configuration, we will set
 <code class="docutils literal notranslate"><span class="pre">i915.enable_initial_modeset=1</span></code> in SOS and
 <code class="docutils literal notranslate"><span class="pre">i915.enable_initial_modeset=0</span></code> in UOS.</p>
-<p>This parmeter is not used on UEFI platforms.</p>
+<p>This parameter is not used on UEFI platforms.</p>
 </div>
 <div class="section" id="i915-avail-planes-per-pipe-and-i915-domain-plane-owners">
 <h2>i915.avail_planes_per_pipe and i915.domain_plane_owners<a class="headerlink" href="#i915-avail-planes-per-pipe-and-i915-domain-plane-owners" title="Permalink to this headline">¶</a></h2>
@@ -816,29 +817,29 @@ together by their Z-order and rendered to the display monitors. In
 AcrnGT, we can control each planes’ ownership so that the domains can
 display contents on the planes they own.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">i915.domain_plane_owners</span></code> parameter controls the ownership of all
-the planes in the system, as shown in <a class="reference internal" href="#i915-planes-pipes"><span class="std std-numref">Figure 163</span></a>. Each
+the planes in the system, as shown in <a class="reference internal" href="#i915-planes-pipes"><span class="std std-numref">Figure 184</span></a>. Each
 4-bit nibble identifies the domain id owner for that plane and a group
 of 4 nibbles represents a pipe. This is a Service OS only configuration
 and cannot be modified at runtime.  Domain ID 0x0 is for the Service OS,
 the User OS use domain IDs from 0x1 to 0xF.</p>
 <div class="figure align-center" id="i915-planes-pipes">
 <a class="reference internal image-reference" href="../_images/i915-image1.png"><img alt="../_images/i915-image1.png" src="../_images/i915-image1.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 163 </span><span class="caption-text">i915.domain_plane_owners</span></p>
+<p class="caption"><span class="caption-number">Figure 184 </span><span class="caption-text">i915.domain_plane_owners</span></p>
 </div>
 <p>For example, if we set <code class="docutils literal notranslate"><span class="pre">i915.domain_plane_owners=0x010001101110</span></code>, the
-plane ownership will be as shown in <a class="reference internal" href="#i915-planes-example1"><span class="std std-numref">Figure 164</span></a> - SOS
+plane ownership will be as shown in <a class="reference internal" href="#i915-planes-example1"><span class="std std-numref">Figure 185</span></a> - SOS
 (green) owns plane 1A, 1B, 4B, 1C, and 2C, and UOS #1 owns plane 2A, 3A,
 4A, 2B, 3B and 3C.</p>
 <div class="figure align-center" id="i915-planes-example1">
 <a class="reference internal image-reference" href="../_images/i915-image2.png"><img alt="../_images/i915-image2.png" src="../_images/i915-image2.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 164 </span><span class="caption-text">i915.domain_plane_owners example</span></p>
+<p class="caption"><span class="caption-number">Figure 185 </span><span class="caption-text">i915.domain_plane_owners example</span></p>
 </div>
 <p>Some other examples:</p>
 <ul class="simple">
 <li>i915.domain_plane_owners=0x022211110000 - SOS (0x0) owns planes on pipe A;
 UOS #1 (0x1) owns all planes on pipe B; and UOS #2 (0x2) owns all
 planes on pipe C (since, in the representation in
-<a class="reference internal" href="#i915-planes-pipes"><span class="std std-numref">Figure 163</span></a> above, there are only 3 planes attached to
+<a class="reference internal" href="#i915-planes-pipes"><span class="std std-numref">Figure 184</span></a> above, there are only 3 planes attached to
 pipe C).</li>
 <li>i915.domain_plane_owners=0x000001110000 - SOS owns all planes on pipe A
 and pipe C; UOS #1 owns plane 1, 2 and 3 on pipe B. Plane 4 on pipe B
@@ -849,25 +850,25 @@ can display on top of the UOS.</li>
 <div class="section" id="i915-avail-planes-per-pipe">
 <h3>i915.avail_planes_per_pipe<a class="headerlink" href="#i915-avail-planes-per-pipe" title="Permalink to this headline">¶</a></h3>
 <p>Option <code class="docutils literal notranslate"><span class="pre">i915.avail_planes_per_pipe</span></code> is a bitmask (shown in
-<a class="reference internal" href="#i915-avail-planes"><span class="std std-numref">Figure 165</span></a>) that tells the i915
+<a class="reference internal" href="#i915-avail-planes"><span class="std std-numref">Figure 186</span></a>) that tells the i915
 driver which planes are available and can be exposed to the compositor.
 This is a parameter that must to be set in each domain. If
 <code class="docutils literal notranslate"><span class="pre">i915.avail_planes_per_pipe=0</span></code>, the plane restriction feature is disabled.</p>
 <div class="figure align-center" id="i915-avail-planes">
 <a class="reference internal image-reference" href="../_images/i915-image3.png"><img alt="../_images/i915-image3.png" src="../_images/i915-image3.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 165 </span><span class="caption-text">i915.avail_planes_per_pipe</span></p>
+<p class="caption"><span class="caption-number">Figure 186 </span><span class="caption-text">i915.avail_planes_per_pipe</span></p>
 </div>
 <p>For example, if we set <code class="docutils literal notranslate"><span class="pre">i915.avail_planes_per_pipe=0x030901</span></code> in SOS
 and <code class="docutils literal notranslate"><span class="pre">i915.avail_planes_per_pipe=0x04060E</span></code> in UOS, the planes will be as
-shown in <a class="reference internal" href="#i915-avail-planes-example1"><span class="std std-numref">Figure 166</span></a> and
-<a class="reference internal" href="#i915-avail-planes-example1"><span class="std std-numref">Figure 166</span></a>:</p>
+shown in <a class="reference internal" href="#i915-avail-planes-example1"><span class="std std-numref">Figure 187</span></a> and
+<a class="reference internal" href="#i915-avail-planes-example1"><span class="std std-numref">Figure 187</span></a>:</p>
 <div class="figure align-center" id="i915-avail-planes-example1">
 <a class="reference internal image-reference" href="../_images/i915-image4.png"><img alt="../_images/i915-image4.png" src="../_images/i915-image4.png" style="width: 500px;" /></a>
-<p class="caption"><span class="caption-number">Figure 166 </span><span class="caption-text">SOS i915.avail_planes_per_pipe</span></p>
+<p class="caption"><span class="caption-number">Figure 187 </span><span class="caption-text">SOS i915.avail_planes_per_pipe</span></p>
 </div>
 <div class="figure align-center" id="i915-avail-planes-example2">
 <a class="reference internal image-reference" href="../_images/i915-image5.png"><img alt="../_images/i915-image5.png" src="../_images/i915-image5.png" style="width: 500px;" /></a>
-<p class="caption"><span class="caption-number">Figure 167 </span><span class="caption-text">UOS i915.avail_planes_per_pipe</span></p>
+<p class="caption"><span class="caption-number">Figure 188 </span><span class="caption-text">UOS i915.avail_planes_per_pipe</span></p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">i915.avail_planes_per_pipe</span></code> controls the view of planes from i915 drivers
 inside of every domain, and <code class="docutils literal notranslate"><span class="pre">i915.domain_plane_owners</span></code> is the global
@@ -938,7 +939,7 @@ GPU resets.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Feb 18, 2019.
+      Last updated on Feb 28, 2019.
 
     </p>
   </div> 
