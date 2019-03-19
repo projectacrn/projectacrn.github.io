@@ -2665,8 +2665,8 @@ ID-07: Name defined by developers shall not start with underscore
 =================================================================
 
 All names starting with one or two underscores are reserved for use by the
-compiler and standard libraries to eliminate potential conflicts with user-
-defined names.
+compiler and standard libraries to eliminate potential conflicts with
+user-defined names.
 
 Compliant example::
 
@@ -2776,8 +2776,6 @@ Compliant example::
        if (condition) { do_a();} else {do_b();}
 
 
-
-
 CS-03: Tabs shall be used for code indentation
 ==============================================
 
@@ -2808,8 +2806,6 @@ CS-04: Tabs shall be 8 characters wide
 
 A tab character shall be considered 8-character wide when limiting the line
 width.
-
-
 
 
 CS-05: Trailing whitespace shall not be allowed at the end of lines
@@ -2984,8 +2980,6 @@ Compliant example::
        }
 
 
-
-
 CS-13: Braces after if/switch/for/do/while shall be in the same line
 ====================================================================
 
@@ -3033,8 +3027,6 @@ Compliant example::
        uint32_t func_showcase(uint32_t param) {
                return param;
        }
-
-
 
 
 CS-15: A 'switch' statement and its subordinate 'case' shall be aligned
@@ -3092,8 +3084,6 @@ Compliant example::
                      param_3);
 
 
-
-
 CS-17:  '//' shall not be used for single-line comments
 =======================================================
 
@@ -3109,4 +3099,214 @@ Compliant example::
 
        // This is a comment
 
+
+Naming Convention
+*****************
+
+
+NC-01: Object-like MACRO shall be named with full upper case
+============================================================
+
+Compliant example::
+
+    #define MAX_CONFIG_NAME_SIZE        32U
+
+.. rst-class:: non-compliant-code
+
+   Non-compliant example::
+
+       #define max_config_name_size        32U
+
+
+NC-02: Mixed-use of lower case and upper case in function-like MACRO shall not be allowed
+=========================================================================================
+
+Function-like MACRO shall be named with either full lower case or full upper
+case. Mixed-use of lower case and upper case shall not be allowed.
+
+Compliant example::
+
+    #define max(x, y)        ((x) < (y)) ? (y) : (x)
+
+.. rst-class:: non-compliant-code
+
+   Non-compliant example::
+
+       #define Max(x, y)        ((x) < (y)) ? (y) : (x)
+
+
+NC-03: Data structures exposed to external components shall be named with prefix 'acrn'
+=======================================================================================
+
+The data structure types include struct, union, and enum.
+This rule applies to the data structure with all the following properties:
+
+a) The data structure is used by multiple modules;
+b) The corresponding resource is exposed to external components, such as SOS or
+   UOS;
+c) The name meaning is simplistic or common, such as vcpu or vm.
+
+Compliant example::
+
+    struct acrn_vcpu {
+            ...
+    };
+
+.. rst-class:: non-compliant-code
+
+   Non-compliant example::
+
+       struct vcpu {
+               ...
+       };
+
+
+NC-04: Data structures only used by hypervisor shall be named with prefix 'hv'
+==============================================================================
+
+The data structure types include struct, union, and enum.
+This rule applies to the data structure with all the following properties:
+
+a) The data structure is used by multiple modules;
+b) The corresponding resource is only used by hypervisor;
+c) The name meaning is simplistic or common, such as timer.
+
+Compliant example::
+
+    struct hv_timer {
+            ...
+    };
+
+.. rst-class:: non-compliant-code
+
+   Non-compliant example::
+
+       struct timer {
+               ...
+       };
+
+
+NC-05: Data structures only used by one module shall be named with the module name as prefix
+============================================================================================
+
+The data structure types include struct, union, and enum.
+This rule applies to the data structure with all the following properties:
+
+a) The data structure is only used by one module;
+b) The name meaning is simplistic or common, such as context.
+
+Compliant example::
+
+    struct instr_emul_ctxt {
+            ...
+    };
+
+.. rst-class:: non-compliant-code
+
+   Non-compliant example::
+
+       struct ctxt {
+               ...
+       };
+
+
+NC-06: Data structures related to hardware resource shall be named with the resource name as suffix
+===================================================================================================
+
+The data structure types include struct, union, and enum.
+For example:
+
+a) The data structure related to register shall be named with suffix 'reg';
+b) The data structure related to segment selector shall be named with suffix
+   'sel'.
+
+Compliant example::
+
+    struct lapic_reg {
+            ...
+    };
+
+.. rst-class:: non-compliant-code
+
+   Non-compliant example::
+
+       struct lapic {
+               ...
+       };
+
+
+NC-07: Function pointer shall be named with suffix 'fn'
+=======================================================
+
+Compliant example::
+
+    struct firmware_operations firmware_sbl_ops = {
+            .init = sbl_init_fn,
+            .get_rsdp = sbl_get_rsdp_fn,
+    };
+
+.. rst-class:: non-compliant-code
+
+   Non-compliant example::
+
+       struct firmware_operations firmware_sbl_ops = {
+               .init = sbl_init,
+               .get_rsdp = sbl_get_rsdp,
+       };
+
+
+Implementation-specific Behaviors
+*********************************
+
+
+IB-01: All characters in an identifier are significant initial characters
+=========================================================================
+
+The number of significant initial characters in an identifier is
+implementation-defined, according to J.3.3 item 2 in C99. For ACRN hypervisor,
+all characters in an identifier are significant initial characters.
+
+IB-02: The number of bits in a byte is 8
+========================================
+
+The number of bits in a byte is implementation-defined, according to J.3.4 item
+1 in C99. For ACRN hypervisor, the number of bits in a byte is 8.
+
+IB-03: The values of the members of the execution character set depends on ASCII Table
+======================================================================================
+
+The values of the members of the execution character set is
+implementation-defined, according to J.3.4 item 2 in C99. For ACRN hypervisor,
+characters are encoded in ASCII. This rule applies to the source code that is
+being compiled. Non-ASCII characters are allowed in comments, such as the author
+name.
+
+IB-04:  'plain' char is equivalent to signed char
+=================================================
+
+The underlying type of 'plain' char is implementation-defined, according to
+J.3.4 item 5 in C99. For ACRN hypervisor, 'plain' char is equivalent to signed
+char.
+
+IB-05: Signed integers are represented in two's complement
+==========================================================
+
+Whether signed integer types are represented using sign and magnitude, two's
+complement, or ones' complement is implementation-defined, according to J.3.5
+item 2 in C99. For ACRN hypervisor, signed integers are represented in two's
+complement.
+
+IB-06: The integer type compatible with each enumerated type is case by case
+============================================================================
+
+The integer type compatible with each enumerated type is implementation-defined,
+according to J.3.9 item 6 in C99. For ACRN hypervisor, if the enum has no
+negative underlying values, unsigned int is used; otherwise, int is used.
+
+IB-07: The number of bytes in an object is specified
+====================================================
+
+The number of bytes in an object is implementation-defined, according to J.3.13
+item 2 in C99. For ACRN hypervisor, char is 1 byte, short is 2 bytes, int is 4
+bytes, long is 8 bytes, and long long is not used.
 
