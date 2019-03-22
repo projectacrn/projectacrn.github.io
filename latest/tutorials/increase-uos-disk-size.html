@@ -474,6 +474,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/coding_guidelines.html#coding-style">Coding Style</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/coding_guidelines.html#naming-convention">Naming Convention</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/coding_guidelines.html#implementation-specific-behaviors">Implementation-specific Behaviors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/coding_guidelines.html#language-extensions">Language Extensions</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../developer-guides/doc_guidelines.html">Documentation Guidelines</a><ul>
@@ -695,6 +696,8 @@
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#what-hardware-does-acrn-support">What hardware does ACRN support?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#clear-linux-os-fails-to-boot-on-my-nuc">Clear Linux* OS fails to boot on my NUC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#how-do-i-configure-acrn-s-memory-use">How do I configure ACRN’s memory use?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#how-to-modify-the-default-display-output-for-a-uos">How to modify the default display output for a UOS?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#why-does-acrn-need-to-know-how-much-ram-the-system-has">Why does ACRN need to know how much RAM the system has?</a></li>
 </ul>
 </li>
 </ul>
@@ -776,12 +779,13 @@ broken down into three steps:</p>
 <li>Resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition</li>
 <li>Resize the filesystem</li>
 </ol>
-<div class="section" id="increase-the-virtual-disk-size">
-<h2>Increase the virtual disk size<a class="headerlink" href="#increase-the-virtual-disk-size" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This step <strong>must</strong> be performed while the User OS (UOS) is powered off.</p>
+<p class="last">These steps are performed directly on the UOS disk image. The UOS VM <strong>must</strong>
+be powered off during this operation.</p>
 </div>
+<div class="section" id="increase-the-virtual-disk-size">
+<h2>Increase the virtual disk size<a class="headerlink" href="#increase-the-virtual-disk-size" title="Permalink to this headline">¶</a></h2>
 <p>We will use the <code class="docutils literal notranslate"><span class="pre">qemu-img</span></code> tool to increase the size of the virtual disk
 (<code class="docutils literal notranslate"><span class="pre">uos.img</span></code>) file. On a Clear Linux system, you can install this tool using:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add clr-installer
@@ -802,20 +806,62 @@ deviated from the <a class="reference internal" href="../getting-started/index.h
 <p class="last">You can choose any increment for the additional storage space. Check the
 <code class="docutils literal notranslate"><span class="pre">qemu-img</span> <span class="pre">resize</span></code> help for more information.</p>
 </div>
-<p>Now that you have increased the size of the virtual disk, power up the Virtual
-Machine (VM) before moving to the next steps.</p>
 </div>
 <div class="section" id="resize-the-rootfs-partition">
 <h2>Resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition<a class="headerlink" href="#resize-the-rootfs-partition" title="Permalink to this headline">¶</a></h2>
-<p>Follow the <a class="reference external" href="https://clearlinux.org/documentation/clear-linux/guides/maintenance/increase-virtual-disk-size#resize-the-partition-of-the-virtual-disk">Resize the partition of the virtual disk</a> section to resize the partition hosting the
-UOS rootfs (typically <code class="docutils literal notranslate"><span class="pre">/dev/sda3</span></code>).</p>
+<p>The next step is to modify the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition (in Clear Linux, it is
+partition 3) to use the additional space available. We will use the <code class="docutils literal notranslate"><span class="pre">parted</span></code>
+tool and perform these steps:</p>
+<ul class="simple">
+<li>Enter the <code class="docutils literal notranslate"><span class="pre">parted</span></code> tool</li>
+<li>Press <code class="docutils literal notranslate"><span class="pre">p</span></code> to print the partition tables</li>
+<li>A warning will be displayed, enter <code class="docutils literal notranslate"><span class="pre">Fix</span></code></li>
+<li>Enter <code class="docutils literal notranslate"><span class="pre">resizepart</span> <span class="pre">3</span></code></li>
+<li>Enter the size of the disk (<code class="docutils literal notranslate"><span class="pre">19.9GB</span></code> in our example)</li>
+<li>Enter <code class="docutils literal notranslate"><span class="pre">q</span></code> to quit the tool</li>
+</ul>
+<p>Here is what the sequence looks like:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ parted uos.img
+</pre></div>
+</div>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">WARNING: You are not superuser.  Watch out for permissions.</span>
+<span class="go">GNU Parted 3.2</span>
+<span class="go">Using /home/gvancuts/uos/uos.img</span>
+<span class="go">Welcome to GNU Parted! Type &#39;help&#39; to view a list of commands.</span>
+<span class="hll"><span class="go">(parted) p</span>
+</span><span class="go">Warning: Not all of the space available to /home/gvancuts/uos/uos.img appears to be used, you can fix the GPT to use all of the space (an extra 20971520 blocks) or continue with the current setting?</span>
+<span class="hll"><span class="go">Fix/Ignore? Fix</span>
+</span><span class="go">Model:  (file)</span>
+<span class="hll"><span class="go">Disk /home/gvancuts/uos/uos.img: 19.9GB</span>
+</span><span class="go">Sector size (logical/physical): 512B/512B</span>
+<span class="go">Partition Table: gpt</span>
+<span class="go">Disk Flags:</span>
+
+<span class="go">Number  Start   End     Size    File system     Name     Flags</span>
+<span class="go"> 1      1049kB  537MB   536MB   fat16           primary  boot, esp</span>
+<span class="go"> 2      537MB   570MB   33.6MB  linux-swap(v1)  primary</span>
+<span class="go"> 3      570MB   9160MB  8590MB  ext4            primary</span>
+
+<span class="hll"><span class="go">(parted) resizepart 3</span>
+</span><span class="hll"><span class="go">End?  [9160MB]? 19.9GB</span>
+</span><span class="go">(parted) q</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="resize-the-filesystem">
 <h2>Resize the filesystem<a class="headerlink" href="#resize-the-filesystem" title="Permalink to this headline">¶</a></h2>
-<p>Follow the <a class="reference external" href="https://clearlinux.org/documentation/clear-linux/guides/maintenance/increase-virtual-disk-size#resize-the-filesytem">Resize the filesystem</a>
-section to resize the filesystem to use the entire storage capacity.</p>
+<p>The final step is to resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> filesystem to use the entire
+partition space.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ LOOP_DEV=`sudo losetup -f -P --show uos.img`
+$ PART_DEV=$LOOP_DEV
+$ PART_DEV+=&quot;p3&quot;
+$ sudo e2fsck -f $PART_DEV
+$ sudo resize2fs -p $PART_DEV
+$ sudo losetup -d $LOOP_DEV
+</pre></div>
+</div>
 <p>Congratulations! You have successfully resized the disk, partition, and
-filesystem or your User OS.</p>
+filesystem of your User OS.</p>
 </div>
 </div>
 
@@ -831,7 +877,7 @@ filesystem or your User OS.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Mar 20, 2019.
+      Last updated on Mar 22, 2019.
 
     </p>
   </div> 
