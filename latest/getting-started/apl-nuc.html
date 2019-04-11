@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting started guide for Intel NUC &mdash; Project ACRN™ v 0.8-unstable documentation</title>
+  <title>Getting started guide for Intel NUC &mdash; Project ACRN™ v 1.0-unstable documentation</title>
   
 
   
@@ -142,6 +142,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Getting Started Guides</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Getting started guide for Intel NUC</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#hardware-setup">Hardware setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#connecting-to-the-serial-port">Connecting to the serial port</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#firmware-update-on-the-nuc">Firmware update on the NUC</a></li>
 </ul>
 </li>
@@ -861,7 +862,17 @@ supported for ACRN development:</p>
 <ul class="simple">
 <li>The <a class="reference external" href="https://www.up-board.org/upsquared/specifications/">UP Squared board</a> (UP2) is also
 known to work and its setup is described in <a class="reference internal" href="up2.html#getting-started-up2"><span class="std std-ref">Getting started guide for UP2 board</span></a>.</li>
+<li>A serial console can be enabled on <a class="reference internal" href="../hardware.html#intel-kaby-lake-nuc"><span class="std std-ref">Kaby Lake NUC</span></a> (KBL). The following figure shows the KBL’s serial port header
+we’ll be using as documented in the <a class="reference external" href="https://www.intel.com/content/dam/support/us/en/documents/boardsandkits/NUC7i5DN_TechProdSpec.pdf">NUC7i5DN</a>.</li>
 </ul>
+<img alt="../_images/KBL-serial-port-header.png" src="../_images/KBL-serial-port-header.png" />
+<div class="section" id="connecting-to-the-serial-port">
+<h3>Connecting to the serial port<a class="headerlink" href="#connecting-to-the-serial-port" title="Permalink to this headline">¶</a></h3>
+<p>You can just ignore this section if command line is not needed via the serial console.
+Or you have to prepare these cables to enable the serial port.</p>
+<a class="reference external image-reference" href="https://www.amazon.com/dp/B07BV1W6N8/ref=cm_sw_r_cp_ep_dp_wYm0BbABD5AK6"><img alt="../_images/KBL-serial-port-header-to-RS232-cable.jpg" src="../_images/KBL-serial-port-header-to-RS232-cable.jpg" /></a>
+<img alt="../_images/RS232-to-USB-to-Host-cable.png" src="../_images/RS232-to-USB-to-Host-cable.png" />
+</div>
 <div class="section" id="firmware-update-on-the-nuc">
 <h3>Firmware update on the NUC<a class="headerlink" href="#firmware-update-on-the-nuc" title="Permalink to this headline">¶</a></h3>
 <p>You may need to update to the latest UEFI firmware for the NUC hardware.
@@ -873,7 +884,7 @@ for downloading and flashing an updated BIOS for the NUC.</p>
 <h2>Software setup<a class="headerlink" href="#software-setup" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="set-up-a-clear-linux-operating-system">
 <span id="set-up-cl"></span><h3>Set up a Clear Linux Operating System<a class="headerlink" href="#set-up-a-clear-linux-operating-system" title="Permalink to this headline">¶</a></h3>
-<p>Currently, an installable version of ARCN does not exist. Therefore, you
+<p>Currently, an installable version of ACRN does not exist. Therefore, you
 need to setup a base Clear Linux OS and you’ll build and bootstrap ACRN
 on your platform. You’ll need a network connection for your platform to
 complete this setup.</p>
@@ -1008,29 +1019,38 @@ modify it if needed.</p>
 </div>
 <p>The ACRN hypervisor (<code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code>) accepts three command-line parameters that
 tweak its behaviour:</p>
-<ol class="arabic simple">
-<li><code class="docutils literal notranslate"><span class="pre">bootloader=</span></code>: this sets the EFI executable to be loaded once the hypervisor
+<ol class="arabic">
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">bootloader=</span></code>: this sets the EFI executable to be loaded once the hypervisor
 is up and running. This is typically the bootloader of the Service OS and the
 default value is to use the Clear Linux OS bootloader, i.e.:
-<code class="docutils literal notranslate"><span class="pre">\EFI\org.clearlinux\bootloaderx64.efi</span></code>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">uart=</span></code>: this tells the hypervisor where the serial port (UART) is found or
-whether it should be disabled. There are three forms for this parameter:<ol class="arabic">
+<code class="docutils literal notranslate"><span class="pre">\EFI\org.clearlinux\bootloaderx64.efi</span></code>.</p>
+</li>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">uart=</span></code>: this tells the hypervisor where the serial port (UART) is found or
+whether it should be disabled. There are three forms for this parameter:</p>
+<ol class="arabic simple">
 <li><code class="docutils literal notranslate"><span class="pre">uart=disabled</span></code>: this disables the serial port completely</li>
 <li><code class="docutils literal notranslate"><span class="pre">uart=bdf&#64;&lt;BDF</span> <span class="pre">value&gt;</span></code>:  this sets the PCI serial port based on its BDF.
 For example, use <code class="docutils literal notranslate"><span class="pre">bdf&#64;0:18.1</span></code> for a BDF of 0:18.1 ttyS1.</li>
 <li><code class="docutils literal notranslate"><span class="pre">uart=port&#64;&lt;port</span> <span class="pre">address&gt;</span></code>: this sets the serial port address</li>
 </ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><code class="docutils literal notranslate"><span class="pre">uart=port&#64;&lt;port</span> <span class="pre">address&gt;</span></code> is required if you want to enable the serial console.
+You should run <code class="docutils literal notranslate"><span class="pre">dmesg</span> <span class="pre">|grep</span> <span class="pre">ttyS0</span></code> to get port address from the output, and then
+set the <code class="docutils literal notranslate"><span class="pre">uart</span></code> parameter as <code class="docutils literal notranslate"><span class="pre">uart=port&#64;0x3f8</span></code></p>
+</div>
 </li>
-<li><code class="docutils literal notranslate"><span class="pre">vuart=ttySn&#64;irqN</span></code>: this tells the hypervisor which virtual serial device SOS
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">vuart=ttySn&#64;irqN</span></code>: this tells the hypervisor which virtual serial device SOS
 will use and its IRQ number. This is used to avoid conflict with SOS passthrough
 devices’ interrupt. If UART is set to ttyS1, and its native IRQ is 5, you’d better
 set <code class="docutils literal notranslate"><span class="pre">vuart=ttyS1&#64;irq5</span></code> (Use ‘dmesg | grep tty’ to get IRQ information).
-Also set <code class="docutils literal notranslate"><span class="pre">console=ttyS1</span></code> in <code class="docutils literal notranslate"><span class="pre">acrn.conf</span></code> to match the SOS boot args.</li>
+Also set <code class="docutils literal notranslate"><span class="pre">console=ttyS1</span></code> in <code class="docutils literal notranslate"><span class="pre">acrn.conf</span></code> to match the SOS boot args.</p>
+</li>
 </ol>
 <p>Here is a more complete example of how to configure the EFI firmware to load the ACRN
 hypervisor and set these parameters.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/sda -p 1 -L &quot;ACRN NUC Hypervisor&quot; \
-      -u &quot;bootloader=\EFI\org.clearlinux\bootloaderx64.efi uart=disabled&quot;
+      -u &quot;bootloader=\EFI\org.clearlinux\bootloaderx64.efi uart=port@0x3f8&quot;
 </pre></div>
 </div>
 </li>
@@ -1274,7 +1294,7 @@ SOS, and UOS:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Apr 09, 2019.
+      Last updated on Apr 11, 2019.
 
     </p>
   </div> 
@@ -1294,7 +1314,7 @@ SOS, and UOS:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v 0.8-unstable',
+            VERSION:'v 1.0-unstable',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
