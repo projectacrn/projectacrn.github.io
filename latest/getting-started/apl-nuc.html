@@ -853,25 +853,31 @@
             
   <div class="section" id="getting-started-guide-for-intel-nuc">
 <span id="getting-started-apl-nuc"></span><h1>Getting started guide for Intel NUC<a class="headerlink" href="#getting-started-guide-for-intel-nuc" title="Permalink to this headline">¶</a></h1>
-<p>The Intel® NUC (NUC6CAYH) is the primary tested
-platform for ACRN development, and its setup is described below.</p>
+<p>The Intel® NUC is the primary tested platform for ACRN development,
+and its setup is described below.</p>
 <div class="section" id="hardware-setup">
 <h2>Hardware setup<a class="headerlink" href="#hardware-setup" title="Permalink to this headline">¶</a></h2>
-<p>Two Apollo Lake Intel platforms, described in <a class="reference internal" href="../hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a>, are currently
-supported for ACRN development:</p>
+<p>Intel Apollo Lake NUC (APL) and Intel Kaby Lake NUC (KBL),
+described in <a class="reference internal" href="../hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a>, are currently supported for ACRN development:</p>
 <ul class="simple">
-<li>The <a class="reference external" href="https://www.up-board.org/upsquared/specifications/">UP Squared board</a> (UP2) is also
-known to work and its setup is described in <a class="reference internal" href="up2.html#getting-started-up2"><span class="std std-ref">Getting started guide for UP2 board</span></a>.</li>
-<li>A serial console can be enabled on <a class="reference internal" href="../hardware.html#intel-kaby-lake-nuc"><span class="std std-ref">Kaby Lake NUC</span></a> (KBL). The following figure shows the KBL’s serial port header
-we’ll be using as documented in the <a class="reference external" href="https://www.intel.com/content/dam/support/us/en/documents/boardsandkits/NUC7i5DN_TechProdSpec.pdf">NUC7i5DN</a>.</li>
+<li>We can enable the serial console on <a class="reference external" href="https://www.amazon.com/dp/B07D5HHMSB/ref=cm_sw_r_cp_ep_dp_hXm0BbBV0CER3">KBL</a>
+(NUC7i5DNHE), but this is not supported on APL (NUC6CAYH).</li>
 </ul>
-<img alt="../_images/KBL-serial-port-header.png" src="../_images/KBL-serial-port-header.png" />
 <div class="section" id="connecting-to-the-serial-port">
 <h3>Connecting to the serial port<a class="headerlink" href="#connecting-to-the-serial-port" title="Permalink to this headline">¶</a></h3>
-<p>You can just ignore this section if command line is not needed via the serial console.
-Or you have to prepare these cables to enable the serial port.</p>
-<a class="reference external image-reference" href="https://www.amazon.com/dp/B07BV1W6N8/ref=cm_sw_r_cp_ep_dp_wYm0BbABD5AK6"><img alt="../_images/KBL-serial-port-header-to-RS232-cable.jpg" src="../_images/KBL-serial-port-header-to-RS232-cable.jpg" /></a>
-<img alt="../_images/RS232-to-USB-to-Host-cable.png" src="../_images/RS232-to-USB-to-Host-cable.png" />
+<p>If you don’t need a serial console you can ignore this section. If you’re
+using a KBL NUC and you need a serial console, you’ll need to prepare
+an RS232 cable to connect to the KBL NUC serial port header, as shown
+below:</p>
+<div class="figure align-center" id="id1">
+<img alt="../_images/KBL-serial-port-header.png" src="../_images/KBL-serial-port-header.png" />
+<p class="caption"><span class="caption-number">Figure 11 </span><span class="caption-text">You can refer to the <a class="reference external" href="https://www.intel.com/content/dam/support/us/en/documents/boardsandkits/NUC7i5DN_TechProdSpec.pdf">‘Technical Product Specification’</a>
+for details</span></p>
+</div>
+<div class="figure align-center" id="id2">
+<img alt="../_images/KBL-serial-port-header-to-RS232-cable.jpg" src="../_images/KBL-serial-port-header-to-RS232-cable.jpg" />
+<p class="caption"><span class="caption-number">Figure 12 </span><span class="caption-text">KBL serial port header to RS232 <a class="reference external" href="https://www.amazon.com/dp/B07BV1W6N8/ref=cm_sw_r_cp_ep_dp_wYm0BbABD5AK6">cable</a></span></p>
+</div>
 </div>
 <div class="section" id="firmware-update-on-the-nuc">
 <h3>Firmware update on the NUC<a class="headerlink" href="#firmware-update-on-the-nuc" title="Permalink to this headline">¶</a></h3>
@@ -1037,7 +1043,7 @@ For example, use <code class="docutils literal notranslate"><span class="pre">bd
 <p class="first admonition-title">Note</p>
 <p class="last"><code class="docutils literal notranslate"><span class="pre">uart=port&#64;&lt;port</span> <span class="pre">address&gt;</span></code> is required if you want to enable the serial console.
 You should run <code class="docutils literal notranslate"><span class="pre">dmesg</span> <span class="pre">|grep</span> <span class="pre">ttyS0</span></code> to get port address from the output, and then
-set the <code class="docutils literal notranslate"><span class="pre">uart</span></code> parameter as <code class="docutils literal notranslate"><span class="pre">uart=port&#64;0x3f8</span></code></p>
+add the <code class="docutils literal notranslate"><span class="pre">uart</span></code> parameter into the <code class="docutils literal notranslate"><span class="pre">efibootmgr</span></code> command.</p>
 </div>
 </li>
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">vuart=ttySn&#64;irqN</span></code>: this tells the hypervisor which virtual serial device SOS
@@ -1049,6 +1055,11 @@ Also set <code class="docutils literal notranslate"><span class="pre">console=tt
 </ol>
 <p>Here is a more complete example of how to configure the EFI firmware to load the ACRN
 hypervisor and set these parameters.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/sda -p 1 -L &quot;ACRN NUC Hypervisor&quot; \
+      -u &quot;bootloader=\EFI\org.clearlinux\bootloaderx64.efi uart=disabled&quot;
+</pre></div>
+</div>
+<p>And also here is the example of how to enable a serial console for KBL NUC.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/sda -p 1 -L &quot;ACRN NUC Hypervisor&quot; \
       -u &quot;bootloader=\EFI\org.clearlinux\bootloaderx64.efi uart=port@0x3f8&quot;
 </pre></div>
@@ -1083,8 +1094,8 @@ and editing it to account for the kernel versions noted in a previous step.</p>
 OS release and is
 also available in the acrn-hypervisor/hypervisor GitHub repo as <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/blob/master/efi-stub/clearlinux/acrn.conf">acrn.conf</a>
 as shown here:</p>
-<div class="literal-block-wrapper docutils container" id="id1">
-<div class="code-block-caption"><span class="caption-number">Code Block 1 </span><span class="caption-text">efi-stub/clearlinux/acrn.conf</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-number">Code Block 1 </span><span class="caption-text">efi-stub/clearlinux/acrn.conf</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">title</span> <span class="n">The</span> <span class="n">ACRN</span> <span class="n">Service</span> <span class="n">OS</span>
 <span class="n">linux</span>   <span class="o">/</span><span class="n">EFI</span><span class="o">/</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">/</span><span class="n">kernel</span><span class="o">-</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">.</span><span class="n">iot</span><span class="o">-</span><span class="n">lts2018</span><span class="o">-</span><span class="n">sos</span><span class="o">.</span><span class="mf">4.19</span><span class="o">.</span><span class="mi">13</span><span class="o">-</span><span class="mi">1901141830</span>
 <span class="n">options</span> <span class="n">console</span><span class="o">=</span><span class="n">tty0</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS0</span> <span class="n">root</span><span class="o">=</span><span class="n">PARTUUID</span><span class="o">=&lt;</span><span class="n">UUID</span> <span class="n">of</span> <span class="n">rootfs</span> <span class="n">partition</span><span class="o">&gt;</span> <span class="n">rw</span> <span class="n">rootwait</span> <span class="n">ignore_loglevel</span> <span class="n">no_timer_check</span> <span class="n">consoleblank</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">nuclear_pageflip</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">avail_planes_per_pipe</span><span class="o">=</span><span class="mh">0x01010F</span> <span class="n">i915</span><span class="o">.</span><span class="n">domain_plane_owners</span><span class="o">=</span><span class="mh">0x011111110000</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_gvt</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc</span><span class="o">=</span><span class="mi">0</span> <span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="nd">@0x1FE00000</span>
@@ -1118,8 +1129,8 @@ $ sudo clr-boot-manager update
 </div>
 </li>
 <li><p class="first">Reboot and select “The ACRN Service OS” to boot, as shown below:</p>
-<div class="literal-block-wrapper docutils container" id="id2">
-<div class="code-block-caption"><span class="caption-number">Code Block 2 </span><span class="caption-text">ACRN Service OS Boot Menu</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-number">Code Block 2 </span><span class="caption-text">ACRN Service OS Boot Menu</span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="go">=&gt; The ACRN Service OS</span>
 </span><span class="go">Clear Linux OS for Intel Architecture (Clear-linux-iot-lts2018-4.19.23-19)</span>
 <span class="go">Clear Linux OS for Intel Architecture (Clear-linux-iot-lts2018-sos-4.19.23-19)</span>
@@ -1199,8 +1210,8 @@ $ sync
 is included in the Clear Linux OS release, and
 is also available in the acrn-hypervisor/devicemodel GitHub repo (in the samples
 folder) as shown here:</p>
-<div class="literal-block-wrapper docutils container" id="id3">
-<div class="code-block-caption"><span class="caption-number">Code Block 3 </span><span class="caption-text">devicemodel/samples/nuc/launch_uos.sh</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-number">Code Block 3 </span><span class="caption-text">devicemodel/samples/nuc/launch_uos.sh</span><a class="headerlink" href="#id5" title="Permalink to this code">¶</a></div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
 
 <span class="nv">offline_path</span><span class="o">=</span><span class="s2">&quot;/sys/class/vhm/acrn_vhm&quot;</span>
@@ -1294,7 +1305,7 @@ SOS, and UOS:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Apr 11, 2019.
+      Last updated on Apr 18, 2019.
 
     </p>
   </div> 
