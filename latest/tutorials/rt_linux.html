@@ -191,7 +191,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-shell.html#vcpu-list">vcpu_list</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-shell.html#vcpu-dumpreg">vcpu_dumpreg</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-shell.html#dumpmem">dumpmem</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-shell.html#sos-console">sos_console</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-shell.html#vm-console">vm_console</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-shell.html#vioapic">vioapic</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-shell.html#dump-ioapic">dump_ioapic</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-shell.html#pt">pt</a></li>
@@ -771,6 +771,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#how-do-i-configure-acrn-s-memory-use">How do I configure ACRN’s memory use?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#how-to-modify-the-default-display-output-for-a-uos">How to modify the default display output for a UOS?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#why-does-acrn-need-to-know-how-much-ram-the-system-has">Why does ACRN need to know how much RAM the system has?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#how-to-build-acrn-on-fedora-29">How to build ACRN on Fedora 29?</a></li>
 </ul>
 </li>
 </ul>
@@ -844,7 +845,7 @@
 <span id="rt-linux-setup"></span><h1>Using PREEMPT_RT-Linux for real-time UOS<a class="headerlink" href="#using-preempt-rt-linux-for-real-time-uos" title="Permalink to this headline">¶</a></h1>
 <p>The ACRN project uses various techniques to support a User OS (UOS)
 running as virtual machine (VM) with real-time characteristics, also
-called a “Privileged VM” in ACRN terminology. Some of these techniques
+called a “RTVM” in ACRN terminology. Some of these techniques
 include device passthrough and cache allocation technology (CAT), as
 shown in <a class="reference internal" href="#rt-linux-arch"><span class="std std-numref">Figure 230</span></a>.</p>
 <p>To benefit from these techniques,
@@ -860,9 +861,9 @@ event such as an interrupt within a defined time frame.</p>
 <a class="reference internal image-reference" href="../_images/RT-NUC-setup.png"><img alt="../_images/RT-NUC-setup.png" src="../_images/RT-NUC-setup.png" style="width: 400px;" /></a>
 <p class="caption"><span class="caption-number">Figure 230 </span><span class="caption-text">Real-Time Linux (PREEMPT_RT) VM on ACRN</span></p>
 </div>
-<p>The privileged VM exclusively owns its passthrough devices, so in
+<p>The RTVM exclusively owns its passthrough devices, so in
 addition to the controller and file system used by the SOS, a dedicated
-storage controller and device are needed to host the privileged VM’s
+storage controller and device are needed to host the RTVM’s
 root filesystem. The two storage devices should be under different PCI
 controllers because the system can only pass through PCI-based devices
 to a guest OS. The Intel NUC7ixDNHE NUC (KBL) is a good platform to set
@@ -884,21 +885,18 @@ the <a class="reference internal" href="../getting-started/apl-nuc.html#add-acrn
 <li><p class="first">Patch and build the Real-Time kernel</p>
 <ol class="loweralpha">
 <li><p class="first">Download Linux kernel real-time patch:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ wget https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/4.19/patch-4.19.15-rt12.patch.xz
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ wget https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/4.19/patch-4.19.31-rt18.patch.xz
 </pre></div>
 </div>
 </li>
-<li><p class="first">Sync the kernel code to acrn-2019w04.5-150000p:</p>
+<li><p class="first">Sync the kernel code to acrn-2019w17.4-160000p:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-kernel.git
-$ git checkout acrn-2019w04.5-150000p
+$ git checkout acrn-2019w17.4-160000p
 $ cd acrn-kernel
-$ xzcat ../patch-4.19.15-rt12.patch.xz | patch -p1
+$ wget https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/doc/tutorials/rt_linux.patch
+$ git apply rt_linux.patch
+$ xzcat ../patch-4.19.31-rt18.patch.xz | patch -p1
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This patch will report one conflict with <code class="docutils literal notranslate"><span class="pre">base.c</span></code> that
-you can ignore.</p>
 </div>
 </li>
 <li><p class="first">Edit the <code class="docutils literal notranslate"><span class="pre">kernel_config_uos</span></code> config file: search for the keyword
@@ -918,7 +916,7 @@ $ make targz-pkg
 choose default for all the other options.</p>
 </li>
 <li><p class="first">Copy the generated package to SOS:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ scp linux-4.19.8-rt6+-x86.tar.gz &lt;user name&gt;@&lt;SOS ip&gt;:~/
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ scp linux-4.19.28-rt18-quilt-2e5dc0ac-dirty-x86.tar.gz &lt;user name&gt;@&lt;SOS ip&gt;:~/
 </pre></div>
 </div>
 </li>
@@ -928,13 +926,13 @@ choose default for all the other options.</p>
 <ol class="loweralpha">
 <li><p class="first">Extract kernel boot and lib modules from the package:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd ~/
-$ tar xzvf linux-4.19.8-rt6+-x86.tar.gz
+$ tar xzvf linux-4.19.28-rt18-quilt-2e5dc0ac-dirty-x86.tar.gz
 </pre></div>
 </div>
 </li>
 <li><p class="first">Copy the extracted lib modules to NVME SSD:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ mount /dev/nvme0n1p3 /mnt
-$ cp -r ~/lib/modules/4.19.8-rt6+ /mnt/lib/modules
+$ cp -r ~/lib/modules/4.19.28-rt18-quilt-2e5dc0ac-dirty /mnt/lib/modules
 </pre></div>
 </div>
 </li>
@@ -944,7 +942,7 @@ release, and is also available in the acrn-hypervisor/devicemodel
 GitHub repo (in the samples folder).</p>
 <p>You’ll need to modify two places:</p>
 <ol class="arabic simple">
-<li>Replace <code class="docutils literal notranslate"><span class="pre">/root/rt_uos_kernel</span></code> with <code class="docutils literal notranslate"><span class="pre">~/boot/vmlinuz-4.19.8-rt6+</span></code></li>
+<li>Replace <code class="docutils literal notranslate"><span class="pre">/root/rt_uos_kernel</span></code> with <code class="docutils literal notranslate"><span class="pre">~/boot/vmlinuz-4.19.28-rt18-quilt-2e5dc0ac-dirty</span></code></li>
 <li>Replace <code class="docutils literal notranslate"><span class="pre">root=/dev/sda3</span></code> with <code class="docutils literal notranslate"><span class="pre">root=/dev/nvme0n1p3</span></code></li>
 </ol>
 </li>
@@ -987,7 +985,7 @@ tool and run it with:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Apr 29, 2019.
+      Last updated on May 01, 2019.
 
     </p>
   </div> 
