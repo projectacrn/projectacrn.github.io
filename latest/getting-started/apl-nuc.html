@@ -148,6 +148,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#software-setup">Software setup</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#set-up-a-clear-linux-operating-system">Set up a Clear Linux Operating System</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#use-the-script-to-set-up-acrn-automatically">Use the script to set up ACRN automatically</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#manual-setup-acrn-guide">Manual setup ACRN guide</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#add-the-acrn-hypervisor-to-the-efi-partition">Add the ACRN hypervisor to the EFI Partition</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#acrn-network-bridge">ACRN Network Bridge</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#set-up-reference-uos">Set up Reference UOS</a></li>
@@ -850,23 +852,34 @@ and its setup is described below.</p>
 <p>Intel Apollo Lake NUC (APL) and Intel Kaby Lake NUC (KBL),
 described in <a class="reference internal" href="../hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a>, are currently supported for ACRN development:</p>
 <ul class="simple">
-<li>We can enable the serial console on <a class="reference external" href="https://www.amazon.com/dp/B07D5HHMSB/ref=cm_sw_r_cp_ep_dp_hXm0BbBV0CER3">KBL</a>
-(NUC7i5DNHE), but this is not supported on APL (NUC6CAYH).</li>
+<li>We can enable the serial console on <a class="reference external" href="https://www.amazon.com/Intel-Business-Mini-Technology-BLKNUC7i7DNH1E/dp/B07CCQ8V4R">KBL</a>
+(NUC7i7DN), but this is not supported on APL (NUC6CAYH).</li>
 </ul>
 <div class="section" id="connecting-to-the-serial-port">
 <h3>Connecting to the serial port<a class="headerlink" href="#connecting-to-the-serial-port" title="Permalink to this headline">¶</a></h3>
-<p>If you don’t need a serial console you can ignore this section. If you’re
-using a KBL NUC and you need a serial console, you’ll need to prepare
-an RS232 cable to connect to the KBL NUC serial port header, as shown
-below:</p>
+<p>If you don’t need a serial console you can ignore this section.</p>
+<p>Neither the APL or KBL NUCs present an external serial port interface.
+However, the KBL NUC does have a serail port header you can
+expose with a serial DB9 header cable. You can build this cable yourself,
+referring to the <a class="reference external" href="https://www.intel.com/content/dam/support/us/en/documents/mini-pcs/nuc-kits/NUC7i7DN_TechProdSpec.pdf">KBL NUC product specification</a>
+as shown below:</p>
 <div class="figure align-center" id="id1">
 <img alt="../_images/KBL-serial-port-header.png" src="../_images/KBL-serial-port-header.png" />
-<p class="caption"><span class="caption-number">Figure 11 </span><span class="caption-text">You can refer to the <a class="reference external" href="https://www.intel.com/content/dam/support/us/en/documents/boardsandkits/NUC7i5DN_TechProdSpec.pdf">‘Technical Product Specification’</a>
-for details</span></p>
+<p class="caption"><span class="caption-number">Figure 11 </span><span class="caption-text">KBL serial port header details</span></p>
 </div>
 <div class="figure align-center" id="id2">
 <img alt="../_images/KBL-serial-port-header-to-RS232-cable.jpg" src="../_images/KBL-serial-port-header-to-RS232-cable.jpg" />
-<p class="caption"><span class="caption-number">Figure 12 </span><span class="caption-text">KBL serial port header to RS232 <a class="reference external" href="https://www.amazon.com/dp/B07BV1W6N8/ref=cm_sw_r_cp_ep_dp_wYm0BbABD5AK6">cable</a></span></p>
+<p class="caption"><span class="caption-number">Figure 12 </span><span class="caption-text">KBL <a class="reference external" href="https://www.amazon.com/dp/B07BV1W6N8/ref=cm_sw_r_cp_ep_dp_wYm0BbABD5AK6">serial port header to RS232 cable</a></span></p>
+</div>
+<p>Or you can <a class="reference external" href="https://www.amazon.com/dp/B07BV1W6N8/ref=cm_sw_r_cp_ep_dp_wYm0BbABD5AK6">purchase</a>
+such a cable.</p>
+<p>You’ll also need an <a class="reference external" href="https://www.amazon.com/Adapter-Chipset-CableCreation-Converter-Register/dp/B0769DVQM1">RS232 DB9 female to USB cable</a>,
+or an <a class="reference external" href="https://www.amazon.com/SF-Cable-Null-Modem-RS232/dp/B006W0I3BA">RS232 DB9 female/female (NULL modem) cross-over cable</a>
+to connect to your host system.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to use the RS232 DB9 female/female cable, please choose
+the <code class="docutils literal notranslate"><span class="pre">cross-over</span></code> type rather than <code class="docutils literal notranslate"><span class="pre">straight-through</span></code> type.</p>
 </div>
 </div>
 <div class="section" id="firmware-update-on-the-nuc">
@@ -889,29 +902,223 @@ complete this setup.</p>
 <p class="last">Please refer to the ACRN <a class="reference internal" href="../release_notes.html#release-notes"><span class="std std-ref">Release Notes</span></a> for the Clear Linux OS
 version number tested with a specific ACRN release.  Adjust the
 instruction below to reference the appropriate version number of Clear
-Linux OS (we use version 27960 as an example).</p>
+Linux OS (we use version 28960 as an example).</p>
 </div>
 <ol class="arabic">
 <li><p class="first">Download the compressed Clear Linux OS installer image from
-<a class="reference external" href="https://download.clearlinux.org/releases/27960/clear/clear-27960-installer.img.xz">https://download.clearlinux.org/releases/27960/clear/clear-27960-installer.img.xz</a>
+<a class="reference external" href="https://download.clearlinux.org/releases/28960/clear/clear-28960-installer.img.xz">https://download.clearlinux.org/releases/28960/clear/clear-28960-installer.img.xz</a>
 and follow the <a class="reference external" href="https://clearlinux.org/documentation/clear-linux/get-started/bare-metal-install">Clear Linux OS installation guide</a>
-as a starting point for installing Clear Linux OS onto your platform.  Follow the recommended
-options for choosing an <strong>Manual (Advanced)</strong> installation type, and using the platform’s
+as a starting point for installing Clear Linux OS onto your platform. Follow the recommended
+options for choosing an <strong>Advanced options</strong> installation type, and using the platform’s
 storage as the target device for installation (overwriting the existing data
 and creating three partitions on the platform’s storage drive).</p>
-<p>High-level steps should be:</p>
+<p>When setting up Clear Linux on your NUC:</p>
 <ol class="arabic simple">
-<li>Install Clear Linux OS on a NUC using the “Manual (Advanced)” option.</li>
-<li>Use default partition scheme for storage</li>
-<li>Name the host “clr-sos-guest”</li>
-<li>Add an administrative user “clear” with “sudoers” privilege</li>
-<li>Add these additional bundles “editors”, “user-basic”, “desktop-autostart”, “network-basic”</li>
-<li>For network, choose “DHCP”</li>
+<li>Launch the Clear Linux OS installer boot menu</li>
+<li>With Clear Linux OS highlighted, select Enter.</li>
+<li>From the Main Menu, select “Configure Media” and set
+“Auto Partition” to your desired hard disk.</li>
+<li><code class="docutils literal notranslate"><span class="pre">shift</span> <span class="pre">+</span> <span class="pre">A</span></code> to the “Advanced options”.</li>
+<li>Select “Additional Bundle Selection” to add bundles for
+“desktop-autostart”, “editors”, “network-basic”, “user-basic”</li>
+<li>Select “User Manager” to add an administrative user “clear” and
+password.</li>
+<li>Select “Assign Hostname” to set the hostname as “clr-sos-guest”</li>
 </ol>
 </li>
 <li><p class="first">After installation is complete, boot into Clear Linux OS, login as
-<strong>clear</strong>, and set a password.</p>
+<strong>clear</strong> (using the password you set earlier).</p>
 </li>
+<li><p class="first">The instructions below provide details for setting
+up the ACRN Hypervisor, Service OS, and Guest OS.  Along with the
+manual step details, We also provide an
+automated script that does all these steps for you, so you can skip these
+manual steps.  See the <a class="reference internal" href="#quick-setup-guide">quick-setup-guide</a> section below to use the
+automated setup script.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="use-the-script-to-set-up-acrn-automatically">
+<span id="quick-setup-guide"></span><h3>Use the script to set up ACRN automatically<a class="headerlink" href="#use-the-script-to-set-up-acrn-automatically" title="Permalink to this headline">¶</a></h3>
+<p>We provide an <a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/doc/getting-started/acrn_quick_setup.sh">acrn_quick_setup.sh script</a>
+in the ACRN GitHub repo to quickly and automatically set up the SOS and UOS
+and generate a customized script for launching the UOS.</p>
+<p>This script requires the Clear Linux version number you’d like to set up
+for the ACRN SOS and UOS.  The version specified must be greater than or
+equal to the Clear Linux version currently installed on the NUC.  You
+can see your current Clear Linux version with the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cat /etc/os-release
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In the following steps, we’re using Clear Linux version 28960.  You should
+specify the Clear Linux version you want to use.</p>
+</div>
+<p>Here are the steps to install Clear Linux on your NUC, set up the SOS
+and UOS using the <code class="docutils literal notranslate"><span class="pre">acrn_quick_setup.sh</span></code> script, and launch the UOS:</p>
+<ol class="arabic">
+<li><p class="first">Installing Clear Linux and login system</p>
+</li>
+<li><p class="first">Open a terminal</p>
+</li>
+<li><p class="first">Download <code class="docutils literal notranslate"><span class="pre">acrn_quick_setup.sh</span></code> script to set up the SOS. (If you don’t need a proxy to
+get the script, you can just skip the <code class="docutils literal notranslate"><span class="pre">export</span></code> command.)</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">export</span> <span class="nv">https_proxy</span><span class="o">=</span>https://myproxy.mycompany.com:port
+<span class="gp">$</span> <span class="nb">cd</span> ~
+<span class="gp">$</span> wget https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/doc/getting-started/acrn_quick_setup.sh
+
+<span class="gp">$</span> sudo sh acrn_quick_setup.sh -s <span class="m">28960</span>
+<span class="go">Password:</span>
+<span class="go">Upgrading SOS...</span>
+<span class="go">Disable auto update...</span>
+<span class="go">Clear Linux version 28960 is already installed. Continuing to setup SOS...</span>
+<span class="go">Adding the service-os and kernel-iot-lts2018 bundles...</span>
+<span class="go">  ...100%</span>
+<span class="go">  ...100%</span>
+<span class="go">  ...100%</span>
+<span class="go">none</span>
+<span class="go">Add /mnt/EFI/acrn folder</span>
+<span class="go">Copy /usr/share/acrn/samples/nuc/acrn.conf /mnt/loader/entries/</span>
+<span class="go">Copy /usr/lib/acrn/acrn.efi to /mnt/EFI/acrn</span>
+<span class="go">Check ACRN efi boot event</span>
+<span class="go">Clean all ACRN efi boot event</span>
+<span class="go">Check linux bootloader event</span>
+<span class="go">Clean all Linux bootloader event</span>
+<span class="go">Add new ACRN efi boot event</span>
+<span class="go">Create loader.conf</span>
+<span class="go">Add default (5 seconds) boot wait time</span>
+<span class="go">Add default boot to ACRN</span>
+<span class="go">Getting latest Service OS kernel version: kernel-org.clearlinux.iot-lts2018-sos.4.19.34-45</span>
+<span class="go">Getting current Service OS kernel version: kernel-org.clearlinux.iot-lts2018-sos.4.19.13-1901141830</span>
+<span class="go">Replacing root partition uuid in acrn.conf</span>
+<span class="go">Replace with new SOS kernel in acrn.conf</span>
+<span class="go">Service OS setup done!</span>
+<span class="go">Rebooting Service OS to take effects.</span>
+<span class="go">Rebooting.</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>This script is using <code class="docutils literal notranslate"><span class="pre">/dev/sda1</span></code> as default EFI System Partition
+ESP). If the ESP is different based on your hardware, you can specify
+it using <code class="docutils literal notranslate"><span class="pre">-e</span></code> option.  For example, to set up the SOS on an NVMe
+SSD, you could specify:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">sh</span> <span class="n">acrn_quick_setup</span><span class="o">.</span><span class="n">sh</span> <span class="o">-</span><span class="n">s</span> <span class="mi">28960</span> <span class="o">-</span><span class="n">e</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">nvme0n1p1</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you don’t need to reboot automatically after setting up the SOS, you
+can specify the <code class="docutils literal notranslate"><span class="pre">-d</span></code> parameter (don’t reboot)</p>
+</div>
+</li>
+<li><p class="first">After the system reboots, login as the clear user.  You can verify
+the SOS booted successfully by checking the <code class="docutils literal notranslate"><span class="pre">dmesg</span></code> log:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> dmesg <span class="p">|</span> grep ACRN
+<span class="go">[    0.000000] Hypervisor detected: ACRN</span>
+<span class="go">[    1.220887] ACRNTrace: Initialized acrn trace module with 4 cpu</span>
+<span class="go">[    1.224401] ACRN HVLog: Initialized hvlog module with 4 cpu</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Continue by setting up a Guest OS using the <code class="docutils literal notranslate"><span class="pre">acrn_quick_setup.sh</span></code>
+script with the <code class="docutils literal notranslate"><span class="pre">-u</span></code> option (and the same Clear Linux version
+number):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> sudo sh acrn_quick_setup.sh -u <span class="m">28960</span>
+<span class="go">Password:</span>
+<span class="go">Upgrading UOS...</span>
+<span class="go">Downloading UOS image: https://download.clearlinux.org/releases/28960/clear/clear-28960-kvm.img.xz</span>
+<span class="gp">  %</span> Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+<span class="go">                                 Dload  Upload   Total   Spent    Left  Speed</span>
+<span class="go"> 14  248M   14 35.4M    0     0   851k      0  0:04:57  0:00:42  0:04:15  293k</span>
+</pre></div>
+</div>
+<p>After the download is completed, you’ll get this output.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Unxz UOS image: clear-28960-kvm.img.xz</span>
+<span class="go">Get UOS image: clear-28960-kvm.img</span>
+<span class="go">Upgrade UOS done...</span>
+<span class="go">Now you can run this command to start UOS...</span>
+<span class="gp">$</span> sudo /root/launch_uos_28960.sh
+</pre></div>
+</div>
+</li>
+<li><p class="first">Now you can launch the UOS using the customized launch_uos script
+(with sudo):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> sudo /root/launch_uos_28960.sh
+<span class="go">Password:</span>
+<span class="go">cpu1 online=0</span>
+<span class="go">cpu2 online=0</span>
+<span class="go">cpu3 online=0</span>
+<span class="go">passed gvt-g optargs low_gm 64, high_gm 448, fence 8</span>
+<span class="go">SW_LOAD: get kernel path /usr/lib/kernel/default-iot-lts2018</span>
+<span class="go">SW_LOAD: get bootargs root=/dev/vda3 rw rootwait maxcpus=1 nohpet console=tty0 console=hvc0   console=ttyS0 no_timer_check ignore_loglevel log_buf_len=16M   consoleblank=0 tsc=reliable i915.avail_planes_per_pipe=0x070F00   i915.enable_hangcheck=0 i915.nuclear_pageflip=1 i915.enable_guc_loading=0   i915.enable_guc_submission=0 i915.enable_guc=0</span>
+<span class="go">VHM api version 1.0</span>
+<span class="go">open hugetlbfs file /run/hugepage/acrn/huge_lv1/D279543825D611E8864ECB7A18B34643</span>
+<span class="go">open hugetlbfs file /run/hugepage/acrn/huge_lv2/D279543825D611E8864ECB7A18B34643</span>
+<span class="go">level 0 free/need pages:512/0 page size:0x200000</span>
+<span class="go">level 1 free/need pages:1/2 page size:0x40000000</span>
+<span class="go">to reserve more free pages:</span>
+<span class="go">to reserve pages (+orig 1): echo 2 &gt; /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages</span>
+<span class="go">now enough free pages are reserved!</span>
+
+<span class="go">try to setup hugepage with:</span>
+<span class="go">    level 0 - lowmem 0x0, biosmem 0x0, highmem 0x0</span>
+<span class="go">    level 1 - lowmem 0x80000000, biosmem 0x0, highmem 0x0</span>
+<span class="go">total_size 0x180000000</span>
+
+<span class="go">mmap ptr 0x0x7efef33bb000 -&gt; baseaddr 0x0x7eff00000000</span>
+<span class="go">mmap 0x40000000@0x7eff00000000</span>
+<span class="go">touch 1 pages with pagesz 0x40000000</span>
+<span class="go">mmap 0x40000000@0x7eff40000000</span>
+<span class="go">touch 512 pages with pagesz 0x200000</span>
+<span class="go">...</span>
+<span class="go">[  OK  ] Started Login Service.</span>
+<span class="go">[  OK  ] Started Network Name Resolution.</span>
+<span class="go">[  OK  ] Reached target Network.</span>
+<span class="go">         Starting Permit User Sessions...</span>
+<span class="go">[  OK  ] Reached target Host and Network Name Lookups.</span>
+<span class="go">[  OK  ] Started Permit User Sessions.</span>
+<span class="go">[  OK  ] Started Serial Getty on ttyS0.</span>
+<span class="go">[  OK  ] Started Getty on tty1.</span>
+<span class="go">[  OK  ] Started Serial Getty on hvc0.</span>
+<span class="go">[  OK  ] Reached target Login Prompts.</span>
+<span class="go">[  OK  ] Reached target Multi-User System.</span>
+<span class="go">[  OK  ] Reached target Graphical Interface.</span>
+
+<span class="go">clr-0d449d5327d64aee8a6b8a3484dcd880 login:</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Login as root (and specify the new password).  You can verify you’re
+running in the UOS by checking the kernel release version or seeing
+if acrn devices are visible:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> uname -r
+<span class="go">4.19.34-45.iot-lts2018</span>
+<span class="gp">#</span> ls /dev/acrn*
+<span class="go">ls: cannot access &#39;/dev/acrn*&#39;: No such file or directory</span>
+</pre></div>
+</div>
+<p>In the UOS there won’t be any <code class="docutils literal notranslate"><span class="pre">/dev/acrn*</span></code> devices.  If you’re in the SOS,
+you’d see results such as these:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> uname -r
+<span class="go">4.19.34-45.iot-lts2018-sos</span>
+<span class="gp">#</span> ls /dev/acrn*
+<span class="go">/dev/acrn_hvlog_cur_0   /dev/acrn_hvlog_cur_2  /dev/acrn_trace_0  /dev/acrn_trace_2  /dev/acrn_vhm</span>
+<span class="go">/dev/acrn_hvlog_cur_1   /dev/acrn_hvlog_cur_3  /dev/acrn_trace_1  /dev/acrn_trace_3</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>With that you’ve successfully set up Clear Linux at the Service and User
+OS and started up a UOS VM.</p>
+</div>
+<div class="section" id="manual-setup-acrn-guide">
+<span id="manual-setup-guide"></span><h3>Manual setup ACRN guide<a class="headerlink" href="#manual-setup-acrn-guide" title="Permalink to this headline">¶</a></h3>
+<p>If you don’t need the script to setup ACRN by manual, and then you should follow these steps
+after installation of Clear Linux and login system.</p>
+<ol class="arabic">
 <li><p class="first">Clear Linux OS is set to automatically update itself. We recommend that you disable
 this feature to have more control over when the updates happen. Use this command
 to disable the autoupdate feature:</p>
@@ -922,14 +1129,14 @@ to disable the autoupdate feature:</p>
 <p class="first admonition-title">Note</p>
 <p class="last">The Clear Linux OS installer will automatically check for updates and install the
 latest version available on your system. If you wish to use a specific version
-(such as 27960), you can achieve that after the installation has completed using
-<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">swupd</span> <span class="pre">verify</span> <span class="pre">--fix</span> <span class="pre">--picky</span> <span class="pre">-m</span> <span class="pre">27960</span></code></p>
+(such as 28960), you can achieve that after the installation has completed using
+<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">swupd</span> <span class="pre">verify</span> <span class="pre">--fix</span> <span class="pre">--picky</span> <span class="pre">-m</span> <span class="pre">28960</span></code></p>
 </div>
 </li>
 <li><p class="first">If you have an older version of Clear Linux OS already installed
 on your hardware, use this command to upgrade Clear Linux OS
-to version 27960 (or newer):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd update -m 27960     # or newer version
+to version 28960 (or newer):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd update -m 28960     # or newer version
 </pre></div>
 </div>
 </li>
@@ -974,9 +1181,11 @@ loaderx64.efi
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">On Clear Linux OS, the EFI System Partion (e.g.: <code class="docutils literal notranslate"><span class="pre">/dev/sda1</span></code>) is mounted under <code class="docutils literal notranslate"><span class="pre">/boot</span></code> by default
+<p class="last">On Clear Linux OS, the EFI System Partion (e.g.: <code class="docutils literal notranslate"><span class="pre">/dev/sda1</span></code>)
+is mounted under <code class="docutils literal notranslate"><span class="pre">/boot</span></code> by default
 The Clear Linux project releases updates often, sometimes
-twice a day, so make note of the specific kernel versions (<em>iot-lts2018 and *iot-lts2018-sos</em>) listed on your system,
+twice a day, so make note of the specific kernel versions
+(<em>iot-lts2018 and *iot-lts2018-sos</em>) listed on your system,
 as you will need them later.</p>
 </div>
 <div class="admonition note">
@@ -1014,7 +1223,7 @@ double-check the platform boot order using <code class="docutils literal notrans
 modify it if needed.</p>
 </div>
 <p>The ACRN hypervisor (<code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code>) accepts three command-line parameters that
-tweak its behaviour:</p>
+tweak its behavior:</p>
 <ol class="arabic">
 <li><p class="first"><code class="docutils literal notranslate"><span class="pre">bootloader=</span></code>: this sets the EFI executable to be loaded once the hypervisor
 is up and running. This is typically the bootloader of the Service OS and the
@@ -1166,11 +1375,11 @@ automatically enabled after a system restart.</p>
 <h3>Set up Reference UOS<a class="headerlink" href="#set-up-reference-uos" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p class="first">On your platform, download the pre-built reference Clear Linux OS UOS
-image version 27960 (or newer) into your (root) home directory:</p>
+image version 28960 (or newer) into your (root) home directory:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ~
 $ mkdir uos
 $ cd uos
-$ curl https://download.clearlinux.org/releases/27960/clear/clear-27960-kvm.img.xz -o uos.img.xz
+$ curl https://download.clearlinux.org/releases/28960/clear/clear-28960-kvm.img.xz -o uos.img.xz
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1225,6 +1434,9 @@ folder) as shown here:</p>
   <span class="nb">exit</span>
 <span class="k">fi</span>
 
+<span class="c1">#logger_setting, format: logger_name,level; like following</span>
+<span class="nv">logger_setting</span><span class="o">=</span><span class="s2">&quot;--logger_setting console,level=4;kmsg,level=3&quot;</span>
+
 <span class="c1">#for memsize setting</span>
 <span class="nv">mem_size</span><span class="o">=</span>2048M
 
@@ -1234,6 +1446,7 @@ acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s
   -s <span class="m">6</span>,virtio-hyper_dmabuf <span class="se">\</span>
   -s <span class="m">3</span>,virtio-blk,/home/clear/uos/uos.img <span class="se">\</span>
   -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
+  <span class="nv">$logger_setting</span> <span class="se">\</span>
   --mac_seed <span class="nv">$mac_seed</span> <span class="se">\</span>
   -k /usr/lib/kernel/default-iot-lts2018 <span class="se">\</span>
   -B <span class="s2">&quot;root=/dev/vda3 rw rootwait maxcpus=</span><span class="nv">$2</span><span class="s2"> nohpet console=tty0 console=hvc0 \</span>
@@ -1273,8 +1486,9 @@ $ sudo ./launch_uos.sh
 </li>
 <li><p class="first">At this point, you’ve successfully booted the ACRN hypervisor,
 SOS, and UOS:</p>
-<div class="figure align-center" id="gsg-successful-boot">
+<div class="figure align-center" id="id6">
 <img alt="../_images/gsg-successful-boot.png" src="../_images/gsg-successful-boot.png" />
+<p class="caption"><span class="caption-number">Figure 13 </span><span class="caption-text">Successful boot</span></p>
 </div>
 </li>
 </ol>
@@ -1295,7 +1509,7 @@ SOS, and UOS:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on May 01, 2019.
+      Last updated on May 06, 2019.
 
     </p>
   </div> 
