@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>I/O Emulation high-level design &mdash; Project ACRN™ v 1.0-unstable documentation</title>
+  <title>I/O Emulation high-level design &mdash; Project ACRN™ v 1.0 documentation</title>
   
 
   
@@ -910,6 +910,10 @@ handler, deliver an I/O request to SOS.</li>
 <img alt="../../_images/ioem-image101.png" src="../../_images/ioem-image101.png" />
 <p class="caption"><span class="caption-number">Figure 63 </span><span class="caption-text">Control flow of I/O emulation in the hypervisor</span></p>
 </div>
+<p><a class="reference internal" href="../../reference/kconfig/CONFIG_PARTITION_MODE.html#cmdoption-arg-config-partition-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_PARTITION_MODE</span></code></a> is the only configuration option that affects the
+functionality of I/O emulation. With <a class="reference internal" href="../../reference/kconfig/CONFIG_PARTITION_MODE.html#cmdoption-arg-config-partition-mode"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_PARTITION_MODE</span></code></a> enabled,
+the hypervisor never sends I/O request to any VM. Unhandled I/O reads
+get all 1’s and writes are silently dropped.</p>
 <p>I/O emulation does not rely on any calibration data.</p>
 <div class="section" id="trap-path">
 <h2>Trap Path<a class="headerlink" href="#trap-path" title="Permalink to this headline">¶</a></h2>
@@ -1576,12 +1580,10 @@ I/O bitmaps and register or unregister I/O handlers:</p>
 
 <dl class="function">
 <dt id="_CPPv331register_mmio_emulation_handlerP7acrn_vm19hv_mem_io_handler_t8uint64_t8uint64_tPv">
-<span id="_CPPv231register_mmio_emulation_handlerP7acrn_vm19hv_mem_io_handler_t8uint64_t8uint64_tPv"></span><span id="register_mmio_emulation_handler__acrn_vmP.hv_mem_io_handler_t.uint64_t.uint64_t.voidP"></span><span class="target" id="group__ioemul_gad5ba55c50a3a92aadbf4d35759228178_1gad5ba55c50a3a92aadbf4d35759228178"></span>void <code class="descname">register_mmio_emulation_handler</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, hv_mem_io_handler_t <em>read_write</em>, uint64_t <em>start</em>, uint64_t <em>end</em>, void *<em>handler_private_data</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv331register_mmio_emulation_handlerP7acrn_vm19hv_mem_io_handler_t8uint64_t8uint64_tPv" title="Permalink to this definition">¶</a><br /></dt>
+<span id="_CPPv231register_mmio_emulation_handlerP7acrn_vm19hv_mem_io_handler_t8uint64_t8uint64_tPv"></span><span id="register_mmio_emulation_handler__acrn_vmP.hv_mem_io_handler_t.uint64_t.uint64_t.voidP"></span><span class="target" id="group__ioemul_ga749dc54abd4bd839a599e6fe9804673d_1ga749dc54abd4bd839a599e6fe9804673d"></span>int32_t <code class="descname">register_mmio_emulation_handler</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, hv_mem_io_handler_t <em>read_write</em>, uint64_t <em>start</em>, uint64_t <em>end</em>, void *<em>handler_private_data</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv331register_mmio_emulation_handlerP7acrn_vm19hv_mem_io_handler_t8uint64_t8uint64_tPv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Register a MMIO handler. </p>
 <p>This API registers a MMIO handler to <code class="docutils literal notranslate"><span class="pre">vm</span></code> before it is launched.</p>
 <p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>None </dd>
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: The VM to which the MMIO handler is registered </li>
@@ -1589,6 +1591,12 @@ I/O bitmaps and register or unregister I/O handlers:</p>
 <li><code class="docutils literal notranslate"><span class="pre">start</span></code>: The base address of the range <code class="docutils literal notranslate"><span class="pre">read_write</span></code> can emulate </li>
 <li><code class="docutils literal notranslate"><span class="pre">end</span></code>: The end of the range (exclusive) <code class="docutils literal notranslate"><span class="pre">read_write</span></code> can emulate </li>
 <li><code class="docutils literal notranslate"><span class="pre">handler_private_data</span></code>: Handler-specific data which will be passed to <code class="docutils literal notranslate"><span class="pre">read_write</span></code> when called</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">0</span></code>: Registration succeeds </li>
+<li><code class="docutils literal notranslate"><span class="pre">-EINVAL</span></code>: <code class="docutils literal notranslate"><span class="pre">read_write</span></code> is NULL, <code class="docutils literal notranslate"><span class="pre">end</span></code> is not larger than <code class="docutils literal notranslate"><span class="pre">start</span></code> or <code class="docutils literal notranslate"><span class="pre">vm</span></code> has been launched </li>
 </ul>
 </dd>
 </dl>
@@ -1687,7 +1695,7 @@ I/O bitmaps and register or unregister I/O handlers:</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'v 1.0-unstable',
+            VERSION:'v 1.0',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
