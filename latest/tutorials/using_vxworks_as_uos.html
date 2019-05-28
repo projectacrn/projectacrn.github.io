@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Increasing the User OS disk size &mdash; Project ACRN™ v 1.1-unstable documentation</title>
+  <title>Using VxWorks* as User OS &mdash; Project ACRN™ v 1.1-unstable documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Using PREEMPT_RT-Linux for real-time UOS" href="rt_linux.html" />
-    <link rel="prev" title="ACRN documentation generation" href="docbuild.html" /> 
+    <link rel="next" title="Using Zephyr as User OS" href="using_zephyr_as_uos.html" />
+    <link rel="prev" title="Using Ubuntu as the Service OS" href="using_ubuntu_as_sos.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -594,10 +594,10 @@
 <li class="toctree-l3"><a class="reference internal" href="docbuild.html#filtering-expected-warnings">Filtering expected warnings</a></li>
 </ul>
 </li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Increasing the User OS disk size</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#increase-the-virtual-disk-size">Increase the virtual disk size</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#resize-the-rootfs-partition">Resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#resize-the-filesystem">Resize the filesystem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="increase-uos-disk-size.html">Increasing the User OS disk size</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="increase-uos-disk-size.html#increase-the-virtual-disk-size">Increase the virtual disk size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="increase-uos-disk-size.html#resize-the-rootfs-partition">Resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="increase-uos-disk-size.html#resize-the-filesystem">Resize the filesystem</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="rt_linux.html">Using PREEMPT_RT-Linux for real-time UOS</a></li>
@@ -669,8 +669,8 @@
 <li class="toctree-l3"><a class="reference internal" href="using_ubuntu_as_sos.html#enabling-usb-keyboard-and-mouse">Enabling USB keyboard and mouse</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="using_vxworks_as_uos.html">Using VxWorks* as User OS</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="using_vxworks_as_uos.html#steps-for-using-vxworks-as-user-os">Steps for Using VxWorks as User OS</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Using VxWorks* as User OS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#steps-for-using-vxworks-as-user-os">Steps for Using VxWorks as User OS</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="using_zephyr_as_uos.html">Using Zephyr as User OS</a><ul>
@@ -866,7 +866,7 @@
         
           <li><a href="index.html">Tutorials</a> &raquo;</li>
         
-      <li>Increasing the User OS disk size</li>
+      <li>Using VxWorks* as User OS</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -885,104 +885,153 @@
   
            <div itemprop="articleBody">
             
-  <div class="section" id="increasing-the-user-os-disk-size">
-<span id="increase-uos-disk-size"></span><h1>Increasing the User OS disk size<a class="headerlink" href="#increasing-the-user-os-disk-size" title="Permalink to this headline">¶</a></h1>
-<p>This document builds on the <a class="reference internal" href="../getting-started/index.html#getting-started"><span class="std std-ref">Getting Started Guides</span></a> and assumes you already have
-a system with ACRN installed and running correctly. The size of the pre-built
-Clear Linux User OS (UOS) virtual disk is typically only 8GB and this may not be
-sufficient for some applications. This guide explains a simple few steps to
-increase the size of that virtual disk.</p>
-<p>This document is largely inspired from Clear Linux’s <a class="reference external" href="https://clearlinux.org/documentation/clear-linux/guides/maintenance/increase-virtual-disk-size">Increase virtual disk size
-of a Clear Linux* OS image</a> tutorial. The process can be
-broken down into three steps:</p>
-<ol class="arabic simple">
-<li>Increase the virtual disk (<code class="docutils literal notranslate"><span class="pre">uos.img</span></code>) size</li>
-<li>Resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition</li>
-<li>Resize the filesystem</li>
-</ol>
+  <div class="section" id="using-vxworks-as-user-os">
+<span id="using-vxworks-as-uos"></span><h1>Using VxWorks* as User OS<a class="headerlink" href="#using-vxworks-as-user-os" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://www.windriver.com/products/vxworks/">VxWorks</a>* is a real-time proprietary OS designed for use in embedded systems requiring real-time, deterministic
+performance. This tutorial describes how to run VxWorks as the User OS on the ACRN hypervisor.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">These steps are performed directly on the UOS disk image. The UOS VM <strong>must</strong>
-be powered off during this operation.</p>
+<p class="last">You’ll need to be a WindRiver* customer and have purchased VxWorks to follow this tutorial.</p>
 </div>
-<div class="section" id="increase-the-virtual-disk-size">
-<h2>Increase the virtual disk size<a class="headerlink" href="#increase-the-virtual-disk-size" title="Permalink to this headline">¶</a></h2>
-<p>We will use the <code class="docutils literal notranslate"><span class="pre">qemu-img</span></code> tool to increase the size of the virtual disk
-(<code class="docutils literal notranslate"><span class="pre">uos.img</span></code>) file. On a Clear Linux system, you can install this tool using:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add clr-installer
-</pre></div>
-</div>
-<p>As an example, let us add 10GB of storage to our virtual disk image called
-<code class="docutils literal notranslate"><span class="pre">uos.img</span></code>.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ qemu-img resize -f raw uos.img +10G
-</pre></div>
-</div>
+<div class="section" id="steps-for-using-vxworks-as-user-os">
+<h2>Steps for Using VxWorks as User OS<a class="headerlink" href="#steps-for-using-vxworks-as-user-os" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Build VxWorks</p>
+<p>Follow the <a class="reference external" href="https://docs.windriver.com/bundle/vxworks_7_tutorial_kernel_application_workbench_sr0610/page/rbu1422461642318.html">VxWorks Getting Started Guide</a>
+to setup the VxWorks development environment and build the VxWorks Image.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Replace <code class="docutils literal notranslate"><span class="pre">uos.img</span></code> by the actual name of your virtual disk file if you
-deviated from the <a class="reference internal" href="../getting-started/index.html#getting-started"><span class="std std-ref">Getting Started Guides</span></a>.</p>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">You can choose any increment for the additional storage space. Check the
-<code class="docutils literal notranslate"><span class="pre">qemu-img</span> <span class="pre">resize</span></code> help for more information.</p>
-</div>
-</div>
-<div class="section" id="resize-the-rootfs-partition">
-<h2>Resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition<a class="headerlink" href="#resize-the-rootfs-partition" title="Permalink to this headline">¶</a></h2>
-<p>The next step is to modify the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition (in Clear Linux, it is
-partition 3) to use the additional space available. We will use the <code class="docutils literal notranslate"><span class="pre">parted</span></code>
-tool and perform these steps:</p>
-<ul class="simple">
-<li>Enter the <code class="docutils literal notranslate"><span class="pre">parted</span></code> tool</li>
-<li>Press <code class="docutils literal notranslate"><span class="pre">p</span></code> to print the partition tables</li>
-<li>A warning will be displayed, enter <code class="docutils literal notranslate"><span class="pre">Fix</span></code></li>
-<li>Enter <code class="docutils literal notranslate"><span class="pre">resizepart</span> <span class="pre">3</span></code></li>
-<li>Enter the size of the disk (<code class="docutils literal notranslate"><span class="pre">19.9GB</span></code> in our example)</li>
-<li>Enter <code class="docutils literal notranslate"><span class="pre">q</span></code> to quit the tool</li>
+<dl class="last docutils">
+<dt>The following kernel configuration should be <strong>excluded</strong>:</dt>
+<dd><ul class="first last simple">
+<li>INCLUDE_PC_CONSOLE</li>
+<li>DRV_SIO_PCI_NS16550</li>
+<li>SELECT_PC_CONSOLE_KBD</li>
 </ul>
-<p>Here is what the sequence looks like:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ parted uos.img
+</dd>
+<dt>The following kernel configuration should be <strong>included</strong>:</dt>
+<dd><ul class="first last simple">
+<li>DRV_SIO_IA_NS16550</li>
+<li>DRV_SIO_FDT_NS16550</li>
+</ul>
+</dd>
+<dt>The following kernel configuration value should be <strong>set</strong>:</dt>
+<dd><ul class="first last simple">
+<li>CONSOLE_BAUD_RATE = 115200</li>
+<li>SYS_CLK_RATE_MAX = 1000</li>
+</ul>
+</dd>
+</dl>
+</div>
+</li>
+<li><p class="first">Build GRUB2 BootLoader Image</p>
+<p>We use grub-2.02 as the bootloader of VxWorks in this tutorial; other versions may also work.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ curl ftp://ftp.gnu.org/gnu/grub/grub-2.02.tar.xz | tar xJv
+$ cd grub-2.02
+$ ./autogen.sh
+$ ./configure --with-platform=efi --target=x86_64
+$ make
+$ ./grub-mkimage -p /EFI/BOOT -d ./grub-core/ -O x86_64-efi -o grub_x86_64.efi \
+      boot efifwsetup efi_gop efinet efi_uga lsefimmap lsefi lsefisystab \
+      exfat fat multiboot2 multiboot terminal part_msdos part_gpt normal \
+      all_video aout configfile echo file fixvideo fshelp gfxterm gfxmenu \
+      gfxterm_background gfxterm_menu legacycfg video_bochs video_cirrus \
+      video_colors video_fb videoinfo video net tftp
 </pre></div>
 </div>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">WARNING: You are not superuser.  Watch out for permissions.</span>
-<span class="go">GNU Parted 3.2</span>
-<span class="go">Using /home/gvancuts/uos/uos.img</span>
-<span class="go">Welcome to GNU Parted! Type &#39;help&#39; to view a list of commands.</span>
-<span class="hll"><span class="go">(parted) p</span>
-</span><span class="go">Warning: Not all of the space available to /home/gvancuts/uos/uos.img appears to be used, you can fix the GPT to use all of the space (an extra 20971520 blocks) or continue with the current setting?</span>
-<span class="hll"><span class="go">Fix/Ignore? Fix</span>
-</span><span class="go">Model:  (file)</span>
-<span class="hll"><span class="go">Disk /home/gvancuts/uos/uos.img: 19.9GB</span>
-</span><span class="go">Sector size (logical/physical): 512B/512B</span>
-<span class="go">Partition Table: gpt</span>
-<span class="go">Disk Flags:</span>
+<p>This will build a <code class="docutils literal notranslate"><span class="pre">grub_x86_64.efi</span></code> image in the current directory.</p>
+</li>
+<li><p class="first">Preparing the Boot Device</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ dd if=/dev/zero of=VxWorks.img bs=1M count=35
+$ mkfs.vfat -F 32 VxWorks.img
+$ sudo mount `sudo losetup -f -P --show VxWorks.img` /mnt
+</pre></div>
+</div>
+<p>Create the following directories.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo mkdir -p /mnt/efi/boot
+$ sudo mkdir -p /mnt/kernel
+</pre></div>
+</div>
+<p>Copy <code class="docutils literal notranslate"><span class="pre">vxWorks</span></code> and <code class="docutils literal notranslate"><span class="pre">grub_x86_64.efi</span></code>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo cp vxWorks /mnt/kernel/
+$ sudo cp grub-2.02/grub_x86_64.efi /mnt/efi/boot/bootx64.efi
+</pre></div>
+</div>
+<p>Create <code class="docutils literal notranslate"><span class="pre">/mnt/efi/boot/grub.cfg</span></code> containing the following:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>set default=0
+set timeout=5
 
-<span class="go">Number  Start   End     Size    File system     Name     Flags</span>
-<span class="go"> 1      1049kB  537MB   536MB   fat16           primary  boot, esp</span>
-<span class="go"> 2      537MB   570MB   33.6MB  linux-swap(v1)  primary</span>
-<span class="go"> 3      570MB   9160MB  8590MB  ext4            primary</span>
+menuentry &quot;VxWorks Guest&quot; {
+    multiboot /kernel/vxWorks
+}
+</pre></div>
+</div>
+<p>Unmount the loopback device:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo umount /mnt
+</pre></div>
+</div>
+<p>You now have a virtual disk image with bootable VxWorks in <code class="docutils literal notranslate"><span class="pre">VxWorks.img</span></code>.</p>
+</li>
+<li><p class="first">Follow <a class="reference internal" href="../getting-started/apl-nuc.html#getting-started-apl-nuc"><span class="std std-ref">Getting started guide for Intel NUC</span></a> to boot “The ACRN Service OS”.</p>
+</li>
+<li><p class="first">Boot VxWorks as User OS.</p>
+<p>On the ACRN SOS, prepare a directory and populate it with VxWorks files.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ mkdir vxworks &amp;&amp; cd vxworks
+$ cp /usr/share/acrn/samples/nuc/launch_vxworks.sh .
+$ cp /usr/share/acrn/bios/OVMF.fd .
+</pre></div>
+</div>
+<p>You will also need to copy the <code class="docutils literal notranslate"><span class="pre">VxWorks.img</span></code> created in the VxWorks build environment into directory
+<code class="docutils literal notranslate"><span class="pre">vxworks</span></code> (via, e.g. a USB stick or network).</p>
+<p>Run the <code class="docutils literal notranslate"><span class="pre">launch_vxworks.sh</span></code> script to launch VxWorks as Uos.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo ./launch_vxworks.sh
+</pre></div>
+</div>
+<p>Then VxWorks will boot up automatically. You will see the prompt.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">               VxWorks 7 SMP 64-bit</span>
 
-<span class="hll"><span class="go">(parted) resizepart 3</span>
-</span><span class="hll"><span class="go">End?  [9160MB]? 19.9GB</span>
-</span><span class="go">(parted) q</span>
+<span class="go">Copyright 1984-2019 Wind River Systems, Inc.</span>
+
+<span class="go">      Core Kernel version: 1.2.7.0</span>
+<span class="go">               Build date: May  5 2019 21:40:28</span>
+<span class="go">                    Board: x86 Processor (ACPI_BOOT_OP) SMP/SMT</span>
+<span class="go">                CPU Count: 1</span>
+<span class="go">           OS Memory Size: ~1982MB</span>
+<span class="go">         ED&amp;R Policy Mode: Permanently Deployed</span>
+
+<span class="go">Adding 9315 symbols for standalone.</span>
+
+<span class="go">-&gt;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="resize-the-filesystem">
-<h2>Resize the filesystem<a class="headerlink" href="#resize-the-filesystem" title="Permalink to this headline">¶</a></h2>
-<p>The final step is to resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> filesystem to use the entire
-partition space.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ LOOP_DEV=`sudo losetup -f -P --show uos.img`
-$ PART_DEV=$LOOP_DEV
-$ PART_DEV+=&quot;p3&quot;
-$ sudo e2fsck -f $PART_DEV
-$ sudo resize2fs -p $PART_DEV
-$ sudo losetup -d $LOOP_DEV
+<p>Finally, you can type <code class="docutils literal notranslate"><span class="pre">help</span></code> to check whether the VxWorks works well.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">-&gt; help</span>
+
+<span class="go">help                           Print this list</span>
+<span class="go">dbgHelp                        Print debugger help info</span>
+<span class="go">edrHelp                        Print ED&amp;R help info</span>
+<span class="go">ioHelp                         Print I/O utilities help info</span>
+<span class="go">nfsHelp                        Print nfs help info</span>
+<span class="go">netHelp                        Print network help info</span>
+<span class="go">rtpHelp                        Print process help info</span>
+<span class="go">spyHelp                        Print task histogrammer help info</span>
+<span class="go">timexHelp                      Print execution timer help info</span>
+<span class="go">h         [n]                  Print (or set) shell history</span>
+<span class="go">i         [task]               Summary of tasks&#39; TCBs</span>
+<span class="go">ti        task                 Complete info on TCB for task</span>
+<span class="go">sp        adr,args...          Spawn a task, pri=100, opt=0x19, stk=20000</span>
+<span class="go">taskSpawn name,pri,opt,stk,adr,args... Spawn a task</span>
+<span class="go">tip       &quot;dev=device1#tag=tagStr1&quot;, &quot;dev=device2#tag=tagStr2&quot;, ...</span>
+<span class="go">                               Connect to one or multiple serial lines</span>
+<span class="go">td        task                 Delete a task</span>
+<span class="go">ts        task                 Suspend a task</span>
+<span class="go">tr        task                 Resume a task</span>
+
+<span class="go">Type &lt;CR&gt; to continue, Q&lt;CR&gt; or q&lt;CR&gt; to stop:</span>
 </pre></div>
 </div>
-<p>Congratulations! You have successfully resized the disk, partition, and
-filesystem of your User OS.</p>
+</li>
+</ol>
 </div>
 </div>
 
