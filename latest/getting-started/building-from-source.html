@@ -185,6 +185,7 @@
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Build ACRN from Source</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-build-tools-and-dependencies">Install build tools and dependencies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#build-the-hypervisor-device-model-and-tools">Build the hypervisor, device model and tools</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configuring-the-hypervisor">Configuring the hypervisor</a></li>
@@ -915,8 +916,45 @@
             
   <div class="section" id="build-acrn-from-source">
 <span id="getting-started-building"></span><h1>Build ACRN from Source<a class="headerlink" href="#build-acrn-from-source" title="Permalink to this headline">¶</a></h1>
-<p>If you would like to build the ACRN hypervisor, device model, and tools from
-source, follow these steps.</p>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Following a general embedded system programming model, the ACRN
+hypervisor is designed to be customized at build-time per hardware
+platform and per usage scenario, rather than one binary for all
+scenarios.</p>
+<p>The hypervisor binary is generated based on Kconfig configuration
+settings.  Instruction about these settings can be found in
+<a class="reference internal" href="#getting-started-hypervisor-configuration"><span class="std std-ref">Configuring the hypervisor</span></a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A generic configuration named <code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/generic.config</span></code>
+is provided to help developers try out ACRN more easily. This configuration
+will likely work for most x86-based platforms, supported with limited features.
+This configuration can be enabled by specifying <code class="docutils literal notranslate"><span class="pre">BOARD=generic</span></code> in
+the make command line.</p>
+</div>
+<p>A primary reason one binary for all platforms and all usage scenarios is
+not supported is because dynamic configuration parsing is restricted in
+ACRN hypervisor, for the following considerations:</p>
+<ul class="simple">
+<li><strong>Meeting functional safety requirements</strong> Absence of dynamic objects is
+required in functional safety standards. Implementation of dynamic parsing
+would introduce dynamic objects. Avoiding use of dynamic
+parsing would help the ACRN hypervisor meet functional safety requirements.</li>
+<li><strong>Reduce complexity</strong> ACRN is a lightweight reference hypervisor, built for
+embedded IoT. As new platforms for embedded systems are rapidly introduced,
+support for one binary would require more and more complexity in the
+hypervisor, something we need to avoid.</li>
+<li><strong>Keep small footprint</strong> Implementation of dynamic parsing would introduce
+hundreds or thousands of code. Avoiding dynamic parsing would help keep
+Lines of Code (LOC) of the hypervisor in a desirable range (around 30K).</li>
+<li><strong>Improve boot up time</strong> Dynamic parsing at runtime would increase the boot
+up time. Using build-time configuration and not dynamic parsing would help
+improve boot up time of the hypervisor.</li>
+</ul>
+<p>You can build the ACRN hypervisor, device model, and tools from
+source, by following these steps.</p>
+</div>
 <div class="section" id="install-build-tools-and-dependencies">
 <h2>Install build tools and dependencies<a class="headerlink" href="#install-build-tools-and-dependencies" title="Permalink to this headline">¶</a></h2>
 <p>ACRN development is supported on popular Linux distributions,
@@ -975,7 +1013,7 @@ verify your version of <code class="docutils literal notranslate"><span class="p
 While Ubuntu 18.04 has a new version of <code class="docutils literal notranslate"><span class="pre">binutils</span></code> the default version on
 Ubuntu 16.04 needs updating (see issue <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/issues/1133">#1133</a>).</p>
 <div class="last highlight-none notranslate"><div class="highlight"><pre><span></span>$ wget https://mirrors.ocf.berkeley.edu/gnu/binutils/binutils-2.27.tar.gz
-$ tar xzvf binutils-2.27 &amp;&amp; cd binutils-2.27
+$ tar xzvf binutils-2.27.tar.gz &amp;&amp; cd binutils-2.27
 $ ./configure
 $ make
 $ sudo make install
@@ -1058,7 +1096,7 @@ $ make
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">if you wish to use a different target folder for the build
-artefacts, set the <code class="docutils literal notranslate"><span class="pre">O</span></code> (that is capital letter ‘O’) to the
+artifacts, set the <code class="docutils literal notranslate"><span class="pre">O</span></code> (that is capital letter ‘O’) to the
 desired value. Example: <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">O=build-nuc</span> <span class="pre">BOARD=nuc6cayh</span></code>.</p>
 </div>
 <p>Generating the documentation is described in details in the <a class="reference internal" href="../tutorials/docbuild.html#acrn-doc"><span class="std std-ref">ACRN documentation generation</span></a>
@@ -1154,7 +1192,7 @@ example above) to ‘BOARD=’:</p>
     <p>
         &copy; Copyright 2019, Project ACRN
       <span class="lastupdated">
-        Last updated on Jun 10, 2019.
+        Last updated on Jun 12, 2019.
       </span>
 
     </p>
