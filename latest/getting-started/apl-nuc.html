@@ -992,7 +992,7 @@ get the script, you can just skip the <code class="docutils literal notranslate"
 <span class="go">Upgrading SOS...</span>
 <span class="go">Disable auto update...</span>
 <span class="go">Clear Linux version 28960 is already installed. Continuing to setup SOS...</span>
-<span class="go">Adding the service-os and kernel-iot-lts2018 bundles...</span>
+<span class="go">Adding the service-os, kernel-iot-lts2018 and systemd-networkd-autostart bundles...</span>
 <span class="go">  ...100%</span>
 <span class="go">  ...100%</span>
 <span class="go">  ...100%</span>
@@ -1163,7 +1163,7 @@ to version 28960 (or newer):</p>
 </div>
 </li>
 <li><p class="first">Use the <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">swupd</span> <span class="pre">bundle-add</span></code> command and add these Clear Linux OS bundles:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add service-os kernel-iot-lts2018
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add service-os kernel-iot-lts2018 systemd-networkd-autostart
 </pre></div>
 </div>
 <table border="1" class="colwidths-auto docutils" id="cl-bundles">
@@ -1175,12 +1175,17 @@ to version 28960 (or newer):</p>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>service-os</td>
-<td>Add the acrn hypervisor, acrn devicemodel, and
-Service OS kernel</td>
+<td>Add the acrn hypervisor, acrn
+devicemodel, and Service OS kernel</td>
 </tr>
 <tr class="row-odd"><td>kernel-iot-lts2018</td>
 <td>Run the Intel kernel “kernel-iot-lts2018”
-which is enterprise-style kernel with backports</td>
+which is enterprise-style kernel with
+backports</td>
+</tr>
+<tr class="row-even"><td>systemd-networkd-autostart</td>
+<td>Enable systemd-networkd as the default
+network manager</td>
 </tr>
 </tbody>
 </table>
@@ -1442,6 +1447,74 @@ folder) as shown here:</p>
 <span class="nv">offline_path</span><span class="o">=</span><span class="s2">&quot;/sys/class/acrn/acrn_hsm&quot;</span>
 <span class="k">fi</span>
 
+
+<span class="k">function</span> run_container<span class="o">()</span>
+<span class="o">{</span>
+<span class="nv">vm_name</span><span class="o">=</span>vm1
+<span class="nv">config_src</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/samples/nuc/runC.json&quot;</span>
+<span class="nv">shell</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/conf/add/</span><span class="nv">$vm_name</span><span class="s2">.sh&quot;</span>
+<span class="nv">arg_file</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/conf/add/</span><span class="nv">$vm_name</span><span class="s2">.args&quot;</span>
+<span class="nv">runc_bundle</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/conf/add/runc/</span><span class="nv">$vm_name</span><span class="s2">&quot;</span>
+<span class="nv">rootfs_dir</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/conf/add/runc/rootfs&quot;</span>
+<span class="nv">config_dst</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$runc_bundle</span><span class="s2">/config.json&quot;</span>
+
+
+<span class="nv">input</span><span class="o">=</span><span class="k">$(</span>runc list -f table <span class="p">|</span> awk <span class="s1">&#39;{print $1}&#39;&#39;{print $3}&#39;</span><span class="k">)</span>
+<span class="nv">arr</span><span class="o">=(</span><span class="si">${</span><span class="nv">input</span><span class="p">// / </span><span class="si">}</span><span class="o">)</span>
+
+<span class="k">for</span><span class="o">((</span><span class="nv">i</span><span class="o">=</span><span class="m">0</span><span class="p">;</span>i&lt;<span class="si">${#</span><span class="nv">arr</span><span class="p">[@]</span><span class="si">}</span><span class="p">;</span>i++<span class="o">))</span>
+<span class="k">do</span>
+	<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$vm_name</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+		<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;running&quot;</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">+1]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+			<span class="nb">echo</span> <span class="s2">&quot;runC instance </span><span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span><span class="s2"> is running&quot;</span>
+			<span class="nb">exit</span>
+		<span class="k">else</span>
+			runc <span class="nb">kill</span> <span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span>
+			runc delete <span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span>
+		<span class="k">fi</span>
+	<span class="k">fi</span>
+<span class="k">done</span>
+<span class="nv">vmsts</span><span class="o">=</span><span class="k">$(</span>acrnctl list<span class="k">)</span>
+<span class="nv">vms</span><span class="o">=(</span><span class="si">${</span><span class="nv">vmsts</span><span class="p">// / </span><span class="si">}</span><span class="o">)</span>
+<span class="k">for</span><span class="o">((</span><span class="nv">i</span><span class="o">=</span><span class="m">0</span><span class="p">;</span>i&lt;<span class="si">${#</span><span class="nv">vms</span><span class="p">[@]</span><span class="si">}</span><span class="p">;</span>i++<span class="o">))</span>
+<span class="k">do</span>
+	<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$vm_name</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+		<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;stopped&quot;</span> !<span class="o">=</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">+1]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+			<span class="nb">echo</span> <span class="s2">&quot;Uos </span><span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">+1]</span><span class="si">}</span><span class="s2">&quot;</span>
+			acrnctl stop <span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span>
+	        <span class="k">fi</span>
+	<span class="k">fi</span>
+<span class="k">done</span>
+
+
+<span class="k">if</span> <span class="o">[</span> ! -f <span class="s2">&quot;</span><span class="nv">$shell</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+	<span class="nb">echo</span> <span class="s2">&quot;Pls add the vm at first!&quot;</span>
+	<span class="nb">exit</span>
+<span class="k">fi</span>
+
+<span class="k">if</span> <span class="o">[</span> ! -f <span class="s2">&quot;</span><span class="nv">$arg_file</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+	<span class="nb">echo</span> <span class="s2">&quot;Pls add the vm args!&quot;</span>
+	<span class="nb">exit</span>
+<span class="k">fi</span>
+
+
+<span class="k">if</span> <span class="o">[</span> ! -d <span class="s2">&quot;</span><span class="nv">$rootfs_dir</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+	mkdir -p <span class="s2">&quot;</span><span class="nv">$rootfs_dir</span><span class="s2">&quot;</span>
+<span class="k">fi</span>
+<span class="k">if</span> <span class="o">[</span> ! -d <span class="s2">&quot;</span><span class="nv">$runc_bundle</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+	mkdir -p <span class="s2">&quot;</span><span class="nv">$runc_bundle</span><span class="s2">&quot;</span>
+<span class="k">fi</span>
+<span class="k">if</span> <span class="o">[</span> ! -f <span class="s2">&quot;</span><span class="nv">$config_dst</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+	cp  <span class="s2">&quot;</span><span class="nv">$config_src</span><span class="s2">&quot;</span>  <span class="s2">&quot;</span><span class="nv">$config_dst</span><span class="s2">&quot;</span>
+	<span class="nv">args</span><span class="o">=</span><span class="k">$(</span>sed <span class="s1">&#39;{s/-C//g;s/^[ \t]*//g;s/^/\&quot;/;s/ /\&quot;,\&quot;/g;s/$/\&quot;/}&#39;</span> <span class="si">${</span><span class="nv">arg_file</span><span class="si">}</span><span class="k">)</span>
+	sed -i <span class="s2">&quot;s|\&quot;sh\&quot;|\&quot;</span><span class="nv">$shell</span><span class="s2">\&quot;, </span><span class="nv">$args</span><span class="s2">|&quot;</span> <span class="nv">$config_dst</span>
+<span class="k">fi</span>
+runc run --bundle <span class="nv">$runc_bundle</span> -d <span class="nv">$vm_name</span>
+<span class="nb">echo</span> <span class="s2">&quot;The runC container is running in backgroud&quot;</span>
+<span class="nb">echo</span> <span class="s2">&quot;&#39;#runc exec &lt;vmname&gt; bash&#39; to login the container bash&quot;</span>
+<span class="nb">exit</span>
+<span class="o">}</span>
+
 <span class="k">function</span> launch_clear<span class="o">()</span>
 <span class="o">{</span>
 <span class="nv">mac</span><span class="o">=</span><span class="k">$(</span>cat /sys/class/net/e*/address<span class="k">)</span>
@@ -1495,7 +1568,13 @@ acrn-dm -A -m <span class="nv">$mem_size</span> -c <span class="nv">$2</span> -s
         <span class="k">fi</span>
 <span class="k">done</span>
 
-launch_clear <span class="m">1</span> <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;-C&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
+	<span class="nb">echo</span> <span class="s2">&quot;runc_container&quot;</span>
+	run_container
+<span class="k">else</span>
+	launch_clear <span class="m">1</span> <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00
+<span class="k">fi</span>
 </pre></div>
 </div>
 </div>
@@ -1532,7 +1611,7 @@ SOS, and UOS:</p>
     <p>
         &copy; Copyright 2019, Project ACRN
       <span class="lastupdated">
-        Last updated on Jun 13, 2019.
+        Last updated on Jun 17, 2019.
       </span>
 
     </p>
