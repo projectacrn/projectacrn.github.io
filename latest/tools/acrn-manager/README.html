@@ -267,7 +267,6 @@
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">acrnctl and acrnd</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#description">Description</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#usage">Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#acrnd">acrnd</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#build-and-install">Build and Install</a></li>
 </ul>
@@ -510,6 +509,14 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/index.html">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/acrn-dm_QoS.html">Enable QoS based on runC container</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-dm_QoS.html#what-is-qos">What is QoS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-dm_QoS.html#what-is-runc-container">What is runC container</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-dm_QoS.html#acrn-dm-qos-architecture">ACRN-DM QoS architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-dm_QoS.html#acrn-qos-cpu-utilization-example">ACRN-QoS CPU utilization example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-dm_QoS.html#how-to-use-acrn-dm-qos">How to use ACRN-DM QoS</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../tutorials/agl-vms.html">Running AGL as VMs</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/agl-vms.html#hardware-setup">Hardware setup</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/agl-vms.html#connecting-hardware">Connecting hardware</a></li>
@@ -870,9 +877,8 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code> tool helps users create, delete, launch, and stop a User
 OS (UOS).  The tool runs under the Service OS, and UOSs should be based
 on <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>. The daemon for acrn-manager is <a class="reference internal" href="#acrnd">acrnd</a>.</p>
-</div>
 <div class="section" id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
 <p>You can see the available <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code> commands by running:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># acrnctl help
 support:
@@ -891,12 +897,18 @@ Use acrnctl [cmd] help for details
 </pre></div>
 </div>
 <p>Here are some usage examples:</p>
+</div>
 <div class="section" id="add-a-vm">
 <h3>Add a VM<a class="headerlink" href="#add-a-vm" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">add</span></code> command lets you add a VM by specifying a
 script that will launch a UOS, for example <code class="docutils literal notranslate"><span class="pre">launch_UOS.sh</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># acrnctl add launch_UOS.sh -U 1
 vm1-14:59:30 added
+</pre></div>
+</div>
+<p>If a <code class="docutils literal notranslate"><span class="pre">-C</span></code> option is also specified, the VM is launched in a runC
+container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># acrnctl add launch_UOS.sh -C</span>
 </pre></div>
 </div>
 <p>Note that the launch script must only launch one UOS instance.
@@ -964,14 +976,28 @@ result in error.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon process provides a way for launching or resuming a UOS
 should the UOS shut down, either planned or unexpected. A UOS can ask <code class="docutils literal notranslate"><span class="pre">acrnd</span></code>
 to set up a timer to make sure the UOS is running, even if the SOS is
-suspended or stopped.
-The <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon stores pending UOS work to <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/conf/timer_list</span></code>
+suspended or stopped.</p>
+<div class="section" id="id2">
+<h3>Usage<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>You can see the available <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> commands by running:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ acrnd -h
+acrnd - Deamon for ACRN VM Management
+[Usage] acrnd [-t] [-d delay] [-h]
+-h: print this message
+-t: print messages to stdout
+</pre></div>
+</div>
+<p>Normally, <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> runs silently (messages are directed to
+<code class="docutils literal notranslate"><span class="pre">/dev/null</span></code>).  Use the <code class="docutils literal notranslate"><span class="pre">-t</span></code> option to direct messages to stdout,
+useful for debugging.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon stores pending UOS work to <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/conf/timer_list</span></code>
 and sets an RTC timer to wake up the SOS or bring the SOS back up again.
 When <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon is restarted, it restores the previously saved timer
 list and launches the UOSs at the right time.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">systemd</span></code> service file (<code class="docutils literal notranslate"><span class="pre">acrnd.service</span></code>) is installed by default that will
 start the <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon when the Service OS comes up.
 You can restart/stop acrnd service using <code class="docutils literal notranslate"><span class="pre">systemctl</span></code></p>
+</div>
 </div>
 <div class="section" id="build-and-install">
 <h2>Build and Install<a class="headerlink" href="#build-and-install" title="Permalink to this headline">¶</a></h2>
@@ -998,7 +1024,7 @@ Change to that folder and run:</p>
     <p>
         &copy; Copyright 2019, Project ACRN
       <span class="lastupdated">
-        Last updated on Jun 17, 2019.
+        Last updated on Jun 23, 2019.
       </span>
 
     </p>
