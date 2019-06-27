@@ -41,17 +41,22 @@ Add a VM
 ========
 
 The ``add`` command lets you add a VM by specifying a
-script that will launch a UOS, for example ``launch_UOS.sh``:
+script that will launch a UOS, for example ``launch_uos.sh``:
 
 .. code-block:: none
 
-   # acrnctl add launch_UOS.sh -U 1
+   # acrnctl add launch_uos.sh -U 1
    vm1-14:59:30 added
 
 If a ``-C`` option is also specified, the VM is launched in a runC
 container::
 
-   # acrnctl add launch_UOS.sh -C
+   # acrnctl add launch_uos.sh -C
+
+.. note:: You can download an `example launch_uos.sh script
+   <https://raw.githubusercontent.com/projectacrn/acrnhypervisor/master/devicemodel/samples/nuc/launch_uos.sh>`_
+   that supports the ``-C``  (``run_container`` function) option. You may refer to :ref:`acrn-dm_qos`
+   for more details about this option.
 
 Note that the launch script must only launch one UOS instance.
 The VM name is important. ``acrnctl`` searches VMs by their
@@ -138,13 +143,15 @@ You can see the available ``acrnd`` commands by running:
 .. code-block:: none
 
    $ acrnd -h
-   acrnd - Deamon for ACRN VM Management
+   acrnd - Daemon for ACRN VM Management
    [Usage] acrnd [-t] [-d delay] [-h]
-   -h: print this message
    -t: print messages to stdout
+   -d: delay the autostarting of VMs, <0-60> in second (not available in the
+       ``RELEASE=1`` build)
+   -h: print this message
 
 Normally, ``acrnd`` runs silently (messages are directed to
-``/dev/null``).  Use the ``-t`` option to direct messages to stdout,
+``/dev/null``).  Use the ``-t`` option to direct messages to ``stdout``,
 useful for debugging.
 
 The ``acrnd`` daemon stores pending UOS work to ``/usr/share/acrn/conf/timer_list``
