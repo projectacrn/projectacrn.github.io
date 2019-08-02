@@ -141,7 +141,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#automotive-use-case-example">Automotive Use Case Example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#licensing">Licensing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#acrn-device-model-service-os-and-user-os">ACRN Device Model, Service OS, and User OS</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#boot-sequence">Boot Sequence</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../introduction/index.html#de-privilege-boot-mode">De-privilege boot mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../introduction/index.html#direct-boot-mode">Direct boot mode</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#acrn-hypervisor-architecture">ACRN Hypervisor Architecture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#device-pass-through">Device pass through</a><ul>
@@ -195,10 +199,11 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Build ACRN from Source</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#install-build-tools-and-dependencies">Install build tools and dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-the-acrn-hypervisor-source-code">Get the ACRN hypervisor source code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#choose-the-acrn-scenario">Choose the ACRN scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#modify-the-hypervisor-configuration">Modify the hypervisor configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#build-the-hypervisor-device-model-and-tools">Build the hypervisor, device model and tools</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#configuring-the-hypervisor">Configuring the hypervisor</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#modify-the-hypervisor-configurations">Modify the hypervisor configurations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#create-a-new-default-configuration">Create a new default configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#save-as-default-configuration">Save as default configuration</a></li>
 </ul>
 </li>
 </ul>
@@ -821,7 +826,7 @@ platform and per usage scenario, rather than one binary for all
 scenarios.</p>
 <p>The hypervisor binary is generated based on Kconfig configuration
 settings.  Instruction about these settings can be found in
-<a class="reference internal" href="#getting-started-hypervisor-configuration"><span class="std std-ref">Configuring the hypervisor</span></a>.</p>
+<a class="reference internal" href="#getting-started-hypervisor-configuration"><span class="std std-ref">Modify the hypervisor configuration</span></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">A generic configuration named <code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/generic.config</span></code>
@@ -973,36 +978,69 @@ details.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="build-the-hypervisor-device-model-and-tools">
-<h2>Build the hypervisor, device model and tools<a class="headerlink" href="#build-the-hypervisor-device-model-and-tools" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="get-the-acrn-hypervisor-source-code">
+<h2>Get the ACRN hypervisor source code<a class="headerlink" href="#get-the-acrn-hypervisor-source-code" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/">acrn-hypervisor</a>
 repository has four main components in it:</p>
 <ol class="arabic simple">
 <li>The ACRN hypervisor code located in the <code class="docutils literal notranslate"><span class="pre">hypervisor</span></code> directory</li>
-<li>The EFI stub code located in the <code class="docutils literal notranslate"><span class="pre">efi-stub</span></code> directory</li>
+<li>The EFI stub code located in the <code class="docutils literal notranslate"><span class="pre">misc/efi-stub</span></code> directory</li>
 <li>The ACRN devicemodel code located in the <code class="docutils literal notranslate"><span class="pre">devicemodel</span></code> directory</li>
-<li>The ACRN tools source code located in the <code class="docutils literal notranslate"><span class="pre">tools</span></code> directory</li>
+<li>The ACRN tools source code located in the <code class="docutils literal notranslate"><span class="pre">misc/tools</span></code> directory</li>
 </ol>
-<p>You can build all these components in one go as follows:</p>
+<p>Follow this step to get the acrn-hypervisor source code:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor
-$ cd acrn-hypervisor
-$ make
 </pre></div>
 </div>
-<p>The build results are found in the <code class="docutils literal notranslate"><span class="pre">build</span></code> directory.</p>
+</div>
+<div class="section" id="choose-the-acrn-scenario">
+<h2>Choose the ACRN scenario<a class="headerlink" href="#choose-the-acrn-scenario" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">if you wish to use a different target folder for the build
-artifacts, set the <code class="docutils literal notranslate"><span class="pre">O</span></code> (that is capital letter ‘O’) to the
-desired value. Example: <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">O=build-nuc</span> <span class="pre">BOARD=nuc6cayh</span></code>.</p>
+<p class="last">Documentation about the new ACRN use-case scenarios is a
+work-in-progress on the master branch as we work towards the v1.2
+release.</p>
 </div>
-<p>Generating the documentation is described in details in the <a class="reference internal" href="../tutorials/docbuild.html#acrn-doc"><span class="std std-ref">ACRN documentation generation</span></a>
-tutorial.</p>
-<p>Follow the same instructions to boot and test the images you created
-from your build.</p>
+<p>Currently ACRN hypervisor defines these typical usage scenarios:</p>
+<dl class="docutils">
+<dt>SDC:</dt>
+<dd>The SDC (Software Defined Cockpit) scenario defines a simple
+automotive use-case where there is one pre-launched Service VM and one
+post-launched User VM.</dd>
+<dt>SDC2:</dt>
+<dd>SDC2 (Software Defined Cockpit 2) is an extended scenario for an
+automotive SDC system.  SDC2 defined one pre-launched Service VM and up
+to three post-launched VMs.</dd>
+<dt>LOGICAL_PARTITION:</dt>
+<dd>This scenario defines two pre-launched VMs.</dd>
+<dt>INDUSTRY:</dt>
+<dd>This is a typical scenario for industrial usage with up to four VMs:
+one pre-launched Service VM, one post-launched Standard VM for Human
+interaction (HMI), and one or two post-launched RT VMs for real-time
+control.</dd>
+<dt>HYBRID:</dt>
+<dd>This scenario defines a hybrid use-case with three VMs: one
+pre-launched VM, one pre-launched Service VM, and one post-launched
+Standard VM.</dd>
+</dl>
+<p>You can select a build scenario by changing the default Kconfig name in
+the choice block of <strong>ACRN Scenario</strong> in <code class="docutils literal notranslate"><span class="pre">arch/x86/Kconfig</span></code>. The
+corresponding VM configuration files in the corresponding
+<code class="docutils literal notranslate"><span class="pre">scenarios/$SCENARIO_NAME/</span></code> folder.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd  acrn-hypervisor/hypervisor
+$ sudo vim arch/x86/Kconfig
+# &lt;Fill the scenario name into below and save&gt;
+
+choice
+             prompt &quot;ACRN Scenario&quot;
+<span class="hll">             default SDC
+</span></pre></div>
 </div>
-<div class="section" id="configuring-the-hypervisor">
-<span id="getting-started-hypervisor-configuration"></span><h2>Configuring the hypervisor<a class="headerlink" href="#configuring-the-hypervisor" title="Permalink to this headline">¶</a></h2>
+<p>See the <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a> document for information about the platform
+needs for each scenario.</p>
+</div>
+<div class="section" id="modify-the-hypervisor-configuration">
+<span id="getting-started-hypervisor-configuration"></span><h2>Modify the hypervisor configuration<a class="headerlink" href="#modify-the-hypervisor-configuration" title="Permalink to this headline">¶</a></h2>
 <p>The ACRN hypervisor leverages Kconfig to manage configurations, powered by
 Kconfiglib. A default configuration is generated based on the board you have
 selected via the <code class="docutils literal notranslate"><span class="pre">BOARD=</span></code> command line parameter. You can make further
@@ -1013,45 +1051,52 @@ individually. The following steps generate a default but complete configuration,
 based on the platform selected, assuming that you are under the top-level
 directory of acrn-hypervisor. The configuration file, named <code class="docutils literal notranslate"><span class="pre">.config</span></code>, can be
 found under the target folder of your build.</p>
-<blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd hypervisor
-$ make defconfig BOARD=nuc6cayh
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make defconfig BOARD=nuc6cayh
 </pre></div>
 </div>
-</div></blockquote>
 <p>The BOARD specified is used to select a defconfig under
 <code class="docutils literal notranslate"><span class="pre">arch/x86/configs/</span></code>. The other command-line based options (e.g. <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code>)
 take no effects when generating a defconfig.</p>
-</div>
-<div class="section" id="modify-the-hypervisor-configurations">
-<h2>Modify the hypervisor configurations<a class="headerlink" href="#modify-the-hypervisor-configurations" title="Permalink to this headline">¶</a></h2>
 <p>To modify the hypervisor configurations, you can either edit <code class="docutils literal notranslate"><span class="pre">.config</span></code>
 manually, or invoke a TUI-based menuconfig, powered by kconfiglib, by executing
 <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code>. As an example, the following commands, assuming that you
 are under the top-level directory of acrn-hypervisor, generate a default
 configuration file for UEFI, allow you to modify some configurations and build
 the hypervisor using the updated <code class="docutils literal notranslate"><span class="pre">.config</span></code>.</p>
-<blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd hypervisor
-$ make defconfig BOARD=nuc6cayh
-$ make menuconfig              # Modify the configurations per your needs
-$ make                         # Build the hypervisor with the new .config
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make menuconfig              # Modify the configurations per your needs
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Menuconfig is python3 only.</p>
 </div>
-</div></blockquote>
 <p>Refer to the help on menuconfig for a detailed guide on the interface.</p>
-<blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pydoc3 menuconfig
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pydoc3 menuconfig
 </pre></div>
 </div>
-</div></blockquote>
 </div>
-<div class="section" id="create-a-new-default-configuration">
-<h2>Create a new default configuration<a class="headerlink" href="#create-a-new-default-configuration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="build-the-hypervisor-device-model-and-tools">
+<h2>Build the hypervisor, device model and tools<a class="headerlink" href="#build-the-hypervisor-device-model-and-tools" title="Permalink to this headline">¶</a></h2>
+<p>Now you can build all these components in one go as follows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd ../                      # Enter top-level folder of acrn-hypervisor source
+$ make FIRMWARE=uefi          # Build the UEFI hypervisor with the new .config
+</pre></div>
+</div>
+<p>The build results are found in the <code class="docutils literal notranslate"><span class="pre">build</span></code> directory.  You can specify
+use a different Output folder by setting the <code class="docutils literal notranslate"><span class="pre">O</span></code> make parameter,
+for example: <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">O=build-nuc</span> <span class="pre">BOARD=nuc6cayh</span></code>.</p>
+<p>If you only need the hypervisor, then use this command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make clean                              # Remove files previously built
+$ make FIRMWARE=uefi hypervisor           # This will only build the hypervisor
+</pre></div>
+</div>
+<p>You could also use <code class="docutils literal notranslate"><span class="pre">FIRMWARE=sbl</span></code> instead, to build the Intel SBL
+(<a class="reference external" href="https://www.intel.com/content/www/us/en/design/products-and-solutions/technologies/slim-bootloader/overview.html">Slim bootloader</a>)
+hypervisor.</p>
+<p>Follow the same instructions to boot and test the images you created from your build.</p>
+</div>
+<div class="section" id="save-as-default-configuration">
+<h2>Save as default configuration<a class="headerlink" href="#save-as-default-configuration" title="Permalink to this headline">¶</a></h2>
 <p>Currently the ACRN hypervisor looks for default configurations under
 <code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/&lt;BOARD&gt;.config</span></code>, where <code class="docutils literal notranslate"><span class="pre">&lt;BOARD&gt;</span></code> is the
 specified platform. The following steps allow you to create a defconfig for

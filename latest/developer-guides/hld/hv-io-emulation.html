@@ -141,7 +141,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#automotive-use-case-example">Automotive Use Case Example</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#licensing">Licensing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-service-os-and-user-os">ACRN Device Model, Service OS, and User OS</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#boot-sequence">Boot Sequence</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../introduction/index.html#de-privilege-boot-mode">De-privilege boot mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../introduction/index.html#direct-boot-mode">Direct boot mode</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#acrn-hypervisor-architecture">ACRN Hypervisor Architecture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#device-pass-through">Device pass through</a><ul>
@@ -195,10 +199,11 @@
 <li class="toctree-l2"><a class="reference internal" href="../../getting-started/building-from-source.html">Build ACRN from Source</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#install-build-tools-and-dependencies">Install build tools and dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#get-the-acrn-hypervisor-source-code">Get the ACRN hypervisor source code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#choose-the-acrn-scenario">Choose the ACRN scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#modify-the-hypervisor-configuration">Modify the hypervisor configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#build-the-hypervisor-device-model-and-tools">Build the hypervisor, device model and tools</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#configuring-the-hypervisor">Configuring the hypervisor</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#modify-the-hypervisor-configurations">Modify the hypervisor configurations</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#create-a-new-default-configuration">Create a new default configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#save-as-default-configuration">Save as default configuration</a></li>
 </ul>
 </li>
 </ul>
@@ -827,7 +832,7 @@ emulating trapped I/O accesses in a certain range.</li>
 <li>Forward I/O accesses to SOS when they cannot be handled by the
 hypervisor by any registered handlers.</li>
 </ul>
-<p><a class="reference internal" href="#io-control-flow"><span class="std std-numref">Figure 75</span></a> illustrates the main control flow steps of I/O emulation
+<p><a class="reference internal" href="#io-control-flow"><span class="std std-numref">Figure 76</span></a> illustrates the main control flow steps of I/O emulation
 inside the hypervisor:</p>
 <ol class="arabic simple">
 <li>Trap and decode I/O access by VM exits and decode the access from
@@ -840,7 +845,7 @@ handler, deliver an I/O request to SOS.</li>
 </ol>
 <div class="figure align-center" id="io-control-flow">
 <img alt="../../_images/ioem-image101.png" src="../../_images/ioem-image101.png" />
-<p class="caption"><span class="caption-number">Figure 75 </span><span class="caption-text">Control flow of I/O emulation in the hypervisor</span></p>
+<p class="caption"><span class="caption-number">Figure 76 </span><span class="caption-text">Control flow of I/O emulation in the hypervisor</span></p>
 </div>
 <p>I/O emulation does not rely on any calibration data.</p>
 <div class="section" id="trap-path">
@@ -959,7 +964,7 @@ with four states. The following figure illustrates the state transitions
 and the events that trigger them.</p>
 <div class="figure align-center" id="id1">
 <img alt="../../_images/ioem-image92.png" src="../../_images/ioem-image92.png" />
-<p class="caption"><span class="caption-number">Figure 76 </span><span class="caption-text">State Transition of I/O Requests</span></p>
+<p class="caption"><span class="caption-number">Figure 77 </span><span class="caption-text">State Transition of I/O Requests</span></p>
 </div>
 <p>The four states are:</p>
 <dl class="docutils">
@@ -1016,7 +1021,7 @@ the post-work, and resume the guest vCPU. The post-work takes care of
 updating the vCPU guest state to reflect the effect of the I/O reads.</p>
 <div class="figure align-center" id="id2">
 <img alt="../../_images/ioem-image100.png" src="../../_images/ioem-image100.png" />
-<p class="caption"><span class="caption-number">Figure 77 </span><span class="caption-text">Workflow of MMIO I/O request completion</span></p>
+<p class="caption"><span class="caption-number">Figure 78 </span><span class="caption-text">Workflow of MMIO I/O request completion</span></p>
 </div>
 <p>The figure above illustrates the workflow to complete an I/O
 request for MMIO. Once the I/O request is completed, SOS makes a
@@ -1027,9 +1032,9 @@ the access reads an address, changes the state of the corresponding I/O
 request slot to FREE, and continues execution of the vCPU.</p>
 <div class="figure align-center" id="port-io-completion">
 <img alt="../../_images/ioem-image106.png" src="../../_images/ioem-image106.png" />
-<p class="caption"><span class="caption-number">Figure 78 </span><span class="caption-text">Workflow of port I/O request completion</span></p>
+<p class="caption"><span class="caption-number">Figure 79 </span><span class="caption-text">Workflow of port I/O request completion</span></p>
 </div>
-<p>Completion of a port I/O request (shown in <a class="reference internal" href="#port-io-completion"><span class="std std-numref">Figure 78</span></a>
+<p>Completion of a port I/O request (shown in <a class="reference internal" href="#port-io-completion"><span class="std std-numref">Figure 79</span></a>
 above) is
 similar to the MMIO case, except the post-work is done before resuming
 the vCPU. This is because the post-work for port I/O reads need to update
