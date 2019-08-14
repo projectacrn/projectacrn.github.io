@@ -161,9 +161,9 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../try.html">Try using ACRN</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../reference/hardware.html">Supported Hardware</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../reference/hardware.html#intel-apollo-lake-nuc">Intel Apollo Lake NUC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../reference/hardware.html#intel-kaby-lake-nuc">Intel Kaby Lake NUC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../reference/hardware.html#up-squared-board">UP Squared board</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/hardware.html#minimum-system-requirements-for-installing-acrn">Minimum System Requirements for Installing ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/hardware.html#verified-platforms-according-to-acrn-usage">Verified Platforms According to ACRN Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../reference/hardware.html#verified-hardware-specifications-detail">Verified Hardware Specifications Detail</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../getting-started/apl-nuc.html">Getting started guide for Intel NUC</a><ul>
@@ -254,6 +254,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_sdc2_mode_on_nuc.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_sdc2_mode_on_nuc.html#re-build-acrn-uefi-executable">Re-build ACRN UEFI Executable</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_sdc2_mode_on_nuc.html#launch-user-vms-with-predefined-uuids">Launch User VMs with predefined UUIDs</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html">Using Hybrid mode on NUC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot hypervisor and Load Kernel Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-checking">Hybrid Scenario Startup Checking</a></li>
 </ul>
 </li>
 </ul>
@@ -829,10 +835,10 @@
 <div class="section" id="workflow">
 <h3>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
 <p>Error detection and error handling workflow in the ACRN hypervisor is shown in
-<a class="reference internal" href="#work-flow-of-error-detection-and-error-handling"><span class="std std-numref">Figure 211</span></a>.</p>
+<a class="reference internal" href="#work-flow-of-error-detection-and-error-handling"><span class="std std-numref">Figure 212</span></a>.</p>
 <div class="figure align-center" id="work-flow-of-error-detection-and-error-handling">
 <img alt="../_images/work_flow_of_error_detection_and_error_handling.png" src="../_images/work_flow_of_error_detection_and_error_handling.png" />
-<p class="caption"><span class="caption-number">Figure 211 </span><span class="caption-text">Error Detection and Error Handling Workflow</span></p>
+<p class="caption"><span class="caption-number">Figure 212 </span><span class="caption-text">Error Detection and Error Handling Workflow</span></p>
 </div>
 </div>
 <div class="section" id="design-assumption">
@@ -1168,7 +1174,7 @@ VM configurations are.
 Thus hypervisor does not
 need any additional
 mechanism.</td>
-<td>‘vm_config-&gt;pci_ptdevs’
+<td>‘vm_config-&gt;pci_devs’
 is configured
 statically.</td>
 </tr>
@@ -1207,19 +1213,19 @@ a module level.</p>
         <span class="k">struct</span> <span class="n">acrn_vpci</span> <span class="o">*</span><span class="n">vpci</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">acrn_vpci</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">);</span>
         <span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="n">vdev</span><span class="p">;</span>
         <span class="k">struct</span> <span class="n">acrn_vm_config</span> <span class="o">*</span><span class="n">vm_config</span> <span class="o">=</span> <span class="n">get_vm_config</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vm_id</span><span class="p">);</span>
-        <span class="k">struct</span> <span class="n">acrn_vm_pci_ptdev_config</span> <span class="o">*</span><span class="n">ptdev_config</span><span class="p">;</span>
+        <span class="k">struct</span> <span class="n">acrn_vm_pci_dev_config</span> <span class="o">*</span><span class="n">pci_dev_config</span><span class="p">;</span>
         <span class="kt">uint32_t</span> <span class="n">i</span><span class="p">;</span>
 
-        <span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span> <span class="o">=</span> <span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_ptdev_num</span><span class="p">;</span>
+        <span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span> <span class="o">=</span> <span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_dev_num</span><span class="p">;</span>
 
         <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0U</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
                 <span class="n">vdev</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdevs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
                 <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vpci</span> <span class="o">=</span> <span class="n">vpci</span><span class="p">;</span>
-                <span class="n">ptdev_config</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_ptdevs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-                <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">ptdev_config</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="p">;</span>
+                <span class="n">pci_dev_config</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_devs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+                <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">pci_dev_config</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="p">;</span>
 
                 <span class="k">if</span> <span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span> <span class="o">!=</span> <span class="mi">0U</span><span class="p">)</span> <span class="p">{</span>
-                        <span class="n">partition_mode_pdev_init</span><span class="p">(</span><span class="n">vdev</span><span class="p">,</span> <span class="n">ptdev_config</span><span class="o">-&gt;</span><span class="n">pbdf</span><span class="p">);</span>
+                        <span class="n">partition_mode_pdev_init</span><span class="p">(</span><span class="n">vdev</span><span class="p">,</span> <span class="n">pci_dev_config</span><span class="o">-&gt;</span><span class="n">pbdf</span><span class="p">);</span>
                         <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">pci_ops_vdev_pt</span><span class="p">;</span>
                 <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
                         <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">pci_ops_vdev_hostbridge</span><span class="p">;</span>
@@ -1244,7 +1250,7 @@ pre-conditions and <code class="docutils literal notranslate"><span class="pre">
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
 <span class="cm"> * @pre vm_id &lt; CONFIG_MAX_VM_NUM</span>
 <span class="cm"> * @post retval != NULL</span>
-<span class="cm"> * @post retval-&gt;pci_ptdev_num &lt;= MAX_PCI_DEV_NUM</span>
+<span class="cm"> * @post retval-&gt;pci_dev_num &lt;= MAX_PCI_DEV_NUM</span>
 <span class="cm"> */</span>
 <span class="k">struct</span> <span class="n">acrn_vm_config</span> <span class="o">*</span><span class="nf">get_vm_config</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">vm_id</span><span class="p">)</span>
 <span class="p">{</span>
@@ -1269,8 +1275,8 @@ valid.</li>
 </ol>
 <p>Given the two reasons above, ‘vdev’ is always not NULL. So, the error checking
 codes are not required for ‘vdev’.</p>
-<p><strong>Question_3: Is error checking required for ‘ptdev_config’?</strong></p>
-<p>No. ‘ptdev_config’ is getting data from the array ‘pci_vdevs[]’, which is the
+<p><strong>Question_3: Is error checking required for ‘pci_dev_config’?</strong></p>
+<p>No. ‘pci_dev_config’ is getting data from the array ‘pci_vdevs[]’, which is the
 physical PCI device information coming from Board Support Package and firmware.
 For physical PCI device information, the related application constraints
 shall be defined in the design document or safety manual. For debug purpose,
@@ -1471,7 +1477,7 @@ configuration is dereferenced after it has been instantiated.</p>
 idea of module level configuration design.</p>
 <div class="figure align-center" id="boot-information-parsing-module">
 <a class="reference internal image-reference" href="../_images/boot_information_parsing_module.png"><img alt="../_images/boot_information_parsing_module.png" src="../_images/boot_information_parsing_module.png" style="width: 621.5999999999999px; height: 362.59999999999997px;" /></a>
-<p class="caption"><span class="caption-number">Figure 212 </span><span class="caption-text">Boot Information Parsing Module</span></p>
+<p class="caption"><span class="caption-number">Figure 213 </span><span class="caption-text">Boot Information Parsing Module</span></p>
 </div>
 <p>As shown in the source code below, ‘struct firmware_operations’ is an operations
 data structure that contains a set of function pointers.
@@ -1575,7 +1581,7 @@ dereferenced here with correct API being called.</p>
     <p>
         &copy; Copyright 2019, Project ACRN
       <span class="lastupdated">
-        Last updated on Aug 02, 2019.
+        Last updated on Aug 13, 2019.
       </span>
 
     </p>

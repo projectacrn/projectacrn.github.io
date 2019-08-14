@@ -17,6 +17,7 @@ described in :ref:`hardware`, are currently supported for ACRN development:
   <https://www.amazon.com/Intel-Business-Mini-Technology-BLKNUC7i7DNH1E/dp/B07CCQ8V4R>`__
   (NUC7i7DN), but this is not supported on APL (NUC6CAYH).
 
+.. _connect_serial_port:
 
 Connecting to the serial port
 =============================
@@ -107,6 +108,7 @@ manually, as described below).
 
    #.  From the Main Menu, select "Configure Media" and set
        "Auto Partition" to your desired hard disk.
+   #.  Select "Telemetry" to set Tab to highlight your choice.
    #.  Press :kbd:`A` to show the "Advanced options".
    #.  Select "Additional Bundle Selection" to add bundles for
        "desktop-autostart", "editors", "network-basic", "user-basic"
