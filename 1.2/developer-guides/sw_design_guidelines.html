@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Software Design Guidelines &mdash; Project ACRN™ v 1.2-unstable documentation</title>
+  <title>Software Design Guidelines &mdash; Project ACRN™ v 1.2 documentation</title>
   
 
   
@@ -19,30 +19,13 @@
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'v 1.2-unstable',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/acrn-custom.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
+  
+  
     
 
   
+
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
@@ -50,16 +33,21 @@
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="GVT-g Enabling and Porting Guide" href="GVT-g-porting.html" />
     <link rel="prev" title="Security high-level design" href="hld/hld-security.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -76,7 +64,7 @@
             
             
               <div class="version">
-                1.2
+                latest
               </div>
             
           
@@ -99,7 +87,7 @@
   <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
     <span class="rst-current-version" data-toggle="rst-current-version">
       <span class="fa fa-book"> Project ACRN</span>
-      v: 1.2
+      v: latest
       <span class="fa fa-caret-down"></span>
     </span>
     <div class="rst-other-versions">
@@ -269,9 +257,9 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_sdc2_mode_on_nuc.html#launch-user-vms-with-predefined-uuids">Launch User VMs with predefined UUIDs</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html">Using Hybrid Mode on the NUC</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html">Using Hybrid mode on NUC</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot hypervisor and Load Kernel Image</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-checking">Hybrid Scenario Startup Checking</a></li>
 </ul>
 </li>
@@ -1199,7 +1187,7 @@ VM configurations are.
 Thus hypervisor does not
 need any additional
 mechanism.</td>
-<td>‘vm_config-&gt;pci_devs’
+<td>‘vm_config-&gt;pci_ptdevs’
 is configured
 statically.</td>
 </tr>
@@ -1238,19 +1226,19 @@ a module level.</p>
         <span class="k">struct</span> <span class="n">acrn_vpci</span> <span class="o">*</span><span class="n">vpci</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">acrn_vpci</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">);</span>
         <span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="n">vdev</span><span class="p">;</span>
         <span class="k">struct</span> <span class="n">acrn_vm_config</span> <span class="o">*</span><span class="n">vm_config</span> <span class="o">=</span> <span class="n">get_vm_config</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vm_id</span><span class="p">);</span>
-        <span class="k">struct</span> <span class="n">acrn_vm_pci_dev_config</span> <span class="o">*</span><span class="n">pci_dev_config</span><span class="p">;</span>
+        <span class="k">struct</span> <span class="n">acrn_vm_pci_ptdev_config</span> <span class="o">*</span><span class="n">ptdev_config</span><span class="p">;</span>
         <span class="kt">uint32_t</span> <span class="n">i</span><span class="p">;</span>
 
-        <span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span> <span class="o">=</span> <span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_dev_num</span><span class="p">;</span>
+        <span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span> <span class="o">=</span> <span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_ptdev_num</span><span class="p">;</span>
 
         <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0U</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
                 <span class="n">vdev</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdevs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
                 <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vpci</span> <span class="o">=</span> <span class="n">vpci</span><span class="p">;</span>
-                <span class="n">pci_dev_config</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_devs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-                <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">pci_dev_config</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="p">;</span>
+                <span class="n">ptdev_config</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_ptdevs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+                <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">ptdev_config</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="p">;</span>
 
                 <span class="k">if</span> <span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span> <span class="o">!=</span> <span class="mi">0U</span><span class="p">)</span> <span class="p">{</span>
-                        <span class="n">partition_mode_pdev_init</span><span class="p">(</span><span class="n">vdev</span><span class="p">,</span> <span class="n">pci_dev_config</span><span class="o">-&gt;</span><span class="n">pbdf</span><span class="p">);</span>
+                        <span class="n">partition_mode_pdev_init</span><span class="p">(</span><span class="n">vdev</span><span class="p">,</span> <span class="n">ptdev_config</span><span class="o">-&gt;</span><span class="n">pbdf</span><span class="p">);</span>
                         <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">pci_ops_vdev_pt</span><span class="p">;</span>
                 <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
                         <span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">pci_ops_vdev_hostbridge</span><span class="p">;</span>
@@ -1275,7 +1263,7 @@ pre-conditions and <code class="docutils literal notranslate"><span class="pre">
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
 <span class="cm"> * @pre vm_id &lt; CONFIG_MAX_VM_NUM</span>
 <span class="cm"> * @post retval != NULL</span>
-<span class="cm"> * @post retval-&gt;pci_dev_num &lt;= MAX_PCI_DEV_NUM</span>
+<span class="cm"> * @post retval-&gt;pci_ptdev_num &lt;= MAX_PCI_DEV_NUM</span>
 <span class="cm"> */</span>
 <span class="k">struct</span> <span class="n">acrn_vm_config</span> <span class="o">*</span><span class="nf">get_vm_config</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">vm_id</span><span class="p">)</span>
 <span class="p">{</span>
@@ -1300,8 +1288,8 @@ valid.</li>
 </ol>
 <p>Given the two reasons above, ‘vdev’ is always not NULL. So, the error checking
 codes are not required for ‘vdev’.</p>
-<p><strong>Question_3: Is error checking required for ‘pci_dev_config’?</strong></p>
-<p>No. ‘pci_dev_config’ is getting data from the array ‘pci_vdevs[]’, which is the
+<p><strong>Question_3: Is error checking required for ‘ptdev_config’?</strong></p>
+<p>No. ‘ptdev_config’ is getting data from the array ‘pci_vdevs[]’, which is the
 physical PCI device information coming from Board Support Package and firmware.
 For physical PCI device information, the related application constraints
 shall be defined in the design document or safety manual. For debug purpose,
@@ -1604,10 +1592,8 @@ dereferenced here with correct API being called.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Project ACRN
-      <span class="lastupdated">
-        Last updated on Aug 15, 2019.
-      </span>
+        &copy; Copyright 2019, Project ACRN.
+      Last updated on Aug 27, 2019.
 
     </p>
   </div> 
@@ -1622,16 +1608,33 @@ dereferenced here with correct API being called.</p>
   </div>
   
 
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v 1.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="../_static/acrn-custom.js"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
