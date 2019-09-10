@@ -204,7 +204,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#choose-the-acrn-scenario">Choose the ACRN scenario</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#modify-the-hypervisor-configuration">Modify the hypervisor configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#build-the-hypervisor-device-model-and-tools">Build the hypervisor, device model and tools</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#save-as-default-configuration">Save as default configuration</a></li>
 </ul>
 </li>
 </ul>
@@ -261,6 +260,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-checking">Hybrid Scenario Startup Checking</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html">ACRN Configuration Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#acrn-configurations-introduction">ACRN Configurations Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#configuration-tool-working-flow">Configuration Tool Working Flow</a></li>
 </ul>
 </li>
 </ul>
@@ -877,9 +881,9 @@ virtual machine based on a vMMU</li>
 </ul>
 <div class="figure align-center" id="mem-overview">
 <a class="reference internal image-reference" href="../../_images/mem-image2.png"><img alt="../../_images/mem-image2.png" src="../../_images/mem-image2.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 82 </span><span class="caption-text">ACRN Memory Mapping Overview</span></p>
+<p class="caption"><span class="caption-number">Figure 85 </span><span class="caption-text">ACRN Memory Mapping Overview</span></p>
 </div>
-<p><a class="reference internal" href="#mem-overview"><span class="std std-numref">Figure 82</span></a> provides an overview of the ACRN system memory
+<p><a class="reference internal" href="#mem-overview"><span class="std std-numref">Figure 85</span></a> provides an overview of the ACRN system memory
 mapping, showing:</p>
 <ul class="simple">
 <li>GVA to GPA mapping based on vMMU on a VCPU in a VM</li>
@@ -912,9 +916,9 @@ multiboot protocol.  This table contains the original memory layout for
 the platform.</p>
 <div class="figure align-center" id="mem-layout">
 <a class="reference internal image-reference" href="../../_images/mem-image1.png"><img alt="../../_images/mem-image1.png" src="../../_images/mem-image1.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 83 </span><span class="caption-text">Physical Memory Layout Example</span></p>
+<p class="caption"><span class="caption-number">Figure 86 </span><span class="caption-text">Physical Memory Layout Example</span></p>
 </div>
-<p><a class="reference internal" href="#mem-layout"><span class="std std-numref">Figure 83</span></a> is an example of the physical memory layout based on a simple
+<p><a class="reference internal" href="#mem-layout"><span class="std std-numref">Figure 86</span></a> is an example of the physical memory layout based on a simple
 platform E820 table.</p>
 </div>
 <div class="section" id="hypervisor-memory-initialization">
@@ -924,11 +928,11 @@ processor (BSP) gets the platform E820 table, BSP creates its MMU page
 table based on it. This is done by the function <em>init_paging()</em> and
 <em>smep()</em>. After the application processor (AP) receives IPI CPU startup
 interrupt, it uses the MMU page tables created by BSP and enable SMEP.
-<a class="reference internal" href="#hv-mem-init"><span class="std std-numref">Figure 84</span></a>  describes the hypervisor memory initialization for BSP
+<a class="reference internal" href="#hv-mem-init"><span class="std std-numref">Figure 87</span></a>  describes the hypervisor memory initialization for BSP
 and APs.</p>
 <div class="figure align-center" id="hv-mem-init">
 <img alt="../../_images/mem-image8.png" src="../../_images/mem-image8.png" />
-<p class="caption"><span class="caption-number">Figure 84 </span><span class="caption-text">Hypervisor Memory Initialization</span></p>
+<p class="caption"><span class="caption-number">Figure 87 </span><span class="caption-text">Hypervisor Memory Initialization</span></p>
 </div>
 <p>The memory mapping policy used is:</p>
 <ul class="simple">
@@ -939,9 +943,9 @@ the future)</li>
 </ul>
 <div class="figure align-center" id="hv-mem-vm-init">
 <img alt="../../_images/mem-image69.png" src="../../_images/mem-image69.png" />
-<p class="caption"><span class="caption-number">Figure 85 </span><span class="caption-text">Hypervisor Virtual Memory Layout</span></p>
+<p class="caption"><span class="caption-number">Figure 88 </span><span class="caption-text">Hypervisor Virtual Memory Layout</span></p>
 </div>
-<p><a class="reference internal" href="#hv-mem-vm-init"><span class="std std-numref">Figure 85</span></a> above shows:</p>
+<p><a class="reference internal" href="#hv-mem-vm-init"><span class="std std-numref">Figure 88</span></a> above shows:</p>
 <ul class="simple">
 <li>Hypervisor has a view of and can access all system memory</li>
 <li>Hypervisor has UNCACHED MMIO/PCI hole reserved for devices such as
@@ -979,11 +983,11 @@ deallocate pages.</p>
 <p>The physical memory management unit provides MMU 4-level page tables
 creating and updating services, MMU page tables switching service, SMEP
 enable service, and HPA/HVA retrieving service to other units.
-<a class="reference internal" href="#mem-data-flow-physical"><span class="std std-numref">Figure 86</span></a> shows the data flow diagram
+<a class="reference internal" href="#mem-data-flow-physical"><span class="std std-numref">Figure 89</span></a> shows the data flow diagram
 of physical memory management.</p>
 <div class="figure align-center" id="mem-data-flow-physical">
 <img alt="../../_images/mem-image45.png" src="../../_images/mem-image45.png" />
-<p class="caption"><span class="caption-number">Figure 86 </span><span class="caption-text">Data Flow of Hypervisor Physical Memory Management</span></p>
+<p class="caption"><span class="caption-number">Figure 89 </span><span class="caption-text">Data Flow of Hypervisor Physical Memory Management</span></p>
 </div>
 </div>
 <div class="section" id="interfaces-design">
@@ -1043,8 +1047,8 @@ of physical memory management.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv37hva2hpaPv">
-<span id="_CPPv27hva2hpaPv"></span><span id="hva2hpa__voidP"></span><span class="target" id="group__acrn__mem_gaa27dc61923169ac81da8fbe66bccf786_1gaa27dc61923169ac81da8fbe66bccf786"></span><em class="property">static</em> uint64_t <code class="descname">hva2hpa</code><span class="sig-paren">(</span>void *<em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv37hva2hpaPv" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv37hva2hpaPKv">
+<span id="_CPPv27hva2hpaPKv"></span><span id="hva2hpa__voidCP"></span><span class="target" id="group__acrn__mem_gad0e9d97f969ab90789edd8b4ee7548ee_1gad0e9d97f969ab90789edd8b4ee7548ee"></span><em class="property">static</em> uint64_t <code class="descname">hva2hpa</code><span class="sig-paren">(</span><em class="property">const</em> void *<em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv37hva2hpaPKv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Translate host-virtual address to host-physical address. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
@@ -1182,11 +1186,11 @@ page tables. It copies data from VM into the HV or from the HV to VM by
 walking guest MMU page tables and EPT page tables. It provides services
 to allocate VPID for each virtual CPU and TLB invalidation related VPID.
 It handles VM exit about EPT violation and EPT misconfiguration. The
-following <a class="reference internal" href="#mem-flow-mem-virt"><span class="std std-numref">Figure 87</span></a> describes the data flow diagram of
+following <a class="reference internal" href="#mem-flow-mem-virt"><span class="std std-numref">Figure 90</span></a> describes the data flow diagram of
 the memory virtualization unit.</p>
 <div class="figure align-center" id="mem-flow-mem-virt">
 <img alt="../../_images/mem-image84.png" src="../../_images/mem-image84.png" />
-<p class="caption"><span class="caption-number">Figure 87 </span><span class="caption-text">Data Flow of Hypervisor Memory Virtualization</span></p>
+<p class="caption"><span class="caption-number">Figure 90 </span><span class="caption-text">Data Flow of Hypervisor Memory Virtualization</span></p>
 </div>
 </div>
 <div class="section" id="data-structure-design">
@@ -1469,15 +1473,15 @@ violation handling data flow is described in the
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv36inveptPK9acrn_vcpu">
-<span id="_CPPv26inveptPK9acrn_vcpu"></span><span id="invept__acrn_vcpuCP"></span><span class="target" id="group__acrn__mem_ga67b5d682943ca53f9fda9b867f2349ae_1ga67b5d682943ca53f9fda9b867f2349ae"></span>void <code class="descname">invept</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> acrn_vcpu *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36inveptPK9acrn_vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv36inveptPKv">
+<span id="_CPPv26inveptPKv"></span><span id="invept__voidCP"></span><span class="target" id="group__acrn__mem_ga091e38f38e1189f69172b020c48d8bc1_1ga091e38f38e1189f69172b020c48d8bc1"></span>void <code class="descname">invept</code><span class="sig-paren">(</span><em class="property">const</em> void *<em>eptp</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv36inveptPKv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Guest-physical mappings and combined mappings invalidation. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
 <dd>None </dd>
 <dt><strong>Parameters</strong></dt>
 <dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: the pointer that points the vcpu data structure</li>
+<li><code class="docutils literal notranslate"><span class="pre">eptp</span></code>: the pointer that points the eptp</li>
 </ul>
 </dd>
 </dl>
@@ -1607,7 +1611,7 @@ after filtering out its own part. So from Service OS’s view, it sees
 almost all the system memory as shown here:</p>
 <div class="figure align-center" id="sos-mem-layout">
 <a class="reference internal image-reference" href="../../_images/mem-image3.png"><img alt="../../_images/mem-image3.png" src="../../_images/mem-image3.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 88 </span><span class="caption-text">SOS Physical Memory Layout</span></p>
+<p class="caption"><span class="caption-number">Figure 91 </span><span class="caption-text">SOS Physical Memory Layout</span></p>
 </div>
 </div>
 <div class="section" id="host-to-guest-mapping">
@@ -1636,7 +1640,7 @@ support, whose memory must be secured by the ACRN hypervisor and
 must not be accessible by SOS and UOS normal world.</p>
 <div class="figure align-center" id="id5">
 <img alt="../../_images/mem-image18.png" src="../../_images/mem-image18.png" />
-<p class="caption"><span class="caption-number">Figure 89 </span><span class="caption-text">UOS Physical Memory Layout with Trusty</span></p>
+<p class="caption"><span class="caption-number">Figure 92 </span><span class="caption-text">UOS Physical Memory Layout with Trusty</span></p>
 </div>
 </div>
 </div>
@@ -1654,7 +1658,7 @@ must not be accessible by SOS and UOS normal world.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Sep 05, 2019.
+      Last updated on Sep 10, 2019.
 
     </p>
   </div> 
