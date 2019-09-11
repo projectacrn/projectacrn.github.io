@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Using AGL as the User OS" href="using_agl_as_uos.html" />
-    <link rel="prev" title="Using Hybrid Mode on the NUC" href="using_hybrid_mode_on_nuc.html" /> 
+    <link rel="next" title="Increasing the User OS disk size" href="increase-uos-disk-size.html" />
+    <link rel="prev" title="Develop using ACRN" href="../develop.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -209,8 +209,15 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="reference internal" href="../develop.html">Develop using ACRN</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../develop.html#configuration-tools">Configuration Tools</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../develop.html#configuration-tutorials">Configuration Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../develop.html#configuration-tools">Configuration Tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ACRN Configuration Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#acrn-configurations-introduction">ACRN Configurations Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration-tool-workflow">Configuration tool workflow</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../develop.html#configuration-tutorials">Configuration Tutorials</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="increase-uos-disk-size.html">Increasing the User OS disk size</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="increase-uos-disk-size.html#increase-the-virtual-disk-size">Increase the virtual disk size</a></li>
 <li class="toctree-l4"><a class="reference internal" href="increase-uos-disk-size.html#resize-the-rootfs-partition">Resize the <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> partition</a></li>
@@ -260,11 +267,6 @@
 <li class="toctree-l4"><a class="reference internal" href="using_hybrid_mode_on_nuc.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-checking">Hybrid Scenario Startup Checking</a></li>
-</ul>
-</li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">ACRN Configuration Tool</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#acrn-configurations-introduction">ACRN Configurations Introduction</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#configuration-tool-working-flow">Configuration Tool Working Flow</a></li>
 </ul>
 </li>
 </ul>
@@ -847,45 +849,52 @@
             
   <div class="section" id="acrn-configuration-tool">
 <span id="id1"></span><h1>ACRN Configuration Tool<a class="headerlink" href="#acrn-configuration-tool" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This document is under development and planned for the 1.3
+release.</p>
+</div>
 <div class="section" id="acrn-configurations-introduction">
 <h2>ACRN Configurations Introduction<a class="headerlink" href="#acrn-configurations-introduction" title="Permalink to this headline">¶</a></h2>
-<p>There are three types of configurations in ACRN: Hypervisor configurations,
-Board configurations and VM configurations.</p>
-<div class="section" id="hypervisor-configurations">
-<h3>Hypervisor configurations<a class="headerlink" href="#hypervisor-configurations" title="Permalink to this headline">¶</a></h3>
-<p>Hypervisor configurations is used to select working scenario and target board,
-configure features and capabilities, set up log and serial port etc. to build
-differential hypervisor image for different board.</p>
-<p>Hypervisor configurations is configured by <code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> mechanism.
-The configuration file is located at:</p>
+<p>There are three types of configurations in ACRN: Hypervisor,
+Board, and VM. We’ll explore each of these in the following sections.</p>
+<div class="section" id="hypervisor-configuration">
+<h3>Hypervisor configuration<a class="headerlink" href="#hypervisor-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Hypervisor configuration selects a working scenario and target
+board by configuring the hypervisor image features and capabilities such as
+setting up the log and the serial port.</p>
+<p>Hypervisor configuration is done using the <code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> <code class="docutils literal notranslate"><span class="pre">make</span>
+<span class="pre">menuconfig</span></code> mechanism.  The configuration file is located at:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">/</span><span class="n">hypervisor</span><span class="o">/</span><span class="n">arch</span><span class="o">/</span><span class="n">x86</span><span class="o">/</span><span class="n">configs</span><span class="o">/</span><span class="n">Kconfig</span>
 </pre></div>
 </div>
-<p>A defconfig file which located at:</p>
+<p>A board-specific <code class="docutils literal notranslate"><span class="pre">defconfig</span></code> file, located at:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>acrn-hypervisor/hypervisor/arch/x86/configs/$(BOARD)/$(BOARD).config
 </pre></div>
 </div>
-<p>will be loaded first as the default <code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> for the specified board.</p>
+<p>will be loaded first, as the default <code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> for the specified board.</p>
 </div>
-<div class="section" id="board-configurations">
-<h3>Board configurations<a class="headerlink" href="#board-configurations" title="Permalink to this headline">¶</a></h3>
-<p>Board configurations is used to store board related configurations that referenced
-by ACRN hypervisor, including scenario irrelevant information and scenario relevant
-information. Scenario irrelevant information is hardware specific, like ACPI/PCI
-BDF info/.etc. Scenario relevant information is board settings in each scenario
-like root device selection/kernel cmdline. The board configuration is organized
-as <code class="docutils literal notranslate"><span class="pre">*.c/*.h</span></code> file and located at:</p>
+<div class="section" id="board-configuration">
+<h3>Board configuration<a class="headerlink" href="#board-configuration" title="Permalink to this headline">¶</a></h3>
+<p>The board configuration stores board-specific settings referenced by the
+ACRN hypervisor. This includes <em>scenario-relevant</em> information such as
+board settings, root device selection, and kernel cmdline, and
+<em>scenario-irrelevant*</em> hardware-specific information such as ACPI/PCI
+and BDF information.  The board configuration is organized as
+<code class="docutils literal notranslate"><span class="pre">*.c/*.h</span></code> files located at:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>acrn-hypervisor/hypervisor/arch/x86/$(BOARD)/
 </pre></div>
 </div>
 </div>
-<div class="section" id="vm-configurations">
-<h3>VM configurations<a class="headerlink" href="#vm-configurations" title="Permalink to this headline">¶</a></h3>
-<p>VM configurations includes scenario based VM configurations and launch script
-based VM configurations. The former one is used to describe characteristic/attributes
-of the VM on each user scenario, another is launch script parameters for device model
-to launch post-launched User VM. Scenario based VM configurations is organized
-as <code class="docutils literal notranslate"><span class="pre">*.c/*.h</span></code> file and located at:</p>
+<div class="section" id="vm-configuration">
+<h3>VM configuration<a class="headerlink" href="#vm-configuration" title="Permalink to this headline">¶</a></h3>
+<p>VM configuration includes <em>scenario-based</em> VM configuration
+information, used to describe the characteristics and attributes for VMs
+on each user scenario, and <em>launch script-based</em> VM configuration, where
+parameters are passed to the device model to launch post-launched User
+VMs.</p>
+<p>Scenario based VM configurations are organized
+as <code class="docutils literal notranslate"><span class="pre">*.c/*.h</span></code> files located at:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>acrn-hypervisor/hypervisor/scenarios/$(SCENARIO)/
 </pre></div>
 </div>
@@ -895,51 +904,53 @@ as <code class="docutils literal notranslate"><span class="pre">*.c/*.h</span></
 </div>
 </div>
 </div>
-<div class="section" id="configuration-tool-working-flow">
-<h2>Configuration Tool Working Flow<a class="headerlink" href="#configuration-tool-working-flow" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="kconfig">
-<h3>Kconfig<a class="headerlink" href="#kconfig" title="Permalink to this headline">¶</a></h3>
-<p>Hypervisor configurations is based on <code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code> mechanism,
-user could configure it in menuconfig GUI by using <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code>
-command to generate the needed <code class="docutils literal notranslate"><span class="pre">.config</span></code> file for hypervisor build usage.
-Before running <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code>, user need to create board specific <code class="docutils literal notranslate"><span class="pre">defconfig</span></code>
-to setup default <code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> value for the specified board.</p>
+<div class="section" id="configuration-tool-workflow">
+<h2>Configuration tool workflow<a class="headerlink" href="#configuration-tool-workflow" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="hypervisor-configuration-workflow">
+<h3>Hypervisor configuration workflow<a class="headerlink" href="#hypervisor-configuration-workflow" title="Permalink to this headline">¶</a></h3>
+<p>Hypervisor configuration is based on the <code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code>
+mechanism.  You begin by creating a board specific <code class="docutils literal notranslate"><span class="pre">defconfig</span></code> file to
+set up the default <code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> values for the specified board.
+Then you configure the hypervisor build options using the <code class="docutils literal notranslate"><span class="pre">make</span>
+<span class="pre">menuconfig</span></code> graphical interface.  The resulting <code class="docutils literal notranslate"><span class="pre">.config</span></code> file is
+used by the ACRN build process to create a configured scenario- and
+board-specific hypervisor image.</p>
 <div class="figure align-center" id="id2">
 <img alt="../_images/sample_of_defconfig.png" src="../_images/sample_of_defconfig.png" />
-<p class="caption"><span class="caption-number">Figure 43 </span><span class="caption-text">Sample of defconfig file</span></p>
+<p class="caption"><span class="caption-number">Figure 24 </span><span class="caption-text">defconfig file sample</span></p>
 </div>
 <div class="figure align-center" id="id3">
 <img alt="../_images/GUI_of_menuconfig.png" src="../_images/GUI_of_menuconfig.png" />
-<p class="caption"><span class="caption-number">Figure 44 </span><span class="caption-text">GUI of menuconfig</span></p>
+<p class="caption"><span class="caption-number">Figure 25 </span><span class="caption-text">menuconfig interface sample</span></p>
 </div>
-<p>Please refer to the <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-hypervisor-configuration"><span class="std std-ref">Modify the hypervisor configuration</span></a> for detailed steps.</p>
+<p>Please refer to the <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-hypervisor-configuration"><span class="std std-ref">Modify the hypervisor configuration</span></a> for
+detailed steps.</p>
 </div>
-<div class="section" id="offline-configure-tool">
-<h3>Offline configure tool<a class="headerlink" href="#offline-configure-tool" title="Permalink to this headline">¶</a></h3>
-<p>For Board configurations and VM configurations, an offline configure tool is
-designed to configure them. The tool source folder is located at:</p>
+<div class="section" id="board-and-vm-configuration-workflow">
+<h3>Board and VM configuration workflow<a class="headerlink" href="#board-and-vm-configuration-workflow" title="Permalink to this headline">¶</a></h3>
+<p>Python offline tools are provided to configure Board and VM configurations.
+The tool source folder is located at:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">/</span><span class="n">misc</span><span class="o">/</span><span class="n">acrn</span><span class="o">-</span><span class="n">config</span><span class="o">/</span>
 </pre></div>
 </div>
-<p>Below is offline configure tool working flow:</p>
+<p>Here is the offline configuration tool workflow:</p>
 <ol class="arabic">
 <li><p class="first">Get board info.</p>
 <ol class="loweralpha">
-<li><p class="first">Setup native Linux environment on target board.</p>
+<li><p class="first">Set up native Linux environment on target board.</p>
 </li>
 <li><p class="first">Copy <code class="docutils literal notranslate"><span class="pre">target</span></code> folder into target file system and then run
 <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">python3</span> <span class="pre">board_parser.py</span> <span class="pre">$(BOARD)</span></code> command.</p>
 </li>
-<li><p class="first">A $(BOARD).xml which includes all needed hardware specific information
-will be generated at <code class="docutils literal notranslate"><span class="pre">./out/</span></code> folder. (Here $(BOARD) is the specified board name)</p>
-<blockquote>
-<div><div class="line-block">
+<li><p class="first">A $(BOARD).xml that includes all needed hardware-specific information
+will be generated in the <code class="docutils literal notranslate"><span class="pre">./out/</span></code> folder. (Here <code class="docutils literal notranslate"><span class="pre">$(BOARD)</span></code> is the
+specified board name)</p>
+<div class="line-block">
 <div class="line"><strong>Native Linux requirement:</strong></div>
-<div class="line"><strong>Release:</strong> Ubuntu 18.04+ or ClearLinux 30210+</div>
-<div class="line"><strong>Tools:</strong> cpuid, rdmsr, lspci, dmidecode(optional)</div>
+<div class="line"><strong>Release:</strong> Ubuntu 18.04+ or Clear Linux 30210+</div>
+<div class="line"><strong>Tools:</strong> cpuid, rdmsr, lspci, dmidecode (optional)</div>
 <div class="line"><strong>Kernel cmdline:</strong> “idle=nomwait intel_idle.max_cstate=0 intel_pstate=disable”</div>
 </div>
-</div></blockquote>
 </li>
 </ol>
 </li>
@@ -947,43 +958,57 @@ will be generated at <code class="docutils literal notranslate"><span class="pre
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><strong>[TO BE DEVELOPED]</strong>
-The tool in this step is still under development, before its readiness user
-could input the setting by editing the target XML file manually.</p>
+The tool in this step is still under development. Until then,
+you can input settings by editing the target XML file manually.</p>
 </div>
 <ol class="loweralpha simple">
-<li>Copy <code class="docutils literal notranslate"><span class="pre">$(BOARD).xml</span></code> to host develop machine;</li>
-<li>Run a UI based configure tool on host machine to input the expected scenario settings,
-the tool will do sanity check on the input based on <code class="docutils literal notranslate"><span class="pre">$(BOARD).xml</span></code> and then generate
-customized scenario based VM configurations in <code class="docutils literal notranslate"><span class="pre">$(SCENARIO).xml</span></code>;</li>
-<li>In the UI of configure tool, continue to input launch script parameter for
-post-launched User VM. The tool will check the input based on both <code class="docutils literal notranslate"><span class="pre">$(BOARD).xml</span></code>
-and <code class="docutils literal notranslate"><span class="pre">$(SCENARIO).xml</span></code> and then generate launch script based VM configurations in
-<code class="docutils literal notranslate"><span class="pre">$(LAUNCH_PARAM).xml</span></code>;</li>
+<li>Copy <code class="docutils literal notranslate"><span class="pre">$(BOARD).xml</span></code> to the host develop machine.</li>
+<li>Run a UI based configuration tool on the host machine to input the
+desired scenario settings.  The tool will do a sanity check on the
+input based on <code class="docutils literal notranslate"><span class="pre">$(BOARD).xml</span></code> and then generate a customized
+scenario-based VM configurations in <code class="docutils literal notranslate"><span class="pre">$(SCENARIO).xml</span></code>.</li>
+<li>In the configuration tool UI, input the launch script parameters for the
+post-launched User VM. The tool will sanity check the input based on
+both <code class="docutils literal notranslate"><span class="pre">$(BOARD).xml</span></code> and <code class="docutils literal notranslate"><span class="pre">$(SCENARIO).xml</span></code> and then generate a launch
+script-based VM configuration in <code class="docutils literal notranslate"><span class="pre">$(LAUNCH_PARAM).xml</span></code>.</li>
 </ol>
 </li>
-<li><p class="first">Auto generate code.
-There are three python tools will be used to generate configurations in patch format.
-The patches will be applied to <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor</span></code> git tree automatically.</p>
-<ol class="loweralpha simple">
-<li>Run <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">board_cfg_gen.py</span> <span class="pre">--board</span> <span class="pre">$(BOARD).xml</span></code> under <code class="docutils literal notranslate"><span class="pre">misc/board_config</span></code>
-folder, it will generate patch for board related configurations;</li>
-<li><strong>[TO BE DEVELOPED]</strong> Run <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">scenario_cfg_gen.py</span> <span class="pre">--board</span> <span class="pre">$(BOARD).xml</span> <span class="pre">--scenario</span>
-<span class="pre">$(SCENARIO).xml</span></code> under <code class="docutils literal notranslate"><span class="pre">misc/scenario_config</span></code> folder, it will generate patch
-for scenario based VM configurations;</li>
-<li><strong>[TO BE DEVELOPED]</strong> Run <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">launch_cfg_gen.py</span> <span class="pre">--board</span> <span class="pre">$(BOARD).xml</span>
-<span class="pre">--scenario</span> <span class="pre">$(SCENARIO).xml</span> <span class="pre">--launch</span> <span class="pre">$(LAUNCH_PARAM).xml$</span></code> under <code class="docutils literal notranslate"><span class="pre">misc/launch_config</span></code>
-folder, it will generate launch script for the specified post-launch User VM;</li>
+<li><p class="first">Auto generate code.</p>
+<p>Python tools are used to generate configurations in patch format.
+The patches will be applied to your local <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor</span></code> git tree
+automatically.</p>
+<ol class="loweralpha">
+<li><p class="first">Generate a patch for the board-related configuration with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd misc/board_config
+python3 board_cfg_gen.py --board $(BOARD).xml
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>[TO BE DEVELOPED]</strong> Generate a patch for scenario-based VM
+configuration with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd misc/scenario_config
+python3 scenario_cfg_gen.py --board $(BOARD).xml --scenario
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>[TO BE DEVELOPED]</strong> Generate the launch script for the specified
+post-launch User VM with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd misc/launch_config
+python3 launch_cfg_gen.py --board $(BOARD).xml --scenario $(SCENARIO).xml --launch $(LAUNCH_PARAM).xml$
+</pre></div>
+</div>
+</li>
 </ol>
 </li>
-<li><p class="first">Re-build ACRN hypervisor. Please refer to the <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a>
-to re-build ACRN hypervisor on host machine;</p>
+<li><p class="first">Re-build the ACRN hypervisor. Please refer to the
+<a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a> to re-build ACRN hypervisor on host machine.</p>
 </li>
 <li><p class="first">Deploy VMs and run ACRN hypervisor on target board.</p>
 </li>
 </ol>
 <div class="figure align-center" id="id4">
 <img alt="../_images/offline_tools_workflow.png" src="../_images/offline_tools_workflow.png" />
-<p class="caption"><span class="caption-number">Figure 45 </span><span class="caption-text">offline tool working flow</span></p>
+<p class="caption"><span class="caption-number">Figure 26 </span><span class="caption-text">offline tool workflow</span></p>
 </div>
 </div>
 </div>
@@ -1002,7 +1027,7 @@ to re-build ACRN hypervisor on host machine;</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Sep 10, 2019.
+      Last updated on Sep 11, 2019.
 
     </p>
   </div> 
