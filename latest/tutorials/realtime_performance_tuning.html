@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Trace and Data Collection for ACRN Real-Time(RT) Performance Tuning &mdash; Project ACRN™ v 1.3-unstable documentation</title>
+  <title>Real-Time (RT) Performance Analysis on ACRN &mdash; Project ACRN™ v 1.3-unstable documentation</title>
   
 
   
@@ -197,6 +197,22 @@
 <li class="toctree-l3"><a class="reference internal" href="../getting-started/up2.html#running-the-hypervisor">Running the hypervisor</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../getting-started/acrn_ootb.html">Install ACRN Out-of-the-box</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/acrn_ootb.html#set-up-a-build-environment">Set up a Build Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/acrn_ootb.html#generate-a-service-vm-image">Generate a Service VM image</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/acrn_ootb.html#step-1-create-a-service-vm-yaml-file-and-script">Step 1: Create a Service VM YAML file and script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/acrn_ootb.html#step-2-build-the-service-vm-image">Step 2: Build the Service VM image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/acrn_ootb.html#step-3-deploy-the-service-vm-image">Step 3: Deploy the Service VM image</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/acrn_ootb.html#generate-a-user-vm-preempt-rt-image">Generate a User VM Preempt-RT image</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/acrn_ootb.html#step-1-create-a-preempt-rt-image-yaml-file-and-script">Step 1: Create a Preempt-RT image YAML file and script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/acrn_ootb.html#step-2-build-a-user-vm-preempt-rt-image">Step 2: Build a User VM Preempt-RT image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/acrn_ootb.html#step-3-deploy-the-user-vm-preempt-rt-image">Step 3: Deploy the User VM Preempt-RT image</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../getting-started/building-from-source.html">Build ACRN from Source</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../getting-started/building-from-source.html#introduction">Introduction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../getting-started/building-from-source.html#install-build-tools-and-dependencies">Install build tools and dependencies</a></li>
@@ -277,9 +293,9 @@
 <li class="toctree-l4"><a class="reference internal" href="building_acrn_in_docker.html#build-the-acrn-user-vm-preempt-rt-kernel-in-docker">Build the ACRN User VM PREEMPT_RT Kernel in Docker</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Trace and Data Collection for ACRN Real-Time(RT) Performance Tuning</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#vm-exits-analysis-for-acrn-rt-performance">VM exits analysis for ACRN RT performance</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#performance-monitoring-counts-collecting">Performance monitoring counts collecting</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Real-Time (RT) Performance Analysis on ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#vmexit-analysis-for-acrn-rt-performance"><code class="docutils literal notranslate"><span class="pre">vmexit</span></code> analysis for ACRN RT performance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#collecting-performance-monitoring-counters-data">Collecting Performance Monitoring Counters data</a></li>
 </ul>
 </li>
 </ul>
@@ -874,7 +890,7 @@
         
           <li><a href="../develop.html">Develop using ACRN</a> &raquo;</li>
         
-      <li>Trace and Data Collection for ACRN Real-Time(RT) Performance Tuning</li>
+      <li>Real-Time (RT) Performance Analysis on ACRN</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -893,20 +909,19 @@
   
            <div itemprop="articleBody">
             
-  <div class="section" id="trace-and-data-collection-for-acrn-real-time-rt-performance-tuning">
-<span id="rt-performance-tuning"></span><h1>Trace and Data Collection for ACRN Real-Time(RT) Performance Tuning<a class="headerlink" href="#trace-and-data-collection-for-acrn-real-time-rt-performance-tuning" title="Permalink to this headline">¶</a></h1>
-<p>The document describes the methods to collect trace/data for ACRN RT VM real-time
-performance analysis. Two parts are included:</p>
+  <div class="section" id="real-time-rt-performance-analysis-on-acrn">
+<span id="rt-performance-tuning"></span><h1>Real-Time (RT) Performance Analysis on ACRN<a class="headerlink" href="#real-time-rt-performance-analysis-on-acrn" title="Permalink to this headline">¶</a></h1>
+<p>The document describes the methods to collect trace/data for ACRN Real-Time VM (RTVM)
+real-time performance analysis. Two parts are included:</p>
 <ul class="simple">
-<li>Method to use trace for the VM exits analysis;</li>
-<li>Method to collect performance monitoring counts for tuning based on PMU.</li>
+<li>Method to trace <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> occurences for analysis.</li>
+<li>Method to collect Performance Monitoring Counters information for tuning based on Performance Monitoring Unit, or PMU.</li>
 </ul>
-<div class="section" id="vm-exits-analysis-for-acrn-rt-performance">
-<h2>VM exits analysis for ACRN RT performance<a class="headerlink" href="#vm-exits-analysis-for-acrn-rt-performance" title="Permalink to this headline">¶</a></h2>
-<p>VM exits in response to certain instructions and events are a key source of
-performance degradation in virtual machines. During the runtime of hard RTVM
-of ACRN, there are still some instructions and events which will impact the
-RT latency’s determinism.</p>
+<div class="section" id="vmexit-analysis-for-acrn-rt-performance">
+<h2><code class="docutils literal notranslate"><span class="pre">vmexit</span></code> analysis for ACRN RT performance<a class="headerlink" href="#vmexit-analysis-for-acrn-rt-performance" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">vmexit</span></code> are triggered in response to certain instructions and events and are
+a key source of performance degradation in virtual machines. During the runtime
+of a hard RTVM of ACRN, the following impacts real-time deterministic latency:</p>
 <blockquote>
 <div><ul class="simple">
 <li>CPUID</li>
@@ -916,16 +931,15 @@ RT latency’s determinism.</p>
 <li>ICR write</li>
 </ul>
 </div></blockquote>
-<p>Generally, we don’t want to see any VM exits occur during the critical section
-of the RT task.</p>
-<p>The methodology of VM exits analysis is very simple. Firstly, we should clearly
-identify the critical section of RT task. The critical section is the duration
-of time where we do not want to see any VM exits occur. Different RT tasks get
-different critical section. So this article will take the cyclictest as an example
-to elaborate how to do VM exits analysis.</p>
+<p>Generally, we don’t want to see any <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> occur during the critical section of the RT task.</p>
+<p>The methodology of <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> analysis is very simple. First, we clearly
+identify the <strong>critical section</strong> of the RT task. The critical section is
+the duration of time where we do not want to see any <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> occur.
+Different RT tasks use different critical sections. This document uses
+the cyclictest benchmark as an example of how to do <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> analysis.</p>
 <div class="section" id="the-critical-sections">
 <h3>The critical sections<a class="headerlink" href="#the-critical-sections" title="Permalink to this headline">¶</a></h3>
-<p>Here is example pseudocode of cyclictest implementation.</p>
+<p>Here is example pseudocode of a cyclictest implementation.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>while (!shutdown) {
       …
       clock_nanosleep(&amp;next)
@@ -936,18 +950,19 @@ to elaborate how to do VM exits analysis.</p>
 }
 </pre></div>
 </div>
-<p>Time point <code class="docutils literal notranslate"><span class="pre">now</span></code> is the actual point at which the cyclictest is wakeuped and
-scheduled. Time point <code class="docutils literal notranslate"><span class="pre">next</span></code> is the expected point at which we want the cyclictest
-to be woken up and scheduled. Here we can get the latency by <code class="docutils literal notranslate"><span class="pre">now</span> <span class="pre">-</span> <span class="pre">next</span></code>. We don’t
-want to see VM exits during <code class="docutils literal notranslate"><span class="pre">next</span></code> through <code class="docutils literal notranslate"><span class="pre">now</span></code>. So define the start point of
-critical section as <code class="docutils literal notranslate"><span class="pre">next</span></code> and end point <code class="docutils literal notranslate"><span class="pre">now</span></code>.</p>
+<p>Time point <code class="docutils literal notranslate"><span class="pre">now</span></code> is the actual point at which the cyclictest app is woken up
+and scheduled. Time point <code class="docutils literal notranslate"><span class="pre">next</span></code> is the expected point at which we want
+the cyclictest to be awakened and scheduled. Here we can get the latency by
+<code class="docutils literal notranslate"><span class="pre">now</span> <span class="pre">-</span> <span class="pre">next</span></code>. We don’t want to see any <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> in between <code class="docutils literal notranslate"><span class="pre">next</span></code> and <code class="docutils literal notranslate"><span class="pre">now</span></code>.
+So, we define the start point of the critical section as <code class="docutils literal notranslate"><span class="pre">next</span></code> and the end
+point as <code class="docutils literal notranslate"><span class="pre">now</span></code>.</p>
 </div>
 <div class="section" id="log-and-trace-data-collection">
 <h3>Log and trace data collection<a class="headerlink" href="#log-and-trace-data-collection" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic simple">
 <li>Add timestamps (in TSC) at <code class="docutils literal notranslate"><span class="pre">next</span></code> and <code class="docutils literal notranslate"><span class="pre">now</span></code>.</li>
-<li>Capture the log with the above timestamps in RTVM.</li>
-<li>Capture the acrntrace log in Service VM at the same time.</li>
+<li>Capture the log with the above timestamps in the RTVM.</li>
+<li>Capture the <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> log in the Service VM at the same time.</li>
 </ol>
 </div>
 <div class="section" id="offline-analysis">
@@ -955,9 +970,9 @@ critical section as <code class="docutils literal notranslate"><span class="pre"
 <ol class="arabic">
 <li><p class="first">Convert the raw trace data to human readable format.</p>
 </li>
-<li><p class="first">Merge the logs in RTVM and ACRN hypervisor trace based on timestamps (in TSC).</p>
+<li><p class="first">Merge the logs in the RTVM and the ACRN hypervisor trace based on timestamps (in TSC).</p>
 </li>
-<li><p class="first">Check if there is any VM exit within the critical sections, the pattern is as follows:</p>
+<li><p class="first">Check to see if any <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> occured within the critical sections. The pattern is as follows:</p>
 <div class="figure align-center" id="vm-exits-log">
 <img alt="../_images/vm_exits_log.png" src="../_images/vm_exits_log.png" />
 </div>
@@ -965,19 +980,17 @@ critical section as <code class="docutils literal notranslate"><span class="pre"
 </ol>
 </div>
 </div>
-<div class="section" id="performance-monitoring-counts-collecting">
-<h2>Performance monitoring counts collecting<a class="headerlink" href="#performance-monitoring-counts-collecting" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="collecting-performance-monitoring-counters-data">
+<h2>Collecting Performance Monitoring Counters data<a class="headerlink" href="#collecting-performance-monitoring-counters-data" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="enable-performance-monitoring-unit-pmu-support-in-vm">
 <h3>Enable Performance Monitoring Unit (PMU) support in VM<a class="headerlink" href="#enable-performance-monitoring-unit-pmu-support-in-vm" title="Permalink to this headline">¶</a></h3>
-<p>By default, ACRN hypervisor doesn’t expose the PMU related CPUID and MSRs to
-guest VM. In order to use Performance Monitoring Counters (PMCs) in guest VM,
-need to modify the ACRN hypervisor code to expose the capability to RTVM.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Precise Event Based Sampling (PEBS) is not enabled in VM yet.</p>
-</div>
+<p>By default, the ACRN hypervisor doesn’t expose the PMU-related CPUID and
+MSRs to the guest VM. In order to use Performance Monitoring Counters (PMCs)
+in the guest VM, modify the ACRN hypervisor code in order to expose the
+capability to the RTVM.</p>
+<p>Note that Precise Event Based Sampling (PEBS) is not yet enabled in the VM.</p>
 <ol class="arabic">
-<li><p class="first">Expose CPUID leaf 0xA as below:</p>
+<li><p class="first">Expose the CPUID leaf 0xA as below:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>--- a/hypervisor/arch/x86/guest/vcpuid.c
 +++ b/hypervisor/arch/x86/guest/vcpuid.c
 @@ -345,7 +345,7 @@ int32_t set_vcpuid_entries(struct acrn_vm *vm)
@@ -992,7 +1005,7 @@ case 0x10U:
 </pre></div>
 </div>
 </li>
-<li><p class="first">Expose PMU related MSRs to VM as below:</p>
+<li><p class="first">Expose the PMU-related MSRs to the VM as below:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>--- a/hypervisor/arch/x86/guest/vmsr.c
 +++ b/hypervisor/arch/x86/guest/vmsr.c
 @@ -337,6 +337,41 @@ void init_msr_emulation(struct acrn_vcpu *vcpu)
@@ -1042,37 +1055,36 @@ exec_vmwrite64(VMX_MSR_BITMAP_FULL, value64);
 </li>
 </ol>
 </div>
-<div class="section" id="use-perf-pmu-tool-in-performance-analysis">
-<h3>Use Perf/PMU tool in performance analysis<a class="headerlink" href="#use-perf-pmu-tool-in-performance-analysis" title="Permalink to this headline">¶</a></h3>
-<p>After exposing PMU related CPUID/MSRs to VM, the performance analysis tool such as
-perf and pmu tool can be used inside VM to locate the bottleneck of the application.
-<strong>Perf</strong> is a profiler tool for Linux 2.6+ based systems that abstracts away CPU
-hardware differences in Linux performance measurements and presents a simple command
-line interface. Perf is based on the perf_events interface exported by recent versions
-of the Linux kernel.
-<strong>PMU</strong> tools is a collection of tools for profile collection and performance analysis
-on Intel CPUs on top of Linux Perf. You can refer to the following links for the usage
-of Perf:</p>
+<div class="section" id="perf-pmu-tools-in-performance-analysis">
+<h3>Perf/PMU tools in performance analysis<a class="headerlink" href="#perf-pmu-tools-in-performance-analysis" title="Permalink to this headline">¶</a></h3>
+<p>After exposing PMU-related CPUID/MSRs to the VM, performance analysis tools
+such as <strong>perf</strong> and <strong>pmu</strong> can be used inside the VM to locate
+the bottleneck of the application.</p>
+<p><strong>Perf</strong> is a profiler tool for Linux 2.6+ based systems that abstracts away
+CPU hardware differences in Linux performance measurements and presents a
+simple command line interface. Perf is based on the <code class="docutils literal notranslate"><span class="pre">perf_events</span></code> interface
+exported by recent versions of the Linux kernel.</p>
+<p><strong>PMU</strong> tools is a collection of tools for profile collection and performance analysis on Intel CPUs on top of Linux Perf. Refer to the following links for perf usage:</p>
 <blockquote>
 <div><ul class="simple">
 <li><a class="reference external" href="https://perf.wiki.kernel.org/index.php/Main_Page">https://perf.wiki.kernel.org/index.php/Main_Page</a></li>
 <li><a class="reference external" href="https://perf.wiki.kernel.org/index.php/Tutorial">https://perf.wiki.kernel.org/index.php/Tutorial</a></li>
 </ul>
 </div></blockquote>
-<p>You can refer to <a class="reference external" href="https://github.com/andikleen/pmu-tools">https://github.com/andikleen/pmu-tools</a> for the usage of PMU tool.</p>
+<p>Refer to <a class="reference external" href="https://github.com/andikleen/pmu-tools">https://github.com/andikleen/pmu-tools</a> for pmu usage.</p>
 </div>
 <div class="section" id="top-down-micro-architecture-analysis-method-tmam">
-<h3>Top-down Micro-architecture Analysis Method (TMAM)<a class="headerlink" href="#top-down-micro-architecture-analysis-method-tmam" title="Permalink to this headline">¶</a></h3>
-<p>The Top-down Micro-architecture Analysis Method based on the Top-Down Characterization
-methodology aims to provide an insight into whether you have made wise choices with your
-algorithms and data structures. See the Intel® 64 and IA-32 <a class="reference external" href="http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-optimization-manual.pdf">Architectures Optimization
-Reference Manual</a>,
-Appendix B.1 for more details on the Top-down Micro-architecture Analysis Method.
-You can refer to this <a class="reference external" href="https://fd.io/wp-content/uploads/sites/34/2018/01/performance_analysis_sw_data_planes_dec21_2017.pdf">technical paper</a>
-which adopts TMAM for systematic performance benchmarking and analysis of compute-native
-Network Function data planes executed on Commercial-Off-The-Shelf (COTS) servers using available
-open-source measurement tools.</p>
-<p>Example: Using Perf to analysis TMAM level 1 on CPU core 1.</p>
+<h3>Top-down Micro-Architecture Analysis Method (TMAM)<a class="headerlink" href="#top-down-micro-architecture-analysis-method-tmam" title="Permalink to this headline">¶</a></h3>
+<p>The Top-down Micro-Architecture Analysis Method (TMAM), based on Top-Down
+Characterization methodology, aims to provide an insight into whether you
+have made wise choices with your algorithms and data structures. See the
+Intel® 64 and IA-32 <a class="reference external" href="http://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-optimization-manual.pdf">Architectures Optimization Reference Manual</a>,
+Appendix B.1 for more details on TMAM. Refer to this <a class="reference external" href="https://fd.io/wp-content/uploads/sites/34/2018/01/performance_analysis_sw_data_planes_dec21_2017.pdf">technical paper</a>
+which adopts TMAM for systematic performance benchmarking and analysis
+of compute-native Network Function data planes that are executed on
+Commercial-Off-The-Shelf (COTS) servers using available open-source
+measurement tools.</p>
+<p>Example: Using Perf to analyze TMAM level 1 on CPU core 1</p>
 <blockquote>
 <div><div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">perf stat --topdown -C 1 taskset -c 1 dd if=/dev/zero of=/dev/null count=10</span>
 <span class="go">10+0 records in</span>
@@ -1105,7 +1117,7 @@ open-source measurement tools.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Sep 24, 2019.
+      Last updated on Sep 25, 2019.
 
     </p>
   </div> 
