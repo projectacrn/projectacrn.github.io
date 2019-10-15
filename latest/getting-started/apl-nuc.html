@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting Started Guide for the Intel NUC &mdash; Project ACRN™ v 1.4-unstable documentation</title>
+  <title>Getting Started Guide for the Intel NUC &mdash; Project ACRN™ unknown documentation</title>
   
 
   
@@ -225,6 +225,18 @@
 <li class="toctree-l3"><a class="reference internal" href="building-from-source.html#step-5-build-the-hypervisor-device-model-and-tools">Step 5: Build the hypervisor, device model, and tools</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="building_acrn_in_docker.html">Building ACRN in Docker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="building_acrn_in_docker.html#install-docker">Install Docker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building_acrn_in_docker.html#get-the-docker-image">Get the Docker Image</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="building_acrn_in_docker.html#build-the-docker-image-from-dockerfile">Build the Docker Image from Dockerfile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="building_acrn_in_docker.html#get-the-docker-image-from-docker-hub">Get the Docker Image from Docker Hub</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="building_acrn_in_docker.html#build-acrn-from-source-in-docker">Build ACRN from Source in Docker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building_acrn_in_docker.html#build-the-acrn-service-vm-kernel-in-docker">Build the ACRN Service VM Kernel in Docker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="building_acrn_in_docker.html#build-the-acrn-user-vm-preempt-rt-kernel-in-docker">Build the ACRN User VM PREEMPT_RT Kernel in Docker</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="rt_industry.html">Getting Started Guide for ACRN Industry Scenario</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="rt_industry.html#verified-version">Verified version</a></li>
 <li class="toctree-l3"><a class="reference internal" href="rt_industry.html#prerequisites">Prerequisites</a><ul>
@@ -308,14 +320,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-checking">Hybrid Scenario Startup Checking</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="../tutorials/building_acrn_in_docker.html">Building ACRN in Docker</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/building_acrn_in_docker.html#install-docker">Install Docker</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/building_acrn_in_docker.html#get-the-docker-image">Get the Docker Image</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/building_acrn_in_docker.html#build-acrn-from-source-in-docker">Build ACRN from Source in Docker</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/building_acrn_in_docker.html#build-the-acrn-service-vm-kernel-in-docker">Build the ACRN Service VM Kernel in Docker</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/building_acrn_in_docker.html#build-the-acrn-user-vm-preempt-rt-kernel-in-docker">Build the ACRN User VM PREEMPT_RT Kernel in Docker</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/realtime_performance_tuning.html">Real-Time (RT) Performance Analysis on ACRN</a><ul>
@@ -1480,161 +1484,6 @@ $ sync
 is included in the Clear Linux OS release, and
 is also available in the acrn-hypervisor/devicemodel GitHub repo (in the samples
 folder) as shown here:</p>
-<div class="literal-block-wrapper docutils container" id="id4">
-<div class="code-block-caption"><span class="caption-number">Code Block 2 </span><span class="caption-text">devicemodel/samples/nuc/launch_uos.sh</span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
-
-<span class="nv">offline_path</span><span class="o">=</span><span class="s2">&quot;/sys/class/vhm/acrn_vhm&quot;</span>
-
-<span class="c1"># Check the device file of /dev/acrn_hsm to determine the offline_path</span>
-<span class="k">if</span> <span class="o">[</span> -e <span class="s2">&quot;/dev/acrn_hsm&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-<span class="nv">offline_path</span><span class="o">=</span><span class="s2">&quot;/sys/class/acrn/acrn_hsm&quot;</span>
-<span class="k">fi</span>
-
-
-<span class="k">function</span> run_container<span class="o">()</span>
-<span class="o">{</span>
-<span class="nv">vm_name</span><span class="o">=</span>vm1
-<span class="nv">config_src</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/samples/nuc/runC.json&quot;</span>
-<span class="nv">shell</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/conf/add/</span><span class="nv">$vm_name</span><span class="s2">.sh&quot;</span>
-<span class="nv">arg_file</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/conf/add/</span><span class="nv">$vm_name</span><span class="s2">.args&quot;</span>
-<span class="nv">runc_bundle</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/conf/add/runc/</span><span class="nv">$vm_name</span><span class="s2">&quot;</span>
-<span class="nv">rootfs_dir</span><span class="o">=</span><span class="s2">&quot;/usr/share/acrn/conf/add/runc/rootfs&quot;</span>
-<span class="nv">config_dst</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$runc_bundle</span><span class="s2">/config.json&quot;</span>
-
-
-<span class="nv">input</span><span class="o">=</span><span class="k">$(</span>runc list -f table <span class="p">|</span> awk <span class="s1">&#39;{print $1}&#39;&#39;{print $3}&#39;</span><span class="k">)</span>
-<span class="nv">arr</span><span class="o">=(</span><span class="si">${</span><span class="nv">input</span><span class="p">// / </span><span class="si">}</span><span class="o">)</span>
-
-<span class="k">for</span><span class="o">((</span><span class="nv">i</span><span class="o">=</span><span class="m">0</span><span class="p">;</span>i&lt;<span class="si">${#</span><span class="nv">arr</span><span class="p">[@]</span><span class="si">}</span><span class="p">;</span>i++<span class="o">))</span>
-<span class="k">do</span>
-	<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$vm_name</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-		<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;running&quot;</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">+1]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-			<span class="nb">echo</span> <span class="s2">&quot;runC instance </span><span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span><span class="s2"> is running&quot;</span>
-			<span class="nb">exit</span>
-		<span class="k">else</span>
-			runc <span class="nb">kill</span> <span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span>
-			runc delete <span class="si">${</span><span class="nv">arr</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span>
-		<span class="k">fi</span>
-	<span class="k">fi</span>
-<span class="k">done</span>
-<span class="nv">vmsts</span><span class="o">=</span><span class="k">$(</span>acrnctl list<span class="k">)</span>
-<span class="nv">vms</span><span class="o">=(</span><span class="si">${</span><span class="nv">vmsts</span><span class="p">// / </span><span class="si">}</span><span class="o">)</span>
-<span class="k">for</span><span class="o">((</span><span class="nv">i</span><span class="o">=</span><span class="m">0</span><span class="p">;</span>i&lt;<span class="si">${#</span><span class="nv">vms</span><span class="p">[@]</span><span class="si">}</span><span class="p">;</span>i++<span class="o">))</span>
-<span class="k">do</span>
-	<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$vm_name</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-		<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;stopped&quot;</span> !<span class="o">=</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">+1]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-			<span class="nb">echo</span> <span class="s2">&quot;Uos </span><span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">+1]</span><span class="si">}</span><span class="s2">&quot;</span>
-			acrnctl stop <span class="si">${</span><span class="nv">vms</span><span class="p">[</span><span class="nv">$i</span><span class="p">]</span><span class="si">}</span>
-	        <span class="k">fi</span>
-	<span class="k">fi</span>
-<span class="k">done</span>
-
-
-<span class="k">if</span> <span class="o">[</span> ! -f <span class="s2">&quot;</span><span class="nv">$shell</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-	<span class="nb">echo</span> <span class="s2">&quot;Pls add the vm at first!&quot;</span>
-	<span class="nb">exit</span>
-<span class="k">fi</span>
-
-<span class="k">if</span> <span class="o">[</span> ! -f <span class="s2">&quot;</span><span class="nv">$arg_file</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-	<span class="nb">echo</span> <span class="s2">&quot;Pls add the vm args!&quot;</span>
-	<span class="nb">exit</span>
-<span class="k">fi</span>
-
-
-<span class="k">if</span> <span class="o">[</span> ! -d <span class="s2">&quot;</span><span class="nv">$rootfs_dir</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-	mkdir -p <span class="s2">&quot;</span><span class="nv">$rootfs_dir</span><span class="s2">&quot;</span>
-<span class="k">fi</span>
-<span class="k">if</span> <span class="o">[</span> ! -d <span class="s2">&quot;</span><span class="nv">$runc_bundle</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-	mkdir -p <span class="s2">&quot;</span><span class="nv">$runc_bundle</span><span class="s2">&quot;</span>
-<span class="k">fi</span>
-<span class="k">if</span> <span class="o">[</span> ! -f <span class="s2">&quot;</span><span class="nv">$config_dst</span><span class="s2">&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-	cp  <span class="s2">&quot;</span><span class="nv">$config_src</span><span class="s2">&quot;</span>  <span class="s2">&quot;</span><span class="nv">$config_dst</span><span class="s2">&quot;</span>
-	<span class="nv">args</span><span class="o">=</span><span class="k">$(</span>sed <span class="s1">&#39;{s/-C//g;s/^[ \t]*//g;s/^/\&quot;/;s/ /\&quot;,\&quot;/g;s/$/\&quot;/}&#39;</span> <span class="si">${</span><span class="nv">arg_file</span><span class="si">}</span><span class="k">)</span>
-	sed -i <span class="s2">&quot;s|\&quot;sh\&quot;|\&quot;</span><span class="nv">$shell</span><span class="s2">\&quot;, </span><span class="nv">$args</span><span class="s2">|&quot;</span> <span class="nv">$config_dst</span>
-<span class="k">fi</span>
-runc run --bundle <span class="nv">$runc_bundle</span> -d <span class="nv">$vm_name</span>
-<span class="nb">echo</span> <span class="s2">&quot;The runC container is running in backgroud&quot;</span>
-<span class="nb">echo</span> <span class="s2">&quot;&#39;#runc exec &lt;vmname&gt; bash&#39; to login the container bash&quot;</span>
-<span class="nb">exit</span>
-<span class="o">}</span>
-
-<span class="k">function</span> launch_clear<span class="o">()</span>
-<span class="o">{</span>
-<span class="nv">mac</span><span class="o">=</span><span class="k">$(</span>cat /sys/class/net/e*/address<span class="k">)</span>
-<span class="nv">vm_name</span><span class="o">=</span>vm<span class="nv">$1</span>
-<span class="nv">mac_seed</span><span class="o">=</span><span class="si">${</span><span class="nv">mac</span><span class="p">:</span><span class="nv">9</span><span class="p">:</span><span class="nv">8</span><span class="si">}</span>-<span class="si">${</span><span class="nv">vm_name</span><span class="si">}</span>
-
-<span class="c1">#check if the vm is running or not</span>
-<span class="nv">vm_ps</span><span class="o">=</span><span class="k">$(</span>pgrep -a -f acrn-dm<span class="k">)</span>
-<span class="nv">result</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$vm_ps</span> <span class="p">|</span> grep -w <span class="s2">&quot;</span><span class="si">${</span><span class="nv">vm_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span>
-<span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="nv">$result</span><span class="s2">&quot;</span> !<span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
-  <span class="nb">echo</span> <span class="s2">&quot;</span><span class="nv">$vm_name</span><span class="s2"> is running, can&#39;t create twice!&quot;</span>
-  <span class="nb">exit</span>
-<span class="k">fi</span>
-
-<span class="c1">#logger_setting, format: logger_name,level; like following</span>
-<span class="nv">logger_setting</span><span class="o">=</span><span class="s2">&quot;--logger_setting console,level=4;kmsg,level=3;disk,level=5&quot;</span>
-
-<span class="c1">#for pm by vuart setting</span>
-<span class="nv">pm_channel</span><span class="o">=</span><span class="s2">&quot;--pm_notify_channel uart &quot;</span>
-<span class="nv">pm_by_vuart</span><span class="o">=</span><span class="s2">&quot;--pm_by_vuart pty,/run/acrn/life_mngr_&quot;</span><span class="nv">$vm_name</span>
-<span class="nv">pm_vuart_node</span><span class="o">=</span><span class="s2">&quot; -s 1:0,lpc -l com2,/run/acrn/life_mngr_&quot;</span><span class="nv">$vm_name</span>
-
-<span class="c1">#for memsize setting</span>
-<span class="nv">mem_size</span><span class="o">=</span>2048M
-
-acrn-dm -A -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,hostbridge <span class="se">\</span>
-  -s <span class="m">2</span>,pci-gvt -G <span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span> <span class="se">\</span>
-  -s <span class="m">5</span>,virtio-console,@stdio:stdio_port <span class="se">\</span>
-  -s <span class="m">6</span>,virtio-hyper_dmabuf <span class="se">\</span>
-  -s <span class="m">3</span>,virtio-blk,/home/clear/uos/uos.img <span class="se">\</span>
-  -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
-  -s <span class="m">7</span>,virtio-rnd <span class="se">\</span>
-  --ovmf /usr/share/acrn/bios/OVMF.fd <span class="se">\</span>
-  <span class="nv">$pm_channel</span> <span class="nv">$pm_by_vuart</span> <span class="nv">$pm_vuart_node</span> <span class="se">\</span>
-  <span class="nv">$logger_setting</span> <span class="se">\</span>
-  --mac_seed <span class="nv">$mac_seed</span> <span class="se">\</span>
-  <span class="nv">$vm_name</span>
-<span class="o">}</span>
-
-<span class="c1">#add following cmdline to grub.cfg and update kernel</span>
-<span class="c1">#when launching LaaG by OVMF</span>
-<span class="c1">#rw rootwait maxcpus=1 nohpet console=tty0 console=hvc0</span>
-<span class="c1">#console=ttyS0 no_timer_check ignore_loglevel</span>
-<span class="c1">#log_buf_len=16M consoleblank=0</span>
-<span class="c1">#tsc=reliable i915.avail_planes_per_pipe=&quot;64 448 8&quot;</span>
-<span class="c1">#i915.enable_hangcheck=0 i915.nuclear_pageflip=1</span>
-<span class="c1">#i915.enable_guc_loading=0</span>
-<span class="c1">#i915.enable_guc_submission=0 i915.enable_guc=0</span>
-
-<span class="c1"># offline SOS CPUs except BSP before launch UOS</span>
-<span class="k">for</span> i in <span class="sb">`</span>ls -d /sys/devices/system/cpu/cpu<span class="o">[</span><span class="m">1</span>-99<span class="o">]</span><span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
-        <span class="nv">online</span><span class="o">=</span><span class="sb">`</span>cat <span class="nv">$i</span>/online<span class="sb">`</span>
-        <span class="nv">idx</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="nv">$i</span> <span class="p">|</span> tr -cd <span class="s2">&quot;[1-99]&quot;</span><span class="sb">`</span>
-        <span class="nb">echo</span> cpu<span class="nv">$idx</span> <span class="nv">online</span><span class="o">=</span><span class="nv">$online</span>
-        <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$online</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-                <span class="nb">echo</span> <span class="m">0</span> &gt; <span class="nv">$i</span>/online
-		<span class="c1"># during boot time, cpu hotplug may be disabled by pci_device_probe during a pci module insmod</span>
-		<span class="k">while</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$online</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">do</span>
-			sleep <span class="m">1</span>
-			<span class="nb">echo</span> <span class="m">0</span> &gt; <span class="nv">$i</span>/online
-			<span class="nv">online</span><span class="o">=</span><span class="sb">`</span>cat <span class="nv">$i</span>/online<span class="sb">`</span>
-		<span class="k">done</span>
-                <span class="nb">echo</span> <span class="nv">$idx</span> &gt; <span class="si">${</span><span class="nv">offline_path</span><span class="si">}</span>/offline_cpu
-        <span class="k">fi</span>
-<span class="k">done</span>
-
-
-<span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$1</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;-C&quot;</span> <span class="o">]</span><span class="p">;</span><span class="k">then</span>
-	<span class="nb">echo</span> <span class="s2">&quot;runc_container&quot;</span>
-	run_container
-<span class="k">else</span>
-	launch_clear <span class="m">1</span> <span class="s2">&quot;64 448 8&quot;</span> 0x070F00
-<span class="k">fi</span>
-</pre></div>
-</div>
-</div>
 <p>By default, the script is located in the <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/</span></code>
 directory. You can run it to launch the User OS:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd /usr/share/acrn/samples/nuc/
@@ -1643,7 +1492,7 @@ $ sudo ./launch_uos.sh
 </div>
 </li>
 <li><p class="first">You have successfully booted the ACRN hypervisor, SOS, and UOS:</p>
-<div class="figure align-center" id="id5">
+<div class="figure align-center" id="id4">
 <img alt="../_images/gsg-successful-boot.png" src="../_images/gsg-successful-boot.png" />
 <p class="caption"><span class="caption-number">Figure 23 </span><span class="caption-text">Successful boot</span></p>
 </div>
@@ -1666,7 +1515,7 @@ $ sudo ./launch_uos.sh
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Sep 29, 2019.
+      Last updated on Oct 14, 2019.
 
     </p>
   </div> 
@@ -1686,7 +1535,7 @@ $ sudo ./launch_uos.sh
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v 1.4-unstable',
+            VERSION:'unknown',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
