@@ -1031,6 +1031,10 @@ options:</p>
      --virtio_poll: enable virtio poll mode with poll interval with ns
      --vtpm2: Virtual TPM2 args: sock_path=$PATH_OF_SWTPM_SOCKET
      --lapic_pt: enable local apic passthrough
+     --rtvm: indicate that the guest is rtvm
+     --logger_setting: params like console,level=4;kmsg,level=3
+     --pm_notify_channel: define the channel used to notify guest about power event
+     --pm_by_vuart:pty,/run/acrn/vuart_vmname or tty,/dev/ttySn
 </pre></div>
 </div>
 <p>See <a class="reference internal" href="../../user-guides/acrn-dm-parameters.html#acrn-dm-parameters"><span class="std std-ref">Device Model Parameters</span></a> for more detailed descriptions of these
@@ -1179,6 +1183,11 @@ handling loop:</p>
                 <span class="n">handle_vmexit</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">vhm_req</span><span class="p">,</span> <span class="n">vcpu_id</span><span class="p">);</span>
         <span class="p">}</span>
 
+        <span class="k">if</span> <span class="p">(</span><span class="n">VM_SUSPEND_FULL_RESET</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">()</span> <span class="o">||</span>
+          <span class="n">VM_SUSPEND_POWEROFF</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="p">{</span>
+          <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+
         <span class="k">if</span> <span class="p">(</span><span class="n">VM_SUSPEND_SYSTEM_RESET</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="p">{</span>
             <span class="n">vm_system_reset</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
         <span class="p">}</span>
@@ -1187,7 +1196,6 @@ handling loop:</p>
             <span class="n">vm_suspend_resume</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="n">quit_vm_loop</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="n">printf</span><span class="p">(</span><span class="s">&quot;VM loop exit</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
@@ -1530,11 +1538,6 @@ to destination emulated devices:</p>
 <span class="cm"> * set the &quot;Interrupt pin&quot; field of PCI config space. */</span>
 <span class="kt">void</span>    <span class="nf">pci_lintr_request</span><span class="p">(</span><span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="n">pi</span><span class="p">);</span>
 <span class="kt">void</span>    <span class="nf">pci_lintr_release</span><span class="p">(</span><span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="n">pi</span><span class="p">);</span>
-
-<span class="cm">/* These APIs assert/deassert vPIC interrupt lines. */</span>
-<span class="kt">int</span> <span class="nf">vm_isa_assert_irq</span><span class="p">(</span><span class="k">struct</span> <span class="n">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span> <span class="kt">int</span> <span class="n">atpic_irq</span><span class="p">,</span> <span class="kt">int</span> <span class="n">ioapic_irq</span><span class="p">);</span>
-<span class="kt">int</span> <span class="nf">vm_isa_deassert_irq</span><span class="p">(</span><span class="k">struct</span> <span class="n">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span> <span class="kt">int</span> <span class="n">atpic_irq</span><span class="p">,</span> <span class="kt">int</span> <span class="n">ioapic_irq</span><span class="p">);</span>
-<span class="kt">int</span> <span class="nf">vm_isa_pulse_irq</span><span class="p">(</span><span class="k">struct</span> <span class="n">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span> <span class="kt">int</span> <span class="n">atpic_irq</span><span class="p">,</span> <span class="kt">int</span> <span class="n">ioapic_irq</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -1905,6 +1908,8 @@ specific file</li>
     <span class="p">{</span> <span class="n">basl_fwrite_mcfg</span><span class="p">,</span> <span class="n">MCFG_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
     <span class="p">{</span> <span class="n">basl_fwrite_facs</span><span class="p">,</span> <span class="n">FACS_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
     <span class="p">{</span> <span class="n">basl_fwrite_nhlt</span><span class="p">,</span> <span class="n">NHLT_OFFSET</span><span class="p">,</span> <span class="nb">false</span> <span class="p">},</span> <span class="cm">/*valid with audio ptdev*/</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_tpm2</span><span class="p">,</span> <span class="n">TPM2_OFFSET</span><span class="p">,</span> <span class="nb">false</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="n">basl_fwrite_psds</span><span class="p">,</span> <span class="n">PSDS_OFFSET</span><span class="p">,</span> <span class="nb">false</span> <span class="p">},</span> <span class="cm">/*valid when psds present in sos */</span>
     <span class="p">{</span> <span class="n">basl_fwrite_dsdt</span><span class="p">,</span> <span class="n">DSDT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">}</span>
 <span class="p">};</span>
 </pre></div>
@@ -2000,6 +2005,9 @@ device id:</p>
     <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5abc</span><span class="p">)</span>
         <span class="cm">/* URT1 @ 00:18.0 for bluetooth*/</span>
         <span class="n">write_dsdt_urt1</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5aca</span><span class="p">)</span>
+        <span class="cm">/* SDC @ 00:1b.0 */</span>
+        <span class="n">write_dsdt_sdc</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
 
 <span class="p">}</span>
 </pre></div>
@@ -2063,7 +2071,7 @@ S3.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Oct 15, 2019.
+      Last updated on Oct 17, 2019.
 
     </p>
   </div> 

@@ -975,7 +975,7 @@ device was successfully added, or a port opened or closed.</p>
 <p>The virtio-console architecture diagram in ACRN is shown below.</p>
 <div class="figure align-center" id="virtio-console-arch">
 <a class="reference internal image-reference" href="../../_images/virtio-console-arch.png"><img alt="../../_images/virtio-console-arch.png" src="../../_images/virtio-console-arch.png" style="width: 700px;" /></a>
-<p class="caption"><span class="caption-number">Figure 226 </span><span class="caption-text">Virtio-console architecture diagram</span></p>
+<p class="caption"><span class="caption-number">Figure 225 </span><span class="caption-text">Virtio-console architecture diagram</span></p>
 </div>
 <p>Virtio-console is implemented as a virtio legacy device in the ACRN
 device model (DM), and is registered as a PCI virtio device to the guest
@@ -1020,7 +1020,7 @@ devices. Currently the following backend devices are supported in ACRN
 device model: STDIO, TTY, PTY and regular file.</p>
 <p>The device model configuration command syntax for virtio-console is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,[</span><span class="o">@</span><span class="p">]</span><span class="n">stdio</span><span class="o">|</span><span class="n">tty</span><span class="o">|</span><span class="n">pty</span><span class="o">|</span><span class="n">file</span><span class="p">:</span><span class="n">portname</span><span class="p">[</span><span class="o">=</span><span class="n">portpath</span><span class="p">]</span>\
-   <span class="p">[,[</span><span class="o">@</span><span class="p">]</span><span class="n">stdio</span><span class="o">|</span><span class="n">tty</span><span class="o">|</span><span class="n">pty</span><span class="o">|</span><span class="n">file</span><span class="p">:</span><span class="n">portname</span><span class="p">[</span><span class="o">=</span><span class="n">portpath</span><span class="p">]]</span>
+   <span class="p">[,[</span><span class="o">@</span><span class="p">]</span><span class="n">stdio</span><span class="o">|</span><span class="n">tty</span><span class="o">|</span><span class="n">pty</span><span class="o">|</span><span class="n">file</span><span class="p">:</span><span class="n">portname</span><span class="p">[</span><span class="o">=</span><span class="n">portpath</span><span class="p">][:</span><span class="n">socket_type</span><span class="p">]]</span>
 </pre></div>
 </div>
 <ul>
@@ -1035,6 +1035,9 @@ normal virtio serial port</p>
 <li><p class="first">When tty is used, please make sure the redirected tty is sleeping,
 (e.g., by <code class="docutils literal notranslate"><span class="pre">sleep</span> <span class="pre">2d</span></code> command), and will not read input from stdin before it
 is used by virtio-console to redirect guest output.</p>
+</li>
+<li><p class="first">When virtio-console socket_type is appointed to client, please make sure
+server VM(socket_type is appointed to server) has started.</p>
 </li>
 <li><p class="first">Claiming multiple virtio serial ports as consoles is supported,
 however the guest Linux OS will only use one of them, through the
@@ -1082,14 +1085,17 @@ line):</p>
 <p>One line of information, such as shown below, will be printed in the terminal
 after <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> is launched (<code class="docutils literal notranslate"><span class="pre">/dev/pts/0</span></code> may be different,
 depending on your use case):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">virt-console backend redirected to /dev/pts/0</span>
+</pre></div>
+</div>
 </li>
 <li><p class="first">Use a terminal emulator, such as minicom or screen, to connect to the
 tty node:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">minicom</span> <span class="o">-</span><span class="n">D</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> minicom -D /dev/pts/0
 </pre></div>
 </div>
-<p>or</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">screen</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span>
+<p>or :</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> screen /dev/pts/0
 </pre></div>
 </div>
 </li>
@@ -1103,23 +1109,23 @@ tty node:</p>
 <li><p class="first">If you’re connected to your device over the network via ssh, use
 the linux <code class="docutils literal notranslate"><span class="pre">tty</span></code> command, and it will report the node (may be
 different in your use case):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span>
-<span class="n">sleep</span> <span class="mi">2</span><span class="n">d</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">/dev/pts/0</span>
+<span class="gp">#</span> sleep 2d
 </pre></div>
 </div>
 </li>
 <li><p class="first">If you do not have network access to your device, use screen
 to create a new tty:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">screen</span>
-<span class="n">tty</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> screen
+<span class="gp">#</span> tty
 </pre></div>
 </div>
 <p>you will see (depending on your use case):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">0</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">/dev/pts/0</span>
 </pre></div>
 </div>
 <p>Prevent the tty from responding by sleeping:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sleep</span> <span class="mi">2</span><span class="n">d</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> sleep 2d
 </pre></div>
 </div>
 <p>and detach the tty by pressing <kbd class="kbd docutils literal notranslate">CTRL-A</kbd> <kbd class="kbd docutils literal notranslate">d</kbd>.</p>
@@ -1139,8 +1145,8 @@ to create a new tty:</p>
 </li>
 <li><p class="first">Go back to the previous tty.  For example, if you’re using
 <code class="docutils literal notranslate"><span class="pre">screen</span></code>, use:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">screen</span> <span class="o">-</span><span class="n">ls</span>
-<span class="n">screen</span> <span class="o">-</span><span class="n">r</span> <span class="o">&lt;</span><span class="n">pid_of_your_tty</span><span class="o">&gt;</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> screen -ls
+<span class="gp">#</span> screen -r &lt;pid_of_your_tty&gt;
 </pre></div>
 </div>
 </li>
@@ -1163,6 +1169,43 @@ adjusting the <code class="docutils literal notranslate"><span class="pre">&lt;/
 </li>
 </ol>
 </div>
+<div class="section" id="socket">
+<h3>SOCKET<a class="headerlink" href="#socket" title="Permalink to this headline">¶</a></h3>
+<p>The virtio-console socket-type can be set as socket server or client. Device model will
+create an unix domain socket if appointed the socket_type as server, then server VM or
+another user VM can bind and listen for communication requirement. If appointed to
+client, please make sure the socket server is ready prior to launch device model.</p>
+<ol class="arabic">
+<li><p class="first">Add a pci slot to the device model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>) command line, adjusting
+the <code class="docutils literal notranslate"><span class="pre">&lt;/path/to/file.sock&gt;</span></code> to your use case in the VM1 configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">n</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,</span><span class="n">socket</span><span class="p">:</span><span class="n">socket_file_name</span><span class="o">=&lt;/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">file</span><span class="o">.</span><span class="n">sock</span><span class="o">&gt;</span><span class="p">:</span><span class="n">server</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Add a pci slot to the device model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>) command line, adjusting
+the <code class="docutils literal notranslate"><span class="pre">&lt;/path/to/file.sock&gt;</span></code> to your use case in the VM2 configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">n</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">console</span><span class="p">,</span><span class="n">socket</span><span class="p">:</span><span class="n">socket_file_name</span><span class="o">=&lt;/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">file</span><span class="o">.</span><span class="n">sock</span><span class="o">&gt;</span><span class="p">:</span><span class="n">client</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Login to VM1, connect to the virtual port(vport1p0, 1 is decided
+by front-end driver):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> minicom -D /dev/vport1p0
+</pre></div>
+</div>
+</li>
+<li><p class="first">Login to VM2, connect to the virtual port(vport3p0, 3 is decided
+by front-end driver):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> minicom -D /dev/vport3p0
+</pre></div>
+</div>
+</li>
+<li><p class="first">Input into minicom window of VM1 or VM2, the minicom window of VM1
+will indicate the input from VM2, the minicom window of VM2 will
+indicate the input from VM1.</p>
+</li>
+</ol>
+</div>
 </div>
 </div>
 
@@ -1179,7 +1222,7 @@ adjusting the <code class="docutils literal notranslate"><span class="pre">&lt;/
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Oct 15, 2019.
+      Last updated on Oct 17, 2019.
 
     </p>
   </div> 
