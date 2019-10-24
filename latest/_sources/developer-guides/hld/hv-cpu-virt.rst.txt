@@ -856,7 +856,7 @@ This table describes details for CPUID emulation:
      - - Intel RDT Currently disabled
 
    * - 12H
-     - - Intel SGX Currently disabled
+     - - Fill according to SGX virtualization
 
    * - 14H
      - - Intel Processor Trace Currently disabled
@@ -891,6 +891,10 @@ pass-through directly:
      - **Description**
      - **Handler**
 
+   * - MSR_IA32_TSC_ADJUST
+     - TSC adjustment of local APIC's TSC deadline mode
+     - emulates with vlapic
+
    * - MSR_IA32_TSC_DEADLINE
      - TSC target of local APIC's TSC deadline mode
      - emulates with vlapic
@@ -906,8 +910,12 @@ pass-through directly:
      - "
 
    * - MSR_IA32_TIME_STAMP_COUNTER
-     - TIme-stamp counter
+     - Time-stamp counter
      - work with VMX_TSC_OFFSET_FULL to emulate virtual TSC
+
+   * - MSR_IA32_APIC_BASE
+     - APIC base address
+     - emulates with vlapic
 
    * - MSR_IA32_PAT
      - Page-attribute table
@@ -917,6 +925,26 @@ pass-through directly:
      - Performance control
      - Trigger real p-state change if p-state is valid when writing,
        fetch physical MSR when reading
+
+   * - MSR_IA32_FEATURE_CONTROL
+     - Feature control bits that configure operation of VMX and SMX
+     - disabled, locked
+
+   * - MSR_IA32_MCG_CAP/STATUS
+     - Machine-Check global control/status
+     - emulates with vMCE
+
+   * - MSR_IA32_MISC_ENABLE
+     - Miscellaneous feature control
+     - readonly, except MONITOR/MWAIT enable bit
+
+   * - MSR_IA32_SGXLEPUBKEYHASH0/1/2/3
+     - SHA256 digest of the authorized launch enclaves
+     - emulates with vSGX
+
+   * - MSR_IA32_SGX_SVN_STATUS
+     - Status and SVN threshold of SGX support for ACM
+     - readonly, emulates with vSGX
 
    * - MSR_IA32_MTRR_CAP
      - Memory type range register related
@@ -941,6 +969,18 @@ pass-through directly:
    * - MSR_IA32_MTRR_FIX4K_C0000~F8000
      - "
      - "
+
+   * - MSR_IA32_X2APIC_*
+     - x2APIC related MSRs (offset from 0x800 to 0x900)
+     - emulates with vlapic
+
+   * - MSR_IA32_L2_MASK_n
+     - L2 CAT mask for COSn
+     - emulates with vCAT
+
+   * - MSR_IA32_L3_MASK_n
+     - L3 CAT mask for COSn
+     - emulates with vCAT
 
    * - MSR_IA32_VMX_BASIC~VMX_TRUE_ENTRY_CTLS
      - VMX related MSRs
@@ -1047,7 +1087,7 @@ setting.
        are fixed to be 0 under VMX operation
 
    * - CR4_TRAP_MASK
-     - CR4_PSE | CR4_PAE | CR4_VMXE | CR4_PCIDE
+     - CR4_PSE | CR4_PAE | CR4_VMXE | CR4_PCIDE | CR4_SMEP | CR4_SMAP | CR4_PKE
      - ACRN will also trap PSE, PAE, VMXE, and PCIDE bits
 
    * - cr4_host_mask
@@ -1108,15 +1148,8 @@ APIs to register its IO/MMIO range:
      - register an I/O emulation handler for a hypervisor emulated device
        by specific I/O range
 
-   * - free_io_emulation_resource
-     - free all I/O emulation resources for a VM
-
    * - register_mmio_emulation_handler
      - register a MMIO emulation handler for a hypervisor emulated device
-       by specific MMIO range
-
-   * - unregister_mmio_emulation_handler
-     - unregister a MMIO emulation handler for a hypervisor emulated device
        by specific MMIO range
 
 .. _instruction-emulation:
@@ -1187,6 +1220,34 @@ in *VMX_PROC_VM_EXEC_CONTROLS*):
 
 -  For read: ``val = rdtsc() + exec_vmread64(VMX_TSC_OFFSET_FULL)``
 -  For write: ``exec_vmwrite64(VMX_TSC_OFFSET_FULL, val - rdtsc())``
+
+ART Virtualization
+******************
+
+The invariant TSC is based on the invariant timekeeping hardware (called
+Always Running Timer or ART), that runs at the core crystal clock frequency.
+The ratio defined by CPUID leaf 15H express the frequency relationship
+between the ART hardware and TSC.
+
+If CPUID.15H.EBX[31:0] != 0 and CPUID.80000007H:EDX[InvariantTSC] = 1, the
+following linearity relationship holds between TSC and the ART hardware:
+
+   ``TSC_Value = (ART_Value * CPUID.15H:EBX[31:0]) / CPUID.15H:EAX[31:0] + K``
+
+Where `K` is an offset that can be adjusted by a privileged agent.
+When ART hardware is reset, both invariant TSC and K are also reset.
+
+The guideline of ART virtualization (vART) is that software in native can run in
+VM too. The vART solution is:
+
+-  Present the ART capability to guest through CPUID leaf 15H for `CPUID.15H:EBX[31:0]`
+   and `CPUID.15H:EAX[31:0]`.
+-  Passthrough devices see the physical ART_Value (vART_Value = pART_Value)
+-  Relationship between the ART and TSC in guest is:
+   ``vTSC_Value = (vART_Value * CPUID.15H:EBX[31:0]) / CPUID.15H:EAX[31:0] + vK``
+   Where `vK = K + VMCS.TSC_OFFSET`.
+-  If `vK` or `vTSC_Value` are changed by guest, we change the `VMCS.TSC_OFFSET` accordingly.
+-  `K` should never be changed by hypervisor.
 
 XSAVE Emulation
 ***************

@@ -2323,7 +2323,7 @@ some APIC ID-related CPUID data emulated at runtime.</p>
 </tr>
 <tr class="row-odd"><td>12H</td>
 <td><ul class="first last simple">
-<li>Intel SGX Currently disabled</li>
+<li>Fill according to SGX virtualization</li>
 </ul>
 </td>
 </tr>
@@ -2372,23 +2372,31 @@ pass-through directly:</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>MSR_IA32_TSC_DEADLINE</td>
+<tr class="row-even"><td>MSR_IA32_TSC_ADJUST</td>
+<td>TSC adjustment of local APIC’s TSC deadline mode</td>
+<td>emulates with vlapic</td>
+</tr>
+<tr class="row-odd"><td>MSR_IA32_TSC_DEADLINE</td>
 <td>TSC target of local APIC’s TSC deadline mode</td>
 <td>emulates with vlapic</td>
 </tr>
-<tr class="row-odd"><td>MSR_IA32_BIOS_UPDT_TRIG</td>
+<tr class="row-even"><td>MSR_IA32_BIOS_UPDT_TRIG</td>
 <td>BIOS update trigger</td>
 <td>work for update microcode from SOS, the signature ID read is from
 physical MSR, and a BIOS update trigger from SOS will trigger a
 physical microcode update.</td>
 </tr>
-<tr class="row-even"><td>MSR_IA32_BIOS_SIGN_ID</td>
+<tr class="row-odd"><td>MSR_IA32_BIOS_SIGN_ID</td>
 <td>BIOS update signature ID</td>
 <td>“</td>
 </tr>
-<tr class="row-odd"><td>MSR_IA32_TIME_STAMP_COUNTER</td>
-<td>TIme-stamp counter</td>
+<tr class="row-even"><td>MSR_IA32_TIME_STAMP_COUNTER</td>
+<td>Time-stamp counter</td>
 <td>work with VMX_TSC_OFFSET_FULL to emulate virtual TSC</td>
+</tr>
+<tr class="row-odd"><td>MSR_IA32_APIC_BASE</td>
+<td>APIC base address</td>
+<td>emulates with vlapic</td>
 </tr>
 <tr class="row-even"><td>MSR_IA32_PAT</td>
 <td>Page-attribute table</td>
@@ -2399,29 +2407,61 @@ physical microcode update.</td>
 <td>Trigger real p-state change if p-state is valid when writing,
 fetch physical MSR when reading</td>
 </tr>
-<tr class="row-even"><td>MSR_IA32_MTRR_CAP</td>
+<tr class="row-even"><td>MSR_IA32_FEATURE_CONTROL</td>
+<td>Feature control bits that configure operation of VMX and SMX</td>
+<td>disabled, locked</td>
+</tr>
+<tr class="row-odd"><td>MSR_IA32_MCG_CAP/STATUS</td>
+<td>Machine-Check global control/status</td>
+<td>emulates with vMCE</td>
+</tr>
+<tr class="row-even"><td>MSR_IA32_MISC_ENABLE</td>
+<td>Miscellaneous feature control</td>
+<td>readonly, except MONITOR/MWAIT enable bit</td>
+</tr>
+<tr class="row-odd"><td>MSR_IA32_SGXLEPUBKEYHASH0/1/2/3</td>
+<td>SHA256 digest of the authorized launch enclaves</td>
+<td>emulates with vSGX</td>
+</tr>
+<tr class="row-even"><td>MSR_IA32_SGX_SVN_STATUS</td>
+<td>Status and SVN threshold of SGX support for ACM</td>
+<td>readonly, emulates with vSGX</td>
+</tr>
+<tr class="row-odd"><td>MSR_IA32_MTRR_CAP</td>
 <td>Memory type range register related</td>
 <td>Handled by MTRR emulation.</td>
 </tr>
-<tr class="row-odd"><td>MSR_IA32_MTRR_DEF_TYPE</td>
+<tr class="row-even"><td>MSR_IA32_MTRR_DEF_TYPE</td>
 <td>“</td>
 <td>“</td>
 </tr>
-<tr class="row-even"><td>MSR_IA32_MTRR_PHYSBASE_0~9</td>
+<tr class="row-odd"><td>MSR_IA32_MTRR_PHYSBASE_0~9</td>
 <td>“</td>
 <td>“</td>
 </tr>
-<tr class="row-odd"><td>MSR_IA32_MTRR_FIX64K_00000</td>
+<tr class="row-even"><td>MSR_IA32_MTRR_FIX64K_00000</td>
 <td>“</td>
 <td>“</td>
 </tr>
-<tr class="row-even"><td>MSR_IA32_MTRR_FIX16K_80000/A0000</td>
+<tr class="row-odd"><td>MSR_IA32_MTRR_FIX16K_80000/A0000</td>
 <td>“</td>
 <td>“</td>
 </tr>
-<tr class="row-odd"><td>MSR_IA32_MTRR_FIX4K_C0000~F8000</td>
+<tr class="row-even"><td>MSR_IA32_MTRR_FIX4K_C0000~F8000</td>
 <td>“</td>
 <td>“</td>
+</tr>
+<tr class="row-odd"><td>MSR_IA32_X2APIC_*</td>
+<td>x2APIC related MSRs (offset from 0x800 to 0x900)</td>
+<td>emulates with vlapic</td>
+</tr>
+<tr class="row-even"><td>MSR_IA32_L2_MASK_n</td>
+<td>L2 CAT mask for COSn</td>
+<td>emulates with vCAT</td>
+</tr>
+<tr class="row-odd"><td>MSR_IA32_L3_MASK_n</td>
+<td>L3 CAT mask for COSn</td>
+<td>emulates with vCAT</td>
 </tr>
 <tr class="row-even"><td>MSR_IA32_VMX_BASIC~VMX_TRUE_ENTRY_CTLS</td>
 <td>VMX related MSRs</td>
@@ -2542,7 +2582,7 @@ are fixed to be 1 under VMX operation</td>
 are fixed to be 0 under VMX operation</td>
 </tr>
 <tr class="row-even"><td>CR4_TRAP_MASK</td>
-<td>CR4_PSE | CR4_PAE | CR4_VMXE | CR4_PCIDE</td>
+<td>CR4_PSE | CR4_PAE | CR4_VMXE | CR4_PCIDE | CR4_SMEP | CR4_SMAP | CR4_PKE</td>
 <td>ACRN will also trap PSE, PAE, VMXE, and PCIDE bits</td>
 </tr>
 <tr class="row-odd"><td>cr4_host_mask</td>
@@ -2601,15 +2641,8 @@ DM.</li>
 <td>register an I/O emulation handler for a hypervisor emulated device
 by specific I/O range</td>
 </tr>
-<tr class="row-odd"><td>free_io_emulation_resource</td>
-<td>free all I/O emulation resources for a VM</td>
-</tr>
-<tr class="row-even"><td>register_mmio_emulation_handler</td>
+<tr class="row-odd"><td>register_mmio_emulation_handler</td>
 <td>register a MMIO emulation handler for a hypervisor emulated device
-by specific MMIO range</td>
-</tr>
-<tr class="row-odd"><td>unregister_mmio_emulation_handler</td>
-<td>unregister a MMIO emulation handler for a hypervisor emulated device
 by specific MMIO range</td>
 </tr>
 </tbody>
@@ -2674,6 +2707,31 @@ in <em>VMX_PROC_VM_EXEC_CONTROLS</em>):</p>
 <li>For write: <code class="docutils literal notranslate"><span class="pre">exec_vmwrite64(VMX_TSC_OFFSET_FULL,</span> <span class="pre">val</span> <span class="pre">-</span> <span class="pre">rdtsc())</span></code></li>
 </ul>
 </div>
+<div class="section" id="art-virtualization">
+<h2>ART Virtualization<a class="headerlink" href="#art-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>The invariant TSC is based on the invariant timekeeping hardware (called
+Always Running Timer or ART), that runs at the core crystal clock frequency.
+The ratio defined by CPUID leaf 15H express the frequency relationship
+between the ART hardware and TSC.</p>
+<p>If CPUID.15H.EBX[31:0] != 0 and CPUID.80000007H:EDX[InvariantTSC] = 1, the
+following linearity relationship holds between TSC and the ART hardware:</p>
+<blockquote>
+<div><code class="docutils literal notranslate"><span class="pre">TSC_Value</span> <span class="pre">=</span> <span class="pre">(ART_Value</span> <span class="pre">*</span> <span class="pre">CPUID.15H:EBX[31:0])</span> <span class="pre">/</span> <span class="pre">CPUID.15H:EAX[31:0]</span> <span class="pre">+</span> <span class="pre">K</span></code></div></blockquote>
+<p>Where <cite>K</cite> is an offset that can be adjusted by a privileged agent.
+When ART hardware is reset, both invariant TSC and K are also reset.</p>
+<p>The guideline of ART virtualization (vART) is that software in native can run in
+VM too. The vART solution is:</p>
+<ul class="simple">
+<li>Present the ART capability to guest through CPUID leaf 15H for <cite>CPUID.15H:EBX[31:0]</cite>
+and <cite>CPUID.15H:EAX[31:0]</cite>.</li>
+<li>Passthrough devices see the physical ART_Value (vART_Value = pART_Value)</li>
+<li>Relationship between the ART and TSC in guest is:
+<code class="docutils literal notranslate"><span class="pre">vTSC_Value</span> <span class="pre">=</span> <span class="pre">(vART_Value</span> <span class="pre">*</span> <span class="pre">CPUID.15H:EBX[31:0])</span> <span class="pre">/</span> <span class="pre">CPUID.15H:EAX[31:0]</span> <span class="pre">+</span> <span class="pre">vK</span></code>
+Where <cite>vK = K + VMCS.TSC_OFFSET</cite>.</li>
+<li>If <cite>vK</cite> or <cite>vTSC_Value</cite> are changed by guest, we change the <cite>VMCS.TSC_OFFSET</cite> accordingly.</li>
+<li><cite>K</cite> should never be changed by hypervisor.</li>
+</ul>
+</div>
 <div class="section" id="xsave-emulation">
 <h2>XSAVE Emulation<a class="headerlink" href="#xsave-emulation" title="Permalink to this headline">¶</a></h2>
 <p>The XSAVE feature set is comprised of eight instructions:</p>
@@ -2727,7 +2785,7 @@ non-root mode.</li>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Oct 22, 2019.
+      Last updated on Oct 23, 2019.
 
     </p>
   </div> 
