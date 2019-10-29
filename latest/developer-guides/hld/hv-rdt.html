@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Emulated devices high-level design &mdash; Project ACRN™ unknown documentation</title>
+  <title>RDT Allocation Feature Supported by Hypervisor &mdash; Project ACRN™ unknown documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="USB Virtualization" href="usb-virt-hld.html" />
-    <link rel="prev" title="Device Model high-level design" href="hld-devicemodel.html" /> 
+    <link rel="next" title="Device Model high-level design" href="hld-devicemodel.html" />
+    <link rel="prev" title="Compile-time Configuration" href="hv-config.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -499,9 +499,9 @@
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Emulated Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
@@ -933,7 +933,9 @@
         
           <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
         
-      <li>Emulated devices high-level design</li>
+          <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
+        
+      <li>RDT Allocation Feature Supported by Hypervisor</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -952,25 +954,47 @@
   
            <div itemprop="articleBody">
             
-  <div class="section" id="emulated-devices-high-level-design">
-<span id="hld-emulated-devices"></span><h1>Emulated devices high-level design<a class="headerlink" href="#emulated-devices-high-level-design" title="Permalink to this headline">¶</a></h1>
-<p>Full virtualization device models can typically
-reuse existing native device drivers to avoid implementing front-end
-drivers. ACRN implements several fully virtualized devices, as
-documented in this section.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="usb-virt-hld.html">USB Virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ahci-hld.html">AHCI virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="system-timer-hld.html">System timer virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="vuart-virt-hld.html">UART emulation in hypervisor</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rtc-virt-hld.html">RTC emulation in hypervisor</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hostbridge-virt-hld.html">Hostbridge emulation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="atkbdc-virt-hld.html">AT keyboard controller emulation</a></li>
+  <div class="section" id="rdt-allocation-feature-supported-by-hypervisor">
+<span id="hv-rdt"></span><h1>RDT Allocation Feature Supported by Hypervisor<a class="headerlink" href="#rdt-allocation-feature-supported-by-hypervisor" title="Permalink to this headline">¶</a></h1>
+<p>The hypervisor allows to use RDT (Resource Director Technology) allocation features to optimize performance of VMs. There are 2 sub-features: CAT (Cache Allocation Technology) and MBA(Memory Bandwidth Allocation), CAT is for cache resources and MBA is for memory bandwidth resources. Code and Data Prioritization (CDP) is an extension of CAT. Only CAT is enabled due to the feature availability on ACRN supported platform. In ACRN, the CAT is configured via the “VM-Configuration”, the resources allocated for VMs are determined in the VM configuration.</p>
+<div class="section" id="cat-support-in-acrn">
+<h2>CAT Support in ACRN<a class="headerlink" href="#cat-support-in-acrn" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="introduction-of-cat-capabilities">
+<h3>Introduction of CAT Capabilities<a class="headerlink" href="#introduction-of-cat-capabilities" title="Permalink to this headline">¶</a></h3>
+<p>On a platform which supports CAT, each CPU can mask last-level-cache (LLC) with a cache mask, the masked cache ways cannot be evicted by this CPU. In terms of SDM, please see chapter 17, volume 3, CAT capabilities are enumerated via CPUID, and configured via MSR registers, these are:</p>
+<ul class="simple">
+<li>CPUID.10H contains CAT capabilities, such as cache mask type(L2/L3), mask bit
+length, number of masks.</li>
+<li>Cache masks are set in IA32_type_MASK_n, each one of these MSRs can
+hold a cache mask. They are shared by CPUs who share the same LLC; CPU sets
+the RMID field of its IA32_PQR_ASSOC MSR with class-of-service (CLOS) ID, to
+select a cache mask to take effect.</li>
 </ul>
+</div>
+<div class="section" id="objective-of-cat">
+<h3>Objective of CAT<a class="headerlink" href="#objective-of-cat" title="Permalink to this headline">¶</a></h3>
+<p>CAT feature in hypervisor can isolate cache for a VM from other VMs. It can also isolate the cache usage between VMX root mode and VMX non-root mode. Generally, certain cache resources will be allocated for the RT VMs in order to reduce the performance interference through the shared cache access from the neighbour VMs.</p>
+</div>
+<div class="section" id="cat-workflow">
+<h3>CAT Workflow<a class="headerlink" href="#cat-workflow" title="Permalink to this headline">¶</a></h3>
+<p>The hypervisor enumerates CAT capabilities and setup cache mask arrays; It also sets up CLOS for VMs and hypervisor itself per the “vm configuration”.</p>
+<ul class="simple">
+<li>The CAT capabilities are enumerated on boot-strap processor (BSP), at the
+PCPU pre-initialize stage. The global data structure cat_cap_info holds the
+result.</li>
+<li>If CAT is supported, then setup cache masks array on all APs, at the PCPU
+post-initialize stage. The mask values are written to IA32_type_MASK_n. In
+fact, for CPUs which share LLC, they share the same IA32_type_MASK_n MSRs too,
+only need to do that on one CPU of them. The hypervisor does not detect
+hierarchy of LLCs.</li>
+<li>If CAT is supported. The CLOS of a VM will be stored into its vCPU
+msr_store_area data structure guest part. It will be loaded to
+MSR IA32_PQR_ASSOC at each VM entry.</li>
+<li>If CAT is supported, The CLOS of hypervisor is stored for all VMs, in their
+vCPU msr_store_area data structure host part. It will be loaded to MSR
+IA32_PQR_ASSOC at each VM exit.</li>
+</ul>
+</div>
 </div>
 </div>
 

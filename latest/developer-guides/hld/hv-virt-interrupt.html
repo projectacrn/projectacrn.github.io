@@ -964,18 +964,21 @@ management, which includes:</p>
 <li>physical-to-virtual interrupt mapping for a pass-thru device, and</li>
 <li>the process of VMX interrupt/exception injection.</li>
 </ul>
-<p>A guest VM never owns any physical interrupts. All interrupts received by
+<p>A standard VM never owns any physical interrupts, all interrupts received by
 Guest OS come from a virtual interrupt injected by vLAPIC, vIOAPIC or
 vPIC. Such virtual interrupts are triggered either from a pass-through
 device or from I/O mediators in SOS via hypercalls. The
 <a class="reference internal" href="hv-dev-passthrough.html#interrupt-remapping"><span class="std std-ref">Interrupt Remapping</span></a> section discusses how the hypervisor manages
 the mapping between physical and virtual interrupts for pass-through
-devices.</p>
+devices. However, a hard RT VM with LAPIC pass-through does own the physical
+maskable external interrupts. On its physical CPUs, interrupts are disabled
+in VMX root mode, while in VMX non-root mode, physical interrupts will be
+deliverd to RT VM directly.</p>
 <p>Emulation for devices is inside SOS user space device model, i.e.,
 acrn-dm. However for performance consideration: vLAPIC, vIOAPIC, and vPIC
 are emulated inside HV directly.</p>
 <p>From guest OS point of view, vPIC is Virtual Wire Mode via vIOAPIC. The
-symmetric I/O Mode is shown in <a class="reference internal" href="#pending-virt-interrupt"><span class="std std-numref">Figure 147</span></a> later in
+symmetric I/O Mode is shown in <a class="reference internal" href="#pending-virt-interrupt"><span class="std std-numref">Figure 146</span></a> later in
 this section.</p>
 <p>The following command line
 options to guest Linux affects whether it uses PIC or IOAPIC:</p>
@@ -992,6 +995,10 @@ to inject interrupts to a certain vCPU. As mentioned in
 physical vector 0xF0 is used to kick VCPU out of its VMX non-root mode,
 used to make a request for virtual interrupt injection or other
 requests such as flush EPT.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">the IPI based vCPU request mechanism doesn’t work for the hard RT VM.</p>
+</div>
 <p>The eventid supported for virtual interrupt injection includes:</p>
 <dl class="macro">
 <dt id="c.ACRN_REQUEST_EXCP">
@@ -1048,8 +1055,8 @@ VM-Exit. For some cases there is no need to send IPI when making a request,
 because the CPU making the request itself is the target VCPU. For
 example, the #GP exception request always happens on the current CPU when it
 finds an invalid emulation has happened. An external interrupt for a pass-thru
-device always happens on the VCPUs this device belonging to, so after it
-triggers an external-interrupt VM-Exit, the current CPU is also the
+device always happens on the VCPUs of the VM which this device is belonged to,
+so after it triggers an external-interrupt VM-Exit, the current CPU is the very
 target VCPU.</p>
 </div>
 <div class="section" id="virtual-lapic">
@@ -1070,14 +1077,31 @@ virtual interrupt injection mode.</p>
 </ul>
 <div class="section" id="vlapic-apis">
 <h3>vLAPIC APIs<a class="headerlink" href="#vlapic-apis" title="Permalink to this headline">¶</a></h3>
-<p>APIs are provided when an interrupt source from vLAPIC needs to inject
+<p>APIs are invoked when an interrupt source from vLAPIC needs to inject
 an interrupt, for example:</p>
 <ul class="simple">
 <li>from LVT like LAPIC timer</li>
 <li>from vIOAPIC for a pass-thru device interrupt</li>
 <li>from an emulated device for a MSI</li>
 </ul>
-<p>These APIs will finish by making a request for <em>ACRN_REQUEST_EVENT.</em></p>
+<p>These APIs will finish by making a vCPU request.
+_
+.. doxygenfunction:: vlapic_inject_intr</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">project:</th><td class="field-body">Project ACRN</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<dl class="function">
+<dt id="_CPPv315vlapic_set_intrP9acrn_vcpu8uint32_tb">
+<span id="_CPPv215vlapic_set_intrP9acrn_vcpu8uint32_tb"></span><span id="vlapic_set_intr__acrn_vcpuP.uint32_t.b"></span><span class="target" id="group__acrn__vlapic_ga66de885a3146a1047cb6be9d8a211678_1ga66de885a3146a1047cb6be9d8a211678"></span>void <code class="descname">vlapic_set_intr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em>, uint32_t <em>vector</em>, bool <em>level</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv315vlapic_set_intrP9acrn_vcpu8uint32_tb" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 <dl class="function">
 <dt id="_CPPv321vlapic_set_local_intrP7acrn_vm8uint16_t8uint32_t">
 <span id="_CPPv221vlapic_set_local_intrP7acrn_vm8uint16_t8uint32_t"></span><span id="vlapic_set_local_intr__acrn_vmP.uint16_t.uint32_t"></span><span class="target" id="group__acrn__vlapic_ga54c370205764fcb27f220db3583684c5_1ga54c370205764fcb27f220db3583684c5"></span>int32_t <code class="descname">vlapic_set_local_intr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint16_t <em>vcpu_id_arg</em>, uint32_t <em>lvt_index</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv321vlapic_set_local_intrP7acrn_vm8uint16_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
@@ -1127,23 +1151,9 @@ an interrupt, for example:</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv324apicv_get_pir_desc_paddrP9acrn_vcpu">
-<span id="_CPPv224apicv_get_pir_desc_paddrP9acrn_vcpu"></span><span id="apicv_get_pir_desc_paddr__acrn_vcpuP"></span><span class="target" id="group__acrn__vlapic_gaecfa8d00ca0b1479093db4325060f15d_1gaecfa8d00ca0b1479093db4325060f15d"></span>uint64_t <code class="descname">apicv_get_pir_desc_paddr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv324apicv_get_pir_desc_paddrP9acrn_vcpu" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get physical address to PIR description. </p>
-<p>If APICv Posted-interrupt is supported, this address will be configured to VMCS “Posted-interrupt descriptor address” field.</p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>physicall address to PIR</dd>
-<dt><strong>Preconditions</strong></dt>
-<dd>vcpu != NULL </dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Target vCPU</li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
+<dt id="_CPPv319vlapic_receive_intrP7acrn_vmb8uint32_tb8uint32_t8uint32_tb">
+<span id="_CPPv219vlapic_receive_intrP7acrn_vmb8uint32_tb8uint32_t8uint32_tb"></span><span id="vlapic_receive_intr__acrn_vmP.b.uint32_t.b.uint32_t.uint32_t.b"></span><span class="target" id="group__acrn__vlapic_ga58e999af2ecf3f3836205617981acd97_1ga58e999af2ecf3f3836205617981acd97"></span>void <code class="descname">vlapic_receive_intr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, bool <em>level</em>, uint32_t <em>dest</em>, bool <em>phys</em>, uint32_t <em>delmode</em>, uint32_t <em>vec</em>, bool <em>rh</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319vlapic_receive_intrP7acrn_vmb8uint32_tb8uint32_t8uint32_tb" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="eoi-processing">
@@ -1154,21 +1164,23 @@ case of EOI.</p>
 <p>In case of no APICv virtual interrupt delivery support, vLAPIC requires
 EOI from Guest OS whenever a vector was acknowledged and processed by
 guest. vLAPIC behavior is the same as HW LAPIC. Once an EOI is received,
-it clears the highest priority vector in ISR and TMR, and updates PPR
-status. vLAPIC will then notify vIOAPIC if the corresponding vector
-comes from vIOAPIC. This only occurs for the level triggered interrupts.</p>
+it clears the highest priority vector in ISR, and updates PPR
+status. vLAPIC will send an EOI message to vIOAPIC if the TMR bit is set to
+indicate that is a level triggered interrupt.</p>
 </div>
 <div class="section" id="lapic-passthrough-based-on-vlapic">
-<h3>LAPIC passthrough based on vLAPIC<a class="headerlink" href="#lapic-passthrough-based-on-vlapic" title="Permalink to this headline">¶</a></h3>
-<p>LAPIC passthrough is supported based on vLAPIC, after switch to x2APIC
-mode. In case of LAPIC passthrough based on vLAPIC, the system will have the
+<span id="lapic-passthru"></span><h3>LAPIC passthrough based on vLAPIC<a class="headerlink" href="#lapic-passthrough-based-on-vlapic" title="Permalink to this headline">¶</a></h3>
+<p>LAPIC passthrough is supported based on vLAPIC, guest OS firstly boots with
+vLAPIC in xAPIC mode and then switches to x2APIC mode to enable the LAPIC
+pass-through.</p>
+<p>In case of LAPIC passthrough based on vLAPIC, the system will have the
 following characteristics.</p>
 <ul class="simple">
 <li>IRQs received by the LAPIC can be handled by the Guest VM without <code class="docutils literal notranslate"><span class="pre">vmexit</span></code></li>
-<li>Guest VM always see virtual LAPIC IDs for security reasons</li>
+<li>Guest VM always see virtual LAPIC IDs for security consideration</li>
 <li>most MSRs are directly accessible from Guest VM except for <code class="docutils literal notranslate"><span class="pre">XAPICID</span></code>,
 <code class="docutils literal notranslate"><span class="pre">LDR</span></code> and <code class="docutils literal notranslate"><span class="pre">ICR</span></code>. Write operations to <code class="docutils literal notranslate"><span class="pre">ICR</span></code> will be trapped to avoid
-malicious IPI. Read operations to <code class="docutils literal notranslate"><span class="pre">XAPIC</span></code> and <code class="docutils literal notranslate"><span class="pre">LDR</span></code> will be trapped in
+malicious IPIs. Read operations to <code class="docutils literal notranslate"><span class="pre">XAPIC</span></code> and <code class="docutils literal notranslate"><span class="pre">LDR</span></code> will be trapped in
 order to make the Guest VM always see the virtual LAPIC IDs instead of the
 physical ones.</li>
 </ul>
@@ -1178,7 +1190,7 @@ physical ones.</li>
 <h2>Virtual IOAPIC<a class="headerlink" href="#virtual-ioapic" title="Permalink to this headline">¶</a></h2>
 <p>vIOAPIC is emulated by HV when Guest accesses MMIO GPA range:
 0xFEC00000-0xFEC01000. vIOAPIC for SOS should match to the native HW
-IOAPIC Pin numbers. vIOAPIC for UOS provides 48 Pins. As the vIOAPIC is
+IOAPIC Pin numbers. vIOAPIC for guest VM provides 48 pins. As the vIOAPIC is
 always associated with vLAPIC, the virtual interrupt injection from
 vIOAPIC will finally trigger a request for vLAPIC event by calling
 vLAPIC APIs.</p>
@@ -1227,8 +1239,8 @@ vLAPIC APIs.</p>
 </div>
 <div class="section" id="virtual-pic">
 <h2>Virtual PIC<a class="headerlink" href="#virtual-pic" title="Permalink to this headline">¶</a></h2>
-<p>vPIC is required for TSC calculation. Normally UOS will boot with
-vIOAPIC and vPIC as the source of external interrupts to Guest. On every
+<p>vPIC is required for TSC calculation. Normally guest OS will boot with
+vIOAPIC and vPIC as the source of external interrupts. On every
 VM Exit, HV will check if there are any pending external PIC interrupts.
 vPIC APIs usage are similar to vIOAPIC.</p>
 <p>ACRN hypervisor emulates a vPIC for each VM based on IO range 0x20~0x21,
@@ -1301,8 +1313,8 @@ hypervisor, for example:</p>
 <ul class="simple">
 <li>if guest accesses an invalid vMSR register,</li>
 <li>hypervisor needs to inject a #GP, or</li>
-<li>during instruction emulation, an instruction fetch may access
-a non-exist page from rip_gva, at that time a #PF need be injected.</li>
+<li>hypervisor needs to inject #PF when an instruction accesses a non-exist page
+from rip_gva during instruction emulation.</li>
 </ul>
 <p>ACRN hypervisor implements virtual exception injection using these APIs:</p>
 <dl class="function">
@@ -1324,42 +1336,6 @@ a non-exist page from rip_gva, at that time a #PF need be injected.</li>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">0</span></code>: on success </li>
 <li><code class="docutils literal notranslate"><span class="pre">-EINVAL</span></code>: on error that vector is invalid.</li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv318vcpu_inject_extintP9acrn_vcpu">
-<span id="_CPPv218vcpu_inject_extintP9acrn_vcpu"></span><span id="vcpu_inject_extint__acrn_vcpuP"></span><span class="target" id="group__acrn__virq_ga673b97cbeb10edfe4cb86c56ca9f84ef_1ga673b97cbeb10edfe4cb86c56ca9f84ef"></span>void <code class="descname">vcpu_inject_extint</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv318vcpu_inject_extintP9acrn_vcpu" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Inject external interrupt to guest. </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>None</dd>
-<dt><strong>Preconditions</strong></dt>
-<dd>vcpu != NULL </dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="_CPPv315vcpu_inject_nmiP9acrn_vcpu">
-<span id="_CPPv215vcpu_inject_nmiP9acrn_vcpu"></span><span id="vcpu_inject_nmi__acrn_vcpuP"></span><span class="target" id="group__acrn__virq_gab2bf5d2e27986369bcd2bc7c318f586a_1gab2bf5d2e27986369bcd2bc7c318f586a"></span>void <code class="descname">vcpu_inject_nmi</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv315vcpu_inject_nmiP9acrn_vcpu" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Inject NMI to guest. </p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd>None</dd>
-<dt><strong>Preconditions</strong></dt>
-<dd>vcpu != NULL </dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
 </ul>
 </dd>
 </dl>
@@ -1444,39 +1420,78 @@ a non-exist page from rip_gva, at that time a #PF need be injected.</li>
 <p>ACRN hypervisor uses the <em>vcpu_inject_gp/vcpu_inject_pf</em> functions
 to queue exception request, and follows SDM vol3 - 6.15, Table 6-5 to
 generate double fault if the condition is met.</p>
+<p>ACRN hypervisor could inject <em>extint/nmi</em> using the similar vcpu APIs:</p>
+<dl class="function">
+<dt id="_CPPv318vcpu_inject_extintP9acrn_vcpu">
+<span id="_CPPv218vcpu_inject_extintP9acrn_vcpu"></span><span id="vcpu_inject_extint__acrn_vcpuP"></span><span class="target" id="group__acrn__virq_ga673b97cbeb10edfe4cb86c56ca9f84ef_1ga673b97cbeb10edfe4cb86c56ca9f84ef"></span>void <code class="descname">vcpu_inject_extint</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv318vcpu_inject_extintP9acrn_vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject external interrupt to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None</dd>
+<dt><strong>Preconditions</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv315vcpu_inject_nmiP9acrn_vcpu">
+<span id="_CPPv215vcpu_inject_nmiP9acrn_vcpu"></span><span id="vcpu_inject_nmi__acrn_vcpuP"></span><span class="target" id="group__acrn__virq_gab2bf5d2e27986369bcd2bc7c318f586a_1gab2bf5d2e27986369bcd2bc7c318f586a"></span>void <code class="descname">vcpu_inject_nmi</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv315vcpu_inject_nmiP9acrn_vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Inject NMI to guest. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None</dd>
+<dt><strong>Preconditions</strong></dt>
+<dd>vcpu != NULL </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vcpu</span></code>: Pointer to vCPU.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="virtual-interrupt-injection">
 <span id="virt-interrupt-injection"></span><h2>Virtual Interrupt Injection<a class="headerlink" href="#virtual-interrupt-injection" title="Permalink to this headline">¶</a></h2>
 <p>The source of virtual interrupts comes from either DM or assigned
 devices.</p>
 <ul class="simple">
-<li><strong>For SOS assigned devices</strong>: as all devices are assigned to SOS
-directly. Whenever there is a device’s physical interrupt, the
-corresponding virtual interrupts are injected to SOS via
-vLAPIC/vIOAPIC. SOS does not use vPIC and does not have emulated
-devices. See <a class="reference internal" href="hv-vt-d.html#device-assignment"><span class="std std-ref">Device assignment</span></a>.</li>
-<li><strong>For UOS assigned devices</strong>: only PCI devices could be assigned to
-UOS. Virtual interrupt injection follows the same way as SOS. A
-virtual interrupt injection operation is triggered when a
-device’s physical interrupt occurs.</li>
-<li><strong>For UOS emulated devices</strong>: DM (acrn-dm) is responsible for UOS
+<li><strong>For Service VM assigned devices</strong>: as most devices are assigned to the
+Service VM directly. Whenever there is a physical interrupt from an assigned
+device, the corresponding virtual interrupt will be injected to the Service
+VM via vLAPIC/vIOAPIC. See <a class="reference internal" href="hv-vt-d.html#device-assignment"><span class="std std-ref">Device assignment</span></a>.</li>
+<li><strong>For User VM assigned devices</strong>: only PCI devices could be assigned to
+Uer VM. For the standard VM and soft RT VM, the virtual interrupt
+injection follows the same way as Servic VM. A virtual interrupt injection
+operation is triggered when a device’s physical interrupt occurs. For the
+hard RT VM, the physical interrupts are delieverd to VM directly without
+causing VM-exit.</li>
+<li><strong>For User VM emulated devices</strong>: DM is responsible for the
 emulated devices’ interrupt lifecycle management. DM knows when
 an emulated device needs to assert a virtual IOPAIC/PIC Pin or
 needs to send a virtual MSI vector to Guest. These logic is
-entirely handled by DM.</li>
+entirely handled by DM. For the hard RT VM, there should be no
+emulated devices.</li>
 </ul>
 <div class="figure align-center" id="pending-virt-interrupt">
 <img alt="../../_images/virtint-image64.png" src="../../_images/virtint-image64.png" />
-<p class="caption"><span class="caption-number">Figure 147 </span><span class="caption-text">Handle pending virtual interrupt</span></p>
+<p class="caption"><span class="caption-number">Figure 146 </span><span class="caption-text">Handle pending virtual interrupt</span></p>
 </div>
 <p>Before APICv virtual interrupt delivery, a virtual interrupt can be
 injected only if guest interrupt is allowed. There are many cases
 that Guest <code class="docutils literal notranslate"><span class="pre">RFLAGS.IF</span></code> gets cleared and it would not accept any further
 interrupts. HV will check for the available Guest IRQ windows before
 injection.</p>
-<p>NMI is unmasked interrupt and its injection is always allowed
+<p>NMI is unmaskable interrupt and its injection is always allowed
 regardless of the guest IRQ window status. If current IRQ
-windows is not present, HV would enable
+window is not present, HV would enable
 <code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_PROCBASED_CTLS_IRQ_WIN</span> <span class="pre">(PROCBASED_CTRL.bit[2])</span></code> and
 VM Enter directly. The injection will be done on next VM Exit once Guest
 issues <code class="docutils literal notranslate"><span class="pre">STI</span> <span class="pre">(GuestRFLAG.IF=1)</span></code>.</p>

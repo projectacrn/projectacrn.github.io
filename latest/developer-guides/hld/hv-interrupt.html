@@ -961,11 +961,13 @@
 <p>The ACRN hypervisor implements a simple but fully functional framework
 to manage interrupts and exceptions, as show in
 <a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 139</span></a>. In its native layer, it configures
-the physical PIC, IOAPIC, and LAPIC to support different interrupt
+the physical PIC, IOAPIC and LAPIC to support different interrupt
 sources from local timer/IPI to external INTx/MSI. In its virtual guest
-layer, it emulates virtual PIC, virtual IOAPIC and virtual LAPIC, and
-provides full APIs allowing virtual interrupt injection from emulated or
-pass-thru devices.</p>
+layer, it emulates virtual PIC, virtual IOAPIC and virtual LAPIC/pass-thru
+LAPIC, and provides full APIs allowing virtual interrupt injection from
+emulated or pass-thru devices. The contents in this section does not include
+the pass-thru LAPIC case, for the pass-thru LAPIC, please refer to
+<a class="reference internal" href="hv-virt-interrupt.html#lapic-passthru"><span class="std std-ref">LAPIC passthrough based on vLAPIC</span></a></p>
 <div class="figure align-center" id="interrupt-modules-overview">
 <a class="reference internal image-reference" href="../../_images/interrupt-image3.png"><img alt="../../_images/interrupt-image3.png" src="../../_images/interrupt-image3.png" style="width: 600px;" /></a>
 <p class="caption"><span class="caption-number">Figure 139 </span><span class="caption-text">ACRN Interrupt Modules Overview</span></p>
@@ -977,7 +979,8 @@ in the hypervisor interrupt flow control layer to the corresponding
 handlers, that could be pre-defined IPI notification, timer, or runtime
 registered pass-thru devices.  The ACRN hypervisor then uses its VM
 interfaces based on vPIC, vIOAPIC, and vMSI modules, to inject the
-necessary virtual interrupt into the specific VM</p>
+necessary virtual interrupt into the specific VM, or directly deliver
+interrupt to the specific RT VM with pass-thru LAPIC.</p>
 <div class="figure align-center" id="interrupt-sw-modules">
 <a class="reference internal image-reference" href="../../_images/interrupt-image2.png"><img alt="../../_images/interrupt-image2.png" src="../../_images/interrupt-image2.png" style="width: 600px;" /></a>
 <p class="caption"><span class="caption-number">Figure 140 </span><span class="caption-text">ACRN Interrupt SW Modules Overview</span></p>
@@ -1057,9 +1060,9 @@ have their own stack set in TSS.</p>
 <p>ACRN hypervisor masks all interrupts from the PIC. All legacy interrupts
 from PIC (&lt;16) will be linked to IOAPIC, as shown in the connections in
 <a class="reference internal" href="#hv-pic-config"><span class="std std-numref">Figure 142</span></a>.</p>
-<p>ACRN will pre-allocate vectors and mask them for these legacy interrupt
-in IOAPIC RTE. For others (&gt;= 16), ACRN will mask them with vector 0 in
-RTE, and the vector will be dynamically allocate on demand.</p>
+<p>ACRN will pre-allocate vectors and set them for these legacy interrupts
+in IOAPIC RTEs. For others (&gt;= 16), ACRN will set them with vector 0 in
+RTEs, and valid vectors will be dynamically allocated on demand.</p>
 <p>All external IOAPIC pins are categorized as GSI interrupt according to
 ACPI definition. HV supports multiple IOAPIC components. IRQ PIN to GSI
 mappings are maintained internally to determine GSI source IOAPIC.
@@ -1071,7 +1074,7 @@ Native PIC is not used in the system.</p>
 </div>
 <div class="section" id="lapic-initialization">
 <h3>LAPIC Initialization<a class="headerlink" href="#lapic-initialization" title="Permalink to this headline">¶</a></h3>
-<p>Physical LAPICs are in xAPIC mode in ACRN hypervisor. The hypervisor
+<p>Physical LAPICs are in x2APIC mode in ACRN hypervisor. The hypervisor
 initializes LAPIC for each physical CPU by masking all interrupts in the
 local vector table (LVT), clearing all ISRs, and enabling LAPIC.</p>
 <p>APIs are provided to access LAPIC for the other components in the
@@ -1109,10 +1112,10 @@ for IPI.</dd>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>0x0-0x13</td>
+<tr class="row-even"><td>0x0-0x14</td>
 <td>Exceptions: NMI, INT3, page dault, GP, debug.</td>
 </tr>
-<tr class="row-odd"><td>0x14-0x1F</td>
+<tr class="row-odd"><td>0x15-0x1F</td>
 <td>Reserved</td>
 </tr>
 <tr class="row-even"><td>0x20-0x2F</td>
@@ -1130,7 +1133,16 @@ for IPI.</dd>
 <tr class="row-even"><td>0xF0</td>
 <td>IPI</td>
 </tr>
-<tr class="row-odd"><td>0xFF</td>
+<tr class="row-odd"><td>0xF2</td>
+<td>Posted Interrupt</td>
+</tr>
+<tr class="row-even"><td>0xF3</td>
+<td>Hypervisor Callback VHM</td>
+</tr>
+<tr class="row-odd"><td>0xF4</td>
+<td>Performance Monitering Interrupt</td>
+</tr>
+<tr class="row-even"><td>0xFF</td>
 <td>SPURIOUS_APIC_VECTOR</td>
 </tr>
 </tbody>
@@ -1141,11 +1153,9 @@ are delivered to a CPU core that is currently idle or executing lowest
 priority ISR. There is no guarantee a device’s interrupt will be
 delivered to a specific Guest’s CPU. Timer interrupts are an exception -
 these are always delivered to the CPU which programs the LAPIC timer.</p>
-<p>There are two interrupt delivery modes: FLAT mode and PER_CPU mode. ACRN
-uses FLAT MODE where the interrupt/irq to vector mapping is the same on all CPUs. Every
-CPU receives same interrupts. IOAPIC and LAPIC MSI delivery mode are
-configured to Lowest Priority.</p>
-<p>Vector allocation for CPUs is shown here:</p>
+<p>x86-64 supports per CPU IDTs, but ACRN uses a global shared IDT,
+with which the interrupt/irq to vector mapping is the same on all CPUs. Vector
+allocation for CPUs is shown here:</p>
 <div class="figure align-center" id="id3">
 <img alt="../../_images/interrupt-image89.png" src="../../_images/interrupt-image89.png" />
 <p class="caption"><span class="caption-number">Figure 143 </span><span class="caption-text">FLAT mode vector allocation</span></p>
@@ -1154,28 +1164,26 @@ configured to Lowest Priority.</p>
 <div class="section" id="irq-descriptor-table">
 <h3>IRQ Descriptor Table<a class="headerlink" href="#irq-descriptor-table" title="Permalink to this headline">¶</a></h3>
 <p>ACRN hypervisor maintains a global IRQ Descriptor Table shared among the
-physical CPUs. ACRN use FLAT MODE to manage the interrupts so the
-same vector will link to same the IRQ number for all CPUs.</p>
+physical CPUs, so the same vector will link to the same IRQ number for
+all CPUs.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">need to reference API doc for irq_desc</p>
 </div>
-<p>The <em>irq_desc[]</em> array’s index represents IRQ number. An <em>irq_handler</em>
-field could be set to common edge/level/quick handler which will be
-called from <em>interrupt_dispatch</em>. The <em>irq_desc</em> structure also
-contains the <em>dev_list</em> field to maintain this IRQ’s action handler
-list.</p>
+<p>The <em>irq_desc[]</em> array’s index represents IRQ number. A <em>handle_irq</em>
+will be called from <em>interrupt_dispatch</em> to commonly handle edge/level
+triggered irq and call the registered <em>action_fn</em>.</p>
 <p>Another reverse mapping from vector to IRQ is used in addition to the
 IRQ descriptor table which maintains the mapping from IRQ to vector.</p>
 <p>On initialization, the descriptor of the legacy IRQs are initialized with
 proper vectors and the corresponding reverse mapping is set up.
 The descriptor of other IRQs are filled with an invalid
 vector which will be updated on IRQ allocation.</p>
-<p>For example, if local timer registers an interrupt with IRQ number 271 and
+<p>For example, if local timer registers an interrupt with IRQ number 254 and
 vector 0xEF, then this date will be set up:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">].</span><span class="n">irq</span> <span class="o">=</span> <span class="mi">271</span>
-<span class="n">irq_desc</span><span class="p">[</span><span class="mi">271</span><span class="p">].</span><span class="n">vector</span> <span class="o">=</span> <span class="mh">0xEF</span>
-<span class="n">vector_to_irq</span><span class="p">[</span><span class="mh">0xEF</span><span class="p">]</span> <span class="o">=</span> <span class="mi">271</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">irq_desc</span><span class="p">[</span><span class="mi">254</span><span class="p">].</span><span class="n">irq</span> <span class="o">=</span> <span class="mi">254</span>
+<span class="n">irq_desc</span><span class="p">[</span><span class="mi">254</span><span class="p">].</span><span class="n">vector</span> <span class="o">=</span> <span class="mh">0xEF</span>
+<span class="n">vector_to_irq</span><span class="p">[</span><span class="mh">0xEF</span><span class="p">]</span> <span class="o">=</span> <span class="mi">254</span>
 </pre></div>
 </div>
 </div>
@@ -1194,20 +1202,10 @@ CPU executes VM Exit into root-mode, interrupt handling will be enabled
 and the interrupt will be delivered and processed as quickly as possible
 inside HV. HV may emulate a virtual interrupt and inject to Guest if
 necessary.</p>
-<p>When an physical interrupt happened on a CPU, this CPU could be running
-under VMX root mode or non-root mode. If the CPU is running under VMX
-root mode, the interrupt is triggered from standard native IRQ flow -
-interrupt gate to IRQ handler. If the CPU is running under VMX non-root
-mode, an external interrupt will trigger a VM exit for reason
-“external-interrupt”.</p>
 <p>Interrupt and IRQ processing flow diagrams are shown below:</p>
 <div class="figure align-center" id="phy-interrupt-processing">
 <img alt="../../_images/interrupt-image48.png" src="../../_images/interrupt-image48.png" />
 <p class="caption"><span class="caption-number">Figure 144 </span><span class="caption-text">Processing of physical interrupts</span></p>
-</div>
-<div class="figure align-center" id="id4">
-<img alt="../../_images/interrupt-image39.png" src="../../_images/interrupt-image39.png" />
-<p class="caption"><span class="caption-number">Figure 145 </span><span class="caption-text">IRQ processing control flow</span></p>
 </div>
 <p>When a physical interrupt is raised and delivered to a physical CPU, the
 CPU may be running under either VMX root mode or non-root mode.</p>
@@ -1241,18 +1239,18 @@ pin gets an explicit EOI ACK from guest.</p>
 </li>
 </ul>
 <p>Since interrupts are not shared for multiple devices, there is only one
-IRQ action registered for each interrupt</p>
+IRQ action registered for each interrupt.</p>
 <p>The IRQ number inside HV is a software concept to identify GSI and
 Vectors. Each GSI will be mapped to one IRQ. The GSI number is usually the same
 as the IRQ number. IRQ numbers greater than max GSI (nr_gsi) number are dynamically
 assigned. For example, HV allocates an interrupt vector to a PCI device,
 an IRQ number is then assigned to that vector. When the vector later
-reaches a CPU, the corresponding IRQ routine is located and executed.</p>
-<p>See <a class="reference internal" href="#request-irq"><span class="std std-numref">Figure 146</span></a> for request IRQ control flow for different
+reaches a CPU, the corresponding IRQ action function is located and executed.</p>
+<p>See <a class="reference internal" href="#request-irq"><span class="std std-numref">Figure 145</span></a> for request IRQ control flow for different
 conditions:</p>
 <div class="figure align-center" id="request-irq">
 <img alt="../../_images/interrupt-image76.png" src="../../_images/interrupt-image76.png" />
-<p class="caption"><span class="caption-number">Figure 146 </span><span class="caption-text">Request IRQ for different conditions</span></p>
+<p class="caption"><span class="caption-number">Figure 145 </span><span class="caption-text">Request IRQ for different conditions</span></p>
 </div>
 </div>
 <div class="section" id="ipi-management">

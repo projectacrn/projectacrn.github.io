@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Emulated devices high-level design &mdash; Project ACRN™ unknown documentation</title>
+  <title>AT keyboard controller emulation &mdash; Project ACRN™ unknown documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="USB Virtualization" href="usb-virt-hld.html" />
-    <link rel="prev" title="Device Model high-level design" href="hld-devicemodel.html" /> 
+    <link rel="next" title="Virtio devices high-level design" href="hld-virtio-devices.html" />
+    <link rel="prev" title="Hostbridge emulation" href="hostbridge-virt-hld.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -501,7 +501,7 @@
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">Emulated Devices</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
@@ -933,7 +933,9 @@
         
           <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
         
-      <li>Emulated devices high-level design</li>
+          <li><a href="hld-emulated-devices.html">Emulated devices high-level design</a> &raquo;</li>
+        
+      <li>AT keyboard controller emulation</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -952,25 +954,73 @@
   
            <div itemprop="articleBody">
             
-  <div class="section" id="emulated-devices-high-level-design">
-<span id="hld-emulated-devices"></span><h1>Emulated devices high-level design<a class="headerlink" href="#emulated-devices-high-level-design" title="Permalink to this headline">¶</a></h1>
-<p>Full virtualization device models can typically
-reuse existing native device drivers to avoid implementing front-end
-drivers. ACRN implements several fully virtualized devices, as
-documented in this section.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="usb-virt-hld.html">USB Virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="uart-virt-hld.html">UART virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="watchdog-hld.html">Watchdoc virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ahci-hld.html">AHCI virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hld-APL_GVT-g.html">GVT-g GPU Virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="system-timer-hld.html">System timer virtualization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="vuart-virt-hld.html">UART emulation in hypervisor</a></li>
-<li class="toctree-l1"><a class="reference internal" href="rtc-virt-hld.html">RTC emulation in hypervisor</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hostbridge-virt-hld.html">Hostbridge emulation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="atkbdc-virt-hld.html">AT keyboard controller emulation</a></li>
-</ul>
+  <div class="section" id="at-keyboard-controller-emulation">
+<span id="atkbdc-virt-hld"></span><h1>AT keyboard controller emulation<a class="headerlink" href="#at-keyboard-controller-emulation" title="Permalink to this headline">¶</a></h1>
+<p>This document describes AT keyboard controller emulation implementation in ACRN device model. Atkbdc device emulates a PS2 keyboard and mouse.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The PS2 port is a 6-pin mini-Din connector used for connecting keyboards and mice to a PC compatible computer system. Its name comes from the IBM Personal System/2 series of personal computers, with which it was introduced in 1987. PS2 keyboard/mouse emulation is based on ACPI Emulation. We can add ACPI description of PS2 keyboard/mouse into virtual DSDT table to emulate keyboard/mouse in the User VM.</p>
+<div class="figure align-center" id="atkbdc-virt-arch">
+<img alt="../../_images/atkbdc-virt-hld.png" src="../../_images/atkbdc-virt-hld.png" />
+<p class="caption"><span class="caption-number">Figure 210 </span><span class="caption-text">AT keyboard controller emulation architecture</span></p>
+</div>
+</div>
+<div class="section" id="ps2-keyboard-emulation">
+<h2>PS2 keyboard emulation<a class="headerlink" href="#ps2-keyboard-emulation" title="Permalink to this headline">¶</a></h2>
+<p>ACRN supports AT keyboard controller for PS2 keyboard that can be accessed through I/O ports(0x60 and 0x64). 0x60 is used to access AT keyboard controller data register, 0x64 is used to access AT keyboard controller address register.</p>
+<p>The PS2 keyboard ACPI description as below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Device</span> <span class="p">(</span><span class="n">KBD</span><span class="p">)</span>
+<span class="p">{</span>
+        <span class="n">Name</span> <span class="p">(</span><span class="n">_HID</span><span class="p">,</span> <span class="n">EisaId</span> <span class="p">(</span><span class="s2">&quot;PNP0303&quot;</span><span class="p">)</span> <span class="o">/*</span> <span class="n">IBM</span> <span class="n">Enhanced</span> <span class="n">Keyboard</span> <span class="p">(</span><span class="mi">101</span><span class="o">/</span><span class="mi">102</span><span class="o">-</span><span class="n">key</span><span class="p">,</span> <span class="n">PS</span><span class="o">/</span><span class="mi">2</span> <span class="n">Mouse</span><span class="p">)</span> <span class="o">*/</span><span class="p">)</span> <span class="o">//</span> <span class="n">_HID</span><span class="p">:</span> <span class="n">Hardware</span> <span class="n">ID</span>
+        <span class="n">Name</span> <span class="p">(</span><span class="n">_CRS</span><span class="p">,</span> <span class="n">ResourceTemplate</span> <span class="p">()</span> <span class="o">//</span> <span class="n">_CRS</span><span class="p">:</span> <span class="n">Current</span> <span class="n">Resource</span> <span class="n">Settings</span>
+        <span class="p">{</span>
+                <span class="n">IO</span> <span class="p">(</span><span class="n">Decode16</span><span class="p">,</span>
+                    <span class="mh">0x0060</span><span class="p">,</span> <span class="o">//</span> <span class="n">Range</span> <span class="n">Minimum</span>
+                    <span class="mh">0x0060</span><span class="p">,</span> <span class="o">//</span> <span class="n">Range</span> <span class="n">Maximum</span>
+                    <span class="mh">0x01</span><span class="p">,</span> <span class="o">//</span> <span class="n">Alignment</span>
+                    <span class="mh">0x01</span><span class="p">,</span> <span class="o">//</span> <span class="n">Length</span>
+                    <span class="p">)</span>
+                <span class="n">IO</span> <span class="p">(</span><span class="n">Decode16</span><span class="p">,</span>
+                    <span class="mh">0x0064</span><span class="p">,</span> <span class="o">//</span> <span class="n">Range</span> <span class="n">Minimum</span>
+                    <span class="mh">0x0064</span><span class="p">,</span> <span class="o">//</span> <span class="n">Range</span> <span class="n">Maximum</span>
+                    <span class="mh">0x01</span><span class="p">,</span> <span class="o">//</span> <span class="n">Alignment</span>
+                    <span class="mh">0x01</span><span class="p">,</span> <span class="o">//</span> <span class="n">Length</span>
+                    <span class="p">)</span>
+                <span class="n">IRQNoFlags</span> <span class="p">()</span>
+                   <span class="p">{</span><span class="mi">1</span><span class="p">}</span>
+        <span class="p">})</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ps2-mouse-emulation">
+<h2>PS2 mouse emulation<a class="headerlink" href="#ps2-mouse-emulation" title="Permalink to this headline">¶</a></h2>
+<p>ACRN supports AT keyboard controller for PS2 mouse that can be accessed through I/O ports(0x60 and 0x64).
+0x60 is used to access AT keyboard controller data register, 0x64 is used to access AT keyboard controller address register.</p>
+<p>The PS2 mouse ACPI description as below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Device</span> <span class="p">(</span><span class="n">MOU</span><span class="p">)</span>
+<span class="p">{</span>
+        <span class="n">Name</span> <span class="p">(</span><span class="n">_HID</span><span class="p">,</span> <span class="n">EisaId</span> <span class="p">(</span><span class="s2">&quot;PNP0F13&quot;</span><span class="p">)</span> <span class="o">/*</span> <span class="n">PS</span><span class="o">/</span><span class="mi">2</span> <span class="n">Mouse</span> <span class="o">*/</span><span class="p">)</span> <span class="o">//</span> <span class="n">_HID</span><span class="p">:</span> <span class="n">Hardware</span> <span class="n">ID</span>
+        <span class="n">Name</span> <span class="p">(</span><span class="n">_CRS</span><span class="p">,</span> <span class="n">ResourceTemplate</span> <span class="p">()</span> <span class="o">//</span> <span class="n">_CRS</span><span class="p">:</span> <span class="n">Current</span> <span class="n">Resource</span> <span class="n">Settings</span>
+        <span class="p">{</span>
+                <span class="n">IO</span> <span class="p">(</span><span class="n">Decode16</span><span class="p">,</span>
+                    <span class="mh">0x0060</span><span class="p">,</span> <span class="o">//</span> <span class="n">Range</span> <span class="n">Minimum</span>
+                    <span class="mh">0x0060</span><span class="p">,</span> <span class="o">//</span> <span class="n">Range</span> <span class="n">Maximum</span>
+                    <span class="mh">0x01</span><span class="p">,</span> <span class="o">//</span> <span class="n">Alignment</span>
+                    <span class="mh">0x01</span><span class="p">,</span> <span class="o">//</span> <span class="n">Length</span>
+                    <span class="p">)</span>
+                <span class="n">IO</span> <span class="p">(</span><span class="n">Decode16</span><span class="p">,</span>
+                    <span class="mh">0x0064</span><span class="p">,</span> <span class="o">//</span> <span class="n">Range</span> <span class="n">Minimum</span>
+                    <span class="mh">0x0064</span><span class="p">,</span> <span class="o">//</span> <span class="n">Range</span> <span class="n">Maximum</span>
+                    <span class="mh">0x01</span><span class="p">,</span> <span class="o">//</span> <span class="n">Alignment</span>
+                    <span class="mh">0x01</span><span class="p">,</span> <span class="o">//</span> <span class="n">Length</span>
+                    <span class="p">)</span>
+                <span class="n">IRQNoFlags</span> <span class="p">()</span>
+                   <span class="p">{</span><span class="mi">12</span><span class="p">}</span>
+        <span class="p">})</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 </div>
 
