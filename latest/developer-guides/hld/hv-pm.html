@@ -960,39 +960,39 @@
 <h2>System PM module<a class="headerlink" href="#system-pm-module" title="Permalink to this headline">¶</a></h2>
 <p>The PM module in the hypervisor does three things:</p>
 <ul class="simple">
-<li>When all UOSes enter low power state, VM management will notify the SOS
-lifecycle service and trigger the SOS to enter a low-power state.
-SOS follows its own standard low-power state entry process and
-writes the ACPI control register to put SOS into low-power state.
-Hypervisor traps the ACPI control register writing and
-emulates SOS low-power state entry.</li>
-<li>Once SOS low-power emulation is done, Hypervisor handles its
+<li>Monitor all guests power state transition. And emulate low power
+state for the guests which are launched by HV directly.</li>
+<li>Once all guests enter low power state, Hypervisor handles its
 own low-power state transition</li>
 <li>Once system resumes from low-power mode, the hypervisor handles its
-own resume and emulates SOS resume too.</li>
+own resume and emulates Service VM resume too.</li>
 </ul>
-<p>It is assumed that SOS does not trigger any power state transition until
-the VM manager of ACRN notifies it that all UOSes are inactive and SOS
-offlines all its virtual APs.</p>
-<p><a class="reference internal" href="#pm-low-power-transition"><span class="std std-numref">Figure 162</span></a> shows the SOS/Hypervisor low-power
-state transition process.  SOS triggers power state transition by
+<p>It is assumed that Service VM does not trigger any power state transition
+until the VM manager of ACRN notifies it that all User VMs are inactive
+and Service VM offlines all its virtual APs. And it is assumed that HV
+does not trigger its own power state transition until all guests are in
+low power state.</p>
+<p><a class="reference internal" href="#pm-low-power-transition"><span class="std std-numref">Figure 162</span></a> shows the Hypervisor entering S3
+state process.  Service VM triggers power state transition by
 writing ACPI control register on its virtual BSP (which is pinned to the
 physical BSP). The hypervisor then does the following in sequence before
 it writes to the physical ACPI control register to trigger physical
 power state transition:</p>
 <ul class="simple">
-<li>Pauses SOS.</li>
+<li>Pauses Service VM.</li>
+<li>Wait all other guests enter low power state.</li>
 <li>Offlines all physical APs.</li>
-<li>Save the context of console, ioapic of SOS, I/O MMU, lapic of SOS,
-virtual BSP.</li>
+<li>Save the context of console, ioapic of Service VM, I/O MMU, lapic of
+Service VM, virtual BSP.</li>
 <li>Save the context of physical BSP.</li>
 </ul>
-<p>When exiting from low-power mode, the hypervisor does similar steps in
-reverse order to restore contexts, start APs and resume SOS. SOS is
-responsible for starting its own virtual APs as well as UOSes.</p>
+<p>When exiting from S3 state, the hypervisor does similar steps in
+reverse order to restore contexts, start APs and resume all guests launched
+by hypervisor directly. Service VM is responsible for starting its own
+virtual APs as well as User VMs.</p>
 <div class="figure align-center" id="pm-low-power-transition">
 <img alt="../../_images/pm-image24-105.png" src="../../_images/pm-image24-105.png" />
-<p class="caption"><span class="caption-number">Figure 162 </span><span class="caption-text">SOS/Hypervisor low power state transition process</span></p>
+<p class="caption"><span class="caption-number">Figure 162 </span><span class="caption-text">Service VM/Hypervisor S3 transition process</span></p>
 </div>
 </div>
 </div>
@@ -1010,7 +1010,7 @@ responsible for starting its own virtual APs as well as UOSes.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Oct 29, 2019.
+      Last updated on Oct 31, 2019.
 
     </p>
   </div> 
