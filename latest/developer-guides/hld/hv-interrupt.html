@@ -486,16 +486,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for windows</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-pk-platform-key">Generate PK (Platform Key)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-openssl">1. Using openssl</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-microsoft-tools">2. Using Microsoft tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#note-after-enable-secure-boot">Note after enable Secure Boot</a></li>
 </ul>
 </li>
 </ul>
@@ -971,14 +968,14 @@
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The ACRN hypervisor implements a simple but fully functional framework
-to manage interrupts and exceptions, as show in
+to manage interrupts and exceptions, as shown in
 <a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 139</span></a>. In its native layer, it configures
-the physical PIC, IOAPIC and LAPIC to support different interrupt
-sources from local timer/IPI to external INTx/MSI. In its virtual guest
-layer, it emulates virtual PIC, virtual IOAPIC and virtual LAPIC/pass-thru
-LAPIC, and provides full APIs allowing virtual interrupt injection from
-emulated or pass-thru devices. The contents in this section does not include
-the pass-thru LAPIC case, for the pass-thru LAPIC, please refer to
+the physical PIC, IOAPIC, and LAPIC to support different interrupt
+sources from the local timer/IPI to the external INTx/MSI. In its virtual guest
+layer, it emulates virtual PIC, virtual IOAPIC, and virtual LAPIC/pass-thru
+LAPIC. It provides full APIs, allowing virtual interrupt injection from
+emulated or pass-thru devices. The contents in this section do not include
+the pass-thru LAPIC case. For the pass-thru LAPIC, refer to
 <a class="reference internal" href="hv-virt-interrupt.html#lapic-passthru"><span class="std std-ref">LAPIC passthrough based on vLAPIC</span></a></p>
 <div class="figure align-center" id="interrupt-modules-overview">
 <a class="reference internal image-reference" href="../../_images/interrupt-image3.png"><img alt="../../_images/interrupt-image3.png" src="../../_images/interrupt-image3.png" style="width: 600px;" /></a>
@@ -986,10 +983,10 @@ the pass-thru LAPIC case, for the pass-thru LAPIC, please refer to
 </div>
 <p>In the software modules view shown in <a class="reference internal" href="#interrupt-sw-modules"><span class="std std-numref">Figure 140</span></a>,
 the ACRN hypervisor sets up the physical interrupt in its basic
-interrupt modules (e.g., IOAPIC/LAPIC/IDT).  It dispatches the interrupt
+interrupt modules (e.g., IOAPIC/LAPIC/IDT). It dispatches the interrupt
 in the hypervisor interrupt flow control layer to the corresponding
-handlers, that could be pre-defined IPI notification, timer, or runtime
-registered pass-thru devices.  The ACRN hypervisor then uses its VM
+handlers; this could be pre-defined IPI notification, timer, or runtime
+registered pass-thru devices. The ACRN hypervisor then uses its VM
 interfaces based on vPIC, vIOAPIC, and vMSI modules, to inject the
 necessary virtual interrupt into the specific VM, or directly deliver
 interrupt to the specific RT VM with pass-thru LAPIC.</p>
@@ -1014,8 +1011,7 @@ All physical interrupts are first handled in VMX root-mode.  The
 to support this. The ACRN hypervisor also initializes all the interrupt
 related modules like IDT, PIC, IOAPIC, and LAPIC.</p>
 <p>HV does not own any host devices (except UART). All devices are by
-default assigned to SOS. Any interrupts received by Guest VM (SOS or
-UOS) device drivers are virtual interrupts injected by HV (via vLAPIC).
+default assigned to the Service VM. Any interrupts received by Guest VM (Service VM or User VM) device drivers are virtual interrupts injected by HV (via vLAPIC).
 HV manages a Host-to-Guest mapping. When a native IRQ/interrupt occurs,
 HV decides whether this IRQ/interrupt should be forwarded to a VM and
 which VM to forward to (if any). Refer to
@@ -1026,9 +1022,9 @@ happens, with some exceptions such as #INT3 and #MC.  This is to
 simplify the design as HV does not support any exception handling
 itself. HV supports only static memory mapping, so there should be no
 #PF or #GP. If HV receives an exception indicating an error, an assert
-function is then executed with an error message print out, and the
+function is then executed with an error message printout, and the
 system then halts.</p>
-<p>Native interrupts could be generated from one of the following
+<p>Native interrupts can be generated from one of the following
 sources:</p>
 <ul class="simple">
 <li>GSI interrupts<ul>
@@ -1055,7 +1051,7 @@ shown in <a class="reference internal" href="#hv-interrupt-init"><span class="st
 <div class="section" id="idt-initialization">
 <h3>IDT Initialization<a class="headerlink" href="#idt-initialization" title="Permalink to this headline">¶</a></h3>
 <p>ACRN hypervisor builds its native IDT (interrupt descriptor table)
-during interrupt initialization and set up the following handlers:</p>
+during interrupt initialization and sets up the following handlers:</p>
 <ul class="simple">
 <li>On an exception, the hypervisor dumps its context and halts the current
 physical processor (because physical exceptions are not expected).</li>

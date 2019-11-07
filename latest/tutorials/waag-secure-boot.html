@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to enable secure boot for windows &mdash; Project ACRN™ v 1.4-unstable documentation</title>
+  <title>How to enable secure boot for Windows &mdash; Project ACRN™ v 1.4-unstable documentation</title>
   
 
   
@@ -486,16 +486,13 @@
 <li class="toctree-l4"><a class="reference internal" href="trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">How to enable secure boot for windows</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#generate-pk-platform-key">Generate PK (Platform Key)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#using-openssl">1. Using openssl</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#using-microsoft-tools">2. Using Microsoft tools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">How to enable secure boot for Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#note-after-enable-secure-boot">Note after enable Secure Boot</a></li>
 </ul>
 </li>
 </ul>
@@ -943,7 +940,7 @@
         
           <li><a href="../develop.html">Develop using ACRN</a> &raquo;</li>
         
-      <li>How to enable secure boot for windows</li>
+      <li>How to enable secure boot for Windows</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -962,258 +959,174 @@
   
            <div itemprop="articleBody">
             
-  <blockquote>
-<div></div></blockquote>
-<div class="section" id="how-to-enable-secure-boot-for-windows">
-<span id="id1"></span><h1>How to enable secure boot for windows<a class="headerlink" href="#how-to-enable-secure-boot-for-windows" title="Permalink to this headline">¶</a></h1>
-<p>This document is the guide to enable secure boot to launch Windows 10
-through OVMF on ACRNGT, including:</p>
+  <div class="section" id="how-to-enable-secure-boot-for-windows">
+<span id="id1"></span><h1>How to enable secure boot for Windows<a class="headerlink" href="#how-to-enable-secure-boot-for-windows" title="Permalink to this headline">¶</a></h1>
+<p>This document shows how to enable secure boot to launch Windows 10
+as a guest through OVMF on ACRNGT, including:</p>
 <ul class="simple">
 <li>Generate Platform Key</li>
 <li>Get KEK and DB from Microsoft</li>
 <li>Inject PK, KEK and DB into OVMF</li>
 </ul>
-</div>
-<div class="section" id="generate-pk-platform-key">
-<h1>Generate PK (Platform Key)<a class="headerlink" href="#generate-pk-platform-key" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="generate-platform-key-pk">
+<h2>Generate Platform Key (PK)<a class="headerlink" href="#generate-platform-key-pk" title="Permalink to this headline">¶</a></h2>
 <p>In UEFI secure boot, the Platform Key establishes a trust relationship
 between the platform owner and the platform firmware. According to
-Microsoft document, section 1.5:
-<a class="reference external" href="https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-secure-boot-key-creation-and-management-guidance">https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-secure-boot-key-creation-and-management-guidance</a>,
-PK is a self-signed certificate and owned by OEM, OEM can generate their
-own PK.</p>
-<p>Here we show two ways, openssl and Microsoft tools to generate a PK.</p>
-<div class="section" id="using-openssl">
-<h2>1. Using openssl<a class="headerlink" href="#using-openssl" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>1). Generate a Self-Signed Certificate as PK from a new key.</p>
-<p>You will be required to answer the CSR information prompt to complete the process.</p>
+<a class="reference external" href="https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/windows-secure-boot-key-creation-and-management-guidance">Microsoft’s secure boot documentation</a>,
+section 1.5, the PK is a self-signed certificate owned by the OEM, and
+the OEM can generate their own PK.</p>
+<p>Here we show two ways to generate a PK: openssl and Microsoft tools.</p>
+<div class="section" id="generate-pk-using-openssl">
+<h3>Generate PK Using openssl<a class="headerlink" href="#generate-pk-using-openssl" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">Generate a Self-Signed Certificate as PK from a new key using the
+<code class="docutils literal notranslate"><span class="pre">openssl</span> <span class="pre">req</span></code> command.  You will need to answer the
+Certificate Signing Request (CSR) information prompts to complete the
+process; use your country, state, and other information as appropriate.</p>
 <p>For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ openssl req -newkey rsa:2048 -nodes -keyout PKpriv.key -x509 -days
-365 -out PK.crt
-
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ openssl req -newkey rsa:2048 -nodes -keyout PKpriv.key -x509 -days 365 -out PK.crt
 Generating a 2048 bit RSA private key
-
 ....+++
-
 .+++
-
 writing new private key to &#39;PKpriv.key&#39;
-
 -----
-
-You are about to be asked to enter information that will be
-incorporated
-
+You are about to be asked to enter information that will be incorporated
 into your certificate request.
-
-What you are about to enter is what is called a Distinguished Name
-or a DN.
-
+What you are about to enter is what is called a Distinguished Name or a DN.
 There are quite a few fields but you can leave some blank
-
 For some fields there will be a default value,
-
 If you enter &#39;.&#39;, the field will be left blank.
-
 -----
-
 Country Name (2 letter code) [AU]:CN
-
 State or Province Name (full name) [Some-State]:Shanghai
-
 Locality Name (eg, city) []:Shanghai
-
 Organization Name (eg, company) [Internet Widgits Pty Ltd]:Intel
-
 Organizational Unit Name (eg, section) []:Intel
-
 Common Name (e.g. server FQDN or YOUR name) []:
-
 Email Address []:
 </pre></div>
 </div>
-</div></blockquote>
-<p>And you can also generate the self-signed certificate from an existing
-key:</p>
-<p>openssl req -key testpriv.key –new -x509 -days 365 -out PK.crt</p>
-<blockquote>
-<div><p>2). View the content of certificate:</p>
+</li>
+<li><p class="first">You can also generate the self-signed certificate from an existing
+key, using the <code class="docutils literal notranslate"><span class="pre">openssl</span> <span class="pre">req</span></code> command, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">req</span> <span class="o">-</span><span class="n">key</span> <span class="n">testpriv</span><span class="o">.</span><span class="n">key</span> <span class="o">-</span><span class="n">new</span> <span class="o">-</span><span class="n">x509</span> <span class="o">-</span><span class="n">days</span> <span class="mi">365</span> <span class="o">-</span><span class="n">out</span> <span class="n">PK</span><span class="o">.</span><span class="n">crt</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">View the content of certificate using the <code class="docutils literal notranslate"><span class="pre">openssl</span> <span class="pre">x509</span></code> command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ openssl x509 -text -noout -in PK2.crt
 
 Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 10097816361374596362 (0x8c22a67aeadc3d0a)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=CN, ST=Shanghai, L=Shanghai, O=Intel, OU=Intel
+        Validity
+            Not Before: Jun 26 06:29:14 2019 GMT
+            Not After : Jun 25 06:29:14 2020 GMT
+        Subject: C=CN, ST=Shanghai, L=Shanghai, O=Intel, OU=Intel
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            Public-Key: (2048 bit)
+            Modulus:
+                00:9e:15:70:40:8c:b0:a7:c2:dd:45:15:e9:ab:c2:
+                d9:3d:d7:32:1e:7f:ec:1d:26:e3:d3:07:2c:5c:40:
+                8a:42:12:d3:31:59:2c:f0:b0:f7:3d:94:51:ae:b8:
+                25:16:ab:98:97:60:68:67:80:e1:77:85:aa:f2:70:
+                f3:47:fc:39:8c:9c:25:46:a8:ca:4f:aa:8f:d1:db:
+                f1:50:9b:d9:b6:3d:28:bf:5c:bf:1a:52:12:4c:e2:
+                04:dd:fe:04:f1:98:3a:9f:a7:ff:f9:43:43:f7:8b:
+                48:48:ee:d8:2e:b1:25:26:97:ca:1f:94:1c:00:1e:
+                68:8f:e1:30:3d:3c:1d:99:32:d0:d3:08:0b:ed:4c:
+                4b:b4:7c:42:b9:1c:e4:ef:df:47:cf:52:37:7e:6e:
+                a1:87:02:f9:23:6b:f4:22:e7:a8:8a:40:4c:5d:ff:
+                f2:9f:bd:05:68:15:5c:1a:03:e3:4b:80:55:08:38:
+                78:1f:e7:4c:dc:cd:49:22:ef:c0:60:4a:c2:b2:c9:
+                cb:2b:5c:e2:c8:1d:ec:9e:2d:eb:ed:b1:d7:53:54:
+                ea:ce:1a:f2:1c:f9:19:2e:c4:6f:fa:f2:46:bd:48:
+                bc:84:f2:a7:b4:1c:0c:60:26:eb:b1:31:d2:76:24:
+                df:21:0d:4e:fb:80:3d:ce:8e:a4:5c:8f:8d:b5:51:
+                88:a3
+            Exponent: 65537 (0x10001)
+    X509v3 extensions:
+        X509v3 Subject Key Identifier:
+            4D:A0:DC:F6:6C:56:1E:D2:25:C5:E3:EE:5D:0C:70:ED:71:E7:72:AA
+    X509v3 Authority Key Identifier:
+        keyid:4D:A0:DC:F6:6C:56:1E:D2:25:C5:E3:EE:5D:0C:70:ED:71:E7:72:AA
 
-Data:
-
-Version: 3 (0x2)
-
-Serial Number: 10097816361374596362 (0x8c22a67aeadc3d0a)
-
-Signature Algorithm: sha256WithRSAEncryption
-
-Issuer: C=CN, ST=Shanghai, L=Shanghai, O=Intel, OU=Intel
-
-Validity
-
-Not Before: Jun 26 06:29:14 2019 GMT
-
-Not After : Jun 25 06:29:14 2020 GMT
-
-Subject: C=CN, ST=Shanghai, L=Shanghai, O=Intel, OU=Intel
-
-Subject Public Key Info:
-
-Public Key Algorithm: rsaEncryption
-
-Public-Key: (2048 bit)
-
-Modulus:
-
-00:9e:15:70:40:8c:b0:a7:c2:dd:45:15:e9:ab:c2:
-
-d9:3d:d7:32:1e:7f:ec:1d:26:e3:d3:07:2c:5c:40:
-
-8a:42:12:d3:31:59:2c:f0:b0:f7:3d:94:51:ae:b8:
-
-25:16:ab:98:97:60:68:67:80:e1:77:85:aa:f2:70:
-
-f3:47:fc:39:8c:9c:25:46:a8:ca:4f:aa:8f:d1:db:
-
-f1:50:9b:d9:b6:3d:28:bf:5c:bf:1a:52:12:4c:e2:
-
-04:dd:fe:04:f1:98:3a:9f:a7:ff:f9:43:43:f7:8b:
-
-48:48:ee:d8:2e:b1:25:26:97:ca:1f:94:1c:00:1e:
-
-68:8f:e1:30:3d:3c:1d:99:32:d0:d3:08:0b:ed:4c:
-
-4b:b4:7c:42:b9:1c:e4:ef:df:47:cf:52:37:7e:6e:
-
-a1:87:02:f9:23:6b:f4:22:e7:a8:8a:40:4c:5d:ff:
-
-f2:9f:bd:05:68:15:5c:1a:03:e3:4b:80:55:08:38:
-
-78:1f:e7:4c:dc:cd:49:22:ef:c0:60:4a:c2:b2:c9:
-
-cb:2b:5c:e2:c8:1d:ec:9e:2d:eb:ed:b1:d7:53:54:
-
-ea:ce:1a:f2:1c:f9:19:2e:c4:6f:fa:f2:46:bd:48:
-
-bc:84:f2:a7:b4:1c:0c:60:26:eb:b1:31:d2:76:24:
-
-df:21:0d:4e:fb:80:3d:ce:8e:a4:5c:8f:8d:b5:51:
-
-88:a3
-
-Exponent: 65537 (0x10001)
-
-X509v3 extensions:
-
-X509v3 Subject Key Identifier:
-
-4D:A0:DC:F6:6C:56:1E:D2:25:C5:E3:EE:5D:0C:70:ED:71:E7:72:AA
-
-X509v3 Authority Key Identifier:
-
-keyid:4D:A0:DC:F6:6C:56:1E:D2:25:C5:E3:EE:5D:0C:70:ED:71:E7:72:AA
-
-X509v3 Basic Constraints:
-
-CA:TRUE
-
-Signature Algorithm: sha256WithRSAEncryption
-
-24:0a:38:57:49:e5:35:05:58:d9:88:03:eb:3a:8c:5b:0d:88:
-
-70:58:ea:77:b2:4c:37:ff:87:52:b7:f3:bd:0f:6f:5e:7c:fc:
-
-28:16:37:19:23:d0:90:af:ed:1e:f3:36:ee:9d:66:0e:7c:07:
-
-5b:7d:0a:2a:fa:80:8c:6a:35:48:2d:50:9e:d2:f4:fc:d1:2a:
-
-ed:f5:7f:e4:d9:ec:ac:09:10:52:5c:b9:c7:68:4a:91:98:33:
-
-95:c3:23:4a:06:ca:ec:d3:ef:46:94:92:61:88:e4:e2:f5:db:
-
-c1:7a:a7:98:9d:59:0d:43:c2:2a:46:11:74:53:44:37:08:cd:
-
-b1:99:36:b6:3f:5e:51:f2:8c:d7:a0:0c:c5:9f:68:ba:2b:ab:
-
-7a:57:1f:fd:c9:44:0d:b9:39:6e:52:8c:09:8b:eb:5f:ea:3d:
-
-d4:3d:05:17:1a:7f:47:92:38:94:1d:e0:59:d2:66:bb:37:95:
-
-1d:11:4b:70:a1:89:1f:09:5a:25:dc:80:ee:27:17:7e:4a:cc:
-
-32:63:1d:e2:89:27:b1:44:99:9f:fb:4d:45:31:23:49:7b:ba:
-
-21:05:eb:d8:8a:b3:d0:72:c0:19:97:2a:59:4b:d1:12:ce:04:
-
-c4:c6:61:6f:19:e4:c2:fa:6a:0f:c7:70:c9:08:85:0c:65:97:
-
-83:41:c6:4b
+    X509v3 Basic Constraints:
+        CA:TRUE
+    Signature Algorithm: sha256WithRSAEncryption
+        24:0a:38:57:49:e5:35:05:58:d9:88:03:eb:3a:8c:5b:0d:88:
+        70:58:ea:77:b2:4c:37:ff:87:52:b7:f3:bd:0f:6f:5e:7c:fc:
+        28:16:37:19:23:d0:90:af:ed:1e:f3:36:ee:9d:66:0e:7c:07:
+        5b:7d:0a:2a:fa:80:8c:6a:35:48:2d:50:9e:d2:f4:fc:d1:2a:
+        ed:f5:7f:e4:d9:ec:ac:09:10:52:5c:b9:c7:68:4a:91:98:33:
+        95:c3:23:4a:06:ca:ec:d3:ef:46:94:92:61:88:e4:e2:f5:db:
+        c1:7a:a7:98:9d:59:0d:43:c2:2a:46:11:74:53:44:37:08:cd:
+        b1:99:36:b6:3f:5e:51:f2:8c:d7:a0:0c:c5:9f:68:ba:2b:ab:
+        7a:57:1f:fd:c9:44:0d:b9:39:6e:52:8c:09:8b:eb:5f:ea:3d:
+        d4:3d:05:17:1a:7f:47:92:38:94:1d:e0:59:d2:66:bb:37:95:
+        1d:11:4b:70:a1:89:1f:09:5a:25:dc:80:ee:27:17:7e:4a:cc:
+        32:63:1d:e2:89:27:b1:44:99:9f:fb:4d:45:31:23:49:7b:ba:
+        21:05:eb:d8:8a:b3:d0:72:c0:19:97:2a:59:4b:d1:12:ce:04:
+        c4:c6:61:6f:19:e4:c2:fa:6a:0f:c7:70:c9:08:85:0c:65:97:
+        83:41:c6:4b
 </pre></div>
 </div>
-<p>3). Convert certificate from PEM to DER</p>
-<p>Only DER format encoded certificate is supported. After conversion, save
-PK.der for use.</p>
-<p>openssl x509 -in PK.crt -outform der -out PK.der</p>
-</div></blockquote>
+</li>
+<li><p class="first">Convert certificate from PEM to DER using the <code class="docutils literal notranslate"><span class="pre">openssl</span> <span class="pre">x509</span></code>
+command.</p>
+<p>Only a DER format encoded certificate is supported. After conversion, save
+<code class="docutils literal notranslate"><span class="pre">PK.der</span></code> for use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">x509</span> <span class="o">-</span><span class="ow">in</span> <span class="n">PK</span><span class="o">.</span><span class="n">crt</span> <span class="o">-</span><span class="n">outform</span> <span class="n">der</span> <span class="o">-</span><span class="n">out</span> <span class="n">PK</span><span class="o">.</span><span class="n">der</span>
+</pre></div>
+</div>
+</li>
+</ul>
 </div>
 <div class="section" id="using-microsoft-tools">
-<h2>2. Using Microsoft tools<a class="headerlink" href="#using-microsoft-tools" title="Permalink to this headline">¶</a></h2>
-<p>In Microsoft document, it introduced how to use Microsoft tools to
-generate secure boot key.
-<a class="reference external" href="https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/secure-boot-key-generation-and-signing-using-hsm--example">https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/secure-boot-key-generation-and-signing-using-hsm–example</a></p>
-<p>Using certutil.exe to list the CSPs (Cryptographic Service Provider).</p>
+<h3>Using Microsoft tools<a class="headerlink" href="#using-microsoft-tools" title="Permalink to this headline">¶</a></h3>
+<p>Microsoft documents explain <a class="reference external" href="https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/secure-boot-key-generation-and-signing-using-hsm--example">how to use Microsoft tools to generate a secure boot key</a>,
+which we’ll summarize below.</p>
+<ul>
+<li><p class="first">Using <code class="docutils literal notranslate"><span class="pre">certutil.exe</span></code> to list the Cryptographic Service Providers
+(CSP)</p>
 <blockquote>
 <div><p>For the detailed information of each Microsoft Cryptographic Service
-Provider, please check Microsoft document:
-<a class="reference external" href="https://docs.microsoft.com/en-us/windows/desktop/seccrypto/microsoft-cryptographic-service-providers">https://docs.microsoft.com/en-us/windows/desktop/seccrypto/microsoft-cryptographic-service-providers</a>.</p>
-<p>Here, we chose “Microsoft Strong Cryptographic Provider” for example.:</p>
+Provider, please check the <a class="reference external" href="https://docs.microsoft.com/en-us/windows/desktop/seccrypto/microsoft-cryptographic-service-providers">Microsoft CRP document</a></p>
+<p>Here, we chose “Microsoft Strong Cryptographic Provider” for example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="p">:</span>\\<span class="n">CertReq</span>\\<span class="n">test</span><span class="o">&gt;</span> <span class="n">certutil</span> <span class="o">-</span><span class="n">csplist</span>
-
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Base</span> <span class="n">Cryptographic</span> <span class="n">Provider</span> <span class="n">v1</span><span class="o">.</span><span class="mi">0</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PROV_RSA_FULL</span>
 
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_RSA</span>\<span class="n">_FULL</span>
-
-<span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Base</span> <span class="n">DSS</span> <span class="ow">and</span> <span class="n">Diffie</span><span class="o">-</span><span class="n">Hellman</span> <span class="n">Cryptographic</span>
-<span class="n">Provider</span>
-
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">13</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_DSS</span>\<span class="n">_DH</span>
+<span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Base</span> <span class="n">DSS</span> <span class="ow">and</span> <span class="n">Diffie</span><span class="o">-</span><span class="n">Hellman</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">13</span> <span class="o">-</span> <span class="n">PROV_DSS_DH</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Base</span> <span class="n">DSS</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
-
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">3</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_DSS</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">3</span> <span class="o">-</span> <span class="n">PROV_DSS</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Base</span> <span class="n">Smart</span> <span class="n">Card</span> <span class="n">Crypto</span> <span class="n">Provider</span>
-
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_RSA</span>\<span class="n">_FULL</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PROV_RSA_FULL</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">DH</span> <span class="n">SChannel</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
-
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">18</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_DH</span>\<span class="n">_SCHANNEL</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">18</span> <span class="o">-</span> <span class="n">PROV_DH_SCHANNEL</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Enhanced</span> <span class="n">Cryptographic</span> <span class="n">Provider</span> <span class="n">v1</span><span class="o">.</span><span class="mi">0</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PROV_RSA_FULL</span>
 
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_RSA</span>\<span class="n">_FULL</span>
-
-<span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Enhanced</span> <span class="n">DSS</span> <span class="ow">and</span> <span class="n">Diffie</span><span class="o">-</span><span class="n">Hellman</span>
-<span class="n">Cryptographic</span> <span class="n">Provider</span>
-
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">13</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_DSS</span>\<span class="n">_DH</span>
+<span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Enhanced</span> <span class="n">DSS</span> <span class="ow">and</span> <span class="n">Diffie</span><span class="o">-</span><span class="n">Hellman</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">13</span> <span class="o">-</span> <span class="n">PROV_DSS_DH</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Enhanced</span> <span class="n">RSA</span> <span class="ow">and</span> <span class="n">AES</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
-
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">24</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_RSA</span>\<span class="n">_AES</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">24</span> <span class="o">-</span> <span class="n">PROV_RSA_AES</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">RSA</span> <span class="n">SChannel</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
-
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">12</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_RSA</span>\<span class="n">_SCHANNEL</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">12</span> <span class="o">-</span> <span class="n">PROV_RSA_SCHANNEL</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Strong</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
-
-<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PROV</span>\<span class="n">_RSA</span>\<span class="n">_FULL</span>
+<span class="n">Provider</span> <span class="n">Type</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">PROV_RSA_FULL</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Software</span> <span class="n">Key</span> <span class="n">Storage</span> <span class="n">Provider</span>
 
@@ -1222,540 +1135,410 @@ Provider, please check Microsoft document:
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Platform</span> <span class="n">Crypto</span> <span class="n">Provider</span>
 
 <span class="n">Provider</span> <span class="n">Name</span><span class="p">:</span> <span class="n">Microsoft</span> <span class="n">Smart</span> <span class="n">Card</span> <span class="n">Key</span> <span class="n">Storage</span> <span class="n">Provider</span>
-
 <span class="n">CertUtil</span><span class="p">:</span> <span class="o">-</span><span class="n">csplist</span> <span class="n">command</span> <span class="n">completed</span> <span class="n">successfully</span><span class="o">.</span>
 </pre></div>
 </div>
 </div></blockquote>
-<p>Create request inf file, the following is the example:</p>
+</li>
+<li><p class="first">Create request inf file, for example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Version</span><span class="p">]</span>
-
 <span class="n">Signature</span><span class="o">=</span> <span class="s2">&quot;$Windows NT$&quot;</span>
-
 <span class="p">[</span><span class="n">NewRequest</span><span class="p">]</span>
-
 <span class="n">ValidityPeriod</span> <span class="o">=</span> <span class="n">Years</span>
-
 <span class="n">ValidityPeriodUnits</span> <span class="o">=</span> <span class="mi">6</span>
-
-<span class="n">Subject</span> <span class="o">=</span> <span class="s2">&quot;CN=Corporation TODO Platform Key,O=TODO</span>
-<span class="n">Corporation</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">TODO</span>\<span class="n">_City</span><span class="p">,</span><span class="n">S</span><span class="o">=</span><span class="n">TODO</span>\<span class="n">_State</span><span class="p">,</span><span class="n">C</span><span class="o">=</span><span class="n">TODO</span>\<span class="n">_Country</span><span class="s2">&quot;</span>
-
+<span class="n">Subject</span> <span class="o">=</span> <span class="s2">&quot;CN=Corporation TODO Platform Key,O=TODO Corporation,L=TODO_City,S=TODO_State,C=TODO_Country&quot;</span>
 <span class="n">MachineKeySet</span> <span class="o">=</span> <span class="n">true</span>
-
 <span class="n">RequestType</span><span class="o">=</span><span class="n">Cert</span>
-
 <span class="n">Exportable</span> <span class="o">=</span> <span class="n">FALSE</span>
-
 <span class="n">HashAlgorithm</span> <span class="o">=</span> <span class="n">SHA256</span>
-
 <span class="n">KeyAlgorithm</span> <span class="o">=</span> <span class="n">RSA</span>
-
 <span class="n">KeyLength</span> <span class="o">=</span> <span class="mi">2048</span>
-
 <span class="n">KeyContainer</span> <span class="o">=</span> <span class="s2">&quot;{EA75381E-6D9B-4BDC-B6C7-5144C96507DD}&quot;</span>
-
 <span class="n">ProviderName</span> <span class="o">=</span> <span class="s2">&quot;Microsoft Strong Cryptographic Provider&quot;</span>
-
 <span class="n">KeyUsage</span> <span class="o">=</span> <span class="mh">0xf0</span>
 </pre></div>
 </div>
-<p>Generate PK.</p>
-<p>certreq.exe -new [PolicyFileIn [RequestFileOut]]:</p>
+</li>
+<li><p class="first">Generate the Platform Key using <code class="docutils literal notranslate"><span class="pre">certreq.exe</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="p">:</span>\\<span class="n">PKtest</span><span class="o">&gt;</span> <span class="n">certreq</span><span class="o">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">new</span> <span class="n">request</span><span class="o">.</span><span class="n">inf</span> <span class="n">PKtest</span><span class="o">.</span><span class="n">cer</span>
-
 <span class="n">Installed</span> <span class="n">Certificate</span><span class="p">:</span>
-
 <span class="n">Serial</span> <span class="n">Number</span><span class="p">:</span> <span class="mi">3</span><span class="n">f675d4b64156f9c48ccf30793121147</span>
-
-<span class="n">Subject</span><span class="p">:</span> <span class="n">CN</span><span class="o">=</span><span class="n">Intel</span> <span class="n">Platform</span> <span class="n">Key</span><span class="p">,</span> <span class="n">O</span><span class="o">=</span><span class="n">Intel</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="n">Shanghai</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="n">Shanghai</span><span class="p">,</span>
-<span class="n">C</span><span class="o">=</span><span class="n">CN</span>
-
+<span class="n">Subject</span><span class="p">:</span> <span class="n">CN</span><span class="o">=</span><span class="n">Intel</span> <span class="n">Platform</span> <span class="n">Key</span><span class="p">,</span> <span class="n">O</span><span class="o">=</span><span class="n">Intel</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="n">Shanghai</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="n">Shanghai</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="n">CN</span>
 <span class="n">NotBefore</span><span class="p">:</span> <span class="mi">6</span><span class="o">/</span><span class="mi">26</span><span class="o">/</span><span class="mi">2019</span> <span class="mi">10</span><span class="p">:</span><span class="mi">40</span> <span class="n">AM</span>
-
 <span class="n">NotAfter</span><span class="p">:</span> <span class="mi">6</span><span class="o">/</span><span class="mi">26</span><span class="o">/</span><span class="mi">2025</span> <span class="mi">10</span><span class="p">:</span><span class="mi">50</span> <span class="n">AM</span>
-
 <span class="n">Thumbprint</span><span class="p">:</span> <span class="n">ff2771bd5bd1f7086ab96fb9532b594ed8619c3b</span>
-
 <span class="n">Microsoft</span> <span class="n">Strong</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
-
-<span class="mi">3</span><span class="n">d40ebea7d109ee93b238b96721f0e6d</span>\<span class="n">_4be58f30</span><span class="o">-</span><span class="mi">7127</span><span class="o">-</span><span class="mi">42</span><span class="n">f5</span><span class="o">-</span><span class="mi">9</span><span class="n">b76</span><span class="o">-</span><span class="n">f47187495247</span>
-
+<span class="mi">3</span><span class="n">d40ebea7d109ee93b238b96721f0e6d_4be58f30</span><span class="o">-</span><span class="mi">7127</span><span class="o">-</span><span class="mi">42</span><span class="n">f5</span><span class="o">-</span><span class="mi">9</span><span class="n">b76</span><span class="o">-</span><span class="n">f47187495247</span>
 <span class="n">CertReq</span><span class="p">:</span> <span class="n">Certificate</span> <span class="n">Created</span> <span class="ow">and</span> <span class="n">Installed</span>
 </pre></div>
 </div>
-<p>Validating PK</p>
-<p>Using the following command to verify that the certificate has been
-generated correctly.</p>
-<p>certutil -store -v my “&lt;Certificate_serial_number_or_thumbprint&gt;”:</p>
+</li>
+<li><p class="first">Validate the Platform Key certificate has been generated correctly:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="p">:</span>\\<span class="n">PKtest</span><span class="o">&gt;</span> <span class="n">certutil</span> <span class="o">-</span><span class="n">store</span> <span class="o">-</span><span class="n">v</span> <span class="n">my</span> <span class="s2">&quot;3f675d4b64156f9c48ccf30793121147&quot;</span>
-
 <span class="n">my</span> <span class="s2">&quot;Personal&quot;</span>
-
 <span class="o">================</span> <span class="n">Certificate</span> <span class="mi">0</span> <span class="o">================</span>
-
 <span class="n">X509</span> <span class="n">Certificate</span><span class="p">:</span>
-
 <span class="n">Version</span><span class="p">:</span> <span class="mi">3</span>
-
 <span class="n">Serial</span> <span class="n">Number</span><span class="p">:</span> <span class="mi">3</span><span class="n">f675d4b64156f9c48ccf30793121147</span>
-
 <span class="n">Signature</span> <span class="n">Algorithm</span><span class="p">:</span>
-
-<span class="n">Algorithm</span> <span class="n">ObjectId</span><span class="p">:</span> <span class="mf">1.2</span><span class="o">.</span><span class="mf">840.113549</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">11</span> <span class="n">sha256RSA</span>
-
-<span class="n">Algorithm</span> <span class="n">Parameters</span><span class="p">:</span>
-
-<span class="mi">05</span> <span class="mi">00</span>
-
+    <span class="n">Algorithm</span> <span class="n">ObjectId</span><span class="p">:</span> <span class="mf">1.2</span><span class="o">.</span><span class="mf">840.113549</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">11</span> <span class="n">sha256RSA</span>
+    <span class="n">Algorithm</span> <span class="n">Parameters</span><span class="p">:</span>
+    <span class="mi">05</span> <span class="mi">00</span>
 <span class="n">Issuer</span><span class="p">:</span>
+    <span class="n">CN</span><span class="o">=</span><span class="n">Intel</span> <span class="n">Platform</span> <span class="n">Key</span>
+    <span class="n">O</span><span class="o">=</span><span class="n">Intel</span>
+    <span class="n">L</span><span class="o">=</span><span class="n">Shanghai</span>
+    <span class="n">S</span><span class="o">=</span><span class="n">Shanghai</span>
+    <span class="n">C</span><span class="o">=</span><span class="n">CN</span>
+    <span class="n">Name</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha1</span><span class="p">):</span> <span class="mi">732312795479</span><span class="n">b01208e0ade51c695eddd8f2b2d7</span>
+    <span class="n">Name</span> <span class="n">Hash</span><span class="p">(</span><span class="n">md5</span><span class="p">):</span> <span class="mi">9264</span><span class="n">adf01062b20e8fe4351369c55cc4</span>
 
-<span class="n">CN</span><span class="o">=</span><span class="n">Intel</span> <span class="n">Platform</span> <span class="n">Key</span>
-
-<span class="n">O</span><span class="o">=</span><span class="n">Intel</span>
-
-<span class="n">L</span><span class="o">=</span><span class="n">Shanghai</span>
-
-<span class="n">S</span><span class="o">=</span><span class="n">Shanghai</span>
-
-<span class="n">C</span><span class="o">=</span><span class="n">CN</span>
-
-<span class="n">Name</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha1</span><span class="p">):</span> <span class="mi">732312795479</span><span class="n">b01208e0ade51c695eddd8f2b2d7</span>
-
-<span class="n">Name</span> <span class="n">Hash</span><span class="p">(</span><span class="n">md5</span><span class="p">):</span> <span class="mi">9264</span><span class="n">adf01062b20e8fe4351369c55cc4</span>
-
-<span class="n">NotBefore</span><span class="p">:</span> <span class="mi">6</span><span class="o">/</span><span class="mi">26</span><span class="o">/</span><span class="mi">2019</span> <span class="mi">10</span><span class="p">:</span><span class="mi">40</span> <span class="n">AM</span>
-
-<span class="n">NotAfter</span><span class="p">:</span> <span class="mi">6</span><span class="o">/</span><span class="mi">26</span><span class="o">/</span><span class="mi">2025</span> <span class="mi">10</span><span class="p">:</span><span class="mi">50</span> <span class="n">AM</span>
+ <span class="n">NotBefore</span><span class="p">:</span> <span class="mi">6</span><span class="o">/</span><span class="mi">26</span><span class="o">/</span><span class="mi">2019</span> <span class="mi">10</span><span class="p">:</span><span class="mi">40</span> <span class="n">AM</span>
+ <span class="n">NotAfter</span><span class="p">:</span> <span class="mi">6</span><span class="o">/</span><span class="mi">26</span><span class="o">/</span><span class="mi">2025</span> <span class="mi">10</span><span class="p">:</span><span class="mi">50</span> <span class="n">AM</span>
 
 <span class="n">Subject</span><span class="p">:</span>
-
-<span class="n">CN</span><span class="o">=</span><span class="n">Intel</span> <span class="n">Platform</span> <span class="n">Key</span>
-
-<span class="n">O</span><span class="o">=</span><span class="n">Intel</span>
-
-<span class="n">L</span><span class="o">=</span><span class="n">Shanghai</span>
-
-<span class="n">S</span><span class="o">=</span><span class="n">Shanghai</span>
-
-<span class="n">C</span><span class="o">=</span><span class="n">CN</span>
-
-<span class="n">Name</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha1</span><span class="p">):</span> <span class="mi">732312795479</span><span class="n">b01208e0ade51c695eddd8f2b2d7</span>
-
-<span class="n">Name</span> <span class="n">Hash</span><span class="p">(</span><span class="n">md5</span><span class="p">):</span> <span class="mi">9264</span><span class="n">adf01062b20e8fe4351369c55cc4</span>
+    <span class="n">CN</span><span class="o">=</span><span class="n">Intel</span> <span class="n">Platform</span> <span class="n">Key</span>
+    <span class="n">O</span><span class="o">=</span><span class="n">Intel</span>
+    <span class="n">L</span><span class="o">=</span><span class="n">Shanghai</span>
+    <span class="n">S</span><span class="o">=</span><span class="n">Shanghai</span>
+    <span class="n">C</span><span class="o">=</span><span class="n">CN</span>
+    <span class="n">Name</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha1</span><span class="p">):</span> <span class="mi">732312795479</span><span class="n">b01208e0ade51c695eddd8f2b2d7</span>
+    <span class="n">Name</span> <span class="n">Hash</span><span class="p">(</span><span class="n">md5</span><span class="p">):</span> <span class="mi">9264</span><span class="n">adf01062b20e8fe4351369c55cc4</span>
 
 <span class="n">Public</span> <span class="n">Key</span> <span class="n">Algorithm</span><span class="p">:</span>
-
-<span class="n">Algorithm</span> <span class="n">ObjectId</span><span class="p">:</span> <span class="mf">1.2</span><span class="o">.</span><span class="mf">840.113549</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">1</span> <span class="n">RSA</span>
-
-<span class="n">Algorithm</span> <span class="n">Parameters</span><span class="p">:</span>
-
-<span class="mi">05</span> <span class="mi">00</span>
-
+    <span class="n">Algorithm</span> <span class="n">ObjectId</span><span class="p">:</span> <span class="mf">1.2</span><span class="o">.</span><span class="mf">840.113549</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">1</span> <span class="n">RSA</span>
+    <span class="n">Algorithm</span> <span class="n">Parameters</span><span class="p">:</span>
+    <span class="mi">05</span> <span class="mi">00</span>
 <span class="n">Public</span> <span class="n">Key</span> <span class="n">Length</span><span class="p">:</span> <span class="mi">2048</span> <span class="n">bits</span>
-
 <span class="n">Public</span> <span class="n">Key</span><span class="p">:</span> <span class="n">UnusedBits</span> <span class="o">=</span> <span class="mi">0</span>
-
-<span class="mi">0000</span> <span class="mi">30</span> <span class="mi">82</span> <span class="mi">01</span> <span class="mi">0</span><span class="n">a</span> <span class="mi">02</span> <span class="mi">82</span> <span class="mi">01</span> <span class="mi">01</span> <span class="mi">00</span> <span class="n">b9</span> <span class="mi">72</span> <span class="n">bb</span> <span class="n">ae</span> <span class="n">ff</span> <span class="mi">44</span> <span class="mi">55</span>
-
-<span class="mi">0010</span> <span class="mi">01</span> <span class="n">a5</span> <span class="mi">53</span> <span class="mi">6</span><span class="n">c</span> <span class="n">bd</span> <span class="n">b1</span> <span class="mi">6</span><span class="n">e</span> <span class="n">b1</span> <span class="mi">32</span> <span class="mi">4</span><span class="n">a</span> <span class="n">e5</span> <span class="mi">07</span> <span class="mi">04</span> <span class="n">f9</span> <span class="mi">97</span> <span class="mi">41</span>
-
-<span class="mi">0020</span> <span class="mi">49</span> <span class="n">a5</span> <span class="mi">95</span> <span class="n">c9</span> <span class="mi">77</span> <span class="n">b7</span> <span class="n">db</span> <span class="n">c0</span> <span class="n">b0</span> <span class="mi">0</span><span class="n">d</span> <span class="mi">51</span> <span class="mi">6</span><span class="n">a</span> <span class="mi">17</span> <span class="n">d4</span> <span class="n">a1</span> <span class="mi">91</span>
-
-<span class="mi">0030</span> <span class="mi">21</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">1</span><span class="n">c</span> <span class="mi">14</span> <span class="mi">8</span><span class="n">a</span> <span class="mi">29</span> <span class="n">f2</span> <span class="mi">45</span> <span class="mi">78</span> <span class="n">c0</span> <span class="n">d3</span> <span class="n">d3</span> <span class="mi">99</span> <span class="mi">19</span> <span class="n">b6</span> <span class="n">de</span>
-
-<span class="mi">0040</span> <span class="mi">8</span><span class="n">b</span> <span class="n">cd</span> <span class="mi">43</span> <span class="mi">05</span> <span class="mi">61</span> <span class="mi">95</span> <span class="n">d1</span> <span class="n">c1</span> <span class="mi">84</span> <span class="mi">97</span> <span class="mi">83</span> <span class="n">c7</span> <span class="n">ce</span> <span class="mi">93</span> <span class="n">c7</span> <span class="mi">9</span><span class="n">a</span>
-
-<span class="mi">0050</span> <span class="mi">90</span> <span class="mi">37</span> <span class="n">ba</span> <span class="mi">9</span><span class="n">d</span> <span class="mi">7</span><span class="n">a</span> <span class="mi">2</span><span class="n">a</span> <span class="n">d1</span> <span class="mi">6</span><span class="n">b</span> <span class="n">ad</span> <span class="n">f6</span> <span class="n">ba</span> <span class="n">da</span> <span class="mi">6</span><span class="n">d</span> <span class="mi">18</span> <span class="mi">1</span><span class="n">a</span> <span class="n">ae</span>
-
-<span class="mi">0060</span> <span class="n">ec</span> <span class="mi">16</span> <span class="mi">80</span> <span class="n">fe</span> <span class="mi">29</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">25</span> <span class="mi">8</span><span class="n">a</span> <span class="mi">2</span><span class="n">d</span> <span class="mi">22</span> <span class="n">bd</span> <span class="n">fb</span> <span class="mi">25</span> <span class="mi">02</span> <span class="n">f3</span> <span class="n">f3</span>
-
-<span class="mi">0070</span> <span class="n">ad</span> <span class="n">ae</span> <span class="mi">0</span><span class="n">e</span> <span class="n">df</span> <span class="mi">37</span> <span class="mi">4</span><span class="n">b</span> <span class="mi">9</span><span class="n">d</span> <span class="n">e0</span> <span class="n">b1</span> <span class="n">cb</span> <span class="n">b8</span> <span class="mi">40</span> <span class="n">d2</span> <span class="n">ff</span> <span class="n">c8</span> <span class="n">bd</span>
-
-<span class="mi">0080</span> <span class="mi">6</span><span class="n">b</span> <span class="n">bc</span> <span class="mi">9</span><span class="n">f</span> <span class="mi">61</span> <span class="mi">68</span> <span class="n">be</span> <span class="n">d4</span> <span class="mi">33</span> <span class="mi">61</span> <span class="mi">01</span> <span class="n">b7</span> <span class="n">b9</span> <span class="n">ef</span> <span class="n">f3</span> <span class="mi">32</span> <span class="n">ee</span>
-
-<span class="mi">0090</span> <span class="mi">7</span><span class="n">e</span> <span class="n">b4</span> <span class="mi">24</span> <span class="n">c3</span> <span class="mi">68</span> <span class="mi">9</span><span class="n">c</span> <span class="mi">19</span> <span class="mi">85</span> <span class="mi">4</span><span class="n">a</span> <span class="n">d6</span> <span class="mi">7</span><span class="n">f</span> <span class="n">e6</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">28</span> <span class="mi">81</span> <span class="mi">5</span><span class="n">f</span>
-
-<span class="mi">00</span><span class="n">a0</span> <span class="mi">7</span><span class="n">a</span> <span class="mi">41</span> <span class="n">fa</span> <span class="n">f7</span> <span class="mi">0</span><span class="n">c</span> <span class="mi">21</span> <span class="n">c2</span> <span class="mi">10</span> <span class="mi">1</span><span class="n">f</span> <span class="n">df</span> <span class="n">b2</span> <span class="mi">89</span> <span class="mi">9</span><span class="n">d</span> <span class="mi">2</span><span class="n">d</span> <span class="mi">1</span><span class="n">a</span> <span class="n">b8</span>
-
-<span class="mi">00</span><span class="n">b0</span> <span class="n">ac</span> <span class="mi">9</span><span class="n">f</span> <span class="mi">09</span> <span class="mi">11</span> <span class="n">c9</span> <span class="mi">85</span> <span class="mi">1</span><span class="n">d</span> <span class="n">fb</span> <span class="mi">96</span> <span class="mi">00</span> <span class="mi">55</span> <span class="mi">95</span> <span class="mi">73</span> <span class="n">d9</span> <span class="n">d5</span> <span class="n">ae</span>
-
-<span class="mi">00</span><span class="n">c0</span> <span class="n">c2</span> <span class="mi">9</span><span class="n">e</span> <span class="mi">10</span> <span class="mi">8</span><span class="n">b</span> <span class="n">c8</span> <span class="mi">7</span><span class="n">d</span> <span class="n">ec</span> <span class="mi">6</span><span class="n">c</span> <span class="n">d9</span> <span class="n">b1</span> <span class="mi">15</span> <span class="mi">80</span> <span class="mi">50</span> <span class="mi">3</span><span class="n">d</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">25</span>
-
-<span class="mi">00</span><span class="n">d0</span> <span class="n">cb</span> <span class="mi">8</span><span class="n">a</span> <span class="n">d7</span> <span class="n">fc</span> <span class="mi">22</span> <span class="mi">27</span> <span class="n">a7</span> <span class="n">be</span> <span class="mi">71</span> <span class="mi">15</span> <span class="mi">22</span> <span class="mi">86</span> <span class="mi">0</span><span class="n">e</span> <span class="mi">88</span> <span class="n">e9</span> <span class="n">c0</span>
-
-<span class="mf">00e0</span> <span class="n">b6</span> <span class="n">af</span> <span class="n">e6</span> <span class="mi">9</span><span class="n">b</span> <span class="mi">56</span> <span class="mi">0</span><span class="n">a</span> <span class="mi">99</span> <span class="mi">6</span><span class="n">f</span> <span class="mi">88</span> <span class="n">c7</span> <span class="mi">4</span><span class="n">c</span> <span class="n">e3</span> <span class="mi">15</span> <span class="n">dc</span> <span class="mi">6</span><span class="n">f</span> <span class="mi">03</span>
-
-<span class="mi">00</span><span class="n">f0</span> <span class="mi">8</span><span class="n">a</span> <span class="n">b3</span> <span class="mi">21</span> <span class="n">cc</span> <span class="mi">09</span> <span class="n">df</span> <span class="mi">8</span><span class="n">c</span> <span class="mi">3</span><span class="n">b</span> <span class="n">aa</span> <span class="n">c0</span> <span class="mi">2</span><span class="n">d</span> <span class="mi">31</span> <span class="mi">0</span><span class="n">b</span> <span class="mi">39</span> <span class="mi">01</span> <span class="mi">13</span>
-
-<span class="mi">0100</span> <span class="mi">29</span> <span class="n">e4</span> <span class="n">f4</span> <span class="mi">85</span> <span class="mi">8</span><span class="n">e</span> <span class="n">f7</span> <span class="mi">69</span> <span class="n">db</span> <span class="mi">05</span> <span class="mi">02</span> <span class="mi">03</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">01</span>
-
+    <span class="mi">0000</span> <span class="mi">30</span> <span class="mi">82</span> <span class="mi">01</span> <span class="mi">0</span><span class="n">a</span> <span class="mi">02</span> <span class="mi">82</span> <span class="mi">01</span> <span class="mi">01</span> <span class="mi">00</span> <span class="n">b9</span> <span class="mi">72</span> <span class="n">bb</span> <span class="n">ae</span> <span class="n">ff</span> <span class="mi">44</span> <span class="mi">55</span>
+    <span class="mi">0010</span> <span class="mi">01</span> <span class="n">a5</span> <span class="mi">53</span> <span class="mi">6</span><span class="n">c</span> <span class="n">bd</span> <span class="n">b1</span> <span class="mi">6</span><span class="n">e</span> <span class="n">b1</span> <span class="mi">32</span> <span class="mi">4</span><span class="n">a</span> <span class="n">e5</span> <span class="mi">07</span> <span class="mi">04</span> <span class="n">f9</span> <span class="mi">97</span> <span class="mi">41</span>
+    <span class="mi">0020</span> <span class="mi">49</span> <span class="n">a5</span> <span class="mi">95</span> <span class="n">c9</span> <span class="mi">77</span> <span class="n">b7</span> <span class="n">db</span> <span class="n">c0</span> <span class="n">b0</span> <span class="mi">0</span><span class="n">d</span> <span class="mi">51</span> <span class="mi">6</span><span class="n">a</span> <span class="mi">17</span> <span class="n">d4</span> <span class="n">a1</span> <span class="mi">91</span>
+    <span class="mi">0030</span> <span class="mi">21</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">1</span><span class="n">c</span> <span class="mi">14</span> <span class="mi">8</span><span class="n">a</span> <span class="mi">29</span> <span class="n">f2</span> <span class="mi">45</span> <span class="mi">78</span> <span class="n">c0</span> <span class="n">d3</span> <span class="n">d3</span> <span class="mi">99</span> <span class="mi">19</span> <span class="n">b6</span> <span class="n">de</span>
+    <span class="mi">0040</span> <span class="mi">8</span><span class="n">b</span> <span class="n">cd</span> <span class="mi">43</span> <span class="mi">05</span> <span class="mi">61</span> <span class="mi">95</span> <span class="n">d1</span> <span class="n">c1</span> <span class="mi">84</span> <span class="mi">97</span> <span class="mi">83</span> <span class="n">c7</span> <span class="n">ce</span> <span class="mi">93</span> <span class="n">c7</span> <span class="mi">9</span><span class="n">a</span>
+    <span class="mi">0050</span> <span class="mi">90</span> <span class="mi">37</span> <span class="n">ba</span> <span class="mi">9</span><span class="n">d</span> <span class="mi">7</span><span class="n">a</span> <span class="mi">2</span><span class="n">a</span> <span class="n">d1</span> <span class="mi">6</span><span class="n">b</span> <span class="n">ad</span> <span class="n">f6</span> <span class="n">ba</span> <span class="n">da</span> <span class="mi">6</span><span class="n">d</span> <span class="mi">18</span> <span class="mi">1</span><span class="n">a</span> <span class="n">ae</span>
+    <span class="mi">0060</span> <span class="n">ec</span> <span class="mi">16</span> <span class="mi">80</span> <span class="n">fe</span> <span class="mi">29</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">25</span> <span class="mi">8</span><span class="n">a</span> <span class="mi">2</span><span class="n">d</span> <span class="mi">22</span> <span class="n">bd</span> <span class="n">fb</span> <span class="mi">25</span> <span class="mi">02</span> <span class="n">f3</span> <span class="n">f3</span>
+    <span class="mi">0070</span> <span class="n">ad</span> <span class="n">ae</span> <span class="mi">0</span><span class="n">e</span> <span class="n">df</span> <span class="mi">37</span> <span class="mi">4</span><span class="n">b</span> <span class="mi">9</span><span class="n">d</span> <span class="n">e0</span> <span class="n">b1</span> <span class="n">cb</span> <span class="n">b8</span> <span class="mi">40</span> <span class="n">d2</span> <span class="n">ff</span> <span class="n">c8</span> <span class="n">bd</span>
+    <span class="mi">0080</span> <span class="mi">6</span><span class="n">b</span> <span class="n">bc</span> <span class="mi">9</span><span class="n">f</span> <span class="mi">61</span> <span class="mi">68</span> <span class="n">be</span> <span class="n">d4</span> <span class="mi">33</span> <span class="mi">61</span> <span class="mi">01</span> <span class="n">b7</span> <span class="n">b9</span> <span class="n">ef</span> <span class="n">f3</span> <span class="mi">32</span> <span class="n">ee</span>
+    <span class="mi">0090</span> <span class="mi">7</span><span class="n">e</span> <span class="n">b4</span> <span class="mi">24</span> <span class="n">c3</span> <span class="mi">68</span> <span class="mi">9</span><span class="n">c</span> <span class="mi">19</span> <span class="mi">85</span> <span class="mi">4</span><span class="n">a</span> <span class="n">d6</span> <span class="mi">7</span><span class="n">f</span> <span class="n">e6</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">28</span> <span class="mi">81</span> <span class="mi">5</span><span class="n">f</span>
+    <span class="mi">00</span><span class="n">a0</span> <span class="mi">7</span><span class="n">a</span> <span class="mi">41</span> <span class="n">fa</span> <span class="n">f7</span> <span class="mi">0</span><span class="n">c</span> <span class="mi">21</span> <span class="n">c2</span> <span class="mi">10</span> <span class="mi">1</span><span class="n">f</span> <span class="n">df</span> <span class="n">b2</span> <span class="mi">89</span> <span class="mi">9</span><span class="n">d</span> <span class="mi">2</span><span class="n">d</span> <span class="mi">1</span><span class="n">a</span> <span class="n">b8</span>
+    <span class="mi">00</span><span class="n">b0</span> <span class="n">ac</span> <span class="mi">9</span><span class="n">f</span> <span class="mi">09</span> <span class="mi">11</span> <span class="n">c9</span> <span class="mi">85</span> <span class="mi">1</span><span class="n">d</span> <span class="n">fb</span> <span class="mi">96</span> <span class="mi">00</span> <span class="mi">55</span> <span class="mi">95</span> <span class="mi">73</span> <span class="n">d9</span> <span class="n">d5</span> <span class="n">ae</span>
+    <span class="mi">00</span><span class="n">c0</span> <span class="n">c2</span> <span class="mi">9</span><span class="n">e</span> <span class="mi">10</span> <span class="mi">8</span><span class="n">b</span> <span class="n">c8</span> <span class="mi">7</span><span class="n">d</span> <span class="n">ec</span> <span class="mi">6</span><span class="n">c</span> <span class="n">d9</span> <span class="n">b1</span> <span class="mi">15</span> <span class="mi">80</span> <span class="mi">50</span> <span class="mi">3</span><span class="n">d</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">25</span>
+    <span class="mi">00</span><span class="n">d0</span> <span class="n">cb</span> <span class="mi">8</span><span class="n">a</span> <span class="n">d7</span> <span class="n">fc</span> <span class="mi">22</span> <span class="mi">27</span> <span class="n">a7</span> <span class="n">be</span> <span class="mi">71</span> <span class="mi">15</span> <span class="mi">22</span> <span class="mi">86</span> <span class="mi">0</span><span class="n">e</span> <span class="mi">88</span> <span class="n">e9</span> <span class="n">c0</span>
+    <span class="mf">00e0</span> <span class="n">b6</span> <span class="n">af</span> <span class="n">e6</span> <span class="mi">9</span><span class="n">b</span> <span class="mi">56</span> <span class="mi">0</span><span class="n">a</span> <span class="mi">99</span> <span class="mi">6</span><span class="n">f</span> <span class="mi">88</span> <span class="n">c7</span> <span class="mi">4</span><span class="n">c</span> <span class="n">e3</span> <span class="mi">15</span> <span class="n">dc</span> <span class="mi">6</span><span class="n">f</span> <span class="mi">03</span>
+    <span class="mi">00</span><span class="n">f0</span> <span class="mi">8</span><span class="n">a</span> <span class="n">b3</span> <span class="mi">21</span> <span class="n">cc</span> <span class="mi">09</span> <span class="n">df</span> <span class="mi">8</span><span class="n">c</span> <span class="mi">3</span><span class="n">b</span> <span class="n">aa</span> <span class="n">c0</span> <span class="mi">2</span><span class="n">d</span> <span class="mi">31</span> <span class="mi">0</span><span class="n">b</span> <span class="mi">39</span> <span class="mi">01</span> <span class="mi">13</span>
+    <span class="mi">0100</span> <span class="mi">29</span> <span class="n">e4</span> <span class="n">f4</span> <span class="mi">85</span> <span class="mi">8</span><span class="n">e</span> <span class="n">f7</span> <span class="mi">69</span> <span class="n">db</span> <span class="mi">05</span> <span class="mi">02</span> <span class="mi">03</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">01</span>
 <span class="n">Certificate</span> <span class="n">Extensions</span><span class="p">:</span> <span class="mi">2</span>
+    <span class="mf">2.5</span><span class="o">.</span><span class="mf">29.15</span><span class="p">:</span> <span class="n">Flags</span> <span class="o">=</span> <span class="mi">1</span><span class="p">(</span><span class="n">Critical</span><span class="p">),</span> <span class="n">Length</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">Key</span> <span class="n">Usage</span>
+        <span class="n">Digital</span> <span class="n">Signature</span><span class="p">,</span> <span class="n">Non</span><span class="o">-</span><span class="n">Repudiation</span><span class="p">,</span> <span class="n">Key</span> <span class="n">Encipherment</span><span class="p">,</span> <span class="n">Data</span> <span class="n">Encipherment</span> <span class="p">(</span><span class="n">f0</span><span class="p">)</span>
 
-<span class="mf">2.5</span><span class="o">.</span><span class="mf">29.15</span><span class="p">:</span> <span class="n">Flags</span> <span class="o">=</span> <span class="mi">1</span><span class="p">(</span><span class="n">Critical</span><span class="p">),</span> <span class="n">Length</span> <span class="o">=</span> <span class="mi">4</span>
-
-<span class="n">Key</span> <span class="n">Usage</span>
-
-<span class="n">Digital</span> <span class="n">Signature</span><span class="p">,</span> <span class="n">Non</span><span class="o">-</span><span class="n">Repudiation</span><span class="p">,</span> <span class="n">Key</span> <span class="n">Encipherment</span><span class="p">,</span> <span class="n">Data</span>
-<span class="n">Encipherment</span> <span class="p">(</span><span class="n">f0</span><span class="p">)</span>
-
-<span class="mf">2.5</span><span class="o">.</span><span class="mf">29.14</span><span class="p">:</span> <span class="n">Flags</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Length</span> <span class="o">=</span> <span class="mi">16</span>
-
-<span class="n">Subject</span> <span class="n">Key</span> <span class="n">Identifier</span>
-
-<span class="mi">29</span><span class="n">c42c8b73d48fb46118895ae59806eac7bf0098</span>
+    <span class="mf">2.5</span><span class="o">.</span><span class="mf">29.14</span><span class="p">:</span> <span class="n">Flags</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Length</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">Subject</span> <span class="n">Key</span> <span class="n">Identifier</span>
+        <span class="mi">29</span><span class="n">c42c8b73d48fb46118895ae59806eac7bf0098</span>
 
 <span class="n">Signature</span> <span class="n">Algorithm</span><span class="p">:</span>
-
-<span class="n">Algorithm</span> <span class="n">ObjectId</span><span class="p">:</span> <span class="mf">1.2</span><span class="o">.</span><span class="mf">840.113549</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">11</span> <span class="n">sha256RSA</span>
-
-<span class="n">Algorithm</span> <span class="n">Parameters</span><span class="p">:</span>
-
-<span class="mi">05</span> <span class="mi">00</span>
+    <span class="n">Algorithm</span> <span class="n">ObjectId</span><span class="p">:</span> <span class="mf">1.2</span><span class="o">.</span><span class="mf">840.113549</span><span class="o">.</span><span class="mf">1.1</span><span class="o">.</span><span class="mi">11</span> <span class="n">sha256RSA</span>
+    <span class="n">Algorithm</span> <span class="n">Parameters</span><span class="p">:</span>
+    <span class="mi">05</span> <span class="mi">00</span>
 
 <span class="n">Signature</span><span class="p">:</span> <span class="n">UnusedBits</span><span class="o">=</span><span class="mi">0</span>
-
-<span class="mi">0000</span> <span class="n">d4</span> <span class="mi">89</span> <span class="mi">92</span> <span class="n">e6</span> <span class="n">e1</span> <span class="n">ef</span> <span class="mi">7</span><span class="n">e</span> <span class="n">ce</span> <span class="n">d3</span> <span class="n">c6</span> <span class="n">c2</span> <span class="n">b2</span> <span class="mi">15</span> <span class="mi">63</span> <span class="mi">5</span><span class="n">c</span> <span class="mi">68</span>
-
-<span class="mi">0010</span> <span class="n">ea</span> <span class="mi">16</span> <span class="mi">13</span> <span class="mi">7</span><span class="n">e</span> <span class="mi">90</span> <span class="mi">81</span> <span class="n">e3</span> <span class="mi">75</span> <span class="mi">64</span> <span class="mi">75</span> <span class="n">da</span> <span class="n">ac</span> <span class="mi">85</span> <span class="n">fc</span> <span class="n">c6</span> <span class="mi">3</span><span class="n">a</span>
-
-<span class="mi">0020</span> <span class="mi">65</span> <span class="mi">3</span><span class="n">b</span> <span class="mi">60</span> <span class="mi">1</span><span class="n">e</span> <span class="mi">81</span> <span class="mi">2</span><span class="n">d</span> <span class="mi">20</span> <span class="mi">58</span> <span class="n">ec</span> <span class="n">b3</span> <span class="mi">07</span> <span class="mi">3</span><span class="n">c</span> <span class="n">a3</span> <span class="n">a8</span> <span class="mi">8</span><span class="n">a</span> <span class="mi">57</span>
-
-<span class="mi">0030</span> <span class="n">cf</span> <span class="mi">33</span> <span class="n">a2</span> <span class="mi">8</span><span class="n">c</span> <span class="mi">08</span> <span class="n">fe</span> <span class="mi">74</span> <span class="mi">2</span><span class="n">b</span> <span class="n">c5</span> <span class="n">d9</span> <span class="n">e7</span> <span class="n">f2</span> <span class="n">f7</span> <span class="mi">69</span> <span class="mi">8</span><span class="n">d</span> <span class="n">ca</span>
-
-<span class="mi">0040</span> <span class="mi">68</span> <span class="mi">81</span> <span class="mi">33</span> <span class="mi">3</span><span class="n">d</span> <span class="mi">5</span><span class="n">c</span> <span class="mi">25</span> <span class="mi">63</span> <span class="mi">60</span> <span class="mi">17</span> <span class="mi">51</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">0</span><span class="n">c</span> <span class="mi">1</span><span class="n">d</span> <span class="n">bd</span> <span class="n">de</span> <span class="mi">68</span>
-
-<span class="mi">0050</span> <span class="mi">07</span> <span class="mi">52</span> <span class="n">c6</span> <span class="mi">50</span> <span class="n">da</span> <span class="n">d9</span> <span class="mi">5</span><span class="n">e</span> <span class="mi">5</span><span class="n">b</span> <span class="n">bd</span> <span class="mi">4</span><span class="n">f</span> <span class="mi">33</span> <span class="mi">84</span> <span class="mi">0</span><span class="n">c</span> <span class="n">f8</span> <span class="n">ea</span> <span class="mi">61</span>
-
-<span class="mi">0060</span> <span class="n">f9</span> <span class="n">c3</span> <span class="mi">00</span> <span class="n">db</span> <span class="mi">78</span> <span class="n">f6</span> <span class="n">b2</span> <span class="mi">4</span><span class="n">f</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">4</span><span class="n">b</span> <span class="mi">8</span><span class="n">d</span> <span class="n">cf</span> <span class="n">c9</span> <span class="mi">0</span><span class="n">f</span> <span class="n">d6</span> <span class="mi">8</span><span class="n">a</span>
-
-<span class="mi">0070</span> <span class="mi">5</span><span class="n">c</span> <span class="n">f2</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">87</span> <span class="mi">0</span><span class="n">d</span> <span class="n">a5</span> <span class="n">a5</span> <span class="mi">5</span><span class="n">e</span> <span class="n">ab</span> <span class="n">ce</span> <span class="n">ac</span> <span class="n">a4</span> <span class="n">ff</span> <span class="n">dd</span> <span class="n">d2</span> <span class="n">aa</span>
-
-<span class="mi">0080</span> <span class="mi">4</span><span class="n">c</span> <span class="mi">22</span> <span class="mi">8</span><span class="n">a</span> <span class="n">c2</span> <span class="mi">3</span><span class="n">e</span> <span class="mi">23</span> <span class="mi">7</span><span class="n">c</span> <span class="n">de</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">1</span><span class="n">c</span> <span class="mi">18</span> <span class="n">f5</span> <span class="n">f9</span> <span class="n">a3</span> <span class="n">c1</span> <span class="mi">4</span><span class="n">e</span>
-
-<span class="mi">0090</span> <span class="n">b5</span> <span class="mi">1</span><span class="n">e</span> <span class="mi">9</span><span class="n">a</span> <span class="n">af</span> <span class="mi">92</span> <span class="mi">0</span><span class="n">e</span> <span class="mi">20</span> <span class="mi">0</span><span class="n">e</span> <span class="mi">17</span> <span class="mi">82</span> <span class="mi">2</span><span class="n">f</span> <span class="mi">0</span><span class="n">c</span> <span class="n">b4</span> <span class="n">c4</span> <span class="n">a3</span> <span class="n">f1</span>
-
-<span class="mi">00</span><span class="n">a0</span> <span class="mi">32</span> <span class="mi">5</span><span class="n">a</span> <span class="mi">0</span><span class="n">f</span> <span class="n">e8</span> <span class="mi">63</span> <span class="mi">3</span><span class="n">e</span> <span class="mi">5</span><span class="n">e</span> <span class="mi">36</span> <span class="n">a2</span> <span class="mi">8</span><span class="n">c</span> <span class="n">ea</span> <span class="n">de</span> <span class="mi">02</span> <span class="mi">78</span> <span class="mi">58</span> <span class="n">b8</span>
-
-<span class="mi">00</span><span class="n">b0</span> <span class="mi">5</span><span class="n">a</span> <span class="mi">0</span><span class="n">d</span> <span class="n">d3</span> <span class="mi">82</span> <span class="n">e4</span> <span class="n">b1</span> <span class="n">a6</span> <span class="mi">72</span> <span class="mi">9</span><span class="n">a</span> <span class="n">dc</span> <span class="mi">4</span><span class="n">a</span> <span class="n">dc</span> <span class="mi">5</span><span class="n">b</span> <span class="mi">93</span> <span class="n">de</span> <span class="mi">3</span><span class="n">c</span>
-
-<span class="mi">00</span><span class="n">c0</span> <span class="mi">2</span><span class="n">c</span> <span class="n">ea</span> <span class="n">b0</span> <span class="mi">8</span><span class="n">d</span> <span class="n">a5</span> <span class="mi">6</span><span class="n">e</span> <span class="mi">5</span><span class="n">c</span> <span class="n">d6</span> <span class="n">c7</span> <span class="n">f8</span> <span class="mi">78</span> <span class="n">ef</span> <span class="mi">56</span> <span class="mi">16</span> <span class="n">ed</span> <span class="mi">7</span><span class="n">f</span>
-
-<span class="mi">00</span><span class="n">d0</span> <span class="mi">1</span><span class="n">e</span> <span class="n">a5</span> <span class="mi">5</span><span class="n">b</span> <span class="n">a2</span> <span class="mi">35</span> <span class="mi">87</span> <span class="mi">41</span> <span class="mi">4</span><span class="n">d</span> <span class="mi">5</span><span class="n">c</span> <span class="mi">9</span><span class="n">d</span> <span class="mi">34</span> <span class="n">c9</span> <span class="mi">5</span><span class="n">b</span> <span class="mi">82</span> <span class="mi">68</span> <span class="mi">94</span>
-
-<span class="mf">00e0</span> <span class="mi">8</span><span class="n">a</span> <span class="mi">52</span> <span class="mi">9</span><span class="n">c</span> <span class="mi">8</span><span class="n">e</span> <span class="mi">80</span> <span class="mi">50</span> <span class="mi">0</span><span class="n">d</span> <span class="n">d7</span> <span class="mi">10</span> <span class="mi">34</span> <span class="n">cb</span> <span class="mi">9</span><span class="n">c</span> <span class="mi">96</span> <span class="mi">8</span><span class="n">a</span> <span class="n">b3</span> <span class="mi">5</span><span class="n">e</span>
-
-<span class="mi">00</span><span class="n">f0</span> <span class="mi">9</span><span class="n">c</span> <span class="n">bb</span> <span class="n">bd</span> <span class="mi">07</span> <span class="n">b5</span> <span class="mi">18</span> <span class="n">b0</span> <span class="n">ea</span> <span class="n">d2</span> <span class="mi">93</span> <span class="mi">8</span><span class="n">f</span> <span class="mi">79</span> <span class="n">e9</span> <span class="n">dd</span> <span class="mi">32</span> <span class="mi">7</span><span class="n">a</span>
-
+    <span class="mi">0000</span> <span class="n">d4</span> <span class="mi">89</span> <span class="mi">92</span> <span class="n">e6</span> <span class="n">e1</span> <span class="n">ef</span> <span class="mi">7</span><span class="n">e</span> <span class="n">ce</span> <span class="n">d3</span> <span class="n">c6</span> <span class="n">c2</span> <span class="n">b2</span> <span class="mi">15</span> <span class="mi">63</span> <span class="mi">5</span><span class="n">c</span> <span class="mi">68</span>
+    <span class="mi">0010</span> <span class="n">ea</span> <span class="mi">16</span> <span class="mi">13</span> <span class="mi">7</span><span class="n">e</span> <span class="mi">90</span> <span class="mi">81</span> <span class="n">e3</span> <span class="mi">75</span> <span class="mi">64</span> <span class="mi">75</span> <span class="n">da</span> <span class="n">ac</span> <span class="mi">85</span> <span class="n">fc</span> <span class="n">c6</span> <span class="mi">3</span><span class="n">a</span>
+    <span class="mi">0020</span> <span class="mi">65</span> <span class="mi">3</span><span class="n">b</span> <span class="mi">60</span> <span class="mi">1</span><span class="n">e</span> <span class="mi">81</span> <span class="mi">2</span><span class="n">d</span> <span class="mi">20</span> <span class="mi">58</span> <span class="n">ec</span> <span class="n">b3</span> <span class="mi">07</span> <span class="mi">3</span><span class="n">c</span> <span class="n">a3</span> <span class="n">a8</span> <span class="mi">8</span><span class="n">a</span> <span class="mi">57</span>
+    <span class="mi">0030</span> <span class="n">cf</span> <span class="mi">33</span> <span class="n">a2</span> <span class="mi">8</span><span class="n">c</span> <span class="mi">08</span> <span class="n">fe</span> <span class="mi">74</span> <span class="mi">2</span><span class="n">b</span> <span class="n">c5</span> <span class="n">d9</span> <span class="n">e7</span> <span class="n">f2</span> <span class="n">f7</span> <span class="mi">69</span> <span class="mi">8</span><span class="n">d</span> <span class="n">ca</span>
+    <span class="mi">0040</span> <span class="mi">68</span> <span class="mi">81</span> <span class="mi">33</span> <span class="mi">3</span><span class="n">d</span> <span class="mi">5</span><span class="n">c</span> <span class="mi">25</span> <span class="mi">63</span> <span class="mi">60</span> <span class="mi">17</span> <span class="mi">51</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">0</span><span class="n">c</span> <span class="mi">1</span><span class="n">d</span> <span class="n">bd</span> <span class="n">de</span> <span class="mi">68</span>
+    <span class="mi">0050</span> <span class="mi">07</span> <span class="mi">52</span> <span class="n">c6</span> <span class="mi">50</span> <span class="n">da</span> <span class="n">d9</span> <span class="mi">5</span><span class="n">e</span> <span class="mi">5</span><span class="n">b</span> <span class="n">bd</span> <span class="mi">4</span><span class="n">f</span> <span class="mi">33</span> <span class="mi">84</span> <span class="mi">0</span><span class="n">c</span> <span class="n">f8</span> <span class="n">ea</span> <span class="mi">61</span>
+    <span class="mi">0060</span> <span class="n">f9</span> <span class="n">c3</span> <span class="mi">00</span> <span class="n">db</span> <span class="mi">78</span> <span class="n">f6</span> <span class="n">b2</span> <span class="mi">4</span><span class="n">f</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">4</span><span class="n">b</span> <span class="mi">8</span><span class="n">d</span> <span class="n">cf</span> <span class="n">c9</span> <span class="mi">0</span><span class="n">f</span> <span class="n">d6</span> <span class="mi">8</span><span class="n">a</span>
+    <span class="mi">0070</span> <span class="mi">5</span><span class="n">c</span> <span class="n">f2</span> <span class="mi">8</span><span class="n">b</span> <span class="mi">87</span> <span class="mi">0</span><span class="n">d</span> <span class="n">a5</span> <span class="n">a5</span> <span class="mi">5</span><span class="n">e</span> <span class="n">ab</span> <span class="n">ce</span> <span class="n">ac</span> <span class="n">a4</span> <span class="n">ff</span> <span class="n">dd</span> <span class="n">d2</span> <span class="n">aa</span>
+    <span class="mi">0080</span> <span class="mi">4</span><span class="n">c</span> <span class="mi">22</span> <span class="mi">8</span><span class="n">a</span> <span class="n">c2</span> <span class="mi">3</span><span class="n">e</span> <span class="mi">23</span> <span class="mi">7</span><span class="n">c</span> <span class="n">de</span> <span class="mi">4</span><span class="n">e</span> <span class="mi">1</span><span class="n">c</span> <span class="mi">18</span> <span class="n">f5</span> <span class="n">f9</span> <span class="n">a3</span> <span class="n">c1</span> <span class="mi">4</span><span class="n">e</span>
+    <span class="mi">0090</span> <span class="n">b5</span> <span class="mi">1</span><span class="n">e</span> <span class="mi">9</span><span class="n">a</span> <span class="n">af</span> <span class="mi">92</span> <span class="mi">0</span><span class="n">e</span> <span class="mi">20</span> <span class="mi">0</span><span class="n">e</span> <span class="mi">17</span> <span class="mi">82</span> <span class="mi">2</span><span class="n">f</span> <span class="mi">0</span><span class="n">c</span> <span class="n">b4</span> <span class="n">c4</span> <span class="n">a3</span> <span class="n">f1</span>
+    <span class="mi">00</span><span class="n">a0</span> <span class="mi">32</span> <span class="mi">5</span><span class="n">a</span> <span class="mi">0</span><span class="n">f</span> <span class="n">e8</span> <span class="mi">63</span> <span class="mi">3</span><span class="n">e</span> <span class="mi">5</span><span class="n">e</span> <span class="mi">36</span> <span class="n">a2</span> <span class="mi">8</span><span class="n">c</span> <span class="n">ea</span> <span class="n">de</span> <span class="mi">02</span> <span class="mi">78</span> <span class="mi">58</span> <span class="n">b8</span>
+    <span class="mi">00</span><span class="n">b0</span> <span class="mi">5</span><span class="n">a</span> <span class="mi">0</span><span class="n">d</span> <span class="n">d3</span> <span class="mi">82</span> <span class="n">e4</span> <span class="n">b1</span> <span class="n">a6</span> <span class="mi">72</span> <span class="mi">9</span><span class="n">a</span> <span class="n">dc</span> <span class="mi">4</span><span class="n">a</span> <span class="n">dc</span> <span class="mi">5</span><span class="n">b</span> <span class="mi">93</span> <span class="n">de</span> <span class="mi">3</span><span class="n">c</span>
+    <span class="mi">00</span><span class="n">c0</span> <span class="mi">2</span><span class="n">c</span> <span class="n">ea</span> <span class="n">b0</span> <span class="mi">8</span><span class="n">d</span> <span class="n">a5</span> <span class="mi">6</span><span class="n">e</span> <span class="mi">5</span><span class="n">c</span> <span class="n">d6</span> <span class="n">c7</span> <span class="n">f8</span> <span class="mi">78</span> <span class="n">ef</span> <span class="mi">56</span> <span class="mi">16</span> <span class="n">ed</span> <span class="mi">7</span><span class="n">f</span>
+    <span class="mi">00</span><span class="n">d0</span> <span class="mi">1</span><span class="n">e</span> <span class="n">a5</span> <span class="mi">5</span><span class="n">b</span> <span class="n">a2</span> <span class="mi">35</span> <span class="mi">87</span> <span class="mi">41</span> <span class="mi">4</span><span class="n">d</span> <span class="mi">5</span><span class="n">c</span> <span class="mi">9</span><span class="n">d</span> <span class="mi">34</span> <span class="n">c9</span> <span class="mi">5</span><span class="n">b</span> <span class="mi">82</span> <span class="mi">68</span> <span class="mi">94</span>
+    <span class="mf">00e0</span> <span class="mi">8</span><span class="n">a</span> <span class="mi">52</span> <span class="mi">9</span><span class="n">c</span> <span class="mi">8</span><span class="n">e</span> <span class="mi">80</span> <span class="mi">50</span> <span class="mi">0</span><span class="n">d</span> <span class="n">d7</span> <span class="mi">10</span> <span class="mi">34</span> <span class="n">cb</span> <span class="mi">9</span><span class="n">c</span> <span class="mi">96</span> <span class="mi">8</span><span class="n">a</span> <span class="n">b3</span> <span class="mi">5</span><span class="n">e</span>
+    <span class="mi">00</span><span class="n">f0</span> <span class="mi">9</span><span class="n">c</span> <span class="n">bb</span> <span class="n">bd</span> <span class="mi">07</span> <span class="n">b5</span> <span class="mi">18</span> <span class="n">b0</span> <span class="n">ea</span> <span class="n">d2</span> <span class="mi">93</span> <span class="mi">8</span><span class="n">f</span> <span class="mi">79</span> <span class="n">e9</span> <span class="n">dd</span> <span class="mi">32</span> <span class="mi">7</span><span class="n">a</span>
 <span class="n">Signature</span> <span class="n">matches</span> <span class="n">Public</span> <span class="n">Key</span>
-
 <span class="n">Root</span> <span class="n">Certificate</span><span class="p">:</span> <span class="n">Subject</span> <span class="n">matches</span> <span class="n">Issuer</span>
-
 <span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">rfc</span><span class="o">-</span><span class="n">sha1</span><span class="p">):</span> <span class="mi">29</span><span class="n">c42c8b73d48fb46118895ae59806eac7bf0098</span>
-
 <span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha1</span><span class="p">):</span> <span class="mf">2e442</span><span class="n">e6469555a714423002b2e0748b373a27952</span>
-
 <span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">bcrypt</span><span class="o">-</span><span class="n">sha1</span><span class="p">):</span> <span class="mi">66</span><span class="n">f3c2ecf18079b65d6de0b85be1786749a9eb75</span>
-
-<span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">bcrypt</span><span class="o">-</span><span class="n">sha256</span><span class="p">):</span>
-<span class="n">edd9c90796d56e97db92f506953da26c44d7e8640875c3b60e5788f4cd5f7058</span>
-
+<span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">bcrypt</span><span class="o">-</span><span class="n">sha256</span><span class="p">):</span> <span class="n">edd9c90796d56e97db92f506953da26c44d7e8640875c3b60e5788f4cd5f7058</span>
 <span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">md5</span><span class="p">):</span> <span class="mf">99e508</span><span class="n">cd7c5c5e2077648312097c18ab</span>
-
-<span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha256</span><span class="p">):</span>
-<span class="mi">3401</span><span class="n">abc0a80dc1731990b0a99a1b5c7e1e60e107a667b295ced40a2056e43ce4</span>
-
-<span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">pin</span><span class="o">-</span><span class="n">sha256</span><span class="p">):</span>
-<span class="mi">0</span><span class="n">wf9owhuRaJxiwsN4Mt8zAaXgTrp3dMJFopvr</span><span class="o">+</span><span class="n">oB1wA</span><span class="o">=</span>
-
-<span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">pin</span><span class="o">-</span><span class="n">sha256</span><span class="o">-</span><span class="nb">hex</span><span class="p">):</span>
-<span class="n">d307fda3086e45a2718b0b0de0cb7ccc0697813ae9ddd309168a6fafea01d700</span>
-
+<span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha256</span><span class="p">):</span> <span class="mi">3401</span><span class="n">abc0a80dc1731990b0a99a1b5c7e1e60e107a667b295ced40a2056e43ce4</span>
+<span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">pin</span><span class="o">-</span><span class="n">sha256</span><span class="p">):</span> <span class="mi">0</span><span class="n">wf9owhuRaJxiwsN4Mt8zAaXgTrp3dMJFopvr</span><span class="o">+</span><span class="n">oB1wA</span><span class="o">=</span>
+<span class="n">Key</span> <span class="n">Id</span> <span class="n">Hash</span><span class="p">(</span><span class="n">pin</span><span class="o">-</span><span class="n">sha256</span><span class="o">-</span><span class="nb">hex</span><span class="p">):</span> <span class="n">d307fda3086e45a2718b0b0de0cb7ccc0697813ae9ddd309168a6fafea01d700</span>
 <span class="n">Cert</span> <span class="n">Hash</span><span class="p">(</span><span class="n">md5</span><span class="p">):</span> <span class="n">e95f4760524981cf90bc3198e3075f44</span>
-
 <span class="n">Cert</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha1</span><span class="p">):</span> <span class="n">ff2771bd5bd1f7086ab96fb9532b594ed8619c3b</span>
+<span class="n">Cert</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha256</span><span class="p">):</span> <span class="mi">3</span><span class="n">abc3ab573d67e1fb491b2fd7e4ae0e5d9941ac7d55ee085c1d73d684891001a</span>
+<span class="n">Signature</span> <span class="n">Hash</span><span class="p">:</span> <span class="mi">4106</span><span class="n">dbf78737c3b54009b231eb9fe00e57a1ac6c94e0d5046e9bc7a62febde85</span>
 
-<span class="n">Cert</span> <span class="n">Hash</span><span class="p">(</span><span class="n">sha256</span><span class="p">):</span>
-<span class="mi">3</span><span class="n">abc3ab573d67e1fb491b2fd7e4ae0e5d9941ac7d55ee085c1d73d684891001a</span>
+  <span class="n">CERT_REQUEST_ORIGINATOR_PROP_ID</span><span class="p">(</span><span class="mi">71</span><span class="p">):</span>
+    <span class="n">xyzzy</span><span class="o">.</span><span class="n">ccr</span><span class="o">.</span><span class="n">corp</span><span class="o">.</span><span class="n">intel</span><span class="o">.</span><span class="n">com</span>
 
-<span class="n">Signature</span> <span class="n">Hash</span><span class="p">:</span>
-<span class="mi">4106</span><span class="n">dbf78737c3b54009b231eb9fe00e57a1ac6c94e0d5046e9bc7a62febde85</span>
+  <span class="n">CERT_KEY_PROV_INFO_PROP_ID</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+    <span class="n">Key</span> <span class="n">Container</span> <span class="o">=</span> <span class="mi">3</span><span class="n">d40ebea7d109ee93b238b96721f0e6d_4be58f30</span><span class="o">-</span><span class="mi">7127</span><span class="o">-</span><span class="mi">42</span><span class="n">f5</span><span class="o">-</span><span class="mi">9</span><span class="n">b76</span><span class="o">-</span><span class="n">f47187495247</span>
+    <span class="n">Simple</span> <span class="n">container</span> <span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="n">EA75381E</span><span class="o">-</span><span class="mi">6</span><span class="n">D9B</span><span class="o">-</span><span class="mi">4</span><span class="n">BDC</span><span class="o">-</span><span class="n">B6C7</span><span class="o">-</span><span class="mi">5144</span><span class="n">C96507DD</span><span class="p">}</span>
+    <span class="n">Provider</span> <span class="o">=</span> <span class="n">Microsoft</span> <span class="n">Strong</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
+    <span class="n">ProviderType</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Flags</span> <span class="o">=</span> <span class="mi">20</span> <span class="p">(</span><span class="mi">32</span><span class="p">)</span>
 
-<span class="n">CERT</span>\<span class="n">_REQUEST</span>\<span class="n">_ORIGINATOR</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">71</span><span class="p">):</span>
+  <span class="n">CRYPT_MACHINE_KEYSET</span> <span class="o">--</span> <span class="mi">20</span> <span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+    <span class="n">KeySpec</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">--</span> <span class="n">AT_SIGNATURE</span>
 
-<span class="n">xzhao3</span><span class="o">-</span><span class="n">MOBL</span><span class="o">.</span><span class="n">ccr</span><span class="o">.</span><span class="n">corp</span><span class="o">.</span><span class="n">intel</span><span class="o">.</span><span class="n">com</span>
+  <span class="n">CERT_SUBJECT_PUB_KEY_BIT_LENGTH_PROP_ID</span><span class="p">(</span><span class="mi">92</span><span class="p">):</span>
+    <span class="mh">0x00000800</span> <span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
 
-<span class="n">CERT</span>\<span class="n">_KEY</span>\<span class="n">_PROV</span>\<span class="n">_INFO</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+  <span class="n">CERT_SHA1_HASH_PROP_ID</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">ff2771bd5bd1f7086ab96fb9532b594ed8619c3b</span>
 
-<span class="n">Key</span> <span class="n">Container</span> <span class="o">=</span>
-<span class="mi">3</span><span class="n">d40ebea7d109ee93b238b96721f0e6d</span>\<span class="n">_4be58f30</span><span class="o">-</span><span class="mi">7127</span><span class="o">-</span><span class="mi">42</span><span class="n">f5</span><span class="o">-</span><span class="mi">9</span><span class="n">b76</span><span class="o">-</span><span class="n">f47187495247</span>
+  <span class="n">CERT_SUBJECT_PUBLIC_KEY_MD5_HASH_PROP_ID</span><span class="p">(</span><span class="mi">25</span><span class="p">):</span>
+    <span class="mf">99e508</span><span class="n">cd7c5c5e2077648312097c18ab</span>
 
-<span class="n">Simple</span> <span class="n">container</span> <span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="n">EA75381E</span><span class="o">-</span><span class="mi">6</span><span class="n">D9B</span><span class="o">-</span><span class="mi">4</span><span class="n">BDC</span><span class="o">-</span><span class="n">B6C7</span><span class="o">-</span><span class="mi">5144</span><span class="n">C96507DD</span><span class="p">}</span>
+  <span class="n">CERT_KEY_IDENTIFIER_PROP_ID</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
+    <span class="mi">29</span><span class="n">c42c8b73d48fb46118895ae59806eac7bf0098</span>
 
-<span class="n">Provider</span> <span class="o">=</span> <span class="n">Microsoft</span> <span class="n">Strong</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
+  <span class="n">CERT_SIGNATURE_HASH_PROP_ID</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="n">disallowedHash</span><span class="p">:</span>
+    <span class="mi">4106</span><span class="n">dbf78737c3b54009b231eb9fe00e57a1ac6c94e0d5046e9bc7a62febde85</span>
 
-<span class="n">ProviderType</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="n">CERT_MD5_HASH_PROP_ID</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">e95f4760524981cf90bc3198e3075f44</span>
 
-<span class="n">Flags</span> <span class="o">=</span> <span class="mi">20</span> <span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+  <span class="n">CERT_ACCESS_STATE_PROP_ID</span><span class="p">(</span><span class="mi">14</span><span class="p">):</span>
+    <span class="n">AccessState</span> <span class="o">=</span> <span class="mi">6</span>
 
-<span class="n">CRYPT</span>\<span class="n">_MACHINE</span>\<span class="n">_KEYSET</span> <span class="o">--</span> <span class="mi">20</span> <span class="p">(</span><span class="mi">32</span><span class="p">)</span>
+  <span class="n">CERT_ACCESS_STATE_SYSTEM_STORE_FLAG</span> <span class="o">--</span> <span class="mi">2</span>
 
-<span class="n">KeySpec</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">--</span> <span class="n">AT</span>\<span class="n">_SIGNATURE</span>
+  <span class="n">CERT_ACCESS_STATE_LM_SYSTEM_STORE_FLAG</span> <span class="o">--</span> <span class="mi">4</span>
+    <span class="n">Provider</span> <span class="o">=</span> <span class="n">Microsoft</span> <span class="n">Strong</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
+    <span class="n">ProviderType</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Simple</span> <span class="n">container</span> <span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="n">EA75381E</span><span class="o">-</span><span class="mi">6</span><span class="n">D9B</span><span class="o">-</span><span class="mi">4</span><span class="n">BDC</span><span class="o">-</span><span class="n">B6C7</span><span class="o">-</span><span class="mi">5144</span><span class="n">C96507DD</span><span class="p">}</span>
 
-<span class="n">CERT</span>\<span class="n">_SUBJECT</span>\<span class="n">_PUB</span>\<span class="n">_KEY</span>\<span class="n">_BIT</span>\<span class="n">_LENGTH</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">92</span><span class="p">):</span>
+  <span class="n">RSA</span>
 
-<span class="mh">0x00000800</span> <span class="p">(</span><span class="mi">2048</span><span class="p">)</span>
+  <span class="n">PP_KEYSTORAGE</span> <span class="o">=</span> <span class="mi">1</span>
 
-<span class="n">CERT</span>\<span class="n">_SHA1</span>\<span class="n">_HASH</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+  <span class="n">CRYPT_SEC_DESCR</span> <span class="o">--</span> <span class="mi">1</span>
 
-<span class="n">ff2771bd5bd1f7086ab96fb9532b594ed8619c3b</span>
+  <span class="n">KP_PERMISSIONS</span> <span class="o">=</span> <span class="mi">3</span><span class="n">b</span> <span class="p">(</span><span class="mi">59</span><span class="p">)</span>
 
-<span class="n">CERT</span>\<span class="n">_SUBJECT</span>\<span class="n">_PUBLIC</span>\<span class="n">_KEY</span>\<span class="n">_MD5</span>\<span class="n">_HASH</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">25</span><span class="p">):</span>
+  <span class="n">CRYPT_ENCRYPT</span> <span class="o">--</span> <span class="mi">1</span>
 
-<span class="mf">99e508</span><span class="n">cd7c5c5e2077648312097c18ab</span>
+  <span class="n">CRYPT_DECRYPT</span> <span class="o">--</span> <span class="mi">2</span>
 
-<span class="n">CERT</span>\<span class="n">_KEY</span>\<span class="n">_IDENTIFIER</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">20</span><span class="p">):</span>
+  <span class="n">CRYPT_READ</span> <span class="o">--</span> <span class="mi">8</span>
 
-<span class="mi">29</span><span class="n">c42c8b73d48fb46118895ae59806eac7bf0098</span>
+  <span class="n">CRYPT_WRITE</span> <span class="o">--</span> <span class="mi">10</span> <span class="p">(</span><span class="mi">16</span><span class="p">)</span>
 
-<span class="n">CERT</span>\<span class="n">_SIGNATURE</span>\<span class="n">_HASH</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="n">disallowedHash</span><span class="p">:</span>
+  <span class="n">CRYPT_MAC</span> <span class="o">--</span> <span class="mi">20</span> <span class="p">(</span><span class="mi">32</span><span class="p">)</span>
 
-<span class="mi">4106</span><span class="n">dbf78737c3b54009b231eb9fe00e57a1ac6c94e0d5046e9bc7a62febde85</span>
+  <span class="n">D</span><span class="p">:</span><span class="n">PAI</span><span class="p">(</span><span class="n">A</span><span class="p">;;</span><span class="n">GAGR</span><span class="p">;;;</span><span class="n">BA</span><span class="p">)(</span><span class="n">A</span><span class="p">;;</span><span class="n">GAGR</span><span class="p">;;;</span><span class="n">SY</span><span class="p">)</span>
 
-<span class="n">CERT</span>\<span class="n">_MD5</span>\<span class="n">_HASH</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-
-<span class="n">e95f4760524981cf90bc3198e3075f44</span>
-
-<span class="n">CERT</span>\<span class="n">_ACCESS</span>\<span class="n">_STATE</span>\<span class="n">_PROP</span>\<span class="n">_ID</span><span class="p">(</span><span class="mi">14</span><span class="p">):</span>
-
-<span class="n">AccessState</span> <span class="o">=</span> <span class="mi">6</span>
-
-<span class="n">CERT</span>\<span class="n">_ACCESS</span>\<span class="n">_STATE</span>\<span class="n">_SYSTEM</span>\<span class="n">_STORE</span>\<span class="n">_FLAG</span> <span class="o">--</span> <span class="mi">2</span>
-
-<span class="n">CERT</span>\<span class="n">_ACCESS</span>\<span class="n">_STATE</span>\<span class="n">_LM</span>\<span class="n">_SYSTEM</span>\<span class="n">_STORE</span>\<span class="n">_FLAG</span> <span class="o">--</span> <span class="mi">4</span>
-
-<span class="n">Provider</span> <span class="o">=</span> <span class="n">Microsoft</span> <span class="n">Strong</span> <span class="n">Cryptographic</span> <span class="n">Provider</span>
-
-<span class="n">ProviderType</span> <span class="o">=</span> <span class="mi">1</span>
-
-<span class="n">Simple</span> <span class="n">container</span> <span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="n">EA75381E</span><span class="o">-</span><span class="mi">6</span><span class="n">D9B</span><span class="o">-</span><span class="mi">4</span><span class="n">BDC</span><span class="o">-</span><span class="n">B6C7</span><span class="o">-</span><span class="mi">5144</span><span class="n">C96507DD</span><span class="p">}</span>
-
-<span class="n">RSA</span>
-
-<span class="n">PP</span>\<span class="n">_KEYSTORAGE</span> <span class="o">=</span> <span class="mi">1</span>
-
-<span class="n">CRYPT</span>\<span class="n">_SEC</span>\<span class="n">_DESCR</span> <span class="o">--</span> <span class="mi">1</span>
-
-<span class="n">KP</span>\<span class="n">_PERMISSIONS</span> <span class="o">=</span> <span class="mi">3</span><span class="n">b</span> <span class="p">(</span><span class="mi">59</span><span class="p">)</span>
-
-<span class="n">CRYPT</span>\<span class="n">_ENCRYPT</span> <span class="o">--</span> <span class="mi">1</span>
-
-<span class="n">CRYPT</span>\<span class="n">_DECRYPT</span> <span class="o">--</span> <span class="mi">2</span>
-
-<span class="n">CRYPT</span>\<span class="n">_READ</span> <span class="o">--</span> <span class="mi">8</span>
-
-<span class="n">CRYPT</span>\<span class="n">_WRITE</span> <span class="o">--</span> <span class="mi">10</span> <span class="p">(</span><span class="mi">16</span><span class="p">)</span>
-
-<span class="n">CRYPT</span>\<span class="n">_MAC</span> <span class="o">--</span> <span class="mi">20</span> <span class="p">(</span><span class="mi">32</span><span class="p">)</span>
-
-<span class="n">D</span><span class="p">:</span><span class="n">PAI</span><span class="p">(</span><span class="n">A</span><span class="p">;;</span><span class="n">GAGR</span><span class="p">;;;</span><span class="n">BA</span><span class="p">)(</span><span class="n">A</span><span class="p">;;</span><span class="n">GAGR</span><span class="p">;;;</span><span class="n">SY</span><span class="p">)</span>
-
-<span class="n">Allow</span> <span class="n">Full</span> <span class="n">Control</span> <span class="n">BUILTIN</span>\\<span class="n">Administrators</span>
-
-<span class="n">Allow</span> <span class="n">Full</span> <span class="n">Control</span> <span class="n">NT</span> <span class="n">AUTHORITY</span>\\<span class="n">SYSTEM</span>
+    <span class="n">Allow</span> <span class="n">Full</span> <span class="n">Control</span> <span class="n">BUILTIN</span>\\<span class="n">Administrators</span>
+    <span class="n">Allow</span> <span class="n">Full</span> <span class="n">Control</span> <span class="n">NT</span> <span class="n">AUTHORITY</span>\\<span class="n">SYSTEM</span>
 
 <span class="n">Private</span> <span class="n">key</span> <span class="ow">is</span> <span class="n">NOT</span> <span class="n">exportable</span>
-
 <span class="n">Signature</span> <span class="n">test</span> <span class="n">passed</span>
-
 <span class="n">CertUtil</span><span class="p">:</span> <span class="o">-</span><span class="n">store</span> <span class="n">command</span> <span class="n">completed</span> <span class="n">successfully</span><span class="o">.</span>
 </pre></div>
 </div>
-<p>Convert PKtest.cer from Base-64 to DER format.</p>
-<p>OVMF secure boot key only support DER encoded certificate.</p>
-<p>Step1: open certificate by double click PKtest.cer and click “Copy to
+</li>
+<li><p class="first">Convert <code class="docutils literal notranslate"><span class="pre">PKtest.cer</span></code> from Base-64 to DER format.</p>
+<p>OVMF secure boot key only supports DER encoded certificate.</p>
+<ol class="arabic">
+<li><p class="first">open certificate by double clicking <code class="docutils literal notranslate"><span class="pre">PKtest.cer</span></code> and click “Copy to
 File…”</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image1.png"><img alt="image0" src="../_images/waag_secure_boot_image1.png" style="width: 2.84167in; height: 3.79892in;" /></a></p>
-<p>Step2: Following the wizard and select the format of “DER encoded binary
-X.509 (.CER)”</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image2.png"><img alt="image1" src="../_images/waag_secure_boot_image2.png" style="width: 4.03490in; height: 4.15000in;" /></a></p>
-<p>Step3: Following the wizard to save file and finish export.</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image3.png"><img alt="image2" src="../_images/waag_secure_boot_image3.png" style="width: 2.24133in; height: 0.93333in;" /></a></p>
-<p>You can also convert PKtestDER.cer extension to PKtestDER.crt.</p>
-<p>.cer file is the alternate form of .crt of Microsoft Convention. CRT and
-CER can safely be interchanged is when the encoding type is identical.</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image1.png"><img alt="../_images/waag_secure_boot_image1.png" class="align-center" src="../_images/waag_secure_boot_image1.png" style="width: 600px;" /></a>
+</li>
+<li><p class="first">Follow the certificate export wizard and select the format as
+“DER encoded binary X.509 (.CER)”</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image2.png"><img alt="../_images/waag_secure_boot_image2.png" class="align-center" src="../_images/waag_secure_boot_image2.png" style="width: 600px;" /></a>
+</li>
+<li><p class="first">Follow the wizard to save file and finish export</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image3.png"><img alt="../_images/waag_secure_boot_image3.png" class="align-center" src="../_images/waag_secure_boot_image3.png" style="width: 600px;" /></a>
+</li>
+</ol>
+<p>You can rename <code class="docutils literal notranslate"><span class="pre">PKtestDER.cer</span></code> extension to <code class="docutils literal notranslate"><span class="pre">PKtestDER.crt</span></code>.
+A <code class="docutils literal notranslate"><span class="pre">.cer</span></code> file is an alternate form of <code class="docutils literal notranslate"><span class="pre">.crt</span></code> by Microsoft
+Conventions. CRT and CER file extensions can be interchanged as
+the encoding type is identical.</p>
+</li>
+</ul>
 </div>
 </div>
 <div class="section" id="download-kek-and-db-from-microsoft">
-<h1>Download KEK and DB from Microsoft<a class="headerlink" href="#download-kek-and-db-from-microsoft" title="Permalink to this headline">¶</a></h1>
-<p>KEK (Key Exchange Key)</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="30%" />
-<col width="27%" />
-<col width="43%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Microsoft Corporation KEK CA 2011</th>
-<th class="head">Allows updates to db and dbx.</th>
-<th class="head"><a class="reference external" href="https://go.microsoft.com/fwlink/p/?linkid=321185">https://go.microsoft.com/fwlink/p/?linkid=321185</a></th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>&#160;</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
-</tbody>
-</table>
-<p>Db (Allowed Signature database):</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="24%" />
-<col width="44%" />
-<col width="32%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Microsoft Windows Production CA 2011</th>
-<th class="head">This CA in the Signature Database (db) allows Windows to boot.</th>
-<th class="head"><a class="reference external" href="https://go.microsoft.com/fwlink/?LinkId=321192">https://go.microsoft.com/fwlink/?LinkId=321192</a></th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>Microsoft Corporation UEFI CA 2011</td>
-<td>Microsoft signer for 3’rd party UEFI binaries via DevCenter program.</td>
-<td><a class="reference external" href="https://go.microsoft.com/fwlink/p/?LinkID=321194">https://go.microsoft.com/fwlink/p/?LinkID=321194</a></td>
-</tr>
-</tbody>
-</table>
+<h2>Download KEK and DB from Microsoft<a class="headerlink" href="#download-kek-and-db-from-microsoft" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>KEK (Key Exchange Key):</dt>
+<dd><a class="reference external" href="https://go.microsoft.com/fwlink/p/?linkid=321185">Microsoft Corporation KEK CA 2011</a>:
+allows updates to db and dbx.</dd>
+<dt>DB (Allowed Signature database):</dt>
+<dd><p class="first"><a class="reference external" href="https://go.microsoft.com/fwlink/?LinkId=321192">Microsoft Windows Production CA 2011</a>:
+This CA in the Signature Database (db) allows Windows to boot.</p>
+<p class="last"><a class="reference external" href="https://go.microsoft.com/fwlink/p/?LinkID=321194">Microsoft Corporation UEFI CA 2011</a>:
+Microsoft signer for 3rd party UEFI binaries via DevCenter program.</p>
+</dd>
+</dl>
 </div>
 <div class="section" id="compile-ovmf-with-secure-boot-support">
-<h1>Compile OVMF with secure boot support<a class="headerlink" href="#compile-ovmf-with-secure-boot-support" title="Permalink to this headline">¶</a></h1>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">-</span><span class="n">b</span> <span class="n">ovmf</span><span class="o">-</span><span class="n">acrn</span><span class="o">-</span><span class="n">waag</span>
-<span class="n">ssh</span><span class="p">:</span><span class="o">//</span><span class="n">git</span><span class="nd">@gitlab</span><span class="o">.</span><span class="n">devtools</span><span class="o">.</span><span class="n">intel</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="mi">29418</span><span class="o">/</span><span class="n">projectacrn</span><span class="o">/</span><span class="n">edk2</span><span class="o">.</span><span class="n">git</span>
+<h2>Compile OVMF with secure boot support<a class="headerlink" href="#compile-ovmf-with-secure-boot-support" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="o">-</span><span class="n">b</span> <span class="n">ovmf</span><span class="o">-</span><span class="n">acrn</span><span class="o">-</span><span class="n">waag</span> <span class="n">ssh</span><span class="p">:</span><span class="o">//</span><span class="n">git</span><span class="nd">@gitlab</span><span class="o">.</span><span class="n">devtools</span><span class="o">.</span><span class="n">intel</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="mi">29418</span><span class="o">/</span><span class="n">projectacrn</span><span class="o">/</span><span class="n">edk2</span><span class="o">.</span><span class="n">git</span>
 
 <span class="n">cd</span> <span class="n">edk2</span>
-
 <span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="n">CryptoPkg</span><span class="o">/</span><span class="n">Library</span><span class="o">/</span><span class="n">OpensslLib</span><span class="o">/</span><span class="n">openssl</span>
 
 <span class="n">source</span> <span class="n">edksetup</span><span class="o">.</span><span class="n">sh</span>
-
 <span class="n">make</span> <span class="o">-</span><span class="n">C</span> <span class="n">BaseTools</span>
 
 <span class="n">vim</span> <span class="n">Conf</span><span class="o">/</span><span class="n">target</span><span class="o">.</span><span class="n">txt</span>
 
-<span class="n">ACTIVE</span>\<span class="n">_PLATFORM</span> <span class="o">=</span> <span class="n">OvmfPkg</span><span class="o">/</span><span class="n">OvmfPkgX64</span><span class="o">.</span><span class="n">dsc</span>
+  <span class="n">ACTIVE_PLATFORM</span> <span class="o">=</span> <span class="n">OvmfPkg</span><span class="o">/</span><span class="n">OvmfPkgX64</span><span class="o">.</span><span class="n">dsc</span>
+  <span class="n">TARGET_ARCH</span> <span class="o">=</span> <span class="n">X64</span>
+  <span class="n">TOOL_CHAIN_TAG</span> <span class="o">=</span> <span class="n">GCC5</span>
 
-<span class="n">TARGET</span>\<span class="n">_ARCH</span> <span class="o">=</span> <span class="n">X64</span>
-
-<span class="n">TOOL</span>\<span class="n">_CHAIN</span>\<span class="n">_TAG</span> <span class="o">=</span> <span class="n">GCC5</span>
-
-<span class="n">build</span> <span class="o">-</span><span class="n">DFD</span>\<span class="n">_SIZE</span>\<span class="n">_2MB</span> <span class="o">-</span><span class="n">DDEBUG</span>\<span class="n">_ON</span>\<span class="n">_SERIAL</span>\<span class="n">_PORT</span><span class="o">=</span><span class="n">TRUE</span>
-<span class="o">**-</span><span class="n">DSECURE</span>\<span class="n">_BOOT</span>\<span class="n">_ENABLE</span><span class="o">**</span>
+<span class="n">build</span> <span class="o">-</span><span class="n">DFD_SIZE_2MB</span> <span class="o">-</span><span class="n">DDEBUG_ON_SERIAL_PORT</span><span class="o">=</span><span class="n">TRUE</span> <span class="o">-</span><span class="n">DSECURE_BOOT_ENABLE</span>
 </pre></div>
 </div>
 <p>Notes:</p>
-<ul>
-<li><p class="first">“source edksetup.sh”, this step is needed for compilation every time
+<blockquote>
+<div><ul>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">edksetup.sh</span></code>, this step is needed for compilation every time
 a shell is created.</p>
 </li>
 <li><p class="first">This will generate the fw section at
-Build/OvmfX64/DEBUG_GCC5/FV/OVMF_CODE.fd or
-Build/OvmfX64/RELEASE_GCC5/FV/OVMF_CODE.fd</p>
+<code class="docutils literal notranslate"><span class="pre">Build/OvmfX64/DEBUG_GCC5/FV/OVMF_CODE.fd</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Build/OvmfX64/RELEASE_GCC5/FV/OVMF_CODE.fd</span></code></p>
 <p>This will also generate an empty template VARS file at
-Build/OvmfX64/DEBUG_GCC5/FV/OVMF_VARS.fd or
-Build/OvmfX64/RELEASE_GCC5/FV/OVMF_VARS.fd</p>
-<p>Both OVMF_CODE.fd and OVMF_VARS.fd will be used later.</p>
+<code class="docutils literal notranslate"><span class="pre">Build/OvmfX64/DEBUG_GCC5/FV/OVMF_VARS.fd</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Build/OvmfX64/RELEASE_GCC5/FV/OVMF_VARS.fd</span></code></p>
+<p>Both <code class="docutils literal notranslate"><span class="pre">OVMF_CODE.fd</span></code> and <code class="docutils literal notranslate"><span class="pre">OVMF_VARS.fd</span></code> will be used later.</p>
 </li>
 <li><p class="first">Make sure your GCC is 5.X. GCC 6 and above is NOT supported.</p>
 </li>
 </ul>
+</div></blockquote>
 </div>
 <div class="section" id="use-qemu-to-inject-secure-boot-keys-into-ovmf">
-<h1>Use QEMU to inject secure boot keys into OVMF<a class="headerlink" href="#use-qemu-to-inject-secure-boot-keys-into-ovmf" title="Permalink to this headline">¶</a></h1>
-<p>We follow the example in the following link to import PK, KEK and DB
-into OVMF, Ubuntu16.04 used.
-<a class="reference external" href="https://en.opensuse.org/openSUSE:UEFI_Secure_boot_using_qemu-kvm">https://en.opensuse.org/openSUSE:UEFI_Secure_boot_using_qemu-kvm</a></p>
+<h2>Use QEMU to inject secure boot keys into OVMF<a class="headerlink" href="#use-qemu-to-inject-secure-boot-keys-into-ovmf" title="Permalink to this headline">¶</a></h2>
+<p>We follow the <a class="reference external" href="https://en.opensuse.org/openSUSE:UEFI_Secure_boot_using_qemu-kvm">OpenSUSE: UEFI Secure boot using qemu-kvm document</a>
+to import PK, KEK, and DB into OVMF, Ubuntu 16.04 used.</p>
 <ol class="arabic">
-<li><p class="first rubric" id="install-kvm-qemu">Install KVM, QEMU</p>
+<li><p class="first">Install KVM, QEMU</p>
 </li>
-<li><p class="first rubric" id="prepare-the-environment">Prepare the environment</p>
-<p>Step1: mkdir OVMFKeys</p>
-<p>Step2: copy the build out OVMF binary into OVMFKeys</p>
-<p>cp edk2/Build/OvmfX64/DEBUG_GCC5/FV/OVMF_CODE.fd OVMFKeys</p>
-<p>cp edk2/Build/OvmfX64/DEBUG_GCC5/FV/OVMF_VARS.fd OVMFKeys</p>
-<p>Step3: copy OVMF_CODE_QEMU.fd into OVMFKeys</p>
-<p>cp OVMF_CODE_QEMU.fd OVMFKeys</p>
-<p>Step4: cd OVMFKeys</p>
-<p>mkdir hda-contents</p>
-<p>Step5: Copy PK, KEK and DB into hda-contents</p>
-<p>cp PKtestDER.cer hda-contents</p>
-<p>cp MicCorKEKCA2011_2011-06-24.crt hda-contents</p>
-<p>cp MicWinProPCA2011_2011-10-19.crt hda-contents</p>
+<li><p class="first">Prepare the environment</p>
+<ol class="loweralpha">
+<li><p class="first">Create a OVMFKeys working directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mkdir</span> <span class="n">OVMFKeys</span>
+</pre></div>
+</div>
 </li>
-<li><p class="first rubric" id="use-qemu-to-inject-secure-boot-keys">Use QEMU to inject secure boot keys</p>
-<p>Step1: Run qemu-system-x86_64 to launch virtual machine</p>
-<p>$ cd OVMFKeys</p>
-<p>$ qemu-system-x86_64 -L . -drive
-if=pflash,format=raw,readonly,file=OVMF_CODE_QEMU.fd -drive
-if=pflash,format=raw,file=OVMF_VARS.fd -hda fat:hda-contents -net
-none</p>
-<p>After boot up, you can see the UEFI shell.</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image5.png"><img alt="image3" src="../_images/waag_secure_boot_image5.png" style="width: 5.29167in; height: 4.16323in;" /></a></p>
-<p>Enter “exit” to close UEFI shell and enter UEFI configuration menu.</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image6.png"><img alt="image4" src="../_images/waag_secure_boot_image6.png" style="width: 4.89167in; height: 3.87936in;" /></a></p>
-<p>Go to secure boot configuration.</p>
-<p>Device Manager Secure Boot Configuration Secure Boot Mode</p>
-<p>Change from “Standard Mode” into “Custom Mode”.</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image7.png"><img alt="image5" src="../_images/waag_secure_boot_image7.png" style="width: 5.08123in; height: 4.01667in;" /></a></p>
-<p>After change to “Custom Mode”, “Custom Secure Boot Options” will show
-up, click and enter.</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image8.png"><img alt="image6" src="../_images/waag_secure_boot_image8.png" style="width: 5.11338in; height: 4.06667in;" /></a></p>
-<p>Import PK</p>
-<p>PK Options Enroll PK Enroll PK Using File select the only one HD
-space select PKtestDer.cer (Note: only DER format certificate is
-supported.)</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image9.png"><img alt="image7" src="../_images/waag_secure_boot_image9.png" style="width: 5.15000in; height: 4.09964in;" /></a></p>
-<p>Then, select “Commit Changes and Exit”, PK will be imported into
-OVMF.</p>
-<p>Import KEK</p>
-<p>The process is the same as import PK, just select “KEK options” to
-inject “Microsoft Corporation KEK CA 2011”.</p>
-<p>KEK Options Enroll KEK Enroll KEK Using File select the only one HD
-space select MicCorKEKCA2011_2011-06-24.crt Commit Changes and Exit</p>
-<p>Import DB</p>
-<p>The same process to inject “Microsoft Windows Production CA 2011”.</p>
-<p>DB Options Enroll Signature Enroll Signature Using File select the
-only one HD space select MicWinProPCA2011_2011-10-19.crt Commit
-Changes and Exit</p>
-<p>Repeat the step to inject “Microsoft Corporation UEFI CA 2011”.</p>
-<p>DB Options Enroll Signature Enroll Signature Using File select the
-only one HD space select MicCorUEFCA2011_2011-06-27.crt Commit
-Changes and Exit</p>
-<p>After import PK, KEK and DB, the secure boot state is “Enabled”.</p>
-<p><a class="reference internal" href="../_images/waag_secure_boot_image10.png"><img alt="image8" src="../_images/waag_secure_boot_image10.png" style="width: 5.75047in; height: 4.55000in;" /></a></p>
+<li><p class="first">Copy the build out OVMF binary into OVMFKeys:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="n">edk2</span><span class="o">/</span><span class="n">Build</span><span class="o">/</span><span class="n">OvmfX64</span><span class="o">/</span><span class="n">DEBUG_GCC5</span><span class="o">/</span><span class="n">FV</span><span class="o">/</span><span class="n">OVMF_CODE</span><span class="o">.</span><span class="n">fd</span> <span class="n">OVMFKeys</span>
+<span class="n">cp</span> <span class="n">edk2</span><span class="o">/</span><span class="n">Build</span><span class="o">/</span><span class="n">OvmfX64</span><span class="o">/</span><span class="n">DEBUG_GCC5</span><span class="o">/</span><span class="n">FV</span><span class="o">/</span><span class="n">OVMF_VARS</span><span class="o">.</span><span class="n">fd</span> <span class="n">OVMFKeys</span>
+</pre></div>
+</div>
 </li>
-<li><p class="first">generate OVMF.fd for ACRN with the updated keys manually</p>
-<p>$ cat /path/to/OVMF_VARS.fd /path/to/OVMF_CODE.fd &gt; OVMF.fd</p>
+<li><p class="first">copy <code class="docutils literal notranslate"><span class="pre">OVMF_CODE_QEMU.fd</span></code> into OVMFKeys:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="n">OVMF_CODE_QEMU</span><span class="o">.</span><span class="n">fd</span> <span class="n">OVMFKeys</span>
+</pre></div>
+</div>
 </li>
-<li><p class="first">Update OVMF.fd into ACRNGT+OVMF+Win10 to start Windows.</p>
+<li><p class="first">Make a working directory for hda-contents:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">OVMFKeys</span>
+<span class="n">mkdir</span> <span class="n">hda</span><span class="o">-</span><span class="n">contents</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Copy PK, KEK and DB into hda-contents:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="n">PKtestDER</span><span class="o">.</span><span class="n">cer</span> <span class="n">hda</span><span class="o">-</span><span class="n">contents</span>
+<span class="n">cp</span> <span class="n">MicCorKEKCA2011_2011</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mf">24.</span><span class="n">crt</span> <span class="n">hda</span><span class="o">-</span><span class="n">contents</span>
+<span class="n">cp</span> <span class="n">MicWinProPCA2011_2011</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mf">19.</span><span class="n">crt</span> <span class="n">hda</span><span class="o">-</span><span class="n">contents</span>
+</pre></div>
+</div>
 </li>
 </ol>
+</li>
+<li><p class="first">Use QEMU to inject secure boot keys</p>
+<ol class="loweralpha">
+<li><p class="first">Run qemu-system-x86_64 to launch virtual machine:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">OVMFKeys</span>
+<span class="n">qemu</span><span class="o">-</span><span class="n">system</span><span class="o">-</span><span class="n">x86_64</span> <span class="o">-</span><span class="n">L</span> <span class="o">.</span> \
+  <span class="o">-</span><span class="n">drive</span> <span class="k">if</span><span class="o">=</span><span class="n">pflash</span><span class="p">,</span><span class="nb">format</span><span class="o">=</span><span class="n">raw</span><span class="p">,</span><span class="n">readonly</span><span class="p">,</span><span class="n">file</span><span class="o">=</span><span class="n">OVMF_CODE_QEMU</span><span class="o">.</span><span class="n">fd</span> \
+  <span class="o">-</span><span class="n">drive</span> <span class="k">if</span><span class="o">=</span><span class="n">pflash</span><span class="p">,</span><span class="nb">format</span><span class="o">=</span><span class="n">raw</span><span class="p">,</span><span class="n">file</span><span class="o">=</span><span class="n">OVMF_VARS</span><span class="o">.</span><span class="n">fd</span> \
+  <span class="o">-</span><span class="n">hda</span> <span class="n">fat</span><span class="p">:</span><span class="n">hda</span><span class="o">-</span><span class="n">contents</span> \
+  <span class="o">-</span><span class="n">net</span> <span class="n">none</span>
+</pre></div>
 </div>
-<div class="section" id="note-after-enable-secure-boot">
-<h1>Note after enable Secure Boot<a class="headerlink" href="#note-after-enable-secure-boot" title="Permalink to this headline">¶</a></h1>
-<ol class="arabic simple">
-<li>According to Microsoft document, after enable secure boot, kernel
-mode driver must get signed by a trusted certification authority
+<p>After boot up, you can see the UEFI shell.</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image5.png"><img alt="../_images/waag_secure_boot_image5.png" class="align-center" src="../_images/waag_secure_boot_image5.png" style="width: 600px;" /></a>
+</li>
+<li><p class="first">Enter “exit” to close UEFI shell and enter UEFI configuration menu.</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image6.png"><img alt="../_images/waag_secure_boot_image6.png" class="align-center" src="../_images/waag_secure_boot_image6.png" style="width: 600px;" /></a>
+</li>
+<li><p class="first">Go to secure boot configuration (Device Manager / Secure Boot
+Configuration / Secure Boot Mode) and change from “Standard Mode”
+to “Custom Mode”.</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image7.png"><img alt="../_images/waag_secure_boot_image7.png" class="align-center" src="../_images/waag_secure_boot_image7.png" style="width: 600px;" /></a>
+<p>After change to “Custom Mode”, “Custom Secure Boot Options” will show
+up, click and enter.</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image8.png"><img alt="../_images/waag_secure_boot_image8.png" class="align-center" src="../_images/waag_secure_boot_image8.png" style="width: 600px;" /></a>
+</li>
+<li><p class="first">Import PK</p>
+<p>PK Options / Enroll PK / Enroll PK Using File: select the only one
+HD, space select <code class="docutils literal notranslate"><span class="pre">PKtestDer.cer</span></code>. (Note: only DER format certificate is
+supported.)</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image9.png"><img alt="../_images/waag_secure_boot_image9.png" class="align-center" src="../_images/waag_secure_boot_image9.png" style="width: 600px;" /></a>
+<p>Then, select “Commit Changes and Exit”, PK will be imported into
+OVMF.</p>
+</li>
+<li><p class="first">Import KEK</p>
+<p>The process is the same as import PK, bit select “KEK options” to
+inject “Microsoft Corporation KEK CA 2011”.</p>
+<p>KEK Options / Enroll KEK / Enroll KEK Using File: select the only one
+HD, space select <code class="docutils literal notranslate"><span class="pre">MicCorKEKCA2011_2011-06-24.crt</span></code>. Commit Changes
+and Exit.</p>
+</li>
+<li><p class="first">Import DB</p>
+<p>Use the same process to inject “Microsoft Windows Production CA 2011”.</p>
+<p>DB Options / Enroll Signature / Enroll Signature Using File: select the
+only one HD, space select <code class="docutils literal notranslate"><span class="pre">MicWinProPCA2011_2011-10-19.crt</span></code>. Commit
+Changes and Exit.</p>
+<p>Repeat the steps to inject “Microsoft Corporation UEFI CA 2011”.</p>
+<p>DB Options / Enroll Signature / Enroll Signature Using File: select the
+only one HD, space select <code class="docutils literal notranslate"><span class="pre">MicCorUEFCA2011_2011-06-27.crt</span></code>. Commit
+Changes and Exit.</p>
+<p>After import PK, KEK and DB, the secure boot state is now “Enabled”.</p>
+<a class="reference internal image-reference" href="../_images/waag_secure_boot_image10.png"><img alt="../_images/waag_secure_boot_image10.png" class="align-center" src="../_images/waag_secure_boot_image10.png" style="width: 600px;" /></a>
+</li>
+</ol>
+</li>
+<li><p class="first">Generate <code class="docutils literal notranslate"><span class="pre">OVMF.fd</span></code> for ACRN with the updated keys manually:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">OVMF_VARS</span><span class="o">.</span><span class="n">fd</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">OVMF_CODE</span><span class="o">.</span><span class="n">fd</span> <span class="o">&gt;</span> <span class="n">OVMF</span><span class="o">.</span><span class="n">fd</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Update <code class="docutils literal notranslate"><span class="pre">OVMF.fd</span></code> into ACRNGT+OVMF+Win10 to start Windows.</p>
+</li>
+</ol>
+<p>Notes:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>According to Microsoft documentation, after enabling secure boot, kernel
+mode driver must be signed by a trusted certification authority
 (CA).</li>
 <li>A cross-signed driver using a SHA-1 or SHA-256 certificate issued
 after July 29th, 2015 is not recommended for Windows 10.</li>
-<li>And after enable secure boot, standard mechanisms like kernel
-debugging and testsigning will not be permitted.</li>
+<li>After enable secure boot, standard mechanisms such as kernel
+debugging and test signing will not be permitted.</li>
 </ol>
-<p>The reference link is as below:</p>
-<p><a class="reference external" href="https://docs.microsoft.com/en-us/windows/desktop/w8cookbook/secured-boot-signing-requirements-for-kernel-mode-drivers">https://docs.microsoft.com/en-us/windows/desktop/w8cookbook/secured-boot-signing-requirements-for-kernel-mode-drivers</a></p>
-<p><a class="reference external" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/dashboard/get-a-code-signing-certificate">https://docs.microsoft.com/en-us/windows-hardware/drivers/dashboard/get-a-code-signing-certificate</a></p>
+<p>See these references for more information:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://docs.microsoft.com/en-us/windows/desktop/w8cookbook/secured-boot-signing-requirements-for-kernel-mode-drivers">https://docs.microsoft.com/en-us/windows/desktop/w8cookbook/secured-boot-signing-requirements-for-kernel-mode-drivers</a></li>
+<li><a class="reference external" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/dashboard/get-a-code-signing-certificate">https://docs.microsoft.com/en-us/windows-hardware/drivers/dashboard/get-a-code-signing-certificate</a></li>
+</ul>
+</div></blockquote>
+</div>
 </div>
 
 

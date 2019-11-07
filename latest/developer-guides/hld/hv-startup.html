@@ -486,16 +486,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for windows</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-pk-platform-key">Generate PK (Platform Key)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-openssl">1. Using openssl</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-microsoft-tools">2. Using Microsoft tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#note-after-enable-secure-boot">Note after enable Secure Boot</a></li>
 </ul>
 </li>
 </ul>
@@ -979,9 +976,9 @@ bootloader prepares full configurations including ACPI, E820, etc.</p>
 VM startup.</p>
 <div class="section" id="multiboot-header">
 <h2>Multiboot Header<a class="headerlink" href="#multiboot-header" title="Permalink to this headline">¶</a></h2>
-<p>The ACRN hypervisor is built with multiboot header, which presents
+<p>The ACRN hypervisor is built with a multiboot header, which presents
 <code class="docutils literal notranslate"><span class="pre">MULTIBOOT_HEADER_MAGIC</span></code> and <code class="docutils literal notranslate"><span class="pre">MULTIBOOT_HEADER_FLAGS</span></code> at the beginning
-of the image, and it sets bit 6 in <code class="docutils literal notranslate"><span class="pre">MULTIBOOT_HEADER_FLAGS</span></code> which request
+of the image, and it sets bit 6 in <code class="docutils literal notranslate"><span class="pre">MULTIBOOT_HEADER_FLAGS</span></code> which requests
 bootloader passing memory mmap information(like e820 entries) through
 Multiboot Information(MBI) structure.</p>
 </div>
@@ -997,7 +994,7 @@ memory and interrupt initialization as shown in
 description for the flow:</p>
 <ul class="simple">
 <li><strong>BSP Startup:</strong> The starting point for bootstrap processor.</li>
-<li><strong>Relocation</strong>: relocate the hypervisor image if the hypervisor image
+<li><strong>Relocation</strong>: Relocate the hypervisor image if the hypervisor image
 is not placed at the assumed base address.</li>
 <li><strong>UART Init:</strong> Initialize a pre-configured UART device used
 as the base physical console for HV and Service OS.</li>
@@ -1019,10 +1016,10 @@ enter the default idle loop.</li>
 </ul>
 <p>Symbols in the hypervisor are placed with an assumed base address, but
 the bootloader may not place the hypervisor at that specified base. In
-such case the hypervisor will relocate itself to where the bootloader
+this case, the hypervisor will relocate itself to where the bootloader
 loads it.</p>
 <p>Here is a summary of CPU and memory initial states that are set up after
-native startup.</p>
+the native startup.</p>
 <dl class="docutils">
 <dt>CPU</dt>
 <dd><p class="first">ACRN hypervisor brings all physical processors to 64-bit IA32e
@@ -1056,7 +1053,7 @@ processors. LDT is disabled.</dd>
 </dl>
 <p>Refer to <a class="reference internal" href="hv-interrupt.html#physical-interrupt-initialization"><span class="std std-ref">Physical Interrupt Initialization</span></a> for a detailed description of interrupt-related
 initial states, including IDT and physical PICs.</p>
-<p>After BSP detects that all APs are up, it will continue to enter guest mode; similar, after one AP
+<p>After the BSP detects that all APs are up, it will continue to enter guest mode; similar, after one AP
 complete its initialization, it will start entering guest mode as well.
 When BSP &amp; APs enter guest mode, they will try to launch pre-defined VMs whose vBSP associated with
 this physical core; these pre-defined VMs are static configured in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> and they could be
@@ -1088,22 +1085,22 @@ is pinned to, a unique-per-VM vCPU ID and a globally unique VPID,
 and initializes its virtual lapic and MTRR, and its vCPU thread object got setup
 for vcpu scheduling. The vCPU number and affinity are defined in corresponding
 <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> for this VM.</li>
-<li><strong>Build vACPI:</strong> For Service VM, the hypervisor will customize a virtual ACPI
-table based on native ACPI table (this is in the TODO).
-For pre-launched VM, the hypervisor will build a simple ACPI table with necessary
+<li><strong>Build vACPI:</strong> For the Service VM, the hypervisor will customize a virtual ACPI
+table based on the native ACPI table (this is in the TODO).
+For a pre-launched VM, the hypervisor will build a simple ACPI table with necessary
 information like MADT.
-For post-launched User VM, DM will build its ACPI table dynamically.</li>
+For a post-launched User VM, the DM will build its ACPI table dynamically.</li>
 <li><strong>SW Load:</strong> Prepares for each VM’s SW configuration according to guest OS
 requirement, which may include kernel entry address, ramdisk address,
 bootargs, or zero page for launching bzImage etc.
 This is done by the hypervisor for pre-launched or Service VM, while by DM
 for post-launched User VMs.
-Meanwhile, there are two kinds of boot mode - de-privilege and direct boot
+Meanwhile, there are two kinds of boot modes - de-privilege and direct boot
 mode. The de-privilege boot mode is combined with ACRN UEFI-stub, and only
-apply to Service VM, which ensure native UEFI environment could be restored
-and keep running in the Service VM. The direct boot mode is applied to both
-pre-launched and Service VM, in this mode, the VM will start from standard
-real or proteted mode which is not related with native environment.</li>
+applies to the Service VM, which ensures that the native UEFI environment could be restored
+and keep running in the Service VM. The direct boot mode is applied to both the
+pre-launched and Service VM. In this mode, the VM will start from the standard
+real or protected mode which is not related to the native environment.</li>
 <li><strong>Start VM:</strong> The vBSP of vCPUs in this VM is kick to do schedule.</li>
 <li><strong>Schedule vCPUs:</strong> The vCPUs are scheduled to the corresponding
 physical processors for execution.</li>

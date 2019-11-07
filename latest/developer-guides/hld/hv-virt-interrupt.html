@@ -486,16 +486,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for windows</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-pk-platform-key">Generate PK (Platform Key)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-openssl">1. Using openssl</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-microsoft-tools">2. Using Microsoft tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#note-after-enable-secure-boot">Note after enable Secure Boot</a></li>
 </ul>
 </li>
 </ul>
@@ -968,7 +965,7 @@
             
   <div class="section" id="virtual-interrupt">
 <span id="virtual-interrupt-hld"></span><h1>Virtual Interrupt<a class="headerlink" href="#virtual-interrupt" title="Permalink to this headline">¶</a></h1>
-<p>This section introduces ACRN guest virtual interrupt
+<p>This section introduces the ACRN guest virtual interrupt
 management, which includes:</p>
 <ul class="simple">
 <li>VCPU request for virtual interrupt kick off,</li>
@@ -976,20 +973,20 @@ management, which includes:</p>
 <li>physical-to-virtual interrupt mapping for a pass-thru device, and</li>
 <li>the process of VMX interrupt/exception injection.</li>
 </ul>
-<p>A standard VM never owns any physical interrupts, all interrupts received by
-Guest OS come from a virtual interrupt injected by vLAPIC, vIOAPIC or
+<p>A standard VM never owns any physical interrupts; all interrupts received by the
+Guest OS come from a virtual interrupt injected by vLAPIC, vIOAPIC, or
 vPIC. Such virtual interrupts are triggered either from a pass-through
-device or from I/O mediators in SOS via hypercalls. The
+device or from I/O mediators in the Service VM via hypercalls. The
 <a class="reference internal" href="hv-dev-passthrough.html#interrupt-remapping"><span class="std std-ref">Interrupt Remapping</span></a> section discusses how the hypervisor manages
 the mapping between physical and virtual interrupts for pass-through
 devices. However, a hard RT VM with LAPIC pass-through does own the physical
 maskable external interrupts. On its physical CPUs, interrupts are disabled
 in VMX root mode, while in VMX non-root mode, physical interrupts will be
 deliverd to RT VM directly.</p>
-<p>Emulation for devices is inside SOS user space device model, i.e.,
-acrn-dm. However for performance consideration: vLAPIC, vIOAPIC, and vPIC
+<p>Emulation for devices is inside the Service VM user space device model, i.e.,
+acrn-dm. However, for performance consideration, vLAPIC, vIOAPIC, and vPIC
 are emulated inside HV directly.</p>
-<p>From guest OS point of view, vPIC is Virtual Wire Mode via vIOAPIC. The
+<p>From the guest OS point of view, vPIC is Virtual Wire Mode via vIOAPIC. The
 symmetric I/O Mode is shown in <a class="reference internal" href="#pending-virt-interrupt"><span class="std std-numref">Figure 146</span></a> later in
 this section.</p>
 <p>The following command line
@@ -1063,7 +1060,7 @@ requests such as flush EPT.</p>
 <p>The <em>vcpu_make_request</em> is necessary for a virtual interrupt
 injection. If the target vCPU is running under VMX non-root mode, it
 will send an IPI to kick it out, which leads to an external-interrupt
-VM-Exit. For some cases there is no need to send IPI when making a request,
+VM-Exit. In some cases, there is no need to send IPI when making a request,
 because the CPU making the request itself is the target VCPU. For
 example, the #GP exception request always happens on the current CPU when it
 finds an invalid emulation has happened. An external interrupt for a pass-thru
@@ -1073,11 +1070,10 @@ target VCPU.</p>
 </div>
 <div class="section" id="virtual-lapic">
 <h2>Virtual LAPIC<a class="headerlink" href="#virtual-lapic" title="Permalink to this headline">¶</a></h2>
-<p>LAPIC is virtualized for all Guest types: SOS and UOS. Given support by
-the
-physical processor, APICv Virtual Interrupt Delivery (VID) is enabled
-and will support Posted-Interrupt feature. Otherwise, it will fall back to legacy
-virtual interrupt injection mode.</p>
+<p>LAPIC is virtualized for all Guest types: Serice and User VMs. Given support
+by the physical processor, APICv Virtual Interrupt Delivery (VID) is enabled
+and will support Posted-Interrupt feature. Otherwise, it will fall back to
+the legacy virtual interrupt injection mode.</p>
 <p>vLAPIC provides the same features as the native LAPIC:</p>
 <ul class="simple">
 <li>Vector mask/unmask</li>
@@ -1164,7 +1160,7 @@ an interrupt, for example:</p>
 <div class="section" id="eoi-processing">
 <h3>EOI processing<a class="headerlink" href="#eoi-processing" title="Permalink to this headline">¶</a></h3>
 <p>EOI virtualization is enabled if APICv virtual interrupt delivery is
-supported. Except for level triggered interrupts, VM will not exit in
+supported. Except for level triggered interrupts, the VM will not exit in
 case of EOI.</p>
 <p>In case of no APICv virtual interrupt delivery support, vLAPIC requires
 EOI from Guest OS whenever a vector was acknowledged and processed by
@@ -1175,7 +1171,7 @@ indicate that is a level triggered interrupt.</p>
 </div>
 <div class="section" id="lapic-passthrough-based-on-vlapic">
 <span id="lapic-passthru"></span><h3>LAPIC passthrough based on vLAPIC<a class="headerlink" href="#lapic-passthrough-based-on-vlapic" title="Permalink to this headline">¶</a></h3>
-<p>LAPIC passthrough is supported based on vLAPIC, guest OS firstly boots with
+<p>LAPIC passthrough is supported based on vLAPIC, the guest OS first boots with
 vLAPIC in xAPIC mode and then switches to x2APIC mode to enable the LAPIC
 pass-through.</p>
 <p>In case of LAPIC passthrough based on vLAPIC, the system will have the

@@ -486,16 +486,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for windows</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-pk-platform-key">Generate PK (Platform Key)</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-openssl">1. Using openssl</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-microsoft-tools">2. Using Microsoft tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#note-after-enable-secure-boot">Note after enable Secure Boot</a></li>
 </ul>
 </li>
 </ul>
@@ -973,12 +970,11 @@
 <p>CPU P-state/C-state are controlled by the guest OS. The ACPI
 P/C-state driver relies on some P/C-state-related ACPI data in the guest
 ACPI table.</p>
-<p>Service VM could run ACPI driver with no problem because it can access native
-the ACPI table. For User VM though, we need to prepare the corresponding ACPI data
-for Device Model to build virtual ACPI table.</p>
+<p>The Service VM can run the ACPI driver with no problems because it can access the native ACPI table. For the User VM though, we need to prepare the corresponding ACPI data
+for the Device Model to build a virtual ACPI table.</p>
 <p>The Px/Cx data includes four
 ACPI objects: _PCT, _PPC, and _PSS for P-state management, and _CST for
-C-state management. All these ACPI data must  be consistent with the
+C-state management. All these ACPI data must be consistent with the
 native data because the control method is a kind of pass through.</p>
 <p>These ACPI objects data are parsed by an offline tool and hard-coded in a
 Hypervisor module named CPU state table:</p>
@@ -1007,36 +1003,36 @@ Hypervisor module named CPU state table:</p>
 <span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
 </pre></div>
 </div>
-<p>With these Px/Cx data, the Hypervisor is able to intercept guest’s
+<p>With these Px/Cx data, the Hypervisor is able to intercept the guest’s
 P/C-state requests with desired restrictions.</p>
 </div>
 <div class="section" id="virtual-acpi-table-build-flow">
 <h3>Virtual ACPI table build flow<a class="headerlink" href="#virtual-acpi-table-build-flow" title="Permalink to this headline">¶</a></h3>
-<p><a class="reference internal" href="#vacpitable"><span class="std std-numref">Figure 233</span></a> shows how to build virtual ACPI table with
+<p><a class="reference internal" href="#vacpitable"><span class="std std-numref">Figure 233</span></a> shows how to build the virtual ACPI table with the
 Px/Cx data for User VM P/C-state management:</p>
 <div class="figure align-center" id="vacpitable">
 <img alt="../../_images/hld-pm-image28.png" src="../../_images/hld-pm-image28.png" />
 <p class="caption"><span class="caption-number">Figure 233 </span><span class="caption-text">System block for building vACPI table with Px/Cx data</span></p>
 </div>
-<p>Some ioctl APIs are defined for Device model to query Px/Cx data from
-Service VM VHM. The Hypervisor needs to provide hypercall APIs to transit
-Px/Cx data from CPU state table to Service VM VHM.</p>
+<p>Some ioctl APIs are defined for the Device model to query Px/Cx data from
+the Service VM VHM. The Hypervisor needs to provide hypercall APIs to transit
+Px/Cx data from the CPU state table to the Service VM VHM.</p>
 <p>The build flow is:</p>
 <ol class="arabic simple">
-<li>Use offline tool (e.g. <strong>iasl</strong>) to parse the Px/Cx data and hard-code to
-CPU state table in Hypervisor. Hypervisor loads the data after
-system boot up.</li>
-<li>Before User VM launching, Device mode queries the Px/Cx data from Service
+<li>Use an offline tool (e.g. <strong>iasl</strong>) to parse the Px/Cx data and hard-code to
+a CPU state table in the Hypervisor. The Hypervisor loads the data after
+system boots up.</li>
+<li>Before User VM launching, the Device mode queries the Px/Cx data from the Service
 VM VHM via ioctl interface.</li>
-<li>VHM transmits the query request to Hypervisor by hypercall.</li>
-<li>Hypervisor returns the Px/Cx data.</li>
-<li>Device model builds the virtual ACPI table with these Px/Cx data</li>
+<li>VHM transmits the query request to the Hypervisor by hypercall.</li>
+<li>The Hypervisor returns the Px/Cx data.</li>
+<li>The Device model builds the virtual ACPI table with these Px/Cx data</li>
 </ol>
 </div>
 <div class="section" id="intercept-policy">
 <h3>Intercept Policy<a class="headerlink" href="#intercept-policy" title="Permalink to this headline">¶</a></h3>
-<p>Hypervisor should be able to restrict guest’s
-P/C-state request, with a user-customized policy.</p>
+<p>The Hypervisor should be able to restrict guest’s
+P/C-state request with a user-customized policy.</p>
 <p>Hypervisor should intercept guest P-state request and validate whether
 it is a valid P-state. Any invalid P-state (e.g. doesn’t exist in CPU state
 table) should be rejected.</p>
@@ -1114,8 +1110,8 @@ whole system.</li>
 <div class="section" id="system-low-power-state-exit-process">
 <h3>System low power state exit process<a class="headerlink" href="#system-low-power-state-exit-process" title="Permalink to this headline">¶</a></h3>
 <p>The low power state exit process is in reverse order. The ACRN
-hypervisor is woken up at first. It will go through its own low power
-state exit path. Then ACRN hypervisor will resume the Service VM to let
+hypervisor is awakened first. It will go through its own low power
+state exit path. Then, ACRN hypervisor will resume the Service VM to let
 Service VM go through Service VM low power state exit path. After that,
 the DM is resumed and let User VM go through User VM low power state exit
 path. The system is resumed to running state after at least one User VM
