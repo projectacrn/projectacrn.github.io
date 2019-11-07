@@ -323,6 +323,14 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/kbl-nuc-sdc.html#software-setup">Software Setup</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_laag_secure_boot.html">Secure Boot enabling for Clear Linux User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_laag_secure_boot.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_laag_secure_boot.html#validated-versions">Validated versions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_laag_secure_boot.html#prepare-keys-pk-kek-db">Prepare keys (PK/KEK/DB)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_laag_secure_boot.html#sign-the-clear-linux-image">Sign the Clear Linux image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_laag_secure_boot.html#boot-clear-linux-signed-image">Boot Clear Linux signed image</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#user-vm-tutorials">User VM Tutorials</a><ul>
@@ -360,6 +368,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#known-limitations">Known Limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#device-configurations-of-acrn-dm-command-line">Device configurations of acrn-dm command line</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#secure-boot-enabling">Secure boot enabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#references">References</a></li>
 </ul>
 </li>
@@ -477,6 +486,16 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">How to enable secure boot for windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-pk-platform-key">Generate PK (Platform Key)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-openssl">1. Using openssl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#using-microsoft-tools">2. Using Microsoft tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#note-after-enable-secure-boot">Note after enable Secure Boot</a></li>
 </ul>
 </li>
 </ul>
@@ -953,7 +972,7 @@
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The hypervisor (HV) virtualizes real physical memory so an unmodified OS
-(such as Linux or Android) running in a virtual machine, has the view of
+(such as Linux or Android), running in a virtual machine, has the view of
 managing its own contiguous physical memory.  HV uses virtual-processor
 identifiers (VPIDs) and the extended page-table mechanism (EPT) to
 translate guest-physical address into host-physical address. HV enables
@@ -965,8 +984,7 @@ consider.  From the hypervisor’s point of view there are:</p>
 <ul class="simple">
 <li><strong>Host Physical Address (HPA)</strong>: the native physical address space, and</li>
 <li><strong>Host Virtual Address (HVA)</strong>: the native virtual address space based on
-a MMU. A page table is used to translate between HPA and HVA
-spaces.</li>
+a MMU. A page table is used to translate from HVA to HPA spaces.</li>
 </ul>
 <p>From the Guest OS running on a hypervisor there are:</p>
 <ul class="simple">
@@ -1002,7 +1020,10 @@ inside the hypervisor and from a VM:</p>
 <p>In the ACRN, the HV initializes MMU page tables to manage all physical
 memory and then switches to the new MMU page tables. After MMU page
 tables are initialized at the platform initialization stage, no updates
-are made for MMU page tables.</p>
+are made for MMU page tables except hv_access_memory_region_update is called.
+However, the memory region updated by hv_access_memory_region_update
+must not be accessed by ACRN hypervisor in advance. Because access could
+make mapping in TLB and there is no TLB flush mechanism for ACRN hv memory.</p>
 <div class="section" id="hypervisor-physical-memory-layout-e820">
 <h3>Hypervisor Physical Memory Layout - E820<a class="headerlink" href="#hypervisor-physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
 <p>The ACRN hypervisor is the primary owner to manage system memory.
@@ -1023,9 +1044,12 @@ platform E820 table.</p>
 <h3>Hypervisor Memory Initialization<a class="headerlink" href="#hypervisor-memory-initialization" title="Permalink to this headline">¶</a></h3>
 <p>The ACRN hypervisor runs under paging mode. After the bootstrap
 processor (BSP) gets the platform E820 table, BSP creates its MMU page
-table based on it. This is done by the function <em>init_paging()</em> and
-<em>smep()</em>. After the application processor (AP) receives IPI CPU startup
-interrupt, it uses the MMU page tables created by BSP and enable SMEP.
+table based on it. This is done by the function <em>init_paging()</em>.
+After the application processor (AP) receives IPI CPU startup
+interrupt, it uses the MMU page tables created by BSP. In order to bring
+the memory access rights into effect, some other APIs are provided:
+enable_paging will enable IA32_EFER.NXE and CR0.WP, enable_smep will
+enable CR4.SMEP and enable_smap will enale CR4.SMAP.
 <a class="reference internal" href="#hv-mem-init"><span class="std std-numref">Figure 108</span></a>  describes the hypervisor memory initialization for BSP
 and APs.</p>
 <div class="figure align-center" id="hv-mem-init">
@@ -1036,8 +1060,14 @@ and APs.</p>
 <ul class="simple">
 <li>Identical mapping (ACRN hypervisor memory could be relocatable in
 the future)</li>
-<li>Map all memory regions with UNCACHED type</li>
-<li>Remap RAM regions to WRITE-BACK type</li>
+<li>Map all the address space with UNCACHED type, read/write, user
+and execute-disable access right</li>
+<li>Remap [0, low32_max_ram) regions to WRITE-BACK type</li>
+<li>Remap [4G, high64_max_ram) regions to WRITE-BACK type</li>
+<li>set the paging-structure entries’ U/S flag to
+supervisor-mode for hypervisor owned memroy
+(exclude the memory reserve for trusty)</li>
+<li>remove ‘NX’ bit for pages that contain hv code section</li>
 </ul>
 <div class="figure align-center" id="hv-mem-vm-init">
 <img alt="../../_images/mem-image69.png" src="../../_images/mem-image69.png" />
@@ -1052,7 +1082,9 @@ LAPIC/IOAPIC accessing</li>
 code/data (&lt; 1M part is for secondary CPU reset code)</li>
 </ul>
 <p>The hypervisor should use minimum memory pages to map from virtual
-address space into physical address space.</p>
+address space into physical address space. So ACRN only support
+map linear addresses to 2-MByte pages, or 1-GByte pages, doesn’t
+support map linear addresses to 4-KByte pages.</p>
 <ul class="simple">
 <li>If 1GB hugepage can be used
 for virtual address space mapping, the corresponding PDPT entry shall be
@@ -1060,9 +1092,6 @@ set for this 1GB hugepage.</li>
 <li>If 1GB hugepage can’t be used for virtual
 address space mapping and 2MB hugepage can be used, the corresponding
 PDT entry shall be set for this 2MB hugepage.</li>
-<li>If both of 1GB hugepage
-and 2MB hugepage can’t be used for virtual address space mapping, the
-corresponding PT entry shall be set.</li>
 </ul>
 <p>If memory type or access rights of a page is updated, or some virtual
 address space is deleted, it will lead to splitting of the corresponding
@@ -1071,10 +1100,9 @@ virtual address space into physical address space.</p>
 </div>
 <div class="section" id="memory-pages-pool-functions">
 <h3>Memory Pages Pool Functions<a class="headerlink" href="#memory-pages-pool-functions" title="Permalink to this headline">¶</a></h3>
-<p>Memory pages pool functions provide dynamic management of multiple
-4KB page-size memory blocks, used by the hypervisor to store internal
-data.  Through these functions, the hypervisor can allocate and
-deallocate pages.</p>
+<p>Memory pages pool functions provide static management of one
+4KB page-size memory block for each page level for each VM or HV,
+used by the hypervisor to do memory mapping.</p>
 </div>
 <div class="section" id="data-flow-design">
 <h3>Data Flow Design<a class="headerlink" href="#data-flow-design" title="Permalink to this headline">¶</a></h3>
@@ -1096,6 +1124,17 @@ of physical memory management.</p>
 <dt id="_CPPv311enable_smepv">
 <span id="_CPPv211enable_smepv"></span><span id="enable_smep__void"></span><span class="target" id="group__acrn__mem_ga7bb574e29bce9e800481c5db00ef3cd3_1ga7bb574e29bce9e800481c5db00ef3cd3"></span>void <code class="descname">enable_smep</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311enable_smepv" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Supervisor-mode execution prevention (SMEP) enable. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv311enable_smapv">
+<span id="_CPPv211enable_smapv"></span><span id="enable_smap__void"></span><span class="target" id="group__acrn__mem_ga30096afd17c36eca5a9b0553e2851204_1ga30096afd17c36eca5a9b0553e2851204"></span>void <code class="descname">enable_smap</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv311enable_smapv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Supervisor-mode Access Prevention (SMAP) enable. </p>
 <p><dl class="docutils">
 <dt><strong>Return</strong></dt>
 <dd>None </dd>
@@ -1128,6 +1167,38 @@ of physical memory management.</p>
 </div>
 <div class="section" id="address-space-translation">
 <h4>Address Space Translation<a class="headerlink" href="#address-space-translation" title="Permalink to this headline">¶</a></h4>
+<dl class="function">
+<dt id="_CPPv313hpa2hva_early8uint64_t">
+<span id="_CPPv213hpa2hva_early8uint64_t"></span><span id="hpa2hva_early__uint64_t"></span><span class="target" id="group__acrn__mem_ga4b0bc3ae664b3185783805b8447b2685_1ga4b0bc3ae664b3185783805b8447b2685"></span><em class="property">static</em> void *<code class="descname">hpa2hva_early</code><span class="sig-paren">(</span>uint64_t <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313hpa2hva_early8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate host-physical address to host-virtual address. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The translated host-virtual address </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">x</span></code>: The specified host-physical address</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313hva2hpa_earlyPv">
+<span id="_CPPv213hva2hpa_earlyPv"></span><span id="hva2hpa_early__voidP"></span><span class="target" id="group__acrn__mem_ga41826c8ec996f85cff4bafe892b6ef5e_1ga41826c8ec996f85cff4bafe892b6ef5e"></span><em class="property">static</em> uint64_t <code class="descname">hva2hpa_early</code><span class="sig-paren">(</span>void *<em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313hva2hpa_earlyPv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate host-virtual address to host-physical address. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>The translated host-physical address </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">x</span></code>: The specified host-virtual address</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="_CPPv37hpa2hva8uint64_t">
 <span id="_CPPv27hpa2hva8uint64_t"></span><span id="hpa2hva__uint64_t"></span><span class="target" id="group__acrn__mem_ga30c6f3439527ad05a3a70f384e14faf9_1ga30c6f3439527ad05a3a70f384e14faf9"></span><em class="property">static</em> void *<code class="descname">hpa2hva</code><span class="sig-paren">(</span>uint64_t <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv37hpa2hva8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
@@ -1232,8 +1303,8 @@ is deleted, it will lead to the corresponding EPT page being split. The
 hypervisor should still keep to using minimum EPT pages to map from GPA
 space into HPA space.</p>
 <p>The hypervisor provides EPT guest-physical mappings adding service, EPT
-guest-physical mappings modifying/deleting service, EPT page tables
-deallocation, and EPT guest-physical mappings invalidation service.</p>
+guest-physical mappings modifying/deleting service and EPT guest-physical
+mappings invalidation service.</p>
 </div>
 </div>
 <div class="section" id="virtual-mtrr">
@@ -1606,6 +1677,59 @@ violation handling data flow is described in the
 </p>
 </dd></dl>
 
+<dl class="function">
+<dt id="_CPPv319ept_flush_leaf_pageP8uint64_t8uint64_t">
+<span id="_CPPv219ept_flush_leaf_pageP8uint64_t8uint64_t"></span><span id="ept_flush_leaf_page__uint64_tP.uint64_t"></span><span class="target" id="ept_8h_a6787e6c0770190057f16b88aa60f9fe6_1a6787e6c0770190057f16b88aa60f9fe6"></span>void <code class="descname">ept_flush_leaf_page</code><span class="sig-paren">(</span>uint64_t *<em>pge</em>, uint64_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319ept_flush_leaf_pageP8uint64_t8uint64_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Flush address space from the page entry. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">pge</span></code>: the pointer that points to the page entry</li>
+<li><code class="docutils literal notranslate"><span class="pre">size</span></code>: the size of the page</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313get_ept_entryP7acrn_vm">
+<span id="_CPPv213get_ept_entryP7acrn_vm"></span><span id="get_ept_entry__acrn_vmP"></span><span class="target" id="ept_8h_a63198a50df79f300ff882c3dc219165a_1a63198a50df79f300ff882c3dc219165a"></span>void *<code class="descname">get_ept_entry</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313get_ept_entryP7acrn_vm" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get EPT pointer of the vm. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: the pointer that points to VM data structure</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">If</span></code>: the current context of vm is SECURE_WORLD, return EPT pointer of secure world, otherwise return EPT pointer of normal world. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv314walk_ept_tableP7acrn_vm11pge_handler">
+<span id="_CPPv214walk_ept_tableP7acrn_vm11pge_handler"></span><span id="walk_ept_table__acrn_vmP.pge_handler"></span><span class="target" id="ept_8h_ab39f452ccd0e225d34b2362d1c152292_1ab39f452ccd0e225d34b2362d1c152292"></span>void <code class="descname">walk_ept_table</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, pge_handler <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314walk_ept_tableP7acrn_vm11pge_handler" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Walking through EPT table. </p>
+<p><dl class="docutils">
+<dt><strong>Return</strong></dt>
+<dd>None </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: the pointer that points to VM data structure </li>
+<li><code class="docutils literal notranslate"><span class="pre">cb</span></code>: the pointer that points to walk_ept_table callback, the callback will be invoked when getting a present page entry from EPT, and the callback could get the page entry and page size parameters.</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
 </div>
 <div class="section" id="id4">
 <h4>Virtual MTRR<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
@@ -1714,7 +1838,7 @@ almost all the system memory as shown here:</p>
 </div>
 <div class="section" id="host-to-guest-mapping">
 <h3>Host to Guest Mapping<a class="headerlink" href="#host-to-guest-mapping" title="Permalink to this headline">¶</a></h3>
-<p>ACRN hypervisor creates Service OS’s host (HPA) to guest (GPA) mapping
+<p>ACRN hypervisor creates Service OS’s guest (GPA) to host (HPA) mapping
 (EPT mapping) through the function <code class="docutils literal notranslate"><span class="pre">prepare_sos_vm_memmap()</span></code>
 when it creates the SOS VM. It follows these rules:</p>
 <ul class="simple">
@@ -1722,13 +1846,14 @@ when it creates the SOS VM. It follows these rules:</p>
 <li>Map all memory range with UNCACHED type</li>
 <li>Remap RAM entries in E820 (revised) with WRITE-BACK type</li>
 <li>Unmap ACRN hypervisor memory range</li>
+<li>Unmap all platform EPC resource</li>
 <li>Unmap ACRN hypervisor emulated vLAPIC/vIOAPIC MMIO range</li>
 </ul>
-<p>The host to guest mapping is static for the Service OS; it will not
-change after the Service OS begins running. Each native device driver
-can access its MMIO through this static mapping. EPT violation is only
-serving for vLAPIC/vIOAPIC’s emulation in the hypervisor for Service OS
-VM.</p>
+<p>The guest to host mapping is static for the Service OS; it will not
+change after the Service OS begins running except the PCI device BAR
+address mapping could be re-programmed by the Service OS. EPT violation
+is serving for vLAPIC/vIOAPIC’s emulation or PCI MSI-X table BAR’s emulation
+in the hypervisor for Service OS VM.</p>
 </div>
 </div>
 <div class="section" id="trusty">
@@ -1756,7 +1881,7 @@ must not be accessible by SOS and UOS normal world.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Nov 06, 2019.
+      Last updated on Nov 07, 2019.
 
     </p>
   </div> 

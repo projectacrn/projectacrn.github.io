@@ -323,6 +323,14 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/kbl-nuc-sdc.html#software-setup">Software Setup</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/enable_laag_secure_boot.html">Secure Boot enabling for Clear Linux User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_laag_secure_boot.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_laag_secure_boot.html#validated-versions">Validated versions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_laag_secure_boot.html#prepare-keys-pk-kek-db">Prepare keys (PK/KEK/DB)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_laag_secure_boot.html#sign-the-clear-linux-image">Sign the Clear Linux image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_laag_secure_boot.html#boot-clear-linux-signed-image">Boot Clear Linux signed image</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../develop.html#user-vm-tutorials">User VM Tutorials</a><ul>
@@ -360,6 +368,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#known-limitations">Known Limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#device-configurations-of-acrn-dm-command-line">Device configurations of acrn-dm command line</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#secure-boot-enabling">Secure boot enabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#references">References</a></li>
 </ul>
 </li>
@@ -477,6 +486,16 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/waag-secure-boot.html">How to enable secure boot for windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/waag-secure-boot.html#generate-pk-platform-key">Generate PK (Platform Key)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/waag-secure-boot.html#using-openssl">1. Using openssl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/waag-secure-boot.html#using-microsoft-tools">2. Using Microsoft tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB from Microsoft</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF with secure boot support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to inject secure boot keys into OVMF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/waag-secure-boot.html#note-after-enable-secure-boot">Note after enable Secure Boot</a></li>
 </ul>
 </li>
 </ul>
@@ -998,10 +1017,10 @@ notifies the frontend driver that the data in the TXQ has
 been successfully received. In virtio-echo, the backend driver
 doesn’t process or use the received data.</li>
 </ul>
-<p><a class="reference internal" href="#vbsk-virtio-echo-arch"><span class="std std-numref">Figure 259</span></a> shows the whole architecture of virtio-echo.</p>
+<p><a class="reference internal" href="#vbsk-virtio-echo-arch"><span class="std std-numref">Figure 260</span></a> shows the whole architecture of virtio-echo.</p>
 <div class="figure align-center" id="vbsk-virtio-echo-arch">
 <a class="reference internal image-reference" href="../_images/vbsk-image2.png"><img alt="../_images/vbsk-image2.png" src="../_images/vbsk-image2.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 259 </span><span class="caption-text">virtio-echo Architecture</span></p>
+<p class="caption"><span class="caption-number">Figure 260 </span><span class="caption-text">virtio-echo Architecture</span></p>
 </div>
 </div>
 <div class="section" id="virtualization-overhead-analysis">
@@ -1041,7 +1060,7 @@ refers to kick overhead and notify overhead.</li>
 frontend driver and backend driver. The application-specific overhead
 depends on its own design.</li>
 </ul>
-<p><a class="reference internal" href="#vbsk-virtio-echo-e2e"><span class="std std-numref">Figure 260</span></a> shows the overhead of one end-to-end
+<p><a class="reference internal" href="#vbsk-virtio-echo-e2e"><span class="std std-numref">Figure 261</span></a> shows the overhead of one end-to-end
 operation in virtio-echo.  Overhead of steps marked as red are caused by
 the virtualization scheme based on VBS-K framework. Costs of one “kick”
 operation and one “notify” operation are both on a microsecond level.
@@ -1053,16 +1072,16 @@ driver which is just for testing and there is very little process
 overhead.</p>
 <div class="figure align-center" id="vbsk-virtio-echo-e2e">
 <a class="reference internal image-reference" href="../_images/vbsk-image1.png"><img alt="../_images/vbsk-image1.png" src="../_images/vbsk-image1.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 260 </span><span class="caption-text">End to End Overhead of virtio-echo</span></p>
+<p class="caption"><span class="caption-number">Figure 261 </span><span class="caption-text">End to End Overhead of virtio-echo</span></p>
 </div>
-<p><a class="reference internal" href="#vbsk-virtio-echo-path"><span class="std std-numref">Figure 261</span></a> details the path of kick and notify
-operation shown in <a class="reference internal" href="#vbsk-virtio-echo-e2e"><span class="std std-numref">Figure 260</span></a>. The VBS-K framework
+<p><a class="reference internal" href="#vbsk-virtio-echo-path"><span class="std std-numref">Figure 262</span></a> details the path of kick and notify
+operation shown in <a class="reference internal" href="#vbsk-virtio-echo-e2e"><span class="std std-numref">Figure 261</span></a>. The VBS-K framework
 overhead is caused by operations through these paths. As we can see, all
 these operations are processed in kernel mode which avoids extra
 overhead of passing IOREQ to userspace processing.</p>
 <div class="figure align-center" id="vbsk-virtio-echo-path">
 <a class="reference internal image-reference" href="../_images/vbsk-image3.png"><img alt="../_images/vbsk-image3.png" src="../_images/vbsk-image3.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 261 </span><span class="caption-text">Path of VBS-K Framework Overhead</span></p>
+<p class="caption"><span class="caption-number">Figure 262 </span><span class="caption-text">Path of VBS-K Framework Overhead</span></p>
 </div>
 </div>
 <div class="section" id="conclusion">
@@ -1089,7 +1108,7 @@ can meet the needs of most applications.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Nov 06, 2019.
+      Last updated on Nov 07, 2019.
 
     </p>
   </div> 
