@@ -104,6 +104,8 @@
         
           <dd><a href="/1.1/">1.1</a></dd>
         
+          <dd><a href="/1.0/">1.0</a></dd>
+        
       </dl>
       <dl>
         <dt>projectacrn.org links</dt>
@@ -321,7 +323,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="agl-vms.html">Running AGL as VMs</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="agl-vms.html#hardware-setup">Hardware setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="agl-vms.html#hardware-setup">Hardware Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="agl-vms.html#software-setup">Software Setup</a></li>
 </ul>
 </li>
@@ -882,12 +884,12 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../asa.html">Advisory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../asa.html">Security Advisory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#what-hardware-does-acrn-support">What hardware does ACRN support?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#clear-linux-os-fails-to-boot-on-my-nuc">Clear Linux* OS fails to boot on my NUC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#how-do-i-configure-acrn-s-memory-size">How do I configure ACRN’s memory size?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../faq.html#how-to-modify-the-default-display-output-for-a-uos">How to modify the default display output for a UOS?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../faq.html#how-to-modify-the-default-display-output-for-a-user-vm">How to modify the default display output for a User VM?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#why-does-acrn-need-to-know-how-much-ram-the-system-has">Why does ACRN need to know how much RAM the system has?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../faq.html#how-to-build-acrn-on-fedora-29">How to build ACRN on Fedora 29?</a></li>
 </ul>
@@ -1038,7 +1040,7 @@ post-install: <span class="o">[</span>
    <span class="o">{</span>cmd: <span class="s2">&quot;</span><span class="si">${</span><span class="nv">yamlDir</span><span class="si">}</span><span class="s2">/service-os-post.sh </span><span class="si">${</span><span class="nv">chrootDir</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">}</span>,
 <span class="o">]</span>
 
-<span class="hll">version: <span class="m">30970</span>
+<span class="hll">version: <span class="m">31670</span>
 </span></pre></div>
 </div>
 <div class="admonition note">
@@ -1052,6 +1054,8 @@ post-install: <span class="o">[</span>
 </div>
 <p>Update the <code class="docutils literal notranslate"><span class="pre">service-os-post.sh</span></code> script to:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1"># Copyright (C) 2019 Intel Corporation.</span>
+<span class="c1"># SPDX-License-Identifier: BSD-3-Clause</span>
 
 <span class="c1"># ACRN SOS Image Post Install steps</span>
 
@@ -1060,11 +1064,11 @@ post-install: <span class="o">[</span>
 <span class="nv">CHROOTPATH</span><span class="o">=</span><span class="nv">$1</span>
 
 <span class="c1"># acrn.efi path</span>
-<span class="nv">acrn_efi_path</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$CHROOTPATH</span><span class="s2">/usr/lib/acrn/acrn.efi&quot;</span>
+<span class="nv">acrn_efi_path</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$CHROOTPATH</span><span class="s2">/usr/lib/acrn/acrn.nuc7i7dnb.sdc.efi&quot;</span>
 
 <span class="c1"># copy acrn.efi to efi partition</span>
 mkdir -p <span class="s2">&quot;</span><span class="nv">$CHROOTPATH</span><span class="s2">/boot/EFI/acrn&quot;</span> <span class="o">||</span> <span class="nb">exit</span> <span class="m">1</span>
-cp <span class="s2">&quot;</span><span class="nv">$acrn_efi_path</span><span class="s2">&quot;</span> <span class="s2">&quot;</span><span class="nv">$CHROOTPATH</span><span class="s2">/boot/EFI/acrn&quot;</span> <span class="o">||</span> <span class="nb">exit</span> <span class="m">1</span>
+cp <span class="s2">&quot;</span><span class="nv">$acrn_efi_path</span><span class="s2">&quot;</span> <span class="s2">&quot;</span><span class="nv">$CHROOTPATH</span><span class="s2">/boot/EFI/acrn/acrn.efi&quot;</span> <span class="o">||</span> <span class="nb">exit</span> <span class="m">1</span>
 
 <span class="c1"># create load.conf</span>
 <span class="nb">echo</span> <span class="s2">&quot;Add default (5 seconds) boot wait time&quot;</span>
@@ -1080,6 +1084,10 @@ chroot <span class="nv">$CHROOTPATH</span> systemctl <span class="nb">enable</sp
 <span class="s2">&quot;</span> &gt;&gt; <span class="nv">$1</span>/etc/issue
 
 <span class="nb">exit</span> <span class="m">0</span>
+</pre></div>
+</div>
+<p>Grant execute permission to the script:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ chmod a+x service-os-post.sh
 </pre></div>
 </div>
 </li>
@@ -1145,7 +1153,7 @@ post-install: <span class="o">[</span>
    <span class="o">{</span>cmd: <span class="s2">&quot;</span><span class="si">${</span><span class="nv">yamlDir</span><span class="si">}</span><span class="s2">/service-os-industry-post.sh </span><span class="si">${</span><span class="nv">chrootDir</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">}</span>,
 <span class="o">]</span>
 
-<span class="hll">version: <span class="m">30970</span>
+<span class="hll">version: <span class="m">31670</span>
 </span></pre></div>
 </div>
 <div class="admonition note">
@@ -1159,6 +1167,9 @@ post-install: <span class="o">[</span>
 </div>
 <p>Update the <code class="docutils literal notranslate"><span class="pre">service-os-industry-post.sh</span></code> script to:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1"># Copyright (C) 2019 Intel Corporation.</span>
+<span class="c1"># SPDX-License-Identifier: BSD-3-Clause</span>
+
 
 <span class="c1"># ACRN SOS Image Post Install steps</span>
 
@@ -1166,8 +1177,8 @@ post-install: <span class="o">[</span>
 
 <span class="nv">CHROOTPATH</span><span class="o">=</span><span class="nv">$1</span>
 
-<span class="c1"># acrn.kbl-nuc-i7.industry.efi path</span>
-<span class="nv">acrn_industry_efi_path</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$CHROOTPATH</span><span class="s2">/usr/lib/acrn/acrn.kbl-nuc-i7.industry.efi&quot;</span>
+<span class="c1"># acrn.nuc7i7dnb.industry.efi path</span>
+<span class="nv">acrn_industry_efi_path</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$CHROOTPATH</span><span class="s2">/usr/lib/acrn/acrn.nuc7i7dnb.industry.efi&quot;</span>
 
 <span class="c1"># copy acrn.efi to efi partition</span>
 mkdir -p <span class="s2">&quot;</span><span class="nv">$CHROOTPATH</span><span class="s2">/boot/EFI/acrn&quot;</span> <span class="o">||</span> <span class="nb">exit</span> <span class="m">1</span>
@@ -1189,6 +1200,10 @@ chroot <span class="nv">$CHROOTPATH</span> systemctl <span class="nb">enable</sp
 <span class="nb">exit</span> <span class="m">0</span>
 </pre></div>
 </div>
+<p>Grant execute permission to the script:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ chmod a+x service-os-industry-post.sh
+</pre></div>
+</div>
 </li>
 </ol>
 </div></blockquote>
@@ -1202,7 +1217,7 @@ chroot <span class="nv">$CHROOTPATH</span> systemctl <span class="nb">enable</sp
 $ sudo clr-installer -c service-os.yaml
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">service-os.img</span></code> will be generated at current directory.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">sos.img</span></code> will be generated at current directory.</p>
 </div></blockquote>
 <p><strong>Scenario 2: ACRN INDUSTRY</strong></p>
 <blockquote>
@@ -1210,13 +1225,38 @@ $ sudo clr-installer -c service-os.yaml
 $ sudo clr-installer -c service-os-industry.yaml
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">service-os-industry.img</span></code> will be generated at current directory.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">sos-industry.img</span></code> will be generated at current directory.</p>
 </div></blockquote>
 </div>
 <div class="section" id="step-3-deploy-the-service-vm-image">
 <span id="deploy-ootb-service-vm"></span><h3>Step 3: Deploy the Service VM image<a class="headerlink" href="#step-3-deploy-the-service-vm-image" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
-<li><p class="first">Prepare a U disk with at least 8GB memory.</p>
+<li><p class="first">Prepare a U disk with at least 8GB memory. Begin by formatting the U disk:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># sudo gdisk /dev/sdb
+GPT fdisk (gdisk) version 1.0.3
+
+Partition table scan:
+  MBR: protective
+  BSD: not present
+  APM: not present
+  GPT: present
+
+Found valid GPT with protective MBR; using GPT.
+
+Command (? for help): o
+This option deletes all partitions and creates a new protective MBR.
+Proceed? (Y/N): Y
+
+Command (? for help): w
+
+Final checks complete. About to write GPT data. THIS WILL OVERWRITE EXISTING
+PARTITIONS!!
+
+Do you want to proceed? (Y/N): Y
+OK; writing new GUID partition table (GPT) to /dev/sdb.
+The operation has completed successfully.
+</pre></div>
+</div>
 </li>
 <li><p class="first">Follow these steps to create two partitions on the U disk.
 Keep 4GB in the first partition and leave free space in the second parition.</p>
@@ -1274,26 +1314,25 @@ The operation has completed successfully.
 </div>
 </li>
 <li><p class="first">Download and install a bootable Clear Linux on the U disk:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ wget https://download.clearlinux.org/releases/30970/clear/clear-30970-live-server.iso.xz
-$ xz -d clear-30970-live-server.iso.xz
-$ sudo dd if=clear-30970-live-server.iso of=/dev/sdb1 bs=4M oflag=sync status=progress
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ wget https://download.clearlinux.org/releases/31670/clear/clear-31670-live-server.iso
+$ sudo dd if=clear-31670-live-server.iso of=/dev/sdb1 bs=4M oflag=sync status=progress
 </pre></div>
 </div>
 </li>
-<li><p class="first">Copy the <code class="docutils literal notranslate"><span class="pre">service-os.img</span></code> or <code class="docutils literal notranslate"><span class="pre">service-os-industry.img</span></code> to the U disk:</p>
+<li><p class="first">Copy the <code class="docutils literal notranslate"><span class="pre">sos.img</span></code> or <code class="docutils literal notranslate"><span class="pre">sos-industry.img</span></code> to the U disk:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo mkfs.ext4 /dev/sdb2
 $ sudo mount /dev/sdb2 /mnt
 </pre></div>
 </div>
 <ul>
 <li><p class="first">ACRN SDC scenario:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cp ~/service-os/service-os.img /mnt
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cp ~/service-os/sos.img /mnt
 $ sync &amp;&amp; umount /mnt
 </pre></div>
 </div>
 </li>
 <li><p class="first">ACRN INDUSTRY scenario:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cp ~/service-os-industry/service-os-industry.img /mnt
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cp ~/service-os-industry/sos-industry.img /mnt
 $ sync &amp;&amp; umount /mnt
 </pre></div>
 </div>
@@ -1422,7 +1461,7 @@ keyboard: us
 language: en_US.UTF-8
 kernel: kernel-lts2018-preempt-rt
 
-<span class="hll">version: <span class="m">30970</span>
+<span class="hll">version: <span class="m">31670</span>
 </span></pre></div>
 </div>
 <div class="admonition note">
@@ -1476,7 +1515,7 @@ $ scp &lt;development username&gt;@&lt;development machine ip&gt;:&lt;path to pr
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Nov 12, 2019.
+      Last updated on Nov 22, 2019.
 
     </p>
   </div> 
