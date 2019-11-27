@@ -19,13 +19,30 @@
   
 
   
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'v 1.5-unstable',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/acrn-custom.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
@@ -33,21 +50,16 @@
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Running Debian as the Service VM" href="running_deb_as_serv_vm.html" />
     <link rel="prev" title="Running Ubuntu as the User VM" href="running_ubun_as_user_vm.html" /> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -995,6 +1007,11 @@ sudo service ssh start
 </pre></div>
 </div>
 </li>
+<li><p class="first">If you want to SSH ubuntu as root, you will also need to modify <code class="docutils literal notranslate"><span class="pre">/etc/ssh/sshd_config</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>PermitRootLogin yes
+</pre></div>
+</div>
+</li>
 </ul>
 </div>
 <div class="section" id="install-acrn">
@@ -1010,7 +1027,7 @@ install all the build tools and dependencies on your system.</p>
 code repository</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
 git clone https://github.com/projectacrn/acrn-hypervisor
-git checkout &lt;known-good-tag/release&gt;
+git checkout acrn-2019w47.1-140000p
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1094,21 +1111,21 @@ from this area:
 <code class="docutils literal notranslate"><span class="pre">.rpm</span></code> file named <code class="docutils literal notranslate"><span class="pre">linux-iot-lts2018-sos-&lt;kernel-version&gt;-&lt;build-version&gt;.x86_64.rpm</span></code>.</p>
 <p>While we recommend using the “current” (latest) release of Clear Linux OS, you can download
 a specific Clear Linux release from an area with that release number, e.g.:
-<a class="reference external" href="https://download.clearlinux.org/releases/26440/clear/x86_64/os/Packages/linux-iot-lts2018-sos-4.19.0-22.x86_64.rpm">https://download.clearlinux.org/releases/26440/clear/x86_64/os/Packages/linux-iot-lts2018-sos-4.19.0-22.x86_64.rpm</a></p>
+<a class="reference external" href="https://download.clearlinux.org/releases/31670/clear/x86_64/os/Packages/linux-iot-lts2018-sos-4.19.78-98.x86_64.rpm">https://download.clearlinux.org/releases/31670/clear/x86_64/os/Packages/linux-iot-lts2018-sos-4.19.78-98.x86_64.rpm</a></p>
 </li>
-<li><p class="first">Download and extract the latest Service OS kernel(this guide is based on 26440 as the current example)</p>
+<li><p class="first">Download and extract the latest Service OS kernel(this guide is based on 31670 as the current example)</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo mkdir ~/sos-kernel-build
 cd ~/sos-kernel-build
-wget https://download.clearlinux.org/releases/26440/clear/x86_64/os/Packages/linux-iot-lts2018-sos-4.19.0-22.x86_64.rpm
+wget https://download.clearlinux.org/releases/31670/clear/x86_64/os/Packages/linux-iot-lts2018-sos-4.19.78-98.x86_64.rpm
 sudo apt-get install rpm2cpio
-rpm2cpio linux-iot-lts2018-sos-4.19.0-22.x86_64.rpm | cpio -idmv
+rpm2cpio linux-iot-lts2018-sos-4.19.78-98.x86_64.rpm | cpio -idmv
 </pre></div>
 </div>
 </li>
 <li><p class="first">Install the SOS kernel and its drivers (modules)</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo cp -r ~/sos-kernel-build/usr/lib/modules/4.19.0-22.iot-lts2018-sos/ /lib/modules/
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo cp -r ~/sos-kernel-build/usr/lib/modules/4.19.78-98.iot-lts2018-sos/ /lib/modules/
 sudo mkdir /boot/acrn/
-sudo cp ~/sos-kernel-build/usr/lib/kernel/org.clearlinux.iot-lts2018-sos.4.19.0-22  /boot/acrn/
+sudo cp ~/sos-kernel-build/usr/lib/kernel/org.clearlinux.iot-lts2018-sos.4.19.78-98  /boot/acrn/
 </pre></div>
 </div>
 </li>
@@ -1122,7 +1139,7 @@ will boot the SOS kernel.</p>
         insmod gzio
         insmod part_gpt
         insmod ext2
-        linux  /boot/acrn/org.clearlinux.iot-lts2018-sos.4.19.0-22  pci_devices_ignore=(0:18:1) console=tty0 console=ttyS0 root=PARTUUID=&lt;UUID of rootfs partition&gt; rw rootwait ignore_loglevel no_timer_check consoleblank=0 i915.nuclear_pageflip=1 i915.avail_planes_per_pipe=0x01010F i915.domain_plane_owners=0x011111110000 i915.enable_gvt=1 i915.enable_guc=0 hvlog=2M@0x1FE00000
+        linux  /boot/acrn/org.clearlinux.iot-lts2018-sos.4.19.78-98  pci_devices_ignore=(0:18:1) console=tty0 console=ttyS0 root=PARTUUID=&lt;UUID of rootfs partition&gt; rw rootwait ignore_loglevel no_timer_check consoleblank=0 i915.nuclear_pageflip=1 i915.avail_planes_per_pipe=0x01010F i915.domain_plane_owners=0x011111110000 i915.enable_gvt=1 i915.enable_guc=0 hvlog=2M@0x1FE00000
 }
 </pre></div>
 </div>
@@ -1190,23 +1207,23 @@ typical output of a successful installation will look like this:</p>
 <ul>
 <li><p class="first">Download the Clear Linux OS image from <a class="reference external" href="https://download.clearlinux.org">https://download.clearlinux.org</a></p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
-wget https://download.clearlinux.org/releases/26440/clear/clear-26440-kvm.img.xz
-unxz clear-26440-kvm.img.xz
+wget https://download.clearlinux.org/releases/31670/clear/clear-31670-kvm.img.xz
+unxz clear-31670-kvm.img.xz
 </pre></div>
 </div>
 </li>
 <li><p class="first">Download the “kernel-iot-lts2018” kernel</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo mkdir ~/uos-kernel-build
 cd ~/uos-kernel-build
-wget https://download.clearlinux.org/releases/26440/clear/x86_64/os/Packages/linux-iot-lts2018-4.19.0-22.x86_64.rpm
-rpm2cpio linux-iot-lts2018-4.19.0-22.x86_64.rpm | cpio -idmv
+wget https://download.clearlinux.org/releases/31670/clear/x86_64/os/Packages/linux-iot-lts2018-sos-4.19.78-98.x86_64.rpm
+rpm2cpio linux-iot-lts2018-4.19.78-98.x86_64.rpm | cpio -idmv
 </pre></div>
 </div>
 </li>
 <li><p class="first">Update the UOS kernel modules</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo losetup -f -P --show ~/clear-26440-kvm.img
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo losetup -f -P --show ~/clear-31670-kvm.img
 sudo mount /dev/loop0p3 /mnt
-sudo cp -r ~/uos-kernel-build/usr/lib/modules/4.19.0-22.iot-lts2018/ /mnt/lib/modules/
+sudo cp -r ~/uos-kernel-build/usr/lib/modules/4.19.78-98.iot-lts2018/ /mnt/lib/modules/
 sudo cp -r ~/uos-kernel-build/usr/lib/kernel /lib/modules/
 sudo umount /mnt
 sync
@@ -1218,16 +1235,21 @@ sync
 </div>
 </li>
 <li><p class="first">One additional package is needed</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo apt-get install iasl
-sudo cp /usr/bin/iasl /usr/sbin/iasl
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo apt update
+sudo apt install m4 bison flex zlib1g-dev
+cd ~
+wget https://acpica.org/sites/acpica/files/acpica-unix-20191018.tar.gz
+tar zxvf acpica-unix-20191018.tar.gz
+cd acpica-unix-20191018
+make clean &amp;&amp; make iasl
+sudo cp ./generate/unix/bin/iasl /usr/sbin/
 </pre></div>
 </div>
 </li>
 <li><p class="first">Adjust <code class="docutils literal notranslate"><span class="pre">launch_uos.sh</span></code></p>
 <p>You need to adjust the <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_uos.sh</span></code> script
 to match your installation. These are the couple of lines you need to modify:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-s 3,virtio-blk,~/clear-26440-kvm.img
--k /lib/modules/kernel/default-iot-lts2018
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-s 3,virtio-blk,/root/clear-31670-kvm.img \
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1300,8 +1322,10 @@ USB keyboard and mouse for the UOS.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Project ACRN.
-      Last updated on Nov 22, 2019.
+        &copy; Copyright 2019, Project ACRN
+      <span class="lastupdated">
+        Last updated on Nov 26, 2019.
+      </span>
 
     </p>
   </div> 
@@ -1316,33 +1340,16 @@ USB keyboard and mouse for the UOS.</p>
   </div>
   
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'v 1.5-unstable',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="../_static/acrn-custom.js"></script>
-
-  
-
-  <script type="text/javascript" src="../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
