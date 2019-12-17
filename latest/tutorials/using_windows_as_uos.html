@@ -351,6 +351,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#known-limitations">Known Limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#device-configurations-of-acrn-dm-command-line">Device configurations of acrn-dm command line</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#secure-boot-enabling">Secure boot enabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#activate-windows-10">Activate Windows 10</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
@@ -1321,104 +1322,107 @@ ISO will be generated in <code class="docutils literal notranslate"><span class=
 </div>
 <div class="section" id="install-windows-10">
 <h4>Install Windows 10<a class="headerlink" href="#install-windows-10" title="Permalink to this headline">¶</a></h4>
-<p>Currently, the ACRNGT OVMF GOP driver is not ready; thus, a special VGA
-version is used to install Windows 10 on ACRN from scratch. The
-<code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code>, <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> and <code class="docutils literal notranslate"><span class="pre">OVMF</span></code> binaries are included in the
-<a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/doc/tutorials/install_by_vga_gsg.tar.gz">tarball</a>
-together with the script used to install Windows 10.
-Make sure the Service VM version is 31300.</p>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Make sure you have configured your monitor and display according to <strong>3</strong> of
+<a class="reference internal" href="#waag-display-conf-lable"><span class="std std-ref">Boot Windows with GVT-g on ACRN</span></a>.</p>
+</div>
+</div></blockquote>
 <ol class="arabic">
-<li><p class="first">Uncompress <code class="docutils literal notranslate"><span class="pre">install_by_vga_gsg.tar.gz</span></code> to the Service VM:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># tar zxvf install_by_vga_gsg.tar.gz &amp;&amp; cd install_by_vga_gsg</span>
+<li><p class="first">Copy <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_win.sh</span></code> to <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># cp /usr/share/acrn/samples/nuc/launch_win.sh ~/install_win.sh</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Edit the <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> command line in <code class="docutils literal notranslate"><span class="pre">install_vga.sh</span></code> if your configuration is different.</p>
+<li><p class="first">Add the following lines <strong>before</strong> the <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> command line in <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code>. It is used
+to passthrough USB to WaaG, by which both mouse and keyboard can be used during the Windows installation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">echo</span> <span class="s2">&quot;8086 9d2f&quot;</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">bus</span><span class="o">/</span><span class="n">pci</span><span class="o">/</span><span class="n">drivers</span><span class="o">/</span><span class="n">pci</span><span class="o">-</span><span class="n">stub</span><span class="o">/</span><span class="n">new_id</span>
+<span class="n">echo</span> <span class="s2">&quot;0000:00:14.0&quot;</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">bus</span><span class="o">/</span><span class="n">pci</span><span class="o">/</span><span class="n">devices</span><span class="o">/</span><span class="mi">0000</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mf">14.0</span><span class="o">/</span><span class="n">driver</span><span class="o">/</span><span class="n">unbind</span>
+<span class="n">echo</span> <span class="s2">&quot;0000:00:14.0&quot;</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">bus</span><span class="o">/</span><span class="n">pci</span><span class="o">/</span><span class="n">drivers</span><span class="o">/</span><span class="n">pci</span><span class="o">-</span><span class="n">stub</span><span class="o">/</span><span class="n">bind</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You may need to change the bdf and vid/pid of the USB controller in the above command to match those
+of your platform. Use <code class="docutils literal notranslate"><span class="pre">lspci</span></code> and <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">-n</span></code> to get this information.</p>
+</div>
+</li>
+<li><p class="first">Edit the <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> command line in <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code> as follows:</p>
 <ul class="simple">
 <li>Change <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">3,virtio-blk,./win10-ltsc-virtio.img</span></code> to your path to the Windows 10 image.</li>
-<li>Change <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">8,ahci,cd:./windows10-17763-107-LTSC-Virtio-Gfx.iso</span></code> to the ISO you re-generated above.</li>
-<li>Change <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">9,ahci,cd:./virtio-win-0.1.141.iso</span></code> to your path to the virtio-win iso.</li>
+<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">6,passthru,0/14/0</span></code>.</li>
+</ul>
+<blockquote>
+<div><div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You may need to change 0/14/0 to match bdf of the USB controller of your platform.</p>
+</div>
+</div></blockquote>
+<ul class="simple">
+<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">8,ahci,cd:./windows10-17763-107-LTSC-Virtio-Gfx.iso</span></code> to point to the ISO you re-generated above.</li>
+<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">9,ahci,cd:./virtio-win-0.1.141.iso</span></code> to point to your path to the virtio-win iso.</li>
 </ul>
 <p>Or if you used the Oracle driver:</p>
 <ul class="simple">
-<li>Change <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">9,ahci,cd:./winvirtio.iso</span></code> to your path to the winvirtio iso.</li>
+<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">9,ahci,cd:./winvirtio.iso</span></code> to point to your path to the winvirtio iso.</li>
 </ul>
 </li>
-<li><p class="first">Run <code class="docutils literal notranslate"><span class="pre">install_vga.sh</span></code> and connect to the Windows guest using a vnc client.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># vncviewer &lt;IP-OF-HOST-MACHINE&gt;:5900</span>
-</pre></div>
-</div>
+<li><p class="first">Run <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code>.</p>
 </li>
-<li><p class="first">Input <code class="docutils literal notranslate"><span class="pre">exit</span></code> followed by <kbd class="kbd docutils literal notranslate">ENTER</kbd></p>
+<li><p class="first">When the display reads “Press any key to boot from CD or DVD” on the monitor, press any key in the terminal on the
+<strong>Host</strong> side.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_1.png" src="../_images/windows_install_1.png" />
 </div>
-</li>
-<li><p class="first">Select <code class="docutils literal notranslate"><span class="pre">Boot</span> <span class="pre">Manager</span></code></p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_2.png" src="../_images/windows_install_2.png" />
 </div>
-</li>
-<li><p class="first">Select <code class="docutils literal notranslate"><span class="pre">UEFI</span> <span class="pre">ACRN-DM</span> <span class="pre">SATA</span> <span class="pre">DVD</span> <span class="pre">ROM</span> <span class="pre">ACRN--F9B7-5503-A05B</span></code>, which is using the PCI slot 7.
-This is what we configured in the script for the Windows ISO cdrom.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_3.png" src="../_images/windows_install_3.png" />
 </div>
 </li>
-<li><p class="first">Select <kbd class="kbd docutils literal notranslate">ENTER</kbd> followed by any key press to be prompted to the Windows installation screen.</p>
+<li><p class="first">Click <strong>Load driver</strong>.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_4.png" src="../_images/windows_install_4.png" />
 </div>
+</li>
+<li><p class="first">Click <kbd class="kbd docutils literal notranslate">Browser</kbd> and go to the drive which includes the virtio win drivers. Select <strong>viostor\w10\amd64\viostor.inf</strong>
+or <strong>viostororcl.inf</strong> if you are using Oracle virtio drivers and install the virtio block driver.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_5.png" src="../_images/windows_install_5.png" />
 </div>
+</li>
+<li><p class="first">Select the virtio block drive and click <kbd class="kbd docutils literal notranslate">Next</kbd>.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_6.png" src="../_images/windows_install_6.png" />
 </div>
 </li>
-</ol>
-<p>This is the step to install the Oracle Driver</p>
-<blockquote>
-<div><div class="figure align-center">
-<img alt="../_images/windows_install_A.png" src="../_images/windows_install_A.png" />
-</div>
-<div class="figure align-center">
-<img alt="../_images/windows_install_B.png" src="../_images/windows_install_B.png" />
-</div>
-<div class="figure align-center">
-<img alt="../_images/windows_install_C.png" src="../_images/windows_install_C.png" />
-</div>
+<li><p class="first">Continue with the installation.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_7.png" src="../_images/windows_install_7.png" />
 </div>
+</li>
+<li><p class="first">The system will restart.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_8.png" src="../_images/windows_install_8.png" />
 </div>
-</div></blockquote>
-<ol class="arabic">
-<li><p class="first">Connect again after Windows guest reboots. Use <code class="docutils literal notranslate"><span class="pre">vncviewer</span> <span class="pre">&lt;IP-OF-HOST-MACHINE&gt;:5900</span></code>.</p>
+</li>
+<li><p class="first">Windows will restart several times and then you will be asked to configure your system.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_9.png" src="../_images/windows_install_9.png" />
 </div>
 </li>
-<li><p class="first">Connect again after Windows guest reboots a second time. Use <code class="docutils literal notranslate"><span class="pre">vncviewer</span> <span class="pre">&lt;IP-OF-HOST-MACHINE&gt;:5900</span></code>.</p>
+<li><p class="first">The Windows installation is complete after a few configuation steps, and you get to the Windows desktop.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_10.png" src="../_images/windows_install_10.png" />
-</div>
-</li>
-<li><p class="first">Perform a few configuration steps. The Windows desktop appears.</p>
-<div class="figure align-center">
-<img alt="../_images/windows_install_11.png" src="../_images/windows_install_11.png" />
-</div>
-<div class="figure align-center">
-<img alt="../_images/windows_install_12.png" src="../_images/windows_install_12.png" />
 </div>
 </li>
 </ol>
 </div>
 </div>
 <div class="section" id="boot-windows-with-gvt-g-on-acrn">
-<h3>Boot Windows with GVT-g on ACRN<a class="headerlink" href="#boot-windows-with-gvt-g-on-acrn" title="Permalink to this headline">¶</a></h3>
+<span id="waag-display-conf-lable"></span><h3>Boot Windows with GVT-g on ACRN<a class="headerlink" href="#boot-windows-with-gvt-g-on-acrn" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p class="first">Modify the <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_win.sh</span></code> script to specify the Windows image generated above.</p>
 </li>
@@ -1589,12 +1593,17 @@ Make sure it points to your OVMF binary path</p>
 <p>You may refer to the steps in <a class="reference internal" href="waag-secure-boot.html#how-to-enable-secure-boot-for-windows"><span class="std std-ref">How to enable secure boot for Windows</span></a> for
 secure boot enabling.</p>
 </div>
+<div class="section" id="activate-windows-10">
+<h2>Activate Windows 10<a class="headerlink" href="#activate-windows-10" title="Permalink to this headline">¶</a></h2>
+<p>If you are using a trial version of Windows 10, you may find that some apps and features do not work or that Windows 10 get automatically shut down by the Windows licensing monitoring service. To avoid these issues, obtain a licensed verson of Windows.</p>
+<p>For Windows 10 activation steps, refer to “<a class="reference external" href="https://support.microsoft.com/en-us/help/12440/windows-10-activate">Activate Windows 10</a>”</p>
+</div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <table class="docutils footnote" frame="void" id="id3" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> These virtio drivers injecting batch script are based on Derek Seaman’s IT blog about
+<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> These virtio drivers injecting batch scripts are based on Derek Seaman’s IT blog about
 <a class="reference external" href="https://www.derekseaman.com/2015/07/injecting-kvm-virtio-drivers-into-windows.html">injecting VirtIO Drivers into Windows</a>.</td></tr>
 </tbody>
 </table>
@@ -1614,7 +1623,7 @@ secure boot enabling.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Dec 11, 2019.
+      Last updated on Dec 16, 2019.
 
     </p>
   </div> 

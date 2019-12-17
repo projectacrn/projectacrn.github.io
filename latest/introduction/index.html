@@ -351,6 +351,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#known-limitations">Known Limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#device-configurations-of-acrn-dm-command-line">Device configurations of acrn-dm command line</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#secure-boot-enabling">Secure boot enabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#activate-windows-10">Activate Windows 10</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_windows_as_uos.html#references">References</a></li>
 </ul>
 </li>
@@ -970,8 +971,8 @@
   <div class="section" id="introduction-to-project-acrn">
 <span id="introduction"></span><h1>Introduction to Project ACRN<a class="headerlink" href="#introduction-to-project-acrn" title="Permalink to this headline">¶</a></h1>
 <p>ACRN™ is a, flexible, lightweight reference hypervisor, built with
-real-time and safety-criticality in mind, optimized to streamline
-embedded development through an open source platform.  ACRN defines a
+real-time and safety-criticality in mind, and optimized to streamline
+embedded development through an open source platform. ACRN defines a
 device hypervisor reference stack and an architecture for running
 multiple software subsystems, managed securely, on a consolidated system
 by means of a virtual machine manager (VMM). It also defines a reference
@@ -1154,8 +1155,8 @@ targeting SDC and Industry usage scenarios. Developers can start with
 one of these pre-defined configurations and customize it to their own
 application scenario needs.  (These configurations assume there is at
 most one Safety VM and it is pre-launched.)</p>
-<table border="1" class="docutils" id="id2">
-<caption><span class="caption-number">Table 1 </span><span class="caption-text">Scenario-based Best Known Configurations</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id3">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">Scenario-based Best Known Configurations</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="17%" />
 <col width="17%" />
@@ -1301,8 +1302,8 @@ boot mode</strong>.</p>
 <div class="section" id="de-privilege-boot-mode">
 <h3>De-privilege boot mode<a class="headerlink" href="#de-privilege-boot-mode" title="Permalink to this headline">¶</a></h3>
 <p><strong>De-privilege boot mode</strong> is loaded by <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> under a UEFI
-environment. The Service VM must be the first launched VM,  (i.e. VM0).</p>
-<p>In <a class="reference internal" href="#boot-flow"><span class="std std-numref">Figure 11</span></a> we show a verified Boot Sequence with UEFI
+environment. The Service VM must be the first launched VM, (i.e. VM0).</p>
+<p>In <a class="reference internal" href="#boot-flow"><span class="std std-numref">Figure 11</span></a>, we show a verified Boot Sequence with UEFI
 on an Intel Architecture platform NUC (see <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a>).</p>
 <div class="figure align-center" id="boot-flow">
 <img src="../_images/graphviz-48c6066ca27bb426e74c19722e9a7fdffe363ffe.png" alt="digraph G {
@@ -1315,22 +1316,44 @@ on an Intel Architecture platform NUC (see <a class="reference internal" href=".
 </div>
 <p>The Boot process proceeds as follows:</p>
 <ol class="arabic simple">
-<li>UEFI verifies and boots the ACRN hypervisor and Service VM Bootloader</li>
-<li>UEFI (or Service VM Bootloader) verifies and boots Service VM kernel</li>
-<li>Service VM kernel verifies and loads ACRN Device Model and Virtual
-bootloader through dm-verity</li>
-<li>Virtual bootloader starts the User-side verified boot process</li>
+<li>UEFI verifies and boots the ACRN hypervisor and Service VM Bootloader.</li>
+<li>UEFI (or Service VM Bootloader) verifies and boots the Service VM kernel.</li>
+<li>The Service VM kernel verifies and loads the ACRN Device Model and the Virtual
+bootloader through <code class="docutils literal notranslate"><span class="pre">dm-verity</span></code>.</li>
+<li>The virtual bootloader starts the User-side verified boot process.</li>
 </ol>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">To avoid hardware resources conflict with ACRN hypervisor, UEFI
-services shall not use IOMMU. In addition, currently we only support
-UEFI timer with HPET MSI.</p>
+<p class="last">To avoid a hardware resources conflict with the ACRN hypervisor, UEFI
+services shall not use IOMMU. In addition, we only currently support the
+UEFI timer with the HPET MSI.</p>
+</div>
+<p>In this boot mode, both the Service and User VM boot options (e.g. Linux
+command-line parameters) are configured following the instructions for the EFI
+bootloader used by the Operating System (OS).</p>
+<ul class="simple">
+<li>In the case of Clear Linux, the EFI bootloader is <a class="reference external" href="https://www.freedesktop.org/software/systemd/man/systemd-boot.html">systemd-boot</a> and the Linux
+kernel command-line parameters are defined in the <code class="docutils literal notranslate"><span class="pre">.conf</span></code> files.</li>
+<li>Another popular EFI bootloader used by Linux distributions is <a class="reference external" href="https://www.gnu.org/software/grub/manual/grub/">grub</a>.
+Distributions like Ubuntu/Debian, Fedora/CentOS use <a class="reference external" href="https://www.gnu.org/software/grub/manual/grub/">grub</a>.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference external" href="https://www.intel.com/content/www/us/en/design/products-and-solutions/technologies/slim-bootloader/overview.html">Slim Bootloader</a>
+is an alternative boot firmware that can be used to boot ACRN. The <a class="reference external" href="https://slimbootloader.github.io/how-tos/boot-acrn.html">Boot ACRN Hyervisor</a>
+tutorial provides more information on how to use SBL with ACRN.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A virtual <a class="reference external" href="https://www.intel.com/content/www/us/en/design/products-and-solutions/technologies/slim-bootloader/overview.html">Slim Bootloader</a>, called <code class="docutils literal notranslate"><span class="pre">vSBL</span></code>,
+can also be used to start User VMs. The <a class="reference internal" href="../user-guides/acrn-dm-parameters.html#acrn-dm-parameters"><span class="std std-ref">Device Model Parameters</span></a> provides more information
+on how to boot a User VM using <code class="docutils literal notranslate"><span class="pre">vSBL</span></code>. Note that in this case, the kernel command-line parameters are
+defined by the combination of the <code class="docutils literal notranslate"><span class="pre">cmdline.txt</span></code> passed on to the <code class="docutils literal notranslate"><span class="pre">iasimage</span></code> script and in the launch script, via the <code class="docutils literal notranslate"><span class="pre">-B</span></code> option.</p>
 </div>
 </div>
 <div class="section" id="direct-boot-mode">
 <h3>Direct boot mode<a class="headerlink" href="#direct-boot-mode" title="Permalink to this headline">¶</a></h3>
-<p>In <a class="reference internal" href="#boot-flow-2"><span class="std std-numref">Figure 12</span></a> we show the <strong>Direct boot mode</strong> sequence:</p>
+<p>In <a class="reference internal" href="#boot-flow-2"><span class="std std-numref">Figure 12</span></a>, we show the <strong>Direct boot mode</strong> sequence:</p>
 <div class="figure align-center" id="boot-flow-2">
 <img src="../_images/graphviz-906019a727fc1e17a84d602c4197535dbe6f0d62.png" alt="digraph G {
    rankdir=LR;
@@ -1343,15 +1366,17 @@ UEFI timer with HPET MSI.</p>
 </div>
 <p>The Boot process proceeds as follows:</p>
 <ol class="arabic simple">
-<li>UEFI boots GRUB</li>
+<li>UEFI boots GRUB.</li>
 <li>GRUB boots the ACRN hypervisor and loads the VM kernels as Multi-boot
-modules</li>
-<li>ACRN hypervisor verifies and boots kernels of the Pre-launched VM and
-Service VM</li>
+modules.</li>
+<li>The ACRN hypervisor verifies and boots kernels of the Pre-launched VM and
+Service VM.</li>
 <li>In the Service VM launch path, the Service VM kernel verifies and loads
-the ACRN Device Model and Virtual bootloader through dm-verity</li>
-<li>Virtual bootloader starts the User-side verified boot process</li>
+the ACRN Device Model and Virtual bootloader through <code class="docutils literal notranslate"><span class="pre">dm-verity</span></code>.</li>
+<li>The virtual bootloader starts the User-side verified boot process.</li>
 </ol>
+<p>In this boot mode, the boot options are defined via the <code class="docutils literal notranslate"><span class="pre">VM{x}_CONFIG_OS_BOOTARGS</span></code>
+macro in the source code (replace <code class="docutils literal notranslate"><span class="pre">{x}</span></code> with the VM number).</p>
 </div>
 </div>
 <div class="section" id="acrn-hypervisor-architecture">
@@ -1726,7 +1751,7 @@ interrupt APIs.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Dec 11, 2019.
+      Last updated on Dec 16, 2019.
 
     </p>
   </div> 
