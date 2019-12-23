@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>How to run Kata containers on Service VM &mdash; Project ACRN™ v 1.5-unstable documentation</title>
+  <title>Run Kata containers on a Service VM &mdash; Project ACRN™ v 1.5-unstable documentation</title>
   
 
   
@@ -315,8 +315,8 @@
 <li class="toctree-l4"><a class="reference internal" href="acrn_ootb.html#generate-a-user-vm-preempt-rt-image">Generate a User VM Preempt-RT image</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">How to run Kata containers on Service VM</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#pre-requisites">Pre-requisites</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Run Kata containers on a Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pre-requisites">Pre-Requisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#configure-kata-on-acrn">Configure Kata on ACRN</a></li>
 </ul>
 </li>
@@ -497,6 +497,7 @@
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#thread-object-state">Thread object state</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#scheduler">Scheduler</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#scheduler-configuration">Scheduler configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#example">Example</a></li>
 </ul>
 </li>
 </ul>
@@ -965,7 +966,7 @@
         
           <li><a href="../develop.html">Develop using ACRN</a> &raquo;</li>
         
-      <li>How to run Kata containers on Service VM</li>
+      <li>Run Kata containers on a Service VM</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -984,21 +985,20 @@
   
            <div itemprop="articleBody">
             
-  <div class="section" id="how-to-run-kata-containers-on-service-vm">
-<span id="run-kata-containers"></span><h1>How to run Kata containers on Service VM<a class="headerlink" href="#how-to-run-kata-containers-on-service-vm" title="Permalink to this headline">¶</a></h1>
-<p>This tutorial describes how to install, configure and run Kata containers on
-ACRN Service VM.</p>
+  <div class="section" id="run-kata-containers-on-a-service-vm">
+<span id="run-kata-containers"></span><h1>Run Kata containers on a Service VM<a class="headerlink" href="#run-kata-containers-on-a-service-vm" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial describes how to install, configure, and run Kata containers on
+the ACRN Service VM.</p>
 <div class="section" id="pre-requisites">
-<h2>Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permalink to this headline">¶</a></h2>
+<h2>Pre-Requisites<a class="headerlink" href="#pre-requisites" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first"><a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">ACRN supported hardware</span></a>.</p>
+<li><p class="first">Refer to the <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">ACRN supported hardware</span></a>.</p>
 </li>
-<li><p class="first">For default prebuilt ACRN binary in E2E package, You need have 4 CPUs cores or enable “CPU Hyper-Threading”
-to have 4 CPU Thread for 2 CPU cores.</p>
+<li><p class="first">For a default prebuilt ACRN binary in the E2E package, you must have 4 CPU cores or enable “CPU Hyper-Threading” in order to have 4 CPU threads for 2 CPU cores.</p>
 </li>
-<li><p class="first">Follow this <a class="reference internal" href="kbl-nuc-sdc.html#quick-setup-guide"><span class="std std-ref">instruction</span></a> to set up the ACRN Service VM.</p>
+<li><p class="first">Follow <a class="reference internal" href="kbl-nuc-sdc.html#quick-setup-guide"><span class="std std-ref">these instructions</span></a> to set up the ACRN Service VM.</p>
 </li>
-<li><p class="first">Build ACRN kernel to enable <code class="docutils literal notranslate"><span class="pre">macvtap</span></code> function.</p>
+<li><p class="first">Build the ACRN kernel to enable the <code class="docutils literal notranslate"><span class="pre">macvtap</span></code> function:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-kernel.git
 $ cd acrn-kernel
 $ cp kernel_config_sos .config
@@ -1007,7 +1007,7 @@ $ sed -i &#39;$ i CONFIG_MACVTAP=y&#39; .config
 $ make clean &amp;&amp; make olddefconfig &amp;&amp; make &amp;&amp; sudo make modules_install INSTALL_MOD_PATH=out/
 </pre></div>
 </div>
-<p>Login Service VM, use the new ACRN kernel:</p>
+<p>Log in to the Service VM and use the new ACRN kernel:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo mount /dev/sda1 /mnt
 $ sudo scp -r &lt;user name&gt;@&lt;host address&gt;:&lt;your workspace&gt;/acrn-kernel/arch/x86/boot/bzImage /mnt/
 $ sudo scp -r &lt;user name&gt;@&lt;host address&gt;:&lt;your workspace&gt;/acrn-kernel/out/lib/modules/* /lib/modules/
@@ -1022,7 +1022,7 @@ $ sync &amp;&amp; umount /mnt &amp;&amp; sudo reboot
 </div>
 <div class="section" id="configure-kata-on-acrn">
 <h2>Configure Kata on ACRN<a class="headerlink" href="#configure-kata-on-acrn" title="Permalink to this headline">¶</a></h2>
-<p>Now you can follow this <a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/how-to/how-to-use-kata-containers-with-acrn.md">kata instruction</a>
+<p>Follow these <a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/how-to/how-to-use-kata-containers-with-acrn.md">kata instructions</a>
 to configure and launch the Kata VMs with ACRN.</p>
 </div>
 </div>
@@ -1040,7 +1040,7 @@ to configure and launch the Kata VMs with ACRN.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Dec 21, 2019.
+      Last updated on Dec 22, 2019.
 
     </p>
   </div> 

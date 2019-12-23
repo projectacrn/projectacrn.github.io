@@ -315,8 +315,8 @@
 <li class="toctree-l4"><a class="reference internal" href="acrn_ootb.html#generate-a-user-vm-preempt-rt-image">Generate a User VM Preempt-RT image</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="run_kata_containers.html">How to run Kata containers on Service VM</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="run_kata_containers.html#pre-requisites">Pre-requisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="run_kata_containers.html">Run Kata containers on a Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="run_kata_containers.html#pre-requisites">Pre-Requisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="run_kata_containers.html#configure-kata-on-acrn">Configure Kata on ACRN</a></li>
 </ul>
 </li>
@@ -497,6 +497,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#thread-object-state">Thread object state</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scheduler">Scheduler</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scheduler-configuration">Scheduler configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example">Example</a></li>
 </ul>
 </li>
 </ul>
@@ -988,11 +989,11 @@
 <span id="cpu-sharing"></span><h1>ACRN CPU Sharing<a class="headerlink" href="#acrn-cpu-sharing" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>The goal of CPU Sharing is to fully utilize the physical CPU resource, to support more virtual machines. Current ACRN only supports partition mode, which is a strict 1 to 1 mapping mode between vCPUs and pCPUs. Because of the lack of CPU sharing ability, the number of VM is limited. To support the CPU Sharing, we introduce a schedule framework and implement two simple tiny scheduling algorithms to satisfy embedded device requirements.</p>
+<p>The goal of CPU Sharing is to fully utilize the physical CPU resource to support more virtual machines. Currently, ACRN only supports partition mode, which is a strict 1 to 1 mapping mode between vCPUs and pCPUs. Because of the lack of CPU sharing ability, the number of VMs is limited. To support CPU Sharing, we have introduced a schedule framework and implemented two simple small scheduling algorithms to satisfy embedded device requirements.</p>
 </div>
 <div class="section" id="schedule-framework">
 <h2>Schedule Framework<a class="headerlink" href="#schedule-framework" title="Permalink to this headline">¶</a></h2>
-<p>To satisfy the modularization design conception, the schedule framework layer isolates the vcpu layer and scheduler algorithm. It has not vCPU concept and can only be aware of the thread object instance. The thread object state machine will be maintained in the framework. The framework abstracts the scheduler algorithm object, so this architecture can easily extend new scheduler algorithms.</p>
+<p>To satisfy the modularization design concept, the schedule framework layer isolates the vcpu layer and scheduler algorithm. It does not have a vCPU concept so it is only aware of the thread object instance. The thread object state machine is maintained in the framework. The framework abstracts the scheduler algorithm object, so this architecture can easily extend to new scheduler algorithms.</p>
 <div class="figure align-center">
 <img alt="../_images/cpu_sharing_framework.png" src="../_images/cpu_sharing_framework.png" />
 </div>
@@ -1003,7 +1004,7 @@
 </div>
 <div class="section" id="vcpu-affinity">
 <h2>vCPU affinity<a class="headerlink" href="#vcpu-affinity" title="Permalink to this headline">¶</a></h2>
-<p>Currently, we do not support vCPU migration, the assignment of vCPU mapping to pCPU is statically configured in VM configuration via a vcpu_affinity array. The item number of the array matches the vCPU number of this VM. Each item has one bit to indicate the assigned pCPU of the corresponding vCPU. There are some rules to configure the vCPU affinity:</p>
+<p>Currently, we do not support vCPU migration; the assignment of vCPU mapping to pCPU is statically configured in the VM configuration via a vcpu_affinity array. The item number of the array matches the vCPU number of this VM. Each item has one bit to indicate the assigned pCPU of the corresponding vCPU. Use these rules to configure the vCPU affinity:</p>
 <ul class="simple">
 <li>Only one bit can be set for each affinity item of vCPU.</li>
 <li>vCPUs in the same VM cannot be assigned to the same pCPU.</li>
@@ -1020,33 +1021,33 @@
 </div>
 <div class="section" id="thread-object-state">
 <h2>Thread object state<a class="headerlink" href="#thread-object-state" title="Permalink to this headline">¶</a></h2>
-<p>There are three states for thread object, RUNNING, RUNNABLE and BLOCK. States transition happens in certain conditions.</p>
+<p>The thread object contains three states: RUNNING, RUNNABLE, and BLOCK.</p>
 <div class="figure align-center">
 <img alt="../_images/cpu_sharing_state.png" src="../_images/cpu_sharing_state.png" />
 </div>
-<p>After a new vCPU is created, the corresponding thread object is initiated. The vcpu layer will invoke a wakeup operation. After wakeup, the state for the new thread object is set to RUNNABLE, then follow its algorithm to determine to preempt the current running thread object or not. If yes, it will turn to RUNNING state. In RUNNING state, the thread object may turn back to RUNNABLE state when it runs out of its timeslice, or it yields the pCPU by itself, or be preempted. The thread object under RUNNING state may trigger sleep to transfer to BLOCKED state.</p>
+<p>After a new vCPU is created, the corresponding thread object is initiated. The vCPU layer invokes a wakeup operation. After wakeup, the state for the new thread object is set to RUNNABLE, and then follows its algorithm to determine whether or not to preempt the current running thread object. If yes, it turns to the RUNNING state. In RUNNING state, the thread object may turn back to the RUNNABLE state when it runs out of its timeslice, or it might yield the pCPU by itself, or be preempted. The thread object under RUNNING state may trigger sleep to transfer to BLOCKED state.</p>
 </div>
 <div class="section" id="scheduler">
 <h2>Scheduler<a class="headerlink" href="#scheduler" title="Permalink to this headline">¶</a></h2>
-<p>Below block diagram shows the basic concept for the scheduler. There are two kinds of scheduler in the diagram, one is NOOP (No-Operation) scheduler and the other is IORR (IO sensitive Round-Robin) scheduler.</p>
+<p>The below block diagram shows the basic concept for the scheduler. There are two kinds of scheduler in the diagram: NOOP (No-Operation) scheduler and IORR (IO sensitive Round-Robin) scheduler.</p>
 <ul>
 <li><p class="first"><strong>No-Operation scheduler</strong>:</p>
-<p>The NOOP (No-operation) scheduler has the same policy with original partition mode, every pCPU can run only two thread objects, one is idle thread, and another is the thread of the assigned vCPU. With this scheduler, vCPU work in work-conserving mode, and will run once it’s ready. idle thread could run when the vCPU thread blocked.</p>
+<p>The NOOP (No-operation) scheduler has the same policy as the original partition mode; every pCPU can run only two thread objects: one is the idle thread, and another is the thread of the assigned vCPU. With this scheduler, vCPU works in work-conserving mode, and will run once it is ready. Idle thread can run when the vCPU thread blocked.</p>
 </li>
 <li><p class="first"><strong>IO sensitive round-robin scheduler</strong>:</p>
-<p>IORR (IO sensitive round-robin) scheduler is implemented with per-pCPU runqueue and per-pCPU tick timer, it supports more than one vCPU running on a pCPU. The scheduler schedule thread objects in round-robin policy basically, and support preemption by timeslice counting.</p>
+<p>The IORR (IO sensitive round-robin) scheduler is implemented with the per-pCPU runqueue and the per-pCPU tick timer; it supports more than one vCPU running on a pCPU. It basically schedules thread objects in a round-robin policy and supports preemption by timeslice counting.</p>
 <ul class="simple">
 <li>Every thread object has an initial timeslice (ex: 10ms)</li>
-<li>Timeslice is consumed with time and be counted in context switch and tick handler</li>
-<li>If timeslice is positive or zero, then switch out current thread object and put it to tail of runqueue.Then, pick next runnable one from runqueue to run.</li>
-<li>Threads who has IO request will preempt current running thread on the same pCPU.</li>
+<li>The timeslice is consumed with time and be counted in the context switch and tick handler</li>
+<li>If the timeslice is positive or zero, then switch out the current thread object and put it to tail of runqueue. Then, pick the next runnable one from runqueue to run.</li>
+<li>Threads with an IO request will preempt current running threads on the same pCPU.</li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="scheduler-configuration">
 <h2>Scheduler configuration<a class="headerlink" href="#scheduler-configuration" title="Permalink to this headline">¶</a></h2>
-<p>There are two place in the code decide the usage for scheduler.</p>
+<p>Two places in the code decide the usage for the scheduler.</p>
 <ul>
 <li><p class="first">The option in Kconfig decides the only scheduler used in runtime.
 <code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/Kconfig</span></code></p>
@@ -1072,8 +1073,8 @@
 18
 19</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">choice</span>
 	<span class="n">prompt</span> <span class="s">&quot;ACRN Scheduler&quot;</span>
-	<span class="k">default</span> <span class="n">SCHED_NOOP</span>
-	<span class="n">help</span>
+<span class="hll">	<span class="k">default</span> <span class="n">SCHED_NOOP</span>
+</span>	<span class="n">help</span>
 	  <span class="n">Select</span> <span class="n">the</span> <span class="n">CPU</span> <span class="n">scheduler</span> <span class="n">to</span> <span class="n">be</span> <span class="n">used</span> <span class="n">by</span> <span class="n">the</span> <span class="n">hypervisor</span>
 
 <span class="n">config</span> <span class="n">SCHED_NOOP</span>
@@ -1094,7 +1095,7 @@
 </div>
 </li>
 </ul>
-<p>The default scheduler is <strong>SCHED_NOOP</strong>. To use the IORR, only need to set <strong>SCHED_IORR</strong> in <strong>ACRN Scheduler</strong>.</p>
+<p>The default scheduler is <strong>SCHED_NOOP</strong>. To use the IORR, change it to <strong>SCHED_IORR</strong> in the <strong>ACRN Scheduler</strong>.</p>
 <ul>
 <li><p class="first">The affinity for VMs are set in  <code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/&lt;scenario_name&gt;/vm_configurations.h</span></code></p>
 <div class="literal-block-wrapper docutils container" id="affinity-for-vms">
@@ -1106,10 +1107,13 @@
 </td></tr></table></div>
 </div>
 </li>
-<li><p class="first">vCPU number corresponding to affinity is set in <code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/&lt;scenario_name&gt;/vm_configurations.c</span></code> by <strong>vcpu_num</strong></p>
+<li><p class="first">vCPU number corresponding to affinity is set in <code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/&lt;scenario_name&gt;/vm_configurations.c</span></code> by the <strong>vcpu_num</strong></p>
 </li>
 </ul>
-<p>For example, to support below configuration in industry scenario.</p>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>To support below configuration in industry scenario:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="31%" />
@@ -1131,7 +1135,7 @@
 </tr>
 </tbody>
 </table>
-<p>You should change three files:</p>
+<p>Change the following three files:</p>
 <ol class="arabic simple">
 <li><code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/Kconfig</span></code></li>
 </ol>
@@ -1264,7 +1268,7 @@
 };
 </pre></div>
 </div>
-<p>After you start all the VMs, you can check the vcpu affinities from Hypervisor console:</p>
+<p>After you start all VMs, check the vCPU affinities from the Hypervisor console:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ACRN:\&gt;vcpu_list
 
 VM ID    PCPU ID    VCPU ID    VCPU ROLE    VCPU STATE
@@ -1292,7 +1296,7 @@ VM ID    PCPU ID    VCPU ID    VCPU ROLE    VCPU STATE
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Dec 21, 2019.
+      Last updated on Dec 22, 2019.
 
     </p>
   </div> 
