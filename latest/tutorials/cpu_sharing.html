@@ -492,7 +492,7 @@
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">ACRN CPU Sharing</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#schedule-framework">Schedule Framework</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduling-framework">Scheduling Framework</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#vcpu-affinity">vCPU affinity</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#thread-object-state">Thread object state</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scheduler">Scheduler</a></li>
@@ -989,15 +989,15 @@
 <span id="cpu-sharing"></span><h1>ACRN CPU Sharing<a class="headerlink" href="#acrn-cpu-sharing" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>The goal of CPU Sharing is to fully utilize the physical CPU resource to support more virtual machines. Currently, ACRN only supports partition mode, which is a strict 1 to 1 mapping mode between vCPUs and pCPUs. Because of the lack of CPU sharing ability, the number of VMs is limited. To support CPU Sharing, we have introduced a schedule framework and implemented two simple small scheduling algorithms to satisfy embedded device requirements.</p>
+<p>The goal of CPU Sharing is to fully utilize the physical CPU resource to support more virtual machines. Currently, ACRN only supports 1 to 1 mapping mode between virtual CPUs (vCPUs) and physical CPUs (pCPUs). Because of the lack of CPU sharing ability, the number of VMs is limited. To support CPU Sharing, we have introduced a scheduling framework and implemented two simple small scheduling algorithms to satisfy embedded device requirements. Note that, CPU Sharing is not available for VMs with local APIC passthrough (<code class="docutils literal notranslate"><span class="pre">--lapic_pt</span></code> option).</p>
 </div>
-<div class="section" id="schedule-framework">
-<h2>Schedule Framework<a class="headerlink" href="#schedule-framework" title="Permalink to this headline">¶</a></h2>
-<p>To satisfy the modularization design concept, the schedule framework layer isolates the vcpu layer and scheduler algorithm. It does not have a vCPU concept so it is only aware of the thread object instance. The thread object state machine is maintained in the framework. The framework abstracts the scheduler algorithm object, so this architecture can easily extend to new scheduler algorithms.</p>
+<div class="section" id="scheduling-framework">
+<h2>Scheduling Framework<a class="headerlink" href="#scheduling-framework" title="Permalink to this headline">¶</a></h2>
+<p>To satisfy the modularization design concept, the scheduling framework layer isolates the vCPU layer and scheduler algorithm. It does not have a vCPU concept so it is only aware of the thread object instance. The thread object state machine is maintained in the framework. The framework abstracts the scheduler algorithm object, so this architecture can easily extend to new scheduler algorithms.</p>
 <div class="figure align-center">
 <img alt="../_images/cpu_sharing_framework.png" src="../_images/cpu_sharing_framework.png" />
 </div>
-<p>The below diagram shows that vcpu layer invokes APIs provided by schedule framework for vCPU scheduling. The schedule framework also provides some APIs for schedulers. The scheduler mainly implements some callbacks in an acrn_scheduler instance for schedule framework. Scheduling initialization is invoked in the hardware management layer.</p>
+<p>The below diagram shows that the vCPU layer invokes APIs provided by scheduling framework for vCPU scheduling. The scheduling framework also provides some APIs for schedulers. The scheduler mainly implements some callbacks in an <code class="docutils literal notranslate"><span class="pre">acrn_scheduler</span></code> instance for scheduling framework. Scheduling initialization is invoked in the hardware management layer.</p>
 <div class="figure align-center">
 <img alt="../_images/cpu_sharing_api.png" src="../_images/cpu_sharing_api.png" />
 </div>
@@ -1021,7 +1021,7 @@
 </div>
 <div class="section" id="thread-object-state">
 <h2>Thread object state<a class="headerlink" href="#thread-object-state" title="Permalink to this headline">¶</a></h2>
-<p>The thread object contains three states: RUNNING, RUNNABLE, and BLOCK.</p>
+<p>The thread object contains three states: RUNNING, RUNNABLE, and BLOCKED.</p>
 <div class="figure align-center">
 <img alt="../_images/cpu_sharing_state.png" src="../_images/cpu_sharing_state.png" />
 </div>
@@ -1032,7 +1032,7 @@
 <p>The below block diagram shows the basic concept for the scheduler. There are two kinds of scheduler in the diagram: NOOP (No-Operation) scheduler and IORR (IO sensitive Round-Robin) scheduler.</p>
 <ul>
 <li><p class="first"><strong>No-Operation scheduler</strong>:</p>
-<p>The NOOP (No-operation) scheduler has the same policy as the original partition mode; every pCPU can run only two thread objects: one is the idle thread, and another is the thread of the assigned vCPU. With this scheduler, vCPU works in work-conserving mode, and will run once it is ready. Idle thread can run when the vCPU thread blocked.</p>
+<p>The NOOP (No-operation) scheduler has the same policy as the original 1-1 mapping previously used; every pCPU can run only two thread objects: one is the idle thread, and another is the thread of the assigned vCPU. With this scheduler, vCPU works in Work-Conserving mode, which always try to keep resource busy, and will run once it is ready. Idle thread can run when the vCPU thread is blocked.</p>
 </li>
 <li><p class="first"><strong>IO sensitive round-robin scheduler</strong>:</p>
 <p>The IORR (IO sensitive round-robin) scheduler is implemented with the per-pCPU runqueue and the per-pCPU tick timer; it supports more than one vCPU running on a pCPU. It basically schedules thread objects in a round-robin policy and supports preemption by timeslice counting.</p>
@@ -1296,7 +1296,7 @@ VM ID    PCPU ID    VCPU ID    VCPU ROLE    VCPU STATE
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Dec 22, 2019.
+      Last updated on Dec 24, 2019.
 
     </p>
   </div> 
