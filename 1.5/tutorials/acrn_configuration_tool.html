@@ -351,8 +351,8 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="using_windows_as_uos.html">Using Windows as Guest VM on ACRN</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#hardware-setup">Hardware setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#verified-version">Verified version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#hardware-setup">Hardware setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#setup-for-using-windows-as-guest-vm">Setup for Using Windows as Guest VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
@@ -1082,48 +1082,68 @@ and <code class="docutils literal notranslate"><span class="pre">scenario</span>
 <dt><code class="docutils literal notranslate"><span class="pre">vm</span></code>:</dt>
 <dd>Specify the VM with VMID by its “id” attribute.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">load_order</span></code>:</dt>
-<dd>Specify the VM by its load order: PRE_LAUNCHED_VM, SOS_VM or POST_LAUNCHED_VM.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">name</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">vm</span></code>:</dt>
+<dd>Specify the VM by its load order: <code class="docutils literal notranslate"><span class="pre">PRE_LAUNCHED_VM</span></code>, <code class="docutils literal notranslate"><span class="pre">SOS_VM</span></code> or <code class="docutils literal notranslate"><span class="pre">POST_LAUNCHED_VM</span></code>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">name</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">vm</span></code>):</dt>
 <dd>Specify the VM name which will be shown in the hypervisor console command: vm_list.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">uuid</span></code>:</dt>
 <dd>UUID of the VM. It is for internal use and is not configurable.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">guest_flags</span></code>:</dt>
-<dd>Select all applicable flags for the VM.</dd>
+<dd><p class="first">Select all applicable flags for the VM:</p>
+<p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_SECURE_WORLD_ENABLED</span></code> specify whether secure world is enabled</p>
+<p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_LAPIC_PASSTHROUGH</span></code> specify whether LAPIC is passed through</p>
+<p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_IO_COMPLETION_POLLING</span></code> specify whether the hypervisor needs
+IO polling to completion</p>
+<p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_CLOS_REQUIRED</span></code> specify whether CLOS is required</p>
+<p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_HIDE_MTRR</span></code> specify whether to hide MTRR from the VM</p>
+<p class="last"><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_RT</span></code> specify whether the vm is RT-VM</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">severity</span></code>:</dt>
+<dd><p class="first">Severity of the guest VM; the lower severity VM should not impact the higher severity VM.</p>
+<p class="last">The order of severity from high to low is:
+<code class="docutils literal notranslate"><span class="pre">SEVERITY_SAFETY_VM</span></code>, <code class="docutils literal notranslate"><span class="pre">SEVERITY_RTVM</span></code>, <code class="docutils literal notranslate"><span class="pre">SEVERITY_SOS</span></code>, <code class="docutils literal notranslate"><span class="pre">SEVERITY_STANDARD_VM</span></code>.</p>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">vcpu_affinity</span></code>:</dt>
-<dd>vCPU affinity map. Each vCPU will pin to the selected pCPU ID. A different vCPU cannot pin to the same pCPU.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">size</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">epc_section</span></code>:</dt>
+<dd>vCPU affinity map. Each vCPU will be mapped to the selected pCPU ID. A different vCPU in the same VM cannot be mapped to the same pCPU.
+If the pCPU is mapped by different VMs, <code class="docutils literal notranslate"><span class="pre">cpu_sharing</span></code> of the VM must be set to <code class="docutils literal notranslate"><span class="pre">Enabled</span></code> in the launch XML.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">base</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">epc_section</span></code>):</dt>
 <dd>SGX EPC section base; must be page aligned.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">base</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">epc_section</span></code>:</dt>
-<dd>SGX EPC section size in Bytes; must be page aligned.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">size</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">epc_section</span></code>):</dt>
+<dd>SGX EPC section size in bytes; must be page aligned.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">clos</span></code>:</dt>
-<dd>Class of Service for Cache Allocation Technology. Refer to the SDM 17.19.2 for details and use with caution.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">start_hpa</span></code>:</dt>
+<dd>Class of Service for Cache Allocation Technology settings. Refer to <a class="reference internal" href="../developer-guides/hld/hv-rdt.html#hv-rdt"><span class="std std-ref">RDT Allocation Feature Supported by Hypervisor</span></a> for details.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">start_hpa</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">memory</span></code>):</dt>
 <dd>The start physical address in host for the VM.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">size</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">memory</span></code>:</dt>
-<dd>The memory size in Bytes for the VM.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">name</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">size</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">memory</span></code>):</dt>
+<dd>The memory size inbBytes for the VM.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">name</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>):</dt>
 <dd>Specify the OS name of VM; currently, it is not referenced by the hypervisor code.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">kern_type</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">kern_type</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>):</dt>
 <dd>Specify the kernel image type so that the hypervisor can load it correctly.
-Currently supports KERNEL_BZIMAGE and KERNEL_ZEPHYR.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">kern_mod</span></code>:</dt>
+Currently supports <code class="docutils literal notranslate"><span class="pre">KERNEL_BZIMAGE</span></code> and <code class="docutils literal notranslate"><span class="pre">KERNEL_ZEPHYR</span></code>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">kern_mod</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>):</dt>
 <dd>The tag for the kernel image that acts as a multiboot module; it must exactly match the module tag in the GRUB multiboot cmdline.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">bootargs</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">ramdisk_mod</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>):</dt>
+<dd>The tag for the ramdisk image which acts as a multiboot module; it must exactly match the module tag in the GRUB multiboot cmdline.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">bootargs</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>):</dt>
 <dd>For internal use and is not configurable. Specify the kernel boot arguments
 in bootargs under the parent of board_private.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">kern_load_addr</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>):</dt>
+<dd>The loading address in host memory for the VM kernel.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">kern_entry_addr</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">os_config</span></code>):</dt>
+<dd>The entry address in host memory for the VM kernel.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">vuart</span></code>:</dt>
 <dd>Specify the vuart (A.K.A COM) with the vUART ID by its “id” attribute.
 Refer to <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">vUART Configuration</span></a> for detailed vUART settings.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">type</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">vuart</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">type</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">vuart</span></code>):</dt>
 <dd>vUART (A.K.A COM) type, currently only supports the legacy PIO mode.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">base</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">vuart</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">base</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">vuart</span></code>):</dt>
 <dd>vUART (A.K.A COM) enabling switch. Enable by exposing its COM_BASE
 (SOS_COM_BASE for Service VM); disable by returning INVALID_COM_BASE.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">irq</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">vuart</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">irq</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">vuart</span></code>):</dt>
 <dd>vCOM irq.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">target_vm_id</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">target_vm_id</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">vuart1</span></code>):</dt>
 <dd>COM2 is used for VM communications. When it is enabled, specify which target VM the current VM connects to.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">target_uart_id</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">target_uart_id</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">vuart1</span></code>):</dt>
 <dd>Target vUART ID that vCOM2 connects to.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pci_dev_num</span></code>:</dt>
 <dd>PCI devices number of the VM; it is hard-coded for each scenario so it is not configurable for now.</dd>
@@ -1135,7 +1155,7 @@ Refer to <a class="reference internal" href="vuart_configuration.html#vuart-conf
 <dd>rootfs for the Linux kernel.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">console</span></code>:</dt>
 <dd>ttyS console for the Linux kernel.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">bootargs</span></code> under parent of <code class="docutils literal notranslate"><span class="pre">board_private</span></code>:</dt>
+<dt><code class="docutils literal notranslate"><span class="pre">bootargs</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">board_private</span></code>):</dt>
 <dd>Specify kernel boot arguments.</dd>
 </dl>
 </div>
@@ -1153,27 +1173,41 @@ The launch XML has an <code class="docutils literal notranslate"><span class="pr
 <dt><code class="docutils literal notranslate"><span class="pre">uos</span></code>:</dt>
 <dd>Specify the User VM with its relative ID to Service VM by the “id” attribute.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">uos_type</span></code>:</dt>
-<dd>Specify the User VM type, such as  CLEARLINUX, ANDROID, or VXWORKS.</dd>
+<dd>Specify the User VM type, such as <code class="docutils literal notranslate"><span class="pre">CLEARLINUX</span></code>, <code class="docutils literal notranslate"><span class="pre">ANDROID</span></code>, <code class="docutils literal notranslate"><span class="pre">ALIOS</span></code>,
+<code class="docutils literal notranslate"><span class="pre">PREEMPT-RT</span> <span class="pre">LINUX</span></code>, <code class="docutils literal notranslate"><span class="pre">GENERIC</span> <span class="pre">LINUX</span></code>, <code class="docutils literal notranslate"><span class="pre">WINDOWS</span></code>, <code class="docutils literal notranslate"><span class="pre">ZEPHYR</span></code> or <code class="docutils literal notranslate"><span class="pre">VXWORKS</span></code>.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">rtos_type</span></code>:</dt>
 <dd>Specify the User VM Realtime capability: Soft RT, Hard RT, or none of them.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">mem_size</span></code>:</dt>
 <dd>Specify the User VM memory size in Mbyte.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">gvt_args</span></code>:</dt>
-<dd>GVT argument for the VM.</dd>
+<dd>GVT arguments for the VM. Input format: <code class="docutils literal notranslate"><span class="pre">low_gm_size</span> <span class="pre">high_gm_size</span> <span class="pre">fence_sz</span></code>.
+Recommendation is: <code class="docutils literal notranslate"><span class="pre">64</span> <span class="pre">448</span> <span class="pre">8</span></code>. Leave it blank to disable the GVT.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">vbootloader</span></code>:</dt>
 <dd>Virtual bootloader type; currently only supports OVMF.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">rootfs_dev</span></code>:</dt>
-<dd>The device where User VM rootfs located.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">rootfs_img</span></code>:</dt>
-<dd>User VM rootfs image file including path.</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">console_type</span></code>:</dt>
-<dd>Specify whether the User VM console is virtio or vUART; refer to <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">vUART Configuration</span></a> for details.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cpu_sharing</span></code>:</dt>
+<dd>Specify whether the pCPUs listed can be shared with other VMs.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">vuart0</span></code>:</dt>
+<dd>Specify whether the device model emulates the vUART0(vCOM1); refer to <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">vUART Configuration</span></a> for details.
+If set to <code class="docutils literal notranslate"><span class="pre">Enable</span></code>, the vUART0 is emulated by the device model;
+if set to <code class="docutils literal notranslate"><span class="pre">Disable</span></code>, the vUART0 is emulated by the hypervisor if it is configured in the scenario XML.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">poweroff_channel</span></code>:</dt>
 <dd>Specify whether the User VM power off channel is through the IOC, Powerbutton, or vUART.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">usb_xhci</span></code>:</dt>
+<dd>USB xHCI mediator configuration. Input format: <code class="docutils literal notranslate"><span class="pre">bus#-port#[:bus#-port#:</span> <span class="pre">...]</span></code>. e.g.: <code class="docutils literal notranslate"><span class="pre">1-2:2-4</span></code>.
+refer to <a class="reference internal" href="../developer-guides/hld/usb-virt-hld.html#usb-virtualization"><span class="std std-ref">USB Virtualization</span></a> for details.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">passthrough_devices</span></code>:</dt>
 <dd>Select the passthrough device from the lspci list; currently we support:
 usb_xdci, audio, audio_codec, ipu, ipu_i2c, cse, wifi, Bluetooth, sd_card,
 ethernet, wifi, sata, and nvme.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">network</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">virtio_devices</span></code>):</dt>
+<dd>The virtio network device setting.
+Input format: <code class="docutils literal notranslate"><span class="pre">tap_name,[vhost],[mac=XX:XX:XX:XX:XX:XX]</span></code>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">block</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">virtio_devices</span></code>):</dt>
+<dd>The virtio block device setting.
+Input format: <code class="docutils literal notranslate"><span class="pre">[blk</span> <span class="pre">partition:][img</span> <span class="pre">path]</span></code> e.g.: <code class="docutils literal notranslate"><span class="pre">/dev/sda3:./a/b.img</span></code>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">console</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">virtio_devices</span></code>):</dt>
+<dd>The virtio console device setting.
+Input format: <code class="docutils literal notranslate"><span class="pre">[&#64;]stdio|tty|pty|sock:portname[=portpath][,[&#64;]stdio|tty|pty:portname[=portpath]]</span></code>.</dd>
 </dl>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1444,7 +1478,7 @@ configuration and lists all wrong configurable items and shows errors.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Jan 08, 2020.
+      Last updated on Jan 09, 2020.
 
     </p>
   </div> 
