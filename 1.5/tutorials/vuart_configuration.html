@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>vUART Configuration &mdash; Project ACRN™ v 1.6-unstable documentation</title>
+  <title>vUART Configuration &mdash; Project ACRN™ v 1.5 documentation</title>
   
 
   
@@ -1223,17 +1223,47 @@ Add this to the kernel-based system.</li>
 <blockquote>
 <div><code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">1:0,lpc</span> <span class="pre">-l</span> <span class="pre">com1,stdio</span></code></div></blockquote>
 <p>This adds <code class="docutils literal notranslate"><span class="pre">com1</span> <span class="pre">(0x3f8)</span></code> and <code class="docutils literal notranslate"><span class="pre">com2</span> <span class="pre">(0x2f8)</span></code> modules in the Guest VM, including the ACPI info for these two ports.</p>
-<p><strong>Data Flows</strong></p>
-<p>Three different data flows exist based on how the post-launched VM is started, as shown in the diagram below.</p>
-<p>Figure 1 data flow: The post-launched VM is started with the vUART enabled in the hypervisor configuration file only.</p>
-<p>Figure 2 data flow: The post-launched VM is started with the <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> cmdline of <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">1:0,lpc</span> <span class="pre">-l</span> <span class="pre">com1,stdio</span></code> only.</p>
-<p>Figure 3 data flow: The post-launched VM is started with both vUART enabled and the <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> cmdline of <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">1:0,lpc</span> <span class="pre">-l</span> <span class="pre">com1,stdio</span></code>.</p>
-<div class="figure align-center" id="post-launched-vms">
-<img alt="../_images/vuart-config-post-launch.png" src="../_images/vuart-config-post-launch.png" />
+<p><strong>Data Flow 1:</strong></p>
+<p>When the post-launched VM is started with the vUART enabled in the hypervisor configuration file only, the data flow is shown as below:</p>
+<div class="figure align-center" id="plvm1-vuart">
+<img alt="../_images/vuart-config-3.png" src="../_images/vuart-config-3.png" />
+</div>
+<p><strong>acrn-dm cmdline:</strong> N/A</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vm_configuration.c: .vuart[0] = {
+                                 .type = VUART_LEGACY_PIO,
+                                 .addr.port_base = COM1_BASE,
+                                 .irq = COM1_IRQ,
+                                },
+</pre></div>
+</div>
+<p><strong>Data Flow 2:</strong></p>
+<p>When the post-launched VM is started with the <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> cmdline of <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">1:0,lpc</span> <span class="pre">-l</span> <span class="pre">com1,stdio</span></code> only, the data flow is shown as below:</p>
+<div class="figure align-center" id="plvm2-vuart">
+<img alt="../_images/vuart-config-4.png" src="../_images/vuart-config-4.png" />
+</div>
+<p><strong>acrn-dm cmdline:</strong> <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">1:0,lpc</span> <span class="pre">-l</span> <span class="pre">com1,stdio</span></code></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vm_configuration.c: .vuart[0] = {
+                                .type = VUART_LEGACY_PIO,
+                                .addr.port_base = INVALID_COM_BASE,
+                                },
+</pre></div>
+</div>
+<p><strong>Date Flow 3:</strong></p>
+<p>When the post-launched VM is started with both vUART enabled and the <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> cmdline of <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">1:0,lpc</span> <span class="pre">-l</span> <span class="pre">com1,stdio</span></code>, the data flow is show as below:</p>
+<div class="figure align-center" id="plvm3-vuart">
+<img alt="../_images/vuart-config-5.png" src="../_images/vuart-config-5.png" />
+</div>
+<p><strong>acrn-dm cmdline:</strong> <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">1:0,lpc</span> <span class="pre">-l</span> <span class="pre">com1,stdio</span></code></p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vm_configuration.c: .vuart[0] = {
+                                 .type = VUART_LEGACY_PIO,
+                                 .addr.port_base = COM1_BASE,
+                                 .irq = COM1_IRQ,
+                                },
+</pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">For operating systems such as VxWorks and Windows that depend on the ACPI table to probe the uart driver, adding the vuart configuration in the hypervisor is not sufficient. Currently, we recommend that you use the configuration in the figure 3 data flow. This may be refined in the future.</p>
+<p class="last">For operating systems such as VxWorks and Windows that depend on the ACPI table to probe the uart driver, adding the vuart configuration in the hypervisor is not sufficient. Currently, we recommend that you use the configuration in Data Flow 3. This may be refined in the future.</p>
 </div>
 </div>
 </div>
@@ -1251,7 +1281,7 @@ Add this to the kernel-based system.</li>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Jan 21, 2020.
+      Last updated on Jan 22, 2020.
 
     </p>
   </div> 
@@ -1271,7 +1301,7 @@ Add this to the kernel-based system.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'v 1.6-unstable',
+            VERSION:'v 1.5',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
