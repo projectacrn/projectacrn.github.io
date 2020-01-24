@@ -1001,10 +1001,7 @@
 <span id="getting-started-building"></span><h1>Build ACRN from Source<a class="headerlink" href="#build-acrn-from-source" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>Following a general embedded-system programming model, the ACRN
-hypervisor is designed to be customized at build time per hardware
-platform and per usage scenario, rather than one binary for all
-scenarios.</p>
+<p>Following a general embedded-system programming model, the ACRN hypervisor is designed to be customized at build time per hardware platform and per usage scenario, rather than one binary for all scenarios.</p>
 <p>The hypervisor binary is generated based on Kconfig configuration
 settings. Instructions about these settings can be found in
 <a class="reference internal" href="#getting-started-hypervisor-configuration"><span class="std std-ref">Step 4: Build the hypervisor configuration</span></a>.</p>
@@ -1020,15 +1017,16 @@ in the <code class="docutils literal notranslate"><span class="pre">make</span><
 supported, primarily because dynamic configuration parsing is restricted in
 the ACRN hypervisor for the following reasons:</p>
 <ul class="simple">
-<li><strong>Meeting functional safety requirements.</strong> Implementing dynamic parsing
+<li><strong>Maintain functional safety requirements.</strong> Implementing dynamic parsing
 introduces dynamic objects, which violates functional safety requirements.</li>
 <li><strong>Reduce complexity.</strong> ACRN is a lightweight reference hypervisor, built for
 embedded IoT. As new platforms for embedded systems are rapidly introduced,
 support for one binary could require more and more complexity in the
 hypervisor, which is something we strive to avoid.</li>
-<li><strong>Keep small footprint.</strong> Implementing dynamic parsing introduces
+<li><strong>Maintain small footprint.</strong> Implementing dynamic parsing introduces
 hundreds or thousands of lines of code. Avoiding dynamic parsing
-helps keep the hypervisor’s Lines of Code (LOC) in a desirable range (around 30K).</li>
+helps keep the hypervisor’s Lines of Code (LOC) in a desirable range (less
+than 40K).</li>
 <li><strong>Improve boot up time.</strong> Dynamic parsing at runtime increases the boot
 up time. Using a build-time configuration and not dynamic parsing
 helps improve the boot up time of the hypervisor.</li>
@@ -1038,18 +1036,11 @@ these steps.</p>
 </div>
 <div class="section" id="step-1-install-build-tools-and-dependencies">
 <span id="install-build-tools-dependencies"></span><h2>Step 1: Install build tools and dependencies<a class="headerlink" href="#step-1-install-build-tools-and-dependencies" title="Permalink to this headline">¶</a></h2>
-<p>ACRN development is supported on popular Linux distributions, each with
-their own way to install development tools. This user guide covers the different
-steps to configure and build ACRN natively on your distribution. Please refer to
-the <a class="reference internal" href="../tutorials/building_acrn_in_docker.html#building-acrn-in-docker"><span class="std std-ref">Building ACRN in Docker</span></a> user guide for instructions on how to build
-ACRN using a container.</p>
-<blockquote>
-<div><div class="admonition note">
+<p>ACRN development is supported on popular Linux distributions, each with their own way to install development tools. This user guide covers the different steps to configure and build ACRN natively on your distribution. Refer to the <a class="reference internal" href="../tutorials/building_acrn_in_docker.html#building-acrn-in-docker"><span class="std std-ref">Building ACRN in Docker</span></a> user guide for instructions on how to build ACRN using a container.</p>
+<div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">ACRN uses <code class="docutils literal notranslate"><span class="pre">menuconfig</span></code>, a python3 text-based user interface (TUI) for
-configuring hypervisor options and using python’s <code class="docutils literal notranslate"><span class="pre">kconfiglib</span></code> library.</p>
+<p class="last">ACRN uses <code class="docutils literal notranslate"><span class="pre">menuconfig</span></code>, a python3 text-based user interface (TUI) for configuring hypervisor options and using python’s <code class="docutils literal notranslate"><span class="pre">kconfiglib</span></code> library.</p>
 </div>
-</div></blockquote>
 <p>Install the necessary tools for the following systems:</p>
 <ul>
 <li><p class="first">Clear Linux OS development system:</p>
@@ -1082,8 +1073,7 @@ $ sudo pip3 install kconfiglib
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>Use <code class="docutils literal notranslate"><span class="pre">gcc</span></code> version 7.3.* or higher to avoid running into
-issue <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/issues/1396">#1396</a>. Follow these instructions to install the <code class="docutils literal notranslate"><span class="pre">gcc-7</span></code> package on Ubuntu 18.04:</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">gcc</span></code> version 7.3.* or higher to avoid gcc compilation issues. Follow these instructions to install the <code class="docutils literal notranslate"><span class="pre">gcc-7</span></code> package on Ubuntu 18.04:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo add-apt-repository ppa:ubuntu-toolchain-r/test
 $ sudo apt update
 $ sudo apt install g++-7 -y
@@ -1118,7 +1108,7 @@ repository contains four main components:</p>
 <dl class="docutils">
 <dt>SDC:</dt>
 <dd>The SDC (Software Defined Cockpit) scenario defines a simple
-automotive use-case that includes one pre-launched Service VM and one
+automotive use case that includes one pre-launched Service VM and one
 post-launched User VM.</dd>
 <dt>SDC2:</dt>
 <dd>SDC2 (Software Defined Cockpit 2) is an extended scenario for an
@@ -1135,35 +1125,33 @@ control.</dd>
 <dd>This scenario defines a hybrid use case with three VMs: one
 pre-launched VM, one pre-launched Service VM, and one post-launched
 Standard VM.</dd>
-<dt>Assuming that you are at the top level of the acrn-hypervisor directory:</dt>
-<dd><div class="first last admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Release version is built by default, ‘RELEASE=0’ is to build debug version.</p>
-</div>
-</dd>
 </dl>
+<p>Assuming that you are at the top level of the acrn-hypervisor directory, perform the following:</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The release version is built by default, ‘RELEASE=0’ builds the debug version.</p>
+</div>
 <ul>
-<li><p class="first">Build <code class="docutils literal notranslate"><span class="pre">INDUSTRY</span></code> scenario on <code class="docutils literal notranslate"><span class="pre">nuc7i7dnb</span></code>:</p>
+<li><p class="first">Build the <code class="docutils literal notranslate"><span class="pre">INDUSTRY</span></code> scenario on the <code class="docutils literal notranslate"><span class="pre">nuc7i7dnb</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make all BOARD=nuc7i7dnb SCENARIO=industry RELEASE=0
 </pre></div>
 </div>
 </li>
-<li><p class="first">Build <code class="docutils literal notranslate"><span class="pre">INDUSTRY</span></code> scenario on <code class="docutils literal notranslate"><span class="pre">whl-ipc-i5</span></code>:
-.. code-block:: none</p>
-<blockquote>
-<div><p>$ make all BOARD=whl-ipc-i5 SCENARIO=industry BOARD_FILE=/absolute_path/
+<li><p class="first">Build the <code class="docutils literal notranslate"><span class="pre">INDUSTRY</span></code> scenario on the <code class="docutils literal notranslate"><span class="pre">whl-ipc-i5</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make all BOARD=whl-ipc-i5 SCENARIO=industry BOARD_FILE=/absolute_path/
 acrn-hypervisor/misc/acrn-config/xmls/board-xmls/whl-ipc-i5.xml SCENARIO_FILE=
 /absolute_patch/acrn-hypervisor/misc/acrn-config/xmls/config-xmls/whl-ipc-i5/industry.xml
-RELEASE=0</p>
-</div></blockquote>
+RELEASE=0
+</pre></div>
+</div>
 </li>
-<li><p class="first">Build <code class="docutils literal notranslate"><span class="pre">SDC</span></code> scenario on <code class="docutils literal notranslate"><span class="pre">nuc6cayh</span></code>:</p>
+<li><p class="first">Build the <code class="docutils literal notranslate"><span class="pre">SDC</span></code> scenario on the <code class="docutils literal notranslate"><span class="pre">nuc6cayh</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make all BOARD=nuc6cayh SCENARIO=sdc RELEASE=0
 </pre></div>
 </div>
 </li>
 </ul>
-<p>See the <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a> document for information about the platform needs
+<p>See the <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a> document for information about platform needs
 for each scenario.</p>
 </div>
 <div class="section" id="step-4-build-the-hypervisor-configuration">
@@ -1185,10 +1173,9 @@ $ make defconfig BOARD=nuc6cayh
 </pre></div>
 </div>
 <p>The BOARD specified is used to select a <code class="docutils literal notranslate"><span class="pre">defconfig</span></code> under
-<code class="docutils literal notranslate"><span class="pre">arch/x86/configs/</span></code>. The other command line-based options (e.g. <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code>)
-take no effect when generating a defconfig.</p>
+<code class="docutils literal notranslate"><span class="pre">arch/x86/configs/</span></code>. The other command line-based options (e.g. <code class="docutils literal notranslate"><span class="pre">RELEASE</span></code>) take no effect when generating a defconfig.</p>
 <p>To modify the hypervisor configurations, you can either edit <code class="docutils literal notranslate"><span class="pre">.config</span></code>
-manually, or invoke a TUI-based menuconfig, powered by kconfiglib, by
+manually, or you can invoke a TUI-based menuconfig–powered by kconfiglib–by
 executing <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code>. As an example, the following commands
 (assuming that you are at the top level of the acrn-hypervisor directory)
 generate a default configuration file for UEFI, allowing you to modify some
@@ -1208,7 +1195,7 @@ $ make menuconfig -C hypervisor BOARD=kbl-nuc-i7   &lt;select industry scenario&
 <div class="section" id="step-5-build-the-hypervisor-device-model-and-tools">
 <h2>Step 5: Build the hypervisor, device model, and tools<a class="headerlink" href="#step-5-build-the-hypervisor-device-model-and-tools" title="Permalink to this headline">¶</a></h2>
 <p>Now you can build all these components at once as follows:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make FIRMWARE=uefi          # Build the UEFI hypervisor with the new .config
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make FIRMWARE=uefi       # Build the UEFI hypervisor with the new .config
 </pre></div>
 </div>
 <p>The build results are found in the <code class="docutils literal notranslate"><span class="pre">build</span></code> directory. You can specify
@@ -1246,7 +1233,7 @@ SCENARIO_FILE=$PWD/misc/acrn-config/xmls/config-xmls/nuc7i7dnb/industry.xml FIRM
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Jan 21, 2020.
+      Last updated on Jan 23, 2020.
 
     </p>
   </div> 
