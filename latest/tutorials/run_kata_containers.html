@@ -316,8 +316,11 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Run Kata Containers on a Service VM</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#pre-requisites">Pre-Requisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#install-docker">Install Docker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#install-kata-containers">Install Kata Containers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#configure-kata-on-acrn">Configure Kata on ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-a-kata-container-with-acrn">Run a Kata Container with ACRN</a></li>
 </ul>
 </li>
 </ul>
@@ -1002,47 +1005,109 @@
 <p>This tutorial describes how to install, configure, and run <a class="reference external" href="https://katacontainers.io/">Kata Containers</a> on the ACRN Service VM. In this configuration,
 Kata Containers leverage the ACRN hypervisor instead of QEMU which is used by
 default. Refer to the <a class="reference external" href="https://drive.google.com/file/d/1ZrqM5ouWUJA0FeIWhU_aitEJe8781rpe/view?usp=sharing">Kata Containers with ACRN</a>
-presentation from a previous ACRN Project Technical Community Meeting for more
-details on Kata Containers and how the integration with ACRN has been done.</p>
-<div class="section" id="pre-requisites">
-<h2>Pre-Requisites<a class="headerlink" href="#pre-requisites" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic">
-<li><p class="first">Refer to the <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">ACRN supported hardware</span></a>.</p>
-</li>
-<li><p class="first">For a default prebuilt ACRN binary in the E2E package, you must have 4 CPU cores or enable “CPU Hyper-Threading” in order to have 4 CPU threads for 2 CPU cores.</p>
-</li>
-<li><p class="first">Follow <a class="reference internal" href="kbl-nuc-sdc.html#kbl-nuc-sdc"><span class="std std-ref">these instructions</span></a> to set up the ACRN Service VM.</p>
-</li>
-<li><p class="first">Build the ACRN kernel (required to support <code class="docutils literal notranslate"><span class="pre">macvtap</span></code>, enabled by default since <a class="reference external" href="https://github.com/projectacrn/acrn-kernel/commit/247a3ba9243b1fd8c2d763158d55f8791a9cac94">247a3ba9243b</a>).</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-kernel.git
-$ cd acrn-kernel
-$ cp kernel_config_sos .config
-$ make clean &amp;&amp; make olddefconfig &amp;&amp; make &amp;&amp; make modules_install INSTALL_MOD_PATH=out/
+presentation from a previous ACRN Project Technical Community Meeting for
+more details on Kata Containers and how the integration with ACRN has been
+done.</p>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Refer to the <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">ACRN supported hardware</span></a>.</li>
+<li>For a default prebuilt ACRN binary in the E2E package, you must have 4
+CPU cores or enable “CPU Hyper-Threading” in order to have 4 CPU threads for 2 CPU cores.</li>
+<li>Follow <a class="reference internal" href="kbl-nuc-sdc.html#kbl-nuc-sdc"><span class="std std-ref">these instructions</span></a> to set up the ACRN Service VM.</li>
+</ol>
+</div>
+<div class="section" id="install-docker">
+<h2>Install Docker<a class="headerlink" href="#install-docker" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add containers-basic
+$ sudo systemctl enable docker
+$ sudo systemctl start docker
 </pre></div>
 </div>
-<p>Log in to the Service VM and use the new ACRN kernel:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo mount /dev/sda1 /mnt
-$ sudo scp -r &lt;user name&gt;@&lt;host address&gt;:&lt;your workspace&gt;/acrn-kernel/arch/x86/boot/bzImage /mnt/
-$ sudo scp -r &lt;user name&gt;@&lt;host address&gt;:&lt;your workspace&gt;/acrn-kernel/out/lib/modules/* /lib/modules/
-$ conf_file=`sed -n &#39;$ s/default //p&#39; /mnt/loader/loader.conf`.conf
-$ kernel_img=`sed -n 2p /mnt/loader/entries/$conf_file | cut -d&#39;/&#39; -f4`
-$ sed -i &quot;s/$kernel_img/bzImage/g&quot; /mnt/loader/entries/$conf_file
-$ sync &amp;&amp; sudo umount /mnt &amp;&amp; reboot
+</div>
+<div class="section" id="install-kata-containers">
+<h2>Install Kata Containers<a class="headerlink" href="#install-kata-containers" title="Permalink to this headline">¶</a></h2>
+<p>The Kata Containers installation from Clear Linux’s official repository does
+not work with ACRN at the moment. Therefore, you must install Kata
+Containers using the <a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/Developer-Guide.md">manual installation</a> instructions (using a <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> image).</p>
+<ol class="arabic">
+<li><p class="first">Install the build dependencies.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add go-basic devpkg-elfutils
+</pre></div>
+</div>
+</li>
+<li><p class="first">Install Kata Containers.</p>
+<p>At a high level, the <a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/Developer-Guide.md">manual installation</a>
+steps are:</p>
+<ol class="arabic simple">
+<li>Build and install the Kata runtime.</li>
+<li>Create and install a <code class="docutils literal notranslate"><span class="pre">rootfs</span></code>.</li>
+<li>Build and install the Kata Containers kernel.</li>
+<li>Build and install the Kata proxy.</li>
+<li>Build and install the Kata shim.</li>
+</ol>
+</li>
+</ol>
+</div>
+<div class="section" id="configure-kata-on-acrn">
+<h2>Configure Kata on ACRN<a class="headerlink" href="#configure-kata-on-acrn" title="Permalink to this headline">¶</a></h2>
+<p>After the core components are installed on the system, the next step is to
+configure them to work seamlessly together. This includes two parts.</p>
+<ol class="arabic">
+<li><p class="first"><a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/Developer-Guide.md#run-kata-containers-with-docker">Configure Docker</a>
+to recognize the <code class="docutils literal notranslate"><span class="pre">kata-runtime</span></code> as an additional runtime available for
+use.</p>
+</li>
+<li><p class="first">Configure Kata to use ACRN.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo mkdir -p /etc/kata-containers
+$ sudo cp /usr/share/defaults/kata-containers/configuration-acrn.toml /etc/kata-containers/configuration.toml
 </pre></div>
 </div>
 </li>
 </ol>
-<blockquote>
-<div><div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Adjust the EFI System Partition (ESP) device node (<code class="docutils literal notranslate"><span class="pre">/dev/sda1</span></code> in the example above) to match your system setup.</p>
+<p>Verify that these configurations are effective by checking the following
+outputs:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo docker info | grep runtime
+WARNING: the devicemapper storage-driver is deprecated, and will be
+removed in a future release.
+WARNING: devicemapper: usage of loopback devices is strongly discouraged
+for production use.
+         Use `--storage-opt dm.thinpooldev` to specify a custom block storage device.
+Runtimes: kata-runtime runc
+</pre></div>
 </div>
-</div></blockquote>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ kata-runtime kata-env | awk -v RS= &#39;/\[Hypervisor\]/&#39;
+[Hypervisor]
+  MachineType = &quot;&quot;
+  Version = &quot;DM version is: 1.5-unstable-”2020w02.5.140000p_261” (daily tag:”2020w02.5.140000p”), build by mockbuild@2020-01-12 08:44:52&quot;
+  Path = &quot;/usr/bin/acrn-dm&quot;
+  BlockDeviceDriver = &quot;virtio-blk&quot;
+  EntropySource = &quot;/dev/urandom&quot;
+  Msize9p = 0
+  MemorySlots = 10
+  Debug = false
+  UseVSock = false
+  SharedFS = &quot;&quot;
+</pre></div>
 </div>
-<div class="section" id="configure-kata-on-acrn">
-<h2>Configure Kata on ACRN<a class="headerlink" href="#configure-kata-on-acrn" title="Permalink to this headline">¶</a></h2>
-<p>Follow these <a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/how-to/how-to-use-kata-containers-with-acrn.md">kata instructions</a>
-to configure and launch the Kata VMs with ACRN.</p>
+</div>
+<div class="section" id="run-a-kata-container-with-acrn">
+<h2>Run a Kata Container with ACRN<a class="headerlink" href="#run-a-kata-container-with-acrn" title="Permalink to this headline">¶</a></h2>
+<p>The system is now ready to run a Kata Container on ACRN. Note that a reboot
+is recommended after the installation.</p>
+<p>Before running a Kata Container on ACRN, you must offline at least one CPU:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ curl -O https://raw.githubusercontent.com/kata-containers/documentation/master/how-to/offline_cpu.sh
+$ chmod +x ./offline_cpu.sh
+$ sudo ./offline_cpu.sh
+</pre></div>
+</div>
+<p>Start a Kata Container on ACRN:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo docker run -ti --runtime=kata-runtime busybox sh
+</pre></div>
+</div>
+<p>If you run into problems, contact us on the ACRN mailing list and provide as
+much detail as possible about the issue. The output of <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">docker</span> <span class="pre">info</span></code>
+and <code class="docutils literal notranslate"><span class="pre">kata-runtime</span> <span class="pre">kata-env</span></code> is useful.</p>
 </div>
 </div>
 
@@ -1059,7 +1124,7 @@ to configure and launch the Kata VMs with ACRN.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2019, Project ACRN.
-      Last updated on Jan 23, 2020.
+      Last updated on Jan 28, 2020.
 
     </p>
   </div> 
