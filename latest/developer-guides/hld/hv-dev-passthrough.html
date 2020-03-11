@@ -1010,9 +1010,9 @@
 aspects of a device including its I/O, interrupts, DMA, and configuration.
 There are three typical device
 virtualization methods: emulation, para-virtualization, and passthrough.
-Both emulation and passthrough are used in ACRN project.  Device
-emulation is discussed in <a class="reference internal" href="hv-io-emulation.html#hld-io-emulation"><span class="std std-ref">I/O Emulation high-level design</span></a> and
-device passthrough will be discussed here.</p>
+All emulation, para-virtualization and passthrough are used in ACRN project.  Device
+emulation is discussed in <a class="reference internal" href="hv-io-emulation.html#hld-io-emulation"><span class="std std-ref">I/O Emulation high-level design</span></a>, para-virtualization is discussed
+in <a class="reference internal" href="hld-virtio-devices.html#hld-virtio-devices"><span class="std std-ref">Virtio devices high-level design</span></a> and device passthrough will be discussed here.</p>
 <p>In the ACRN project, device emulation means emulating all existing hardware
 resource through a software component device model running in the
 Service OS (SOS). Device
@@ -1032,15 +1032,18 @@ can’t support device sharing.</p>
 <p>Passthrough in the hypervisor provides the following functionalities to
 allow VM to access PCI devices directly:</p>
 <ul class="simple">
-<li>DMA Remapping by VT-d for PCI device: hypervisor will setup DMA
+<li>VT-d DMA Remapping for PCI devices: hypervisor will setup DMA
 remapping during VM initialization phase.</li>
+<li>VT-d Interrupt-remapping for PCI devices: hypervisor will enable
+VT-d interrupt-remapping for PCI devices for security considerations.</li>
 <li>MMIO Remapping between virtual and physical BAR</li>
 <li>Device configuration Emulation</li>
-<li>Remapping interrupts for PCI device</li>
+<li>Remapping interrupts for PCI devices</li>
 <li>ACPI configuration Virtualization</li>
 <li>GSI sharing violation check</li>
 </ul>
-<p>The following diagram details passthrough initialization control flow in ACRN:</p>
+<p>The following diagram details passthrough initialization control flow in ACRN
+for post-launched VM:</p>
 <div class="figure align-center" id="id2">
 <img alt="../../_images/passthru-image22.png" src="../../_images/passthru-image22.png" />
 <p class="caption"><span class="caption-number">Figure 151 </span><span class="caption-text">Passthrough devices initialization control flow</span></p>
@@ -1054,57 +1057,97 @@ passthrough, as detailed here:</p>
 <p class="caption"><span class="caption-number">Figure 152 </span><span class="caption-text">Passthrough Device Status</span></p>
 </div>
 </div>
-<div class="section" id="dma-remapping">
-<h2>DMA Remapping<a class="headerlink" href="#dma-remapping" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="owner-of-passthrough-devices">
+<h2>Owner of Passthrough Devices<a class="headerlink" href="#owner-of-passthrough-devices" title="Permalink to this headline">¶</a></h2>
+<p>ACRN hypervisor will do PCI enumeration to discover the PCI devices on the platform.
+According to the hypervisor/VM configurations, the owner of these PCI devices can be
+one the following 4 cases:</p>
+<ul class="simple">
+<li><strong>Hypervisor</strong>: hypervisor uses UART device as the console in debug version for
+debug purpose, so the UART device is owned by hypervisor and is not visible
+to any VM. For now, UART is the only pci device could be owned by hypervisor.</li>
+<li><strong>Pre-launched VM</strong>: The passthrough devices will be used in a pre-launched VM is
+pre-defined in VM configuration. These passthrough devices are owned by the
+pre-launched VM after   the VM is created. These devices will not be removed
+from the pre-launched VM. There could be pre-launched VM(s) in logical partition
+mode and hybrid mode.</li>
+<li><strong>Service VM</strong>: All the passthrough devices except these described above (owned by
+hypervisor or pre-launched VM(s)) are assigned to Service VM. And some of these devices
+can be assigned to a post-launched VM according to the passthrough device list
+specified in the parameters of the ACRN DM.</li>
+<li><strong>Post-launched VM</strong>: A list of passthrough devices can be specified in the parameters of
+the ACRN DM. When creating a post-launched VM, these specified devices will be moved
+from Service VM domain to the post-launched VM domain. After the post-launched VM is
+powered-off, these devices will be moved back to Service VM domain.</li>
+</ul>
+</div>
+<div class="section" id="vt-d-dma-remapping">
+<h2>VT-d DMA Remapping<a class="headerlink" href="#vt-d-dma-remapping" title="Permalink to this headline">¶</a></h2>
 <p>To enable passthrough, for VM DMA access the VM can only
 support GPA, while physical DMA requires HPA. One work-around
 is building identity mapping so that GPA is equal to HPA, but this
 is not recommended as some VM don’t support relocation well. To
-address this issue, Intel introduces VT-d in chipset to add one
+address this issue, Intel introduces VT-d in the chipset to add one
 remapping engine to translate GPA to HPA for DMA operations.</p>
 <p>Each VT-d engine (DMAR Unit), maintains a remapping structure
 similar to a page table with device BDF (Bus/Dev/Func) as input and final
 page table for GPA/HPA translation as output. The GPA/HPA translation
 page table is similar to a normal multi-level page table.</p>
 <p>VM DMA depends on Intel VT-d to do the translation from GPA to HPA, so we
-need to enable VT-d IOMMU engine in ACRN before we can passthrough any device. SOS
+need to enable VT-d IOMMU engine in ACRN before we can passthrough any device. Service VM
 in ACRN is a VM running in non-root mode which also depends
-on VT-d to access a device. In SOS DMA remapping
+on VT-d to access a device. In Service VM DMA remapping
 engine settings, GPA is equal to HPA.</p>
 <p>ACRN hypervisor checks DMA-Remapping Hardware unit Definition (DRHD) in
 host DMAR ACPI table to get basic info, then sets up each DMAR unit. For
 simplicity, ACRN reuses EPT table as the translation table in DMAR
-unit for each passthrough device. The control flow is shown in the
-following figures:</p>
+unit for each passthrough device. The control flow of assigning and de-assigning
+a passthrough device to/from a post-launched VM is shown in the following figures:</p>
 <div class="figure align-center" id="id4">
-<img alt="../../_images/passthru-image72.png" src="../../_images/passthru-image72.png" />
-<p class="caption"><span class="caption-number">Figure 153 </span><span class="caption-text">DMA Remapping control flow during HV init</span></p>
+<img alt="../../_images/passthru-image86.png" src="../../_images/passthru-image86.png" />
+<p class="caption"><span class="caption-number">Figure 153 </span><span class="caption-text">ptdev assignment control flow</span></p>
 </div>
 <div class="figure align-center" id="id5">
-<img alt="../../_images/passthru-image86.png" src="../../_images/passthru-image86.png" />
-<p class="caption"><span class="caption-number">Figure 154 </span><span class="caption-text">ptdev assignment control flow</span></p>
-</div>
-<div class="figure align-center" id="id6">
 <img alt="../../_images/passthru-image42.png" src="../../_images/passthru-image42.png" />
-<p class="caption"><span class="caption-number">Figure 155 </span><span class="caption-text">ptdev de-assignment control flow</span></p>
+<p class="caption"><span class="caption-number">Figure 154 </span><span class="caption-text">ptdev de-assignment control flow</span></p>
 </div>
+</div>
+<div class="section" id="vt-d-interrupt-remapping">
+<h2>VT-d Interrupt-remapping<a class="headerlink" href="#vt-d-interrupt-remapping" title="Permalink to this headline">¶</a></h2>
+<p>The VT-d interrupt-remapping architecture enables system software to
+control and censor external interrupt requests generated by all sources
+including those from interrupt controllers (I/OxAPICs), MSI/MSI-X capable
+devices including endpoints, root-ports and Root-Complex integrated
+end-points.
+ACRN forces to enabled VT-d interrupt-remapping feature for security reasons.
+If the VT-d hardware doesn’t support interrupt-remapping, then ACRN will
+refuse to boot VMs.
+VT-d Interrupt-remapping is NOT related to the translation from physical
+interrupt to virtual interrupt or vice versa. The term VT-d interrupt-remapping
+remaps the interrupt index in the VT-d interrupt-remapping table to the physical
+interrupt vector after checking the external interrupt request is valid. Translation
+physical vector to virtual vector is still needed to be done by hypervisor, which is
+also described in the below section <a class="reference internal" href="#interrupt-remapping"><span class="std std-ref">Interrupt Remapping</span></a>.</p>
 </div>
 <div class="section" id="mmio-remapping">
 <h2>MMIO Remapping<a class="headerlink" href="#mmio-remapping" title="Permalink to this headline">¶</a></h2>
 <p>For PCI MMIO BAR, hypervisor builds EPT mapping between virtual BAR and
-physical BAR, then VM can access MMIO directly.</p>
+physical BAR, then VM can access MMIO directly.
+There is one exception, MSI-X table is also in a MMIO BAR. Hypervisor needs to trap the
+accesses to MSI-X table. So the page(s) having MSI-X table should not be accessed by guest
+directly. EPT mapping is not built for these pages having MSI-X table.</p>
 </div>
 <div class="section" id="device-configuration-emulation">
 <h2>Device configuration emulation<a class="headerlink" href="#device-configuration-emulation" title="Permalink to this headline">¶</a></h2>
 <p>PCI configuration is based on access of port 0xCF8/CFC. ACRN
 implements PCI configuration emulation to handle 0xCF8/CFC to control
-PCI device through two paths: implemented in hypervisor or in SOS device
+PCI device through two paths: implemented in hypervisor or in Service VM device
 model.</p>
 <ul class="simple">
 <li>When configuration emulation is in the hypervisor, the interception of
 0xCF8/CFC port and emulation of PCI configuration space access are
 tricky and unclean. Therefore the final solution is to reuse the
-PCI emulation infrastructure of SOS device model. The hypervisor
+PCI emulation infrastructure of Service VM device model. The hypervisor
 routes the UOS 0xCF8/CFC access to device model, and keeps blind to the
 physical PCI devices. Upon receiving UOS PCI configuration space access
 request, device model needs to emulate some critical space, for instance,
@@ -1115,6 +1158,23 @@ this, device model is linked with lib pci access to access physical PCI
 device.</li>
 </ul>
 </div>
+<div class="section" id="msi-x-table-emulation">
+<h2>MSI-X table emulation<a class="headerlink" href="#msi-x-table-emulation" title="Permalink to this headline">¶</a></h2>
+<p>VM accesses to MSI-X table should be trapped so that hypervisor has the
+information to map the virtual vector and physical vector. EPT mapping should
+be skipped for the 4KB pages having MSI-X table.</p>
+<p>There are three situations for the emulation of MSI-X table:</p>
+<ul class="simple">
+<li><strong>Service VM</strong>: accesses to MSI-X table are handled by HV MMIO handler (4KB adjusted up
+and down). HV will remap interrupts.</li>
+<li><strong>Post-launched VM</strong>: accesses to MSI-X Tables are handled by DM MMIO handler
+(4KB adjusted up and down) and when DM (Service VM) writes to the table, it will be
+intercepted by HV MMIO handler and HV will remap interrupts.</li>
+<li><strong>Pre-launched VM</strong>: Writes to MMIO region in MSI-X Table BAR handled by HV MMIO
+handler. If the offset falls within the MSI-X table (offset, offset+tables_size),
+HV remaps interrupts.</li>
+</ul>
+</div>
 <div class="section" id="interrupt-remapping">
 <span id="id1"></span><h2>Interrupt Remapping<a class="headerlink" href="#interrupt-remapping" title="Permalink to this headline">¶</a></h2>
 <p>When the physical interrupt of a passthrough device happens, hypervisor has
@@ -1122,36 +1182,36 @@ to distribute it to the relevant VM according to interrupt remapping
 relationships. The structure <code class="docutils literal notranslate"><span class="pre">ptirq_remapping_info</span></code> is used to define
 the subordination relation between physical interrupt and VM, the
 virtual destination, etc. See the following figure for details:</p>
-<div class="figure align-center" id="id7">
+<div class="figure align-center" id="id6">
 <img alt="../../_images/passthru-image91.png" src="../../_images/passthru-image91.png" />
-<p class="caption"><span class="caption-number">Figure 156 </span><span class="caption-text">Remapping of physical interrupts</span></p>
+<p class="caption"><span class="caption-number">Figure 155 </span><span class="caption-text">Remapping of physical interrupts</span></p>
 </div>
 <p>There are two different types of interrupt source: IOAPIC and MSI.
 The hypervisor will record different information for interrupt
 distribution: physical and virtual IOAPIC pin for IOAPIC source,
 physical and virtual BDF and other info for MSI source.</p>
-<p>SOS passthrough is also in the scope of interrupt remapping which is
+<p>Service VM passthrough is also in the scope of interrupt remapping which is
 done on-demand rather than on hypervisor initialization.</p>
 <div class="figure align-center" id="init-remapping">
 <img alt="../../_images/passthru-image102.png" src="../../_images/passthru-image102.png" />
-<p class="caption"><span class="caption-number">Figure 157 </span><span class="caption-text">Initialization of remapping of virtual IOAPIC interrupts for SOS</span></p>
+<p class="caption"><span class="caption-number">Figure 156 </span><span class="caption-text">Initialization of remapping of virtual IOAPIC interrupts for Service VM</span></p>
 </div>
-<p><a class="reference internal" href="#init-remapping"><span class="std std-numref">Figure 157</span></a> above illustrates how remapping of (virtual) IOAPIC
-interrupts are remapped for SOS. VM exit occurs whenever SOS tries to
+<p><a class="reference internal" href="#init-remapping"><span class="std std-numref">Figure 156</span></a> above illustrates how remapping of (virtual) IOAPIC
+interrupts are remapped for Service VM. VM exit occurs whenever Service VM tries to
 unmask an interrupt in (virtual) IOAPIC by writing to the Redirection
 Table Entry (or RTE). The hypervisor then invokes the IOAPIC emulation
 handler (refer to <a class="reference internal" href="hv-io-emulation.html#hld-io-emulation"><span class="std std-ref">I/O Emulation high-level design</span></a> for details on I/O emulation) which
 calls APIs to set up a remapping for the to-be-unmasked interrupt.</p>
 <p>Remapping of (virtual) PIC interrupts are set up in a similar sequence:</p>
-<div class="figure align-center" id="id8">
+<div class="figure align-center" id="id7">
 <img alt="../../_images/passthru-image98.png" src="../../_images/passthru-image98.png" />
-<p class="caption"><span class="caption-number">Figure 158 </span><span class="caption-text">Initialization of remapping of virtual MSI for SOS</span></p>
+<p class="caption"><span class="caption-number">Figure 157 </span><span class="caption-text">Initialization of remapping of virtual MSI for Service VM</span></p>
 </div>
 <p>This figure  illustrates how mappings of MSI or MSIX are set up for
-SOS. SOS is responsible for issuing an hypercall to notify the
+Service VM. Service VM is responsible for issuing a hypercall to notify the
 hypervisor before it configures the PCI configuration space to enable an
 MSI. The hypervisor takes this opportunity to set up a remapping for the
-given MSI or MSIX before it is actually enabled by SOS.</p>
+given MSI or MSIX before it is actually enabled by Service VM.</p>
 <p>When the UOS needs to access the physical device by passthrough, it uses
 the following steps:</p>
 <ul class="simple">
@@ -1162,15 +1222,15 @@ will be injected.</li>
 according to ptirq_remapping_info.</li>
 <li>Hypervisor delivers the interrupt to UOS.</li>
 </ul>
-<p>When the SOS needs to use the physical device, the passthrough is also
-active because the SOS is the first VM. The detail steps are:</p>
+<p>When the Service VM needs to use the physical device, the passthrough is also
+active because the Service VM is the first VM. The detail steps are:</p>
 <ul class="simple">
-<li>SOS get all physical interrupts. It assigns different interrupts for
+<li>Service VM get all physical interrupts. It assigns different interrupts for
 different VMs during initialization and reassign when a VM is created or
 deleted.</li>
 <li>When physical interrupt is trapped, an exception will happen after VMCS
 has been set.</li>
-<li>Hypervisor will handle the vm exit issue according to
+<li>Hypervisor will handle the VM exit issue according to
 ptirq_remapping_info and translates the vector.</li>
 <li>The interrupt will be injected the same as a virtual interrupt.</li>
 </ul>
@@ -1180,33 +1240,41 @@ ptirq_remapping_info and translates the vector.</li>
 <p>ACPI virtualization is designed in ACRN with these assumptions:</p>
 <ul class="simple">
 <li>HV has no knowledge of ACPI,</li>
-<li>SOS owns all physical ACPI resources,</li>
+<li>Service VM owns all physical ACPI resources,</li>
 <li>UOS sees virtual ACPI resources emulated by device model.</li>
 </ul>
 <p>Some passthrough devices require physical ACPI table entry for
 initialization. The device model will create such device entry based on
 the physical one according to vendor ID and device ID. Virtualization is
-implemented in SOS device model and not in scope of the hypervisor.</p>
+implemented in Service VM device model and not in scope of the hypervisor.
+For pre-launched VM, ACRN hypervisor doesn’t support the ACPI virtualization,
+so devices relying on ACPI table are not supported.</p>
 </div>
 <div class="section" id="gsi-sharing-violation-check">
 <h2>GSI Sharing Violation Check<a class="headerlink" href="#gsi-sharing-violation-check" title="Permalink to this headline">¶</a></h2>
 <p>All the PCI devices that are sharing the same GSI should be assigned to
-the same VM to avoid physical GSI sharing between multiple VMs. For
-devices that don’t support MSI, ACRN DM
-shares the same GSI pin to a GSI
+the same VM to avoid physical GSI sharing between multiple VMs.
+In logical partition mode or hybrid mode, the PCI devices assigned to
+pre-launched VM is statically pre-defined. Developers should take care not to
+violate the rule.
+For post-launched VM, devices that don’t support MSI, ACRN DM puts the devices
+sharing the same GSI pin to a GSI
 sharing group. The devices in the same group should be assigned together to
 the current VM, otherwise, none of them should be assigned to the
 current VM. A device that violates the rule will be rejected to be
-passthrough. The checking logic is implemented in Device Mode and not
-in scope of hypervisor.</p>
+passed-through. The checking logic is implemented in Device Model and not
+in scope of hypervisor.
+The platform GSI information is in devicemodel/hw/pci/platform_gsi_info.c
+for limited platform (currently, only APL MRB). For other platforms, the platform
+specific GSI information should be added to activate the checking of GSI sharing violation.</p>
 </div>
 <div class="section" id="data-structures-and-interfaces">
 <h2>Data structures and interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
-<p>The following APIs are provided to initialize interrupt remapping for
-SOS:</p>
+<p>The following APIs are common APIs provided to initialize interrupt remapping for
+VMs:</p>
 <dl class="function">
-<dt id="_CPPv320ptirq_intx_pin_remapP7acrn_vm8uint32_t8uint32_t">
-<span id="_CPPv220ptirq_intx_pin_remapP7acrn_vm8uint32_t8uint32_t"></span><span id="ptirq_intx_pin_remap__acrn_vmP.uint32_t.uint32_t"></span><span class="target" id="group__acrn__passthrough_ga5c40c117b865412397f5eddd26f8435f_1ga5c40c117b865412397f5eddd26f8435f"></span>int32_t <code class="descname">ptirq_intx_pin_remap</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint32_t <em>virt_pin</em>, uint32_t <em>vpin_src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320ptirq_intx_pin_remapP7acrn_vm8uint32_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv320ptirq_intx_pin_remapP7acrn_vm8uint32_t9intx_ctlr">
+<span id="_CPPv220ptirq_intx_pin_remapP7acrn_vm8uint32_t9intx_ctlr"></span><span id="ptirq_intx_pin_remap__acrn_vmP.uint32_t.intx_ctlr"></span><span class="target" id="group__acrn__passthrough_ga08065a66c5b0d2a19b4ab4f7123b39b5_1ga08065a66c5b0d2a19b4ab4f7123b39b5"></span>int32_t <code class="descname">ptirq_intx_pin_remap</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint32_t <em>virt_pin</em>, <em class="property">enum</em> intx_ctlr <em>vpin_ctlr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320ptirq_intx_pin_remapP7acrn_vm8uint32_t9intx_ctlr" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>INTx remapping for passthrough device. </p>
 <p>Set up the remapping of the given virtual pin for the given vm. This is the main entry for PCI/Legacy device assignment with INTx, calling from vIOAPIC or vPIC.</p>
 <p><dl class="docutils">
@@ -1226,7 +1294,7 @@ SOS:</p>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
 <li><code class="docutils literal notranslate"><span class="pre">virt_pin</span></code>: virtual pin number associated with the passthrough device </li>
-<li><code class="docutils literal notranslate"><span class="pre">vpin_src</span></code>: ioapic or pic</li>
+<li><code class="docutils literal notranslate"><span class="pre">vpin_ctlr</span></code>: INTX_CTLR_IOAPIC or INTX_CTLR_PIC</li>
 </ul>
 </dd>
 </dl>
@@ -1266,8 +1334,9 @@ SOS:</p>
 </p>
 </dd></dl>
 
-<p>The following APIs are provided to manipulate the interrupt remapping
-for UOS.</p>
+<p>Post-launched VM needs to pre-allocate interrupt entries during VM initialization.
+Post-launched VM needs to free interrupt entries during VM de-initialization.
+The following APIs are provided to pre-allocate/free interrupt entries for post-launched VM:</p>
 <dl class="function">
 <dt id="_CPPv324ptirq_add_intx_remappingP7acrn_vm8uint32_t8uint32_tb">
 <span id="_CPPv224ptirq_add_intx_remappingP7acrn_vm8uint32_t8uint32_tb"></span><span id="ptirq_add_intx_remapping__acrn_vmP.uint32_t.uint32_t.b"></span><span class="target" id="group__acrn__passthrough_gab0ffc44d04383ef31c27cdaaafb2c4e7_1gab0ffc44d04383ef31c27cdaaafb2c4e7"></span>int32_t <code class="descname">ptirq_add_intx_remapping</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint32_t <em>virt_pin</em>, uint32_t <em>phys_pin</em>, bool <em>pic_pin</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv324ptirq_add_intx_remappingP7acrn_vm8uint32_t8uint32_tb" title="Permalink to this definition">¶</a><br /></dt>
@@ -1317,32 +1386,6 @@ for UOS.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="_CPPv324ptirq_add_msix_remappingP7acrn_vm8uint16_t8uint16_t8uint32_t">
-<span id="_CPPv224ptirq_add_msix_remappingP7acrn_vm8uint16_t8uint16_t8uint32_t"></span><span id="ptirq_add_msix_remapping__acrn_vmP.uint16_t.uint16_t.uint32_t"></span><span class="target" id="group__acrn__passthrough_ga7f5ff149e93ccc7e7049d8a7a77cc9c2_1ga7f5ff149e93ccc7e7049d8a7a77cc9c2"></span>int32_t <code class="descname">ptirq_add_msix_remapping</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint16_t <em>virt_bdf</em>, uint16_t <em>phys_bdf</em>, uint32_t <em>vector_count</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv324ptirq_add_msix_remappingP7acrn_vm8uint16_t8uint16_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Add interrupt remapping entry/entries for MSI/MSI-x as pre-hold mapping. </p>
-<p>Add pre-hold mapping of the given number of vectors between the given physical and virtual BDF for the given vm. Except sos_vm, Device Model should call this function to pre-hold ptdev MSI/MSI-x. The entry is identified by phys_bdf:msi_idx, one entry vs. one phys_bdf:msi_idx.</p>
-<p><dl class="docutils">
-<dt><strong>Return</strong></dt>
-<dd><ul class="simple">
-<li>0: on success</li>
-<li><code class="docutils literal notranslate"><span class="pre">-ENODEV</span></code>: failed to add the remapping entry</li>
-</ul>
-</dd>
-<dt><strong>Preconditions</strong></dt>
-<dd>vm != NULL </dd>
-<dt><strong>Parameters</strong></dt>
-<dd><ul class="breatheparameterlist first last simple">
-<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
-<li><code class="docutils literal notranslate"><span class="pre">virt_bdf</span></code>: virtual bdf associated with the passthrough device </li>
-<li><code class="docutils literal notranslate"><span class="pre">phys_bdf</span></code>: physical bdf associated with the passthrough device </li>
-<li><code class="docutils literal notranslate"><span class="pre">vector_count</span></code>: number of vectors</li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="_CPPv327ptirq_remove_msix_remappingPK7acrn_vm8uint16_t8uint32_t">
 <span id="_CPPv227ptirq_remove_msix_remappingPK7acrn_vm8uint16_t8uint32_t"></span><span id="ptirq_remove_msix_remapping__acrn_vmCP.uint16_t.uint32_t"></span><span class="target" id="group__acrn__passthrough_gaeb4fc26037f126cad9fb873541996c46_1gaeb4fc26037f126cad9fb873541996c46"></span>void <code class="descname">ptirq_remove_msix_remapping</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> acrn_vm *<em>vm</em>, uint16_t <em>virt_bdf</em>, uint32_t <em>vector_count</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv327ptirq_remove_msix_remappingPK7acrn_vm8uint16_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Remove interrupt remapping entry/entries for MSI/MSI-x. </p>
@@ -1365,8 +1408,8 @@ for UOS.</p>
 
 <p>The following APIs are provided to acknowledge a virtual interrupt.</p>
 <dl class="function">
-<dt id="_CPPv314ptirq_intx_ackP7acrn_vm8uint32_t8uint32_t">
-<span id="_CPPv214ptirq_intx_ackP7acrn_vm8uint32_t8uint32_t"></span><span id="ptirq_intx_ack__acrn_vmP.uint32_t.uint32_t"></span><span class="target" id="group__acrn__passthrough_gad4d0cc767fdb4ae7deb789cc75d4e80e_1gad4d0cc767fdb4ae7deb789cc75d4e80e"></span>void <code class="descname">ptirq_intx_ack</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint32_t <em>virt_pin</em>, uint32_t <em>vpin_src</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314ptirq_intx_ackP7acrn_vm8uint32_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dt id="_CPPv314ptirq_intx_ackP7acrn_vm8uint32_t9intx_ctlr">
+<span id="_CPPv214ptirq_intx_ackP7acrn_vm8uint32_t9intx_ctlr"></span><span id="ptirq_intx_ack__acrn_vmP.uint32_t.intx_ctlr"></span><span class="target" id="group__acrn__passthrough_gafa29a9da498a19589f05fafeb89a08e3_1gafa29a9da498a19589f05fafeb89a08e3"></span>void <code class="descname">ptirq_intx_ack</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint32_t <em>virt_pin</em>, <em class="property">enum</em> intx_ctlr <em>vpin_ctlr</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv314ptirq_intx_ackP7acrn_vm8uint32_t9intx_ctlr" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Acknowledge a virtual interrupt for passthrough device. </p>
 <p>Acknowledge a virtual legacy interrupt for a passthrough device.</p>
 <p><dl class="docutils">
@@ -1378,7 +1421,166 @@ for UOS.</p>
 <dd><ul class="breatheparameterlist first last simple">
 <li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: pointer to acrn_vm </li>
 <li><code class="docutils literal notranslate"><span class="pre">virt_pin</span></code>: virtual pin number associated with the passthrough device </li>
-<li><code class="docutils literal notranslate"><span class="pre">vpin_src</span></code>: ioapic or pic</li>
+<li><code class="docutils literal notranslate"><span class="pre">vpin_ctlr</span></code>: INTX_CTLR_IOAPIC or INTX_CTLR_PIC</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<p>The following APIs are provided to handle ptdev interrupt:</p>
+<dl class="function">
+<dt id="_CPPv310ptdev_initv">
+<span id="_CPPv210ptdev_initv"></span><span id="ptdev_init__void"></span><span class="target" id="group__acrn__passthrough_ga17303a9f08f5090e75d4fbafb2ced67a_1ga17303a9f08f5090e75d4fbafb2ced67a"></span>void <code class="descname">ptdev_init</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#_CPPv310ptdev_initv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Passthrough device global data structure initialization. </p>
+<p>During the hypervisor cpu initialization stage, this function:<ul class="simple">
+<li>init global spinlock for ptdev (on BSP)</li>
+<li>register SOFTIRQ_PTDEV handler (on BSP)</li>
+<li>init the softirq entry list for each CPU </li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv313ptirq_softirq8uint16_t">
+<span id="_CPPv213ptirq_softirq8uint16_t"></span><span id="ptirq_softirq__uint16_t"></span><span class="target" id="group__acrn__passthrough_gaefcabcb82488fce2a18f6b5ab9dacd2c_1gaefcabcb82488fce2a18f6b5ab9dacd2c"></span>void <code class="descname">ptirq_softirq</code><span class="sig-paren">(</span>uint16_t <em>pcpu_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv313ptirq_softirq8uint16_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Handler of softirq for passthrough device. </p>
+<p>When hypervisor receive a physical interrupt from passthrough device, it will enqueue a ptirq entry and raise softirq SOFTIRQ_PTDEV. This function is the handler of the softirq, it handles the interrupt and injects the virtual into VM. The handler is registered by calling <a class="reference internal" href="#group__acrn__passthrough_ga17303a9f08f5090e75d4fbafb2ced67a_1ga17303a9f08f5090e75d4fbafb2ced67a"><span class="std std-ref">ptdev_init</span></a> during hypervisor initialization.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">pcpu_id</span></code>: physical cpu id of the soft irq </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv317ptirq_alloc_entryP7acrn_vm8uint32_t">
+<span id="_CPPv217ptirq_alloc_entryP7acrn_vm8uint32_t"></span><span id="ptirq_alloc_entry__acrn_vmP.uint32_t"></span><span class="target" id="group__acrn__passthrough_ga4aa69d188bfee801e4f26f1611bc7b54_1ga4aa69d188bfee801e4f26f1611bc7b54"></span><em class="property">struct</em> ptirq_remapping_info *<code class="descname">ptirq_alloc_entry</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint32_t <em>intr_type</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv317ptirq_alloc_entryP7acrn_vm8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Allocate a ptirq_remapping_info entry. </p>
+<p>Allocate a ptirq_remapping_info entry for hypervisor to store the remapping information. The total number of the entries is statically defined as CONFIG_MAX_PT_IRQ_ENTRIES. Appropriate number should be configured on different platforms.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: acrn_vm that the entry allocated for. </li>
+<li><code class="docutils literal notranslate"><span class="pre">intr_type</span></code>: interrupt type: PTDEV_INTR_MSI or PTDEV_INTR_INTX</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">NULL</span></code>: when <code class="docutils literal notranslate"><span class="pre">the</span></code> number of entries allocated is CONFIG_MAX_PT_IRQ_ENTRIES </li>
+<li><code class="docutils literal notranslate"><span class="pre">!NULL</span></code>: when <code class="docutils literal notranslate"><span class="pre">the</span></code> number of entries allocated is less than CONFIG_MAX_PT_IRQ_ENTRIES </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv319ptirq_release_entryP20ptirq_remapping_info">
+<span id="_CPPv219ptirq_release_entryP20ptirq_remapping_info"></span><span id="ptirq_release_entry__ptirq_remapping_infoP"></span><span class="target" id="group__acrn__passthrough_ga7431bb466468ae111721e6bac26b2870_1ga7431bb466468ae111721e6bac26b2870"></span>void <code class="descname">ptirq_release_entry</code><span class="sig-paren">(</span><em class="property">struct</em> ptirq_remapping_info *<em>entry</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319ptirq_release_entryP20ptirq_remapping_info" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Release a ptirq_remapping_info entry. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">entry</span></code>: the ptirq_remapping_info entry to release. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv325ptdev_release_all_entriesPK7acrn_vm">
+<span id="_CPPv225ptdev_release_all_entriesPK7acrn_vm"></span><span id="ptdev_release_all_entries__acrn_vmCP"></span><span class="target" id="group__acrn__passthrough_gac1a6ffabb25ac055ecb91d5e3d48b9e4_1gac1a6ffabb25ac055ecb91d5e3d48b9e4"></span>void <code class="descname">ptdev_release_all_entries</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> acrn_vm *<em>vm</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv325ptdev_release_all_entriesPK7acrn_vm" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Deactivate and release all ptirq entries for a VM. </p>
+<p>This function deactivates and releases all ptirq entries for a VM. The function should only be called after the VM is already down.</p>
+<p><dl class="docutils">
+<dt><strong>Preconditions</strong></dt>
+<dd>VM is already down </dd>
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">vm</span></code>: acrn_vm on which the ptirq entries will be released</li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv320ptirq_activate_entryP20ptirq_remapping_info8uint32_t">
+<span id="_CPPv220ptirq_activate_entryP20ptirq_remapping_info8uint32_t"></span><span id="ptirq_activate_entry__ptirq_remapping_infoP.uint32_t"></span><span class="target" id="group__acrn__passthrough_gaf47f3d6caec01ed87bba0b3b7b2bc729_1gaf47f3d6caec01ed87bba0b3b7b2bc729"></span>int32_t <code class="descname">ptirq_activate_entry</code><span class="sig-paren">(</span><em class="property">struct</em> ptirq_remapping_info *<em>entry</em>, uint32_t <em>phys_irq</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv320ptirq_activate_entryP20ptirq_remapping_info8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Activate a irq for the associated passthrough device. </p>
+<p>After activating the ptirq entry, the physical interrupt irq of passthrough device will be handled by the handler ptirq_interrupt_handler.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">entry</span></code>: the ptirq_remapping_info entry that will be associated with the physical irq. </li>
+<li><code class="docutils literal notranslate"><span class="pre">phys_irq</span></code>: physical interrupt irq for the entry</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">success</span></code>: when <code class="docutils literal notranslate"><span class="pre">return</span></code> value &gt;=0 </li>
+<li><code class="docutils literal notranslate"><span class="pre">success</span></code>: when <code class="docutils literal notranslate"><span class="pre">return</span></code> &lt;0 </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv322ptirq_deactivate_entryP20ptirq_remapping_info">
+<span id="_CPPv222ptirq_deactivate_entryP20ptirq_remapping_info"></span><span id="ptirq_deactivate_entry__ptirq_remapping_infoP"></span><span class="target" id="group__acrn__passthrough_ga2af2abdb38dac5c73d3b4158ee302bbe_1ga2af2abdb38dac5c73d3b4158ee302bbe"></span>void <code class="descname">ptirq_deactivate_entry</code><span class="sig-paren">(</span><em class="property">struct</em> ptirq_remapping_info *<em>entry</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv322ptirq_deactivate_entryP20ptirq_remapping_info" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>De-activate a irq for the associated passthrough device. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">entry</span></code>: the ptirq_remapping_info entry that will be de-activated. </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv321ptirq_dequeue_softirq8uint16_t">
+<span id="_CPPv221ptirq_dequeue_softirq8uint16_t"></span><span id="ptirq_dequeue_softirq__uint16_t"></span><span class="target" id="group__acrn__passthrough_gaf6878738c1ab8a47232b05fd05d7f61b_1gaf6878738c1ab8a47232b05fd05d7f61b"></span><em class="property">struct</em> ptirq_remapping_info *<code class="descname">ptirq_dequeue_softirq</code><span class="sig-paren">(</span>uint16_t <em>pcpu_id</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv321ptirq_dequeue_softirq8uint16_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Dequeue an entry from per cpu ptdev softirq queue. </p>
+<p>Dequeue an entry from the ptdev softirq queue on the specific physical cpu.</p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">pcpu_id</span></code>: physical cpu id</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">NULL</span></code>: when <code class="docutils literal notranslate"><span class="pre">when</span></code> the queue is empty </li>
+<li><code class="docutils literal notranslate"><span class="pre">!NULL</span></code>: when <code class="docutils literal notranslate"><span class="pre">there</span></code> is available ptirq_remapping_info entry in the queue </li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="_CPPv319ptirq_get_intr_dataPK7acrn_vmP8uint64_t8uint32_t">
+<span id="_CPPv219ptirq_get_intr_dataPK7acrn_vmP8uint64_t8uint32_t"></span><span id="ptirq_get_intr_data__acrn_vmCP.uint64_tP.uint32_t"></span><span class="target" id="group__acrn__passthrough_gad6dce35a7aa78b0a2e02fae7f3594cfd_1gad6dce35a7aa78b0a2e02fae7f3594cfd"></span>uint32_t <code class="descname">ptirq_get_intr_data</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> acrn_vm *<em>target_vm</em>, uint64_t *<em>buffer</em>, uint32_t <em>buffer_cnt</em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv319ptirq_get_intr_dataPK7acrn_vmP8uint64_t8uint32_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the interrupt information and store to the buffer provided. </p>
+<p><dl class="docutils">
+<dt><strong>Parameters</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">target_vm</span></code>: the VM to get the interrupt information. </li>
+<li><code class="docutils literal notranslate"><span class="pre">buffer</span></code>: the buffer to interrupt information stored to. </li>
+<li><code class="docutils literal notranslate"><span class="pre">buffer_cnt</span></code>: the size of the buffer.</li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt>
+<dd><ul class="breatheparameterlist first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">the</span></code>: actual size the buffer filled with the interrupt information </li>
 </ul>
 </dd>
 </dl>
@@ -1400,8 +1602,8 @@ for UOS.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Project ACRN.
-      Last updated on Feb 18, 2020.
+        &copy; Copyright 2020, Project ACRN.
+      Last updated on Mar 11, 2020.
 
     </p>
   </div> 
