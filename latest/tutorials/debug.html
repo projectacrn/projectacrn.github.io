@@ -32,7 +32,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Real-Time (RT) Performance Analysis on ACRN" href="realtime_performance_tuning.html" />
-    <link rel="prev" title="ACRN CPU Sharing" href="cpu_sharing.html" /> 
+    <link rel="prev" title="SR-IOV Virtualization" href="sriov_virtualization.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -460,6 +460,19 @@
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#scheduler">Scheduler</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#scheduler-configuration">Scheduler configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sriov_virtualization.html">SR-IOV Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-extended-capability">SR-IOV Extended Capability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-architecture-in-acrn">SR-IOV Architecture In ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-passthrough-vf-architecture-in-acrn">SR-IOV Passthrough VF Architecture In ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-initialization-flow">SR-IOV Initialization Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-vf-enable-flow">SR-IOV VF Enable Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-vf-disable-flow">SR-IOV VF Disable Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-vf-assignment-policy">SR-IOV VF Assignment Policy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-usage-guide-in-acrn">SR-IOV Usage Guide In ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-limitations-in-acrn">SR-IOV Limitations In ACRN</a></li>
 </ul>
 </li>
 </ul>
@@ -993,19 +1006,19 @@ following command in the SOS console:</p>
 </div>
 <div class="figure align-center" id="id1">
 <img alt="../_images/debug_image19.png" src="../_images/debug_image19.png" />
-<p class="caption"><span class="caption-number">Figure 80 </span><span class="caption-text">USB controller BDF information</span></p>
+<p class="caption"><span class="caption-number">Figure 92 </span><span class="caption-text">USB controller BDF information</span></p>
 </div>
 <p>Second, we use the <code class="docutils literal notranslate"><span class="pre">pt</span></code> command in the ACRN console, and use this BDF number
 to find the interrupt vector (VEC) “0x31”.</p>
 <div class="figure align-center" id="id2">
 <img alt="../_images/debug_image20.png" src="../_images/debug_image20.png" />
-<p class="caption"><span class="caption-number">Figure 81 </span><span class="caption-text">USB controller interrupt information</span></p>
+<p class="caption"><span class="caption-number">Figure 93 </span><span class="caption-text">USB controller interrupt information</span></p>
 </div>
 <p>Finally we use the <code class="docutils literal notranslate"><span class="pre">int</span></code> command in the ACRN console, and use this
 interrupt vector to find the interrupt number (909) on CPU3.</p>
 <div class="figure align-center" id="id3">
 <img alt="../_images/debug_image21.png" src="../_images/debug_image21.png" />
-<p class="caption"><span class="caption-number">Figure 82 </span><span class="caption-text">USB controller interrupt number information</span></p>
+<p class="caption"><span class="caption-number">Figure 94 </span><span class="caption-text">USB controller interrupt number information</span></p>
 </div>
 </div>
 <div class="section" id="acrn-log">
@@ -1041,7 +1054,7 @@ noted above.  For example, add the following code into function
 <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/hypervisor/debug/shell.c</span></code>:</p>
 <div class="figure align-center" id="id4">
 <img alt="../_images/debug_image22.png" src="../_images/debug_image22.png" />
-<p class="caption"><span class="caption-number">Figure 83 </span><span class="caption-text">shell_cmd_help added information</span></p>
+<p class="caption"><span class="caption-number">Figure 95 </span><span class="caption-text">shell_cmd_help added information</span></p>
 </div>
 <p>Once you have instrumented the code, you need to rebuild the hypervisor and
 install it on your platform. Refer to <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a> and
@@ -1055,7 +1068,7 @@ command:</p>
 just instrumented with additional log information), and check the log as follows.</p>
 <div class="figure align-center" id="id5">
 <img alt="../_images/debug_image23.png" src="../_images/debug_image23.png" />
-<p class="caption"><span class="caption-number">Figure 84 </span><span class="caption-text">console log information</span></p>
+<p class="caption"><span class="caption-number">Figure 96 </span><span class="caption-text">console log information</span></p>
 </div>
 <p>Then we use the command, on the ACRN console:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vm_console</span>
@@ -1068,7 +1081,7 @@ just instrumented with additional log information), and check the log as follows
 <p>and we will see the following log:</p>
 <div class="figure align-center" id="id6">
 <img alt="../_images/debug_image24.png" src="../_images/debug_image24.png" />
-<p class="caption"><span class="caption-number">Figure 85 </span><span class="caption-text">mem log information</span></p>
+<p class="caption"><span class="caption-number">Figure 97 </span><span class="caption-text">mem log information</span></p>
 </div>
 </div>
 </div>
@@ -1107,7 +1120,7 @@ of the trace files produced by <code class="docutils literal notranslate"><span 
 </div>
 <div class="figure align-center" id="id7">
 <img alt="../_images/debug_image28.png" src="../_images/debug_image28.png" />
-<p class="caption"><span class="caption-number">Figure 86 </span><span class="caption-text">vmexit summary information</span></p>
+<p class="caption"><span class="caption-number">Figure 98 </span><span class="caption-text">vmexit summary information</span></p>
 </div>
 </li>
 </ol>
@@ -1121,14 +1134,14 @@ shown in the following example:</p>
 <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/hypervisor/include/debug/trace.h</span></code>:</p>
 <div class="figure align-center" id="id8">
 <img alt="../_images/debug_image25.png" src="../_images/debug_image25.png" />
-<p class="caption"><span class="caption-number">Figure 87 </span><span class="caption-text">trace event id</span></p>
+<p class="caption"><span class="caption-number">Figure 99 </span><span class="caption-text">trace event id</span></p>
 </div>
 </li>
 <li><p class="first">Add the following format to
 <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/misc/tools/acrntrace/scripts/formats</span></code>:</p>
 <div class="figure align-center" id="id9">
 <img alt="../_images/debug_image1.png" src="../_images/debug_image1.png" />
-<p class="caption"><span class="caption-number">Figure 88 </span><span class="caption-text">acrntrace formatted information</span></p>
+<p class="caption"><span class="caption-number">Figure 100 </span><span class="caption-text">acrntrace formatted information</span></p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1148,7 +1161,7 @@ shown in the following example:</p>
 trace for the calling times of function <code class="docutils literal notranslate"><span class="pre">emulate_io</span></code>:</p>
 <div class="figure align-center" id="id10">
 <img alt="../_images/debug_image2.png" src="../_images/debug_image2.png" />
-<p class="caption"><span class="caption-number">Figure 89 </span><span class="caption-text">inserted trace information</span></p>
+<p class="caption"><span class="caption-number">Figure 101 </span><span class="caption-text">inserted trace information</span></p>
 </div>
 </li>
 <li><p class="first">After we have inserted the trace code addition, we need to rebuild
@@ -1163,7 +1176,7 @@ to generate acrntrace data into the current directory:</p>
 </div>
 <div class="figure align-center" id="id11">
 <img alt="../_images/debug_image3.png" src="../_images/debug_image3.png" />
-<p class="caption"><span class="caption-number">Figure 90 </span><span class="caption-text">trace collection</span></p>
+<p class="caption"><span class="caption-number">Figure 102 </span><span class="caption-text">trace collection</span></p>
 </div>
 </li>
 <li><p class="first">Run the console command:</p>
@@ -1180,7 +1193,7 @@ of the trace files produced by <code class="docutils literal notranslate"><span 
 <p>and we will get the following log:</p>
 <div class="figure align-center" id="id12">
 <img alt="../_images/debug_image4.png" src="../_images/debug_image4.png" />
-<p class="caption"><span class="caption-number">Figure 91 </span><span class="caption-text">trace collection</span></p>
+<p class="caption"><span class="caption-number">Figure 103 </span><span class="caption-text">trace collection</span></p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1207,7 +1220,7 @@ CPU to analyze its trace.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on Mar 17, 2020.
+      Last updated on Mar 18, 2020.
 
     </p>
   </div> 
