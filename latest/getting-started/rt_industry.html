@@ -1175,9 +1175,13 @@ Boot000E* UEFI : INTEL SSDPEKKW256G8 : PART 0 : OS Bootloader     PciRoot(0x0)/P
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>Ensure that ACRN is first in the boot order, or you may use <code class="docutils literal notranslate"><span class="pre">efibootmgr</span> <span class="pre">-o</span> <span class="pre">1</span></code> command to move it
-to the first position. If you need to enable the serial port, run the following command before rebooting:</p>
-<p class="last"><code class="docutils literal notranslate"><span class="pre">efibootmgr</span> <span class="pre">-c</span> <span class="pre">-l</span> <span class="pre">'\EFI\acrn\acrn.efi'</span> <span class="pre">-d</span> <span class="pre">/dev/sda</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-L</span> <span class="pre">ACRN</span> <span class="pre">-u</span> <span class="pre">&quot;uart=port&#64;0x3f8&quot;</span></code></p>
+<p>Ensure that ACRN is first in the boot order, or you may use the
+<code class="docutils literal notranslate"><span class="pre">efibootmgr</span> <span class="pre">-o</span> <span class="pre">1</span></code> command to move it to the first position. If you need to enable the serial port, run the following command before rebooting:</p>
+<p><code class="docutils literal notranslate"><span class="pre">efibootmgr</span> <span class="pre">-c</span> <span class="pre">-l</span> <span class="pre">'\EFI\acrn\acrn.efi'</span> <span class="pre">-d</span> <span class="pre">/dev/sda</span> <span class="pre">-p</span> <span class="pre">1</span> <span class="pre">-L</span> <span class="pre">ACRN</span> <span class="pre">-u</span> <span class="pre">&quot;uart=port&#64;0x3f8</span> <span class="pre">&quot;</span></code></p>
+<p class="last">Note the extra space at the end of the EFI command-line options
+string. This is a workaround for a current <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/issues/4520">efi-stub bootloader name
+issue</a>.
+It ensures that the end of the string is properly detected.</p>
 </div>
 </li>
 <li><p class="first">Reboot KBL NUC.</p>
@@ -1219,12 +1223,19 @@ to the first position. If you need to enable the serial port, run the following 
 </div>
 </li>
 <li><p class="first">Configure the EFI firmware to boot the ACRN hypervisor by default:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/sda -p 1 -L &quot;ACRN&quot; -u &quot;uart=disabled&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/sda -p 1 -L &quot;ACRN&quot; -u &quot;uart=disabled &quot;</span>
 </pre></div>
 </div>
 <p>Or use the following command to enable the serial port:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/sda -p 1 -L &quot;ACRN&quot; -u &quot;uart=port@0x3f8&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/sda -p 1 -L &quot;ACRN&quot; -u &quot;uart=port@0x3f8 &quot;</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Note the extra space at the end of the EFI command-line options
+strings above. This is a workaround for a current <a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/issues/4520">efi-stub bootloader
+name issue</a>.
+It ensures that the end of the string is properly detected.</p>
 </div>
 </li>
 <li><p class="first">Reboot the test machine. After the Clear Linux OS boots,
@@ -1570,11 +1581,11 @@ this, follow the below steps to allocate all housekeeping tasks to core 0:</p>
 expose with a serial DB9 header cable. You can build this cable yourself;
 refer to the <a class="reference external" href="https://www.intel.com/content/dam/support/us/en/documents/mini-pcs/nuc-kits/NUC7i7DN_TechProdSpec.pdf">KBL NUC product specification</a>
 as shown below:</p>
-<div class="figure" id="id6">
+<div class="figure" id="id7">
 <a class="reference internal image-reference" href="../_images/KBL-serial-port-header.png"><img alt="../_images/KBL-serial-port-header.png" src="../_images/KBL-serial-port-header.png" style="width: 1018.4000000000001px; height: 508.8px;" /></a>
 <p class="caption"><span class="caption-number">Figure 21 </span><span class="caption-text">KBL serial port header details</span></p>
 </div>
-<div class="figure" id="id7">
+<div class="figure" id="id8">
 <a class="reference internal image-reference" href="../_images/KBL-serial-port-header-to-RS232-cable.jpg"><img alt="../_images/KBL-serial-port-header-to-RS232-cable.jpg" src="../_images/KBL-serial-port-header-to-RS232-cable.jpg" style="width: 428.0px; height: 292.8px;" /></a>
 <p class="caption"><span class="caption-number">Figure 22 </span><span class="caption-text">KBL <a class="reference external" href="https://www.amazon.com/dp/B07BV1W6N8/ref=cm_sw_r_cp_ep_dp_wYm0BbABD5AK6">serial port header to RS232 cable</a></span></p>
 </div>
@@ -1606,7 +1617,7 @@ then run the script again:</p>
 </div>
 </div>
 <div class="section" id="enabling-the-network-on-rtvm">
-<span id="id5"></span><h3>Enabling the network on RTVM<a class="headerlink" href="#enabling-the-network-on-rtvm" title="Permalink to this headline">¶</a></h3>
+<span id="id6"></span><h3>Enabling the network on RTVM<a class="headerlink" href="#enabling-the-network-on-rtvm" title="Permalink to this headline">¶</a></h3>
 <p>If you need to access the internet, you must add the following command line to the
 <code class="docutils literal notranslate"><span class="pre">launch_hard_rt_vm.sh</span></code> script before launch it:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>/usr/bin/acrn-dm -A -m $mem_size -s 0:0,hostbridge \
@@ -1640,7 +1651,7 @@ then run the script again:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on Mar 23, 2020.
+      Last updated on Mar 24, 2020.
 
     </p>
   </div> 
