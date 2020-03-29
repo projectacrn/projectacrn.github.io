@@ -361,6 +361,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/running_ubun_as_user_vm.html#enable-the-ubuntu-console-instead-of-the-user-interface">Enable the Ubuntu Console instead of the User Interface</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_xenomai_as_uos.html">Using Xenomai as User OS (Real-Time VM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_xenomai_as_uos.html#build-xenomai-kernel">Build Xenomai kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_xenomai_as_uos.html#launch-rtvm">Launch RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_xenomai_as_uos.html#installing-the-xenomai-libraries-and-tools">Installing the Xenomai libraries and tools</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../develop.html#enable-acrn-features">Enable ACRN Features</a><ul>
@@ -414,12 +420,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/skl-nuc.html#software-setup">Software Setup</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_cat_on_up2.html">Using CAT on UP2</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_cat_on_up2.html#cat-support-on-acrn">CAT Support on ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/rdt_configuration.html">RDT Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/rdt_configuration.html#rdt-detection-and-resource-capabilites">RDT detection and resource capabilites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/rdt_configuration.html#tuning-rdt-resources-in-hv-debug-shell">Tuning RDT resources in HV debug shell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM using VM Configuration</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_cat_on_up2.html#tuning-cat-in-hv-debug-shell">Tuning CAT in HV debug shell</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_cat_on_up2.html#configure-cat-for-vm-with-vm-configuration">Configure CAT for VM with VM Configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html">Using SBL on UP2 Board</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_sbl_on_up2.html#build-sbl">Build SBL</a></li>
@@ -1423,64 +1429,13 @@ for downloading and flashing an updated BIOS for the NUC.</p>
 <p class="last">BIOS settings depend on the platform and BIOS version; some may not be applicable.</p>
 </div>
 </div>
-<div class="section" id="configure-cat">
-<h4>Configure CAT<a class="headerlink" href="#configure-cat" title="Permalink to this headline">¶</a></h4>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">CAT configuration is only supported on the <a class="reference external" href="https://www.intel.com/content/www/us/en/products/boards-kits/nuc/kits/nuc6cayh.html">Apollo Lake NUC</a>.</p>
-</div>
-<p>With the ACRN Hypervisor shell, we can use <code class="docutils literal notranslate"><span class="pre">cpuid</span></code> and <code class="docutils literal notranslate"><span class="pre">wrmsr</span></code>/<code class="docutils literal notranslate"><span class="pre">rdmsr</span></code> debug commands to enumerate the CAT capability and set the CAT configuration without rebuilding binaries. Because <code class="docutils literal notranslate"><span class="pre">lapic</span></code> is a pass-through to the RTVM, the CAT configuration must be set before launching the RTVM.</p>
-<div class="section" id="check-cat-ability-with-cupid">
-<h5>Check CAT ability with cupid<a class="headerlink" href="#check-cat-ability-with-cupid" title="Permalink to this headline">¶</a></h5>
-<p>First run <code class="docutils literal notranslate"><span class="pre">cpuid</span> <span class="pre">0x10</span> <span class="pre">0x0</span></code>. The return value of <code class="docutils literal notranslate"><span class="pre">ebx[bit</span> <span class="pre">2]</span></code> reports that the L2 CAT is supported.
-Next, run <code class="docutils literal notranslate"><span class="pre">cpuid</span> <span class="pre">0x10</span> <span class="pre">0x2</span></code> to query the L2 CAT capability; the return value of <code class="docutils literal notranslate"><span class="pre">eax[bit</span> <span class="pre">4:0]</span></code>
-reports that the cache mask has 8 bits, and <code class="docutils literal notranslate"><span class="pre">edx[bit</span> <span class="pre">15:0]</span></code> reports that 04 CLOS are supported,
-as shown below. The reported data is in the format of <code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">eax:ebx:ecx:edx</span> <span class="pre">]</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ACRN</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">cpuid</span> <span class="mh">0x10</span> <span class="mh">0x0</span>
-<span class="n">cpuid</span> <span class="n">leaf</span><span class="p">:</span> <span class="mh">0x10</span><span class="p">,</span> <span class="n">subleaf</span><span class="p">:</span> <span class="mh">0x0</span><span class="p">,</span> <span class="mh">0x0</span><span class="p">:</span><span class="mh">0x4</span><span class="p">:</span><span class="mh">0x0</span><span class="p">:</span><span class="mh">0x0</span>
-
-<span class="n">ACRN</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">cpuid</span> <span class="mh">0x10</span> <span class="mh">0x2</span>
-<span class="n">cpuid</span> <span class="n">leaf</span><span class="p">:</span> <span class="mh">0x10</span><span class="p">,</span> <span class="n">subleaf</span><span class="p">:</span> <span class="mh">0x2</span><span class="p">,</span> <span class="mh">0x7</span><span class="p">:</span><span class="mh">0x0</span><span class="p">:</span><span class="mh">0x0</span><span class="p">:</span><span class="mh">0x3</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="set-clos-qos-mask-and-pqr-assoc-msrs-to-configure-the-cat">
-<h5>Set CLOS (QOS MASK) and PQR_ASSOC MSRs to configure the CAT<a class="headerlink" href="#set-clos-qos-mask-and-pqr-assoc-msrs-to-configure-the-cat" title="Permalink to this headline">¶</a></h5>
-<p>Apollo Lake doesn’t have L3 cache and it supports L2 CAT. The CLOS MSRs are per L2 cache and starts from 0x00000D10. In the case of 4 CLOS MSRs, the address is as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MSR_IA32_L2_QOS_MASK_0</span>    <span class="mh">0x00000D10</span>
-<span class="n">MSR_IA32_L2_QOS_MASK_1</span>    <span class="mh">0x00000D11</span>
-<span class="n">MSR_IA32_L2_QOS_MASK_2</span>    <span class="mh">0x00000D12</span>
-<span class="n">MSR_IA32_L2_QOS_MASK_3</span>    <span class="mh">0x00000D13</span>
-</pre></div>
-</div>
-<p>The PQR_ASSOC MSR is per CPU core; each core has its own PQR_ASSOC:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MSR_IA32_PQR_ASSOC</span>        <span class="mh">0x00000C8F</span>
-</pre></div>
-</div>
-<p>To set the CAT, first set the CLOS MSRs. Next, set the PQR_ASSOC of each CPU
-so that the CPU of the RTVM uses dedicated cache and other CPUs use other cache. Taking a Quad Core Apollo Lake platform for example, CPU0 and CPU1 share L2 cache while CPU2 and CPU3 share the other L2 cache.</p>
-<ul class="simple">
-<li>If we allocate CPU2 and CPU3, no extra action is required.</li>
-<li>If we allocate only CPU1 to the RTVM, we need to set the CAT as follows.
-These commands actually set the CAT configuration for L2 cache shared by CPU0 and CPU1.</li>
-</ul>
-<ol class="loweralpha">
-<li><p class="first">Set CLOS with <code class="docutils literal notranslate"><span class="pre">wrmsr</span> <span class="pre">&lt;reg_num&gt;</span> <span class="pre">&lt;value&gt;</span></code>, we want VM1 to use the lower 6 ways of cache,
-so CLOS0 is set to 0xf0 for the upper 4 ways, and CLOS1 is set to 0x0f for the lower 4 ways:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ACRN</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">wrmsr</span> <span class="o">-</span><span class="n">p1</span> <span class="mh">0xd10</span> <span class="mh">0xf0</span>
-<span class="n">ACRN</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">wrmsr</span> <span class="o">-</span><span class="n">p1</span> <span class="mh">0xd11</span> <span class="mh">0x0f</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Attach COS1 to PCPU1. Because MSR is IA32_PQR_ASSOC [bit 63:32], we’ll write 0x100000000 to it to use CLOS1:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ACRN</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">wrmsr</span> <span class="o">-</span><span class="n">p0</span> <span class="mh">0xc8f</span> <span class="mh">0x000000000</span>
-<span class="n">ACRN</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">wrmsr</span> <span class="o">-</span><span class="n">p1</span> <span class="mh">0xc8f</span> <span class="mh">0x100000000</span>
-</pre></div>
-</div>
-</li>
-</ol>
-<p>In addition to setting the CAT configuration via HV commands, we allow developers to add the CAT configurations to the VM config and do the configure automatically at the time of RTVM creation. Refer to <a class="reference internal" href="../tutorials/using_cat_on_up2.html#configure-cat-vm"><span class="std std-ref">Configure CAT for VM with VM Configuration</span></a> for details.</p>
-</div>
+<div class="section" id="configure-rdt">
+<h4>Configure RDT<a class="headerlink" href="#configure-rdt" title="Permalink to this headline">¶</a></h4>
+<p>In addition to setting the CAT configuration via HV commands, we allow
+developers to add CAT configurations to the VM config and configure
+automatically at the time of RTVM creation. Refer to <a class="reference internal" href="../tutorials/rdt_configuration.html#rdt-configuration"><span class="std std-ref">RDT Configuration</span></a>
+for details on RDT configuration and <a class="reference internal" href="../developer-guides/hld/hv-rdt.html#hv-rdt"><span class="std std-ref">RDT Allocation Feature Supported by Hypervisor</span></a> for details on RDT
+high-level design.</p>
 </div>
 <div class="section" id="set-up-the-core-allocation-for-the-rtvm">
 <h4>Set up the core allocation for the RTVM<a class="headerlink" href="#set-up-the-core-allocation-for-the-rtvm" title="Permalink to this headline">¶</a></h4>
@@ -1652,7 +1607,7 @@ then run the script again:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on Mar 25, 2020.
+      Last updated on Mar 29, 2020.
 
     </p>
   </div> 

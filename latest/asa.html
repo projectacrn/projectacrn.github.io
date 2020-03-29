@@ -361,6 +361,12 @@
 <li class="toctree-l4"><a class="reference internal" href="tutorials/running_ubun_as_user_vm.html#enable-the-ubuntu-console-instead-of-the-user-interface">Enable the Ubuntu Console instead of the User Interface</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="tutorials/using_xenomai_as_uos.html">Using Xenomai as User OS (Real-Time VM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorials/using_xenomai_as_uos.html#build-xenomai-kernel">Build Xenomai kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorials/using_xenomai_as_uos.html#launch-rtvm">Launch RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorials/using_xenomai_as_uos.html#installing-the-xenomai-libraries-and-tools">Installing the Xenomai libraries and tools</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="develop.html#enable-acrn-features">Enable ACRN Features</a><ul>
@@ -414,12 +420,12 @@
 <li class="toctree-l4"><a class="reference internal" href="tutorials/skl-nuc.html#software-setup">Software Setup</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="tutorials/using_cat_on_up2.html">Using CAT on UP2</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="tutorials/using_cat_on_up2.html#cat-support-on-acrn">CAT Support on ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tutorials/rdt_configuration.html">RDT Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorials/rdt_configuration.html#rdt-detection-and-resource-capabilites">RDT detection and resource capabilites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorials/rdt_configuration.html#tuning-rdt-resources-in-hv-debug-shell">Tuning RDT resources in HV debug shell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tutorials/rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM using VM Configuration</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="tutorials/using_cat_on_up2.html#tuning-cat-in-hv-debug-shell">Tuning CAT in HV debug shell</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tutorials/using_cat_on_up2.html#configure-cat-for-vm-with-vm-configuration">Configure CAT for VM with VM Configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="tutorials/using_sbl_on_up2.html">Using SBL on UP2 Board</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="tutorials/using_sbl_on_up2.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="tutorials/using_sbl_on_up2.html#build-sbl">Build SBL</a></li>
@@ -985,66 +991,105 @@
             
   <div class="section" id="security-advisory">
 <span id="asa"></span><h1>Security Advisory<a class="headerlink" href="#security-advisory" title="Permalink to this headline">¶</a></h1>
-<p>We recommend that all developers upgrade to this v1.4 release, which addresses the following security
-issues that were discovered in previous releases:</p>
+<p>We recommend that all developers upgrade to this v1.6 release, which
+addresses the following security issues that were discovered in previous releases:</p>
 <dl class="docutils">
+<dt>Hypervisor Crashes When Fuzzing HC_DESTROY_VM</dt>
+<dd><p class="first">The input ‘vdev-&gt;pdev’ should be validated properly when handling
+HC_SET_PTDEV_INTR_INFO to ensure that the physical device is linked to
+‘vdev’; otherwise, the hypervisor crashes when fuzzing the
+hypercall HC_DESTROY_VM with crafted input.</p>
+<div class="last line-block">
+<div class="line"><strong>Affected Release:</strong> v1.5 and earlier.</div>
+<div class="line">Upgrade to ACRN release v1.6.</div>
+</div>
+</dd>
+<dt>Hypervisor Crashes When Fuzzing HC_VM_WRITE_PROTECT_PAGE</dt>
+<dd><p class="first">The input GPA is not validated when handling this hypercall; an “Invalid
+GPA” that is not in the scope of the target VM’s EPT address space results
+in the hypervisor crashing when handling this hypercall.</p>
+<div class="last line-block">
+<div class="line"><strong>Affected Release:</strong> v1.4 and earlier.</div>
+<div class="line">Upgrade to ACRN release v1.6.</div>
+</div>
+</dd>
+<dt>Hypervisor Crashes When Fuzzing HC_NOTIFY_REQUEST_FINISH</dt>
+<dd><p class="first">The input is not validated properly when handing this hypercall;
+‘vcpu_id’ should be less than ‘vm-&gt;hw.created_vcpus’ instead of
+‘MAX_VCPUS_PER_VM’. When the software fails to validate input properly,
+the hypervisor crashes when handling crafted inputs.</p>
+<div class="last line-block">
+<div class="line"><strong>Affected Release:</strong> v1.4 and earlier.</div>
+<div class="line">Upgrade to ACRN release v1.6.</div>
+</div>
+</dd>
 <dt>Mitigation for Machine Check Error on Page Size Change</dt>
-<dd><p class="first">Improper invalidation for page table updates by a virtual guest operating system for multiple Intel(R) Processors may allow an authenticated user to potentially enable denial of service of the host system via local access. Malicious guest kernel could trigger this issue, CVE-2018-12207.</p>
+<dd><p class="first">Improper invalidation for page table updates by a virtual guest operating
+system for multiple Intel(R) Processors may allow an authenticated user
+to potentially enable denial of service of the host system via local
+access. A malicious guest kernel could trigger this issue, CVE-2018-12207.</p>
 <div class="last line-block">
 <div class="line"><strong>Affected Release:</strong> v1.3 and earlier.</div>
 <div class="line">Upgrade to ACRN release v1.4.</div>
 </div>
 </dd>
 <dt>AP Trampoline Is Accessible to the Service VM</dt>
-<dd><p class="first">This vulnerability is triggered when validating the memory isolation between the VM and hypervisor. The AP Trampoline code exists in the LOW_RAM region in the hypervisor but is
-potentially accessible to the Service VM. This could be used by an attacker to mount DoS
-attacks on the hypervisor if the Service VM is compromised.</p>
+<dd><p class="first">This vulnerability is triggered when validating the memory isolation
+between the VM and the hypervisor. The AP Trampoline code exists in the
+LOW_RAM region of the hypervisor but is potentially accessible to the
+Service VM. This could be used by an attacker to mount DoS attacks on the
+hypervisor if the Service VM is compromised.</p>
 <div class="last line-block">
 <div class="line"><strong>Affected Release:</strong> v1.3 and earlier.</div>
 <div class="line">Upgrade to ACRN release v1.4.</div>
 </div>
 </dd>
 <dt>Improper Usage Of the <code class="docutils literal notranslate"><span class="pre">LIST_FOREACH()</span></code> Macro</dt>
-<dd><p class="first">Testing discovered that the MACRO <code class="docutils literal notranslate"><span class="pre">LIST_FOREACH()</span></code> was incorrectly used in some cases
-which could induce a “wild pointer” and cause the ACRN Device Model to crash. Attackers
-can potentially use this issue to cause denial of service (DoS) attacks.</p>
+<dd><p class="first">Testing discovered that the MACRO <code class="docutils literal notranslate"><span class="pre">LIST_FOREACH()</span></code> was incorrectly used
+in some cases which could induce a “wild pointer” and cause the ACRN
+Device Model to crash. Attackers can potentially use this issue to cause
+denial of service (DoS) attacks.</p>
 <div class="last line-block">
 <div class="line"><strong>Affected Release:</strong> v1.3 and earlier.</div>
 <div class="line">Upgrade to ACRN release v1.4.</div>
 </div>
 </dd>
-<dt>Hypervisor Crashed When Fuzzing HC_SET_CALLBACK_VECTOR</dt>
-<dd><p class="first">This vulnerability was reported by the Fuzzing tool for the debug version of ACRN. When the software fails
-to validate input properly, an attacker is able to craft the input in a form that is
-not expected by the rest of the application. This can lead to parts of the system
-receiving unintended inputs, which may result in an altered control flow, arbitrary control
-of a resource, or arbitrary code execution.</p>
+<dt>Hypervisor Crashes When Fuzzing HC_SET_CALLBACK_VECTOR</dt>
+<dd><p class="first">This vulnerability was reported by the Fuzzing tool for the debug version
+of ACRN. When the software fails to validate input properly, an attacker
+is able to craft the input in a form that is not expected by the rest of
+the application. This can lead to parts of the system receiving
+unintended inputs, which may result in an altered control flow, arbitrary
+control of a resource, or arbitrary code execution.</p>
 <div class="last line-block">
 <div class="line"><strong>Affected Release:</strong> v1.3 and earlier.</div>
 <div class="line">Upgrade to ACRN release v1.4.</div>
 </div>
 </dd>
 <dt>FILE Pointer Is Not Closed After Using</dt>
-<dd><p class="first">This vulnerability was reported by the Fuzzing tool. Leaving the file unclosed will cause a
-leaking file descriptor and may cause unexpected errors in the Device Model program.</p>
+<dd><p class="first">This vulnerability was reported by the Fuzzing tool. Leaving the file
+unclosed will cause a leaking file descriptor and may cause unexpected
+errors in the Device Model program.</p>
 <div class="last line-block">
 <div class="line"><strong>Affected Release:</strong> v1.3 and earlier.</div>
 <div class="line">Upgrade to ACRN release v1.4.</div>
 </div>
 </dd>
 <dt>Descriptor of Directory Stream Is Referenced After Release</dt>
-<dd><p class="first">This vulnerability was reported by the Fuzzing tool. A successful call to <code class="docutils literal notranslate"><span class="pre">closedir(DIR</span> <span class="pre">*dirp)</span></code>
-also closes the underlying file descriptor associated with <code class="docutils literal notranslate"><span class="pre">dirp</span></code>. Access to the released
-descriptor may point to some arbitrary memory location or cause undefined behavior.</p>
+<dd><p class="first">This vulnerability was reported by the Fuzzing tool. A successful call to
+<code class="docutils literal notranslate"><span class="pre">closedir(DIR</span> <span class="pre">*dirp)</span></code> also closes the underlying file descriptor
+associated with <code class="docutils literal notranslate"><span class="pre">dirp</span></code>. Access to the released descriptor may point to
+some arbitrary memory location or cause undefined behavior.</p>
 <div class="last line-block">
 <div class="line"><strong>Affected Release:</strong> v1.3 and earlier.</div>
 <div class="line">Upgrade to ACRN release v1.4.</div>
 </div>
 </dd>
 <dt>Mutex Is Potentially Kept in a Locked State Forever</dt>
-<dd><p class="first">This vulnerability was reported by the Fuzzing tool. Here, pthread_mutex_lock/unlock pairing was not
-always done. Leaving a mutex in a locked state forever can cause program deadlock,
-depending on the usage scenario.</p>
+<dd><p class="first">This vulnerability was reported by the Fuzzing tool. Here,
+pthread_mutex_lock/unlock pairing was not always done. Leaving a mutex in
+a locked state forever can cause program deadlock, depending on the usage
+scenario.</p>
 <div class="last line-block">
 <div class="line"><strong>Affected Release:</strong> v1.3 and earlier.</div>
 <div class="line">Upgrade to ACRN release v1.4.</div>
@@ -1066,7 +1111,7 @@ depending on the usage scenario.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on Mar 25, 2020.
+      Last updated on Mar 29, 2020.
 
     </p>
   </div> 
