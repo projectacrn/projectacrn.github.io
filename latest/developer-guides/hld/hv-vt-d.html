@@ -997,30 +997,30 @@
             
   <div class="section" id="vt-d">
 <span id="vt-d-hld"></span><h1>VT-d<a class="headerlink" href="#vt-d" title="Permalink to this headline">¶</a></h1>
-<p>VT-d stands for Intel Virtual Technology for Directed IO, and provides
-hardware capabilities to assign I/O devices to VMs and extending the
+<p>Intel Virtual Technology for Directed I/O, or VT-d, provides
+hardware support for I/O device virtualization. It extends the
 protection and isolation properties of VMs for I/O operations.</p>
 <p>VT-d provides the following main functions:</p>
 <ul class="simple">
 <li><strong>DMA remapping</strong>: for supporting address translations for DMA from
 devices.</li>
 <li><strong>Interrupt remapping</strong>: for supporting isolation and routing of
-interrupts from devices and external interrupt controllers to
+interrupts from devices and external interrupt controllers to the
 appropriate VMs.</li>
 <li><strong>Interrupt posting</strong>: for supporting direct delivery of virtual
 interrupts from devices and external controllers to virtual
 processors.</li>
 </ul>
-<p>ACRN hypervisor supports DMA remapping that provides address translation
-capability for PCI pass-through devices, and second-level translation,
+<p>The ACRN hypervisor supports DMA remapping that provides address translation
+capability for PCI passthrough devices, and second-level translation,
 which applies to requests-without-PASID. ACRN does not support
-First-level / nested translation.</p>
+First-level/nested translation.</p>
 <div class="section" id="dmar-engines-discovery">
 <h2>DMAR Engines Discovery<a class="headerlink" href="#dmar-engines-discovery" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="dma-remapping-report-acpi-table">
 <h3>DMA Remapping Report ACPI table<a class="headerlink" href="#dma-remapping-report-acpi-table" title="Permalink to this headline">¶</a></h3>
-<p>For generic platforms, ACRN hypervisor retrieves DMAR information from
-the ACPI table, and parses the DMAR reporting structure to discover the
+<p>For generic platforms, the ACRN hypervisor retrieves DMAR information from
+the ACPI table and then parses the DMAR reporting structure to discover the
 number of DMA-remapping hardware units present in the platform as well as
 the devices under the scope of a remapping hardware unit, as shown in
 <a class="reference internal" href="#dma-remap-report"><span class="std std-numref">Figure 179</span></a>:</p>
@@ -1031,16 +1031,16 @@ the devices under the scope of a remapping hardware unit, as shown in
 </div>
 <div class="section" id="pre-parsed-dmar-information">
 <h3>Pre-parsed DMAR information<a class="headerlink" href="#pre-parsed-dmar-information" title="Permalink to this headline">¶</a></h3>
-<p>For specific platforms, ACRN hypervisor uses pre-parsed DMA remapping
-reporting information directly to save time for hypervisor boot-up.</p>
+<p>For specific platforms, the ACRN hypervisor uses pre-parsed DMA remapping
+reporting information directly to save hypervisor bootup time.</p>
 </div>
 <div class="section" id="dma-remapping-unit-for-integrated-graphics-device">
 <h3>DMA remapping unit for integrated graphics device<a class="headerlink" href="#dma-remapping-unit-for-integrated-graphics-device" title="Permalink to this headline">¶</a></h3>
 <p>Generally, there is a dedicated remapping hardware unit for the Intel
 integrated graphics device. ACRN implements GVT-g for graphics, but
-GVT-g is not compatible with VT-d. The remapping hardware unit for
+GVT-g is not compatible with VT-d. The remapping hardware unit for the
 graphics device is disabled on ACRN if GVT-g is enabled. If the graphics
-device needs to pass-through to a VM, then the remapping hardware unit
+device needs to passthrough to a VM, then the remapping hardware unit
 must be enabled.</p>
 </div>
 </div>
@@ -1077,83 +1077,85 @@ the host physical address of the address translation structure in system
 memory to be used for remapping requests-without-PASID processed through
 the context-entry.</p>
 <p>For a given Bus, Device, and Function combination as shown in
-<a class="reference internal" href="#bdf-passthru"><span class="std std-numref">Figure 181</span></a>, a pass-through device can be associated with
+<a class="reference internal" href="#bdf-passthru"><span class="std std-numref">Figure 181</span></a>, a passthrough device can be associated with the
 address translation structures for a domain.</p>
 <div class="figure align-center" id="bdf-passthru">
 <img alt="../../_images/vt-d-image19.png" src="../../_images/vt-d-image19.png" />
-<p class="caption"><span class="caption-number">Figure 181 </span><span class="caption-text">BDF Format of Pass-through Device</span></p>
+<p class="caption"><span class="caption-number">Figure 181 </span><span class="caption-text">BDF Format of Passthrough Device</span></p>
 </div>
-<p>Refer to the <a class="reference external" href="https://software.intel.com/sites/default/files/managed/c5/15/vt-directed-io-spec.pdf">VT-d spec</a> for the more details of Device to domain
+<p>Refer to the <a class="reference external" href="https://software.intel.com/sites/default/files/managed/c5/15/vt-directed-io-spec.pdf">VT-d spec</a> for more details on device-to-domain
 mapping structures.</p>
 </div>
 <div class="section" id="address-translation-structures">
 <h3>Address Translation Structures<a class="headerlink" href="#address-translation-structures" title="Permalink to this headline">¶</a></h3>
-<p>On ACRN, EPT table of a domain is used as the address translation
-structures for the devices assigned to the domain, as shown
+<p>For ACRN, the EPT table of a domain is used as the address translation
+structures for the devices assigned to the domain, as shown in
 <a class="reference internal" href="#vt-d-dma"><span class="std std-numref">Figure 182</span></a>.</p>
 <div class="figure align-center" id="vt-d-dma">
 <img alt="../../_images/vt-d-image40.png" src="../../_images/vt-d-image40.png" />
 <p class="caption"><span class="caption-number">Figure 182 </span><span class="caption-text">DMA Remapping Diagram</span></p>
 </div>
-<p>When the device attempts to access system memory, the DMA
-remapping hardware intercepts the access, utilizes the EPT table of the
-domain to determine whether the access is allowed, and translates the DMA
-address according to the EPT table from guest physical address (GPA) to
-host physical address (HPA).</p>
+<p>When the device attempts to access system memory, the DMA remapping hardware
+intercepts the access and utilizes the EPT table of the domain to determine
+whether the access is allowed. It then translates the DMA address according
+to the EPT table from the guest physical address (GPA) to the host physical
+address (HPA).</p>
 </div>
 <div class="section" id="domains-and-memory-isolation">
 <h3>Domains and Memory Isolation<a class="headerlink" href="#domains-and-memory-isolation" title="Permalink to this headline">¶</a></h3>
-<p>There are no DMA operations inside the hypervisor, so ACRN doesn’t
-create a domain for the hypervisor. No DMA operations from pass-through
+<p>DMA operations do not exist inside the hypervisor, so ACRN doesn’t
+create a domain for the hypervisor. No DMA operations from passthrough
 devices can access the hypervisor memory.</p>
 <p>ACRN treats each virtual machine (VM) as a separate domain. For a VM,
-there is a EPT table for Normal world, and there may be a EPT table for
-Secure World. Secure world can access Normal World’s memory, but Normal
-world cannot access Secure World’s memory.</p>
+an EPT table exists for Normal world; an EPT table for Secure world might
+also exist. Secure world can access Normal world’s memory, but Normal
+world cannot access Secure world’s memory.</p>
 <dl class="docutils">
 <dt>SOS_VM domain</dt>
-<dd><p class="first">SOS_VM domain is created when the hypervisor creates VM for the
+<dd><p class="first">The SOS_VM domain is created when the hypervisor creates the VM for the
 Service OS.</p>
 <p class="last">IOMMU uses the EPT table of Normal world of SOS_VM as the address
-translation structures for the devices in SOS_VM domain. The Normal world’s
-EPT table of SOS_VM doesn’t include the memory resource of the hypervisor
-and Secure worlds if any. So the devices in SOS_VM domain can’t access the
-memory belong to hypervisor or secure worlds.</p>
+translation structures for the devices in the SOS_VM domain. The Normal
+world’s EPT table of SOS_VM doesn’t include the memory resource of the
+hypervisor and Secure worlds (if any exists). So the devices in SOS_VM
+domain can’t access the memory belonging to the hypervisor or secure
+worlds.</p>
 </dd>
 <dt>Other domains</dt>
-<dd><p class="first">Other VM domains will be created when hypervisor creates User OS. One
-domain for each User OS.</p>
-<p class="last">IOMMU uses the EPT table of Normal world of a VM as the address
+<dd><p class="first">Other VM domains will be created when the hypervisor creates the User OS.
+One domain for each User OS.</p>
+<p class="last">IOMMU uses the EPT table of the Normal world of a VM as the address
 translation structures for the devices in the domain. The Normal world’s
 EPT table of the VM only allows devices to access the memory
-allocated for Normal world of the VM.</p>
+allocated for the Normal world of the VM.</p>
 </dd>
 </dl>
 </div>
 <div class="section" id="page-walk-coherency">
 <h3>Page-walk coherency<a class="headerlink" href="#page-walk-coherency" title="Permalink to this headline">¶</a></h3>
-<p>For the VT-d hardware, which doesn’t support page-walk coherency,
+<p>For the VT-d hardware, which doesn’t support page-walk coherency, the
 hypervisor needs to make sure the updates of VT-d tables are synced in
 memory:</p>
 <ul class="simple">
 <li>Device to Domain Mapping Structures, including Root-entries and
-Context-entries</li>
-<li>EPT table of a VM.</li>
+Context-entries.</li>
+<li>The EPT table of a VM.</li>
 </ul>
-<p>ACRN will flush the related cache line after updates of these structures
+<p>ACRN flushes the related cache line after these structures are updated
 if the VT-d hardware doesn’t support page-walk coherency.</p>
 </div>
 <div class="section" id="super-page-support">
 <h3>Super-page support<a class="headerlink" href="#super-page-support" title="Permalink to this headline">¶</a></h3>
-<p>ACRN VT-d reuses the EPT table as address a translation table. VT-d capability
-for super-page support should be identical with the usage of EPT table.</p>
+<p>The ACRN VT-d reuses the EPT table as the address translation table. VT-d
+capability or super-page support should be identical with the usage of the
+EPT table.</p>
 </div>
 <div class="section" id="snoop-control">
 <h3>Snoop control<a class="headerlink" href="#snoop-control" title="Permalink to this headline">¶</a></h3>
-<p>If VT-d hardware supports snoop control, it allows VT-d to control to
-ignore the “no-snoop attribute” in PCI-E transactions.</p>
-<p>The following table shows the snoop behavior of DMA operation controlled by the
-combination of:</p>
+<p>If VT-d hardware supports snoop control, iVT-d can control the
+ability to ignore the “no-snoop attribute” in PCI-E transactions.</p>
+<p>The following table shows the snoop behavior of a DMA operation controlled by
+the following:</p>
 <ul class="simple">
 <li>Snoop Control capability of VT-d DMAR unit</li>
 <li>The setting of SNP filed in leaf PTE</li>
@@ -1201,13 +1203,22 @@ combination of:</p>
 </tr>
 </tbody>
 </table>
-<p>ACRN enable Snoop Control by default if all enabled VT-d DMAR units
-support Snoop Control by setting bit 11 of leaf PTE of EPT table. Bit 11
-of leaf PTE of EPT is ignored by MMU. So no side effect for MMU.</p>
-<p>If one of the enabled VT-d DMAR units doesn’t support Snoop Control,
-then Bit 11 of leaf PET of EPT is not set since the field is treated as
-reserved(0) by VT-d hardware implementations not supporting Snoop
-Control.</p>
+<p>If VT-d DMAR units do not support Snoop Control, then the SNP Bit (bit 11)
+of leaf PETs of the EPT is not set since the field is treated as reserved (0)
+by the VT-d hardware implementations of not supporting Snoop Control.</p>
+<p>The VT-d DMAR unit of the Intel integrated graphics device doesn’t support
+Snoop Control. The ACRN hypervisor uses the same copy of EPT as the
+secondary address translation table for a VM. When the DMAR unit for the
+Intel integrated graphics device is enabled, the SNP Bit cannot be set in
+the lead PTEs of the EPT.</p>
+<p>No matter if ACRN enables or disables Snoop Control, the DMA operations of
+passthrough devices behave correctly from the guest’s point of view. ACRN
+disables Snoop Control in VT-d DMAR engines that simplify the implementation.
+Also, since the snoop behavior of PCIE transactions can be controlled by
+guest drivers, some devices may take advantage of the NO_SNOOP_ATTRIBUTE
+of PCIE transactions for better performance when snoop is not needed.</p>
+<p>The driver is responsible for configuring correct attribute in PCIE
+transactions. Otherwise, the corresponding device may not work properly.</p>
 </div>
 </div>
 <div class="section" id="initialization">
@@ -1224,25 +1235,25 @@ translation for DMAR unit(s) if they are not marked as ignored.</p>
 </div>
 <div class="section" id="device-assignment">
 <span id="id1"></span><h2>Device assignment<a class="headerlink" href="#device-assignment" title="Permalink to this headline">¶</a></h2>
-<p>All devices are initially added to SOS_VM domain.
-To assign a device means to assign the device to an User OS. The device
-is remove from SOS_VM domain and added to the VM domain related to the User
-OS, which changes the address translation table from EPT of SOS_VM to EPT
-of User OS for the device.</p>
-<p>To unassign a device means to unassign the device from an User OS. The
-device is remove from the VM domain related to the User OS, then added
-back to SOS_VM domain, which changes the address translation table from EPT
-of User OS to EPT of SOS_VM for the device.</p>
+<p>All devices are initially added to the SOS_VM domain. To assign a device
+means to assign the device to a User VM. The device is removed from the
+SOS_VM domain and is added to the VM domain related to the User VM, which
+changes the address translation table from the EPT of SOS_VM to the EPT
+of the User OS for the device.</p>
+<p>To unassign a device means to unassign the device from a User OS. The
+device is removed from the VM domain related to the User OS and then added
+back to the SOS_VM domain; this changes the address translation table from
+the EPT of the User OS to the EPT of the SOS_VM for the device.</p>
 </div>
 <div class="section" id="power-management-support-for-s3">
 <h2>Power Management support for S3<a class="headerlink" href="#power-management-support-for-s3" title="Permalink to this headline">¶</a></h2>
-<p>During platform S3 suspend and resume, the VT-d register values will be
-lost. ACRN VT-d provide APIs to be called during S3 suspend and resume.</p>
+<p>During platform S3 suspend and resume, the VT-d register values are
+lost. ACRN VT-d provides APIs tthat are called during S3 suspend and resume.</p>
 <p>During S3 suspend, some register values are saved in the memory, and
 DMAR translation is disabled. During S3 resume, the register values
-saved are restored. Root table address register is set. DMAR translation
-is enabled.</p>
-<p>All the operations for S3 suspend and resume are performed on all DMAR
+saved are restored. The Root table address register is set. The DMAR
+translation is enabled.</p>
+<p>All operations for S3 suspend and resume are performed on all DMAR
 units on the platform, except for the DMAR units marked ignored.</p>
 </div>
 <div class="section" id="error-handling">
@@ -1251,7 +1262,7 @@ units on the platform, except for the DMAR units marked ignored.</p>
 IRQ / vector for DMAR error reporting. A DMAR fault handler is
 registered for the IRQ. DMAR unit supports report fault event via MSI.
 When a fault event occurs, a MSI is generated, so that the DMAR fault
-handler will be called to report error event.</p>
+handler will be called to report the error event.</p>
 </div>
 <div class="section" id="data-structures-and-interfaces">
 <h2>Data structures and interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
@@ -1382,7 +1393,7 @@ deinitialization:</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on Mar 29, 2020.
+      Last updated on Mar 31, 2020.
 
     </p>
   </div> 
