@@ -1010,8 +1010,9 @@
 <span id="id1"></span><h1>ACRN Configuration Tool<a class="headerlink" href="#acrn-configuration-tool" title="Permalink to this headline">¶</a></h1>
 <p>The ACRN configuration tool is designed for System Integrators / Tier 1s to
 customize ACRN to meet their own needs. It consists of two tools, the
-<code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> tool and the <code class="docutils literal notranslate"><span class="pre">acrn-config</span></code> tool. The latter allows users to provision
-VMs via a web interface and configure the hypervisor from XML files at build time.</p>
+<code class="docutils literal notranslate"><span class="pre">Kconfig</span></code> tool and the <code class="docutils literal notranslate"><span class="pre">acrn-config</span></code> tool. The latter allows users to
+provision VMs via a web interface and configure the hypervisor from XML
+files at build time.</p>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>ACRN includes three types of configurations: Hypervisor, Board, and VM. Each
@@ -1176,7 +1177,8 @@ The launch XML has an <code class="docutils literal notranslate"><span class="pr
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;acrn-config</span> <span class="na">board=</span><span class="s">&quot;BOARD&quot;</span> <span class="na">scenario=</span><span class="s">&quot;SCENARIO&quot;</span> <span class="na">uos_launcher=</span><span class="s">&quot;UOS_NUMBER&quot;</span><span class="nt">&gt;</span>
 </pre></div>
 </div>
-<p>Attributes of the <code class="docutils literal notranslate"><span class="pre">uos_launcher</span></code> specify the number of User VMs that the current scenario has:</p>
+<p>Attributes of the <code class="docutils literal notranslate"><span class="pre">uos_launcher</span></code> specify the number of User VMs that the
+current scenario has:</p>
 <dl class="docutils">
 <dt><code class="docutils literal notranslate"><span class="pre">uos</span></code>:</dt>
 <dd>Specify the User VM with its relative ID to Service VM by the “id” attribute.</dd>
@@ -1246,8 +1248,8 @@ board-specific hypervisor image.</p>
 <img alt="../_images/GUI_of_menuconfig.png" src="../_images/GUI_of_menuconfig.png" />
 <p class="caption"><span class="caption-number">Figure 25 </span><span class="caption-text">menuconfig interface sample</span></p>
 </div>
-<p>Refer to <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-hypervisor-configuration"><span class="std std-ref">Step 4: Build the hypervisor configuration</span></a> for
-detailed configuration steps.</p>
+<p>Refer to <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-hypervisor-configuration"><span class="std std-ref">Step 4: Build the hypervisor configuration</span></a> for detailed
+configuration steps.</p>
 </div>
 <div class="section" id="board-and-vm-configuration-workflow">
 <span id="vm-config-workflow"></span><h3>Board and VM configuration workflow<a class="headerlink" href="#board-and-vm-configuration-workflow" title="Permalink to this headline">¶</a></h3>
@@ -1343,10 +1345,14 @@ python3 launch_cfg_gen.py --board $(BOARD).xml --scenario $(SCENARIO).xml --laun
 <ul class="simple">
 <li>reads board info</li>
 <li>configures and validates scenario settings</li>
-<li>automatically generates patches for board-related configurations and
+<li>automatically generates source code for board-related configurations and
 scenario-based VM configurations</li>
 <li>configures and validates launch settings</li>
 <li>generates launch scripts for the specified post-launched User VMs.</li>
+<li>dynamically creates a new scenario setting and adds or deletes VM settings
+in scenario settings</li>
+<li>dynamically creates a new launch setting and adds or deletes User VM
+settings in launch settings</li>
 </ul>
 <div class="section" id="prerequisites">
 <h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h3>
@@ -1395,57 +1401,88 @@ and MS Edge. Do not use IE.</p>
 </li>
 <li><p class="first">Upload the board info you have generated from the ACRN config tool.</p>
 </li>
-<li><p class="first">After board info is uploaded, you will see the board name from the Board
-info list. Select the board name to be configured.</p>
+<li><p class="first">After board info is uploaded, you will see the board name from the
+Board info list. Select the board name to be configured.</p>
 <div class="figure align-center">
 <img alt="../_images/select_board_info.png" src="../_images/select_board_info.png" />
 </div>
 </li>
 </ol>
 </li>
-<li><p class="first">Choose a scenario from the <strong>Scenario Setting</strong> menu which lists all the scenarios,
-including the default scenarios and the user-defined scenarios for the board you selected
-in the previous step. The scenario configuration xmls are located at
-<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/misc/acrn-config/xmls/config-xmls/[board]/</span></code>.</p>
+<li><p class="first">Load or create the scenario setting by selecting among the following:</p>
+<ul class="simple">
+<li>Choose a scenario from the <strong>Scenario Setting</strong> menu which lists all
+user-defined scenarios for the board you selected in the previous step.</li>
+<li>Click the <strong>Create a new scenario</strong> from the <strong>Scenario Setting</strong>
+menu to dynamically create a new scenario setting for the current board.</li>
+<li>Click the <strong>Load a default scenario</strong> from the <strong>Scenario Setting</strong>
+menu, and then select one default scenario setting to load a default
+scenario setting for the current board.</li>
+</ul>
+<p>The default scenario configuration xmls are located at
+<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/misc/acrn-config/xmls/config-xmls/[board]/</span></code>.
+We can edit the scenario name when creating or loading a scenario. If the
+current scenario name is duplicated with an existing scenario setting
+name, rename the current scenario name or overwrite the existing one
+after the confirmation message.</p>
 <div class="figure align-center">
 <img alt="../_images/choose_scenario.png" src="../_images/choose_scenario.png" />
 </div>
-<p>Note that you can also use a customized scenario xml by clicking <strong>Import</strong>.
-The configuration app automatically directs to the new scenario xml once the import is complete.</p>
+<p>Note that you can also use a customized scenario xml by clicking <strong>Import
+XML</strong>. The configuration app automatically directs to the new scenario
+xml once the import is complete.</p>
 </li>
-<li><p class="first">The configurable items display after one scenario is selected. Here is
-the example of “SDC” scenario:</p>
+<li><p class="first">The configurable items display after one scenario is created/loaded/
+selected. Following is an industry scenario:</p>
 <div class="figure align-center">
 <img alt="../_images/configure_scenario.png" src="../_images/configure_scenario.png" />
 </div>
 <ul class="simple">
-<li>You can edit these items directly in the text boxes, cor you can choose single or even multiple
-items from the drop down list.</li>
+<li>You can edit these items directly in the text boxes, or you can choose
+single or even multiple items from the drop down list.</li>
 <li>Read-only items are marked as grey.</li>
 <li>Hover the mouse pointer over the item to display the description.</li>
 </ul>
 </li>
-<li><p class="first">Click <strong>Export</strong> to save the scenario xml; you can rename it in the pop-up modal.</p>
+<li><p class="first">To dynamically add or delete VMs:</p>
+<ul class="simple">
+<li>Click <strong>Add a VM below</strong> in one VM setting, and then select one VM type
+to add a new VM under the current VM.</li>
+<li>Click <strong>Remove this VM</strong> in one VM setting to remove the current VM for
+the scenario setting.</li>
+</ul>
+<p>When one VM is added or removed in the scenario setting, the
+configuration app reassigns the VM IDs for the remaining VMs by the order of Pre-launched VMs, Service VMs, and Post-launched VMs.</p>
+<div class="figure align-center">
+<img alt="../_images/configure_vm_add.png" src="../_images/configure_vm_add.png" />
+</div>
+</li>
+<li><p class="first">Click <strong>Export XML</strong> to save the scenario xml; you can rename it in the
+pop-up model.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">All customized scenario xmls will be in user-defined groups which located in
-<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/misc/acrn-config/xmls/config-xmls/[board]/user_defined/</span></code>.</p>
+<p class="last">All customized scenario xmls will be in user-defined groups which are
+located in <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/misc/acrn-config/xmls/config-xmls/[board]/user_defined/</span></code>.</p>
 </div>
-<p>Before saving the scenario xml, the configuration app will validate
-the configurable items. If errors exist, the configuration app lists all
-wrong configurable items and shows the errors as below:</p>
+<p>Before saving the scenario xml, the configuration app validates the
+configurable items. If errors exist, the configuration app lists all
+incorrect configurable items and shows the errors as below:</p>
 <div class="figure align-center">
 <img alt="../_images/err_acrn_configuration.png" src="../_images/err_acrn_configuration.png" />
 </div>
-<p>After the scenario is saved, the page automatically directs to the saved scenario xmls.
-You can delete the configured scenario by clicking <strong>Export</strong> -&gt; <strong>Remove</strong>.</p>
+<p>After the scenario is saved, the page automatically directs to the saved
+scenario xmls. Delete the configured scenario by clicking <strong>Export XML</strong> -&gt; <strong>Remove</strong>.</p>
 </li>
-<li><p class="first">Click <strong>Generate Board SRC</strong> to save the current scenario setting and then generate
-a patch for the board-related configuration source codes in
-<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/hypervisor/arch/x86/configs/[board]/</span></code>.</p>
-</li>
-<li><p class="first">Click <strong>Generate Scenario SRC</strong> to save the current scenario setting and then generate
-a patch for the scenario-based VM configuration scenario source codes in
+<li><p class="first">Click <strong>Generate configuration files</strong> to save the current scenario
+setting and then generate files for the board-related configuration
+source code and the scenario-based VM configration source code.</p>
+<p>If <strong>Source Path</strong> in the pop-up model is edited, the source code is
+generated into the edited Source Path relative to <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor</span></code>;
+otherwise, the source code is generated into default folders and
+overwrite the old ones. The board-related configuration source
+code is located at
+<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/hypervisor/arch/x86/configs/[board]/</span></code> and the
+scenario-based VM configuration source code is located at
 <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/hypervisor/scenarios/[scenario]/</span></code>.</p>
 </li>
 </ol>
@@ -1453,17 +1490,32 @@ a patch for the scenario-based VM configuration scenario source codes in
 <ol class="arabic">
 <li><p class="first">Upload board info or select one board as the current board.</p>
 </li>
-<li><p class="first">Import your local launch setting xml by clicking <strong>Import</strong> or selecting one launch setting xml from the menu.</p>
+<li><p class="first">Load or create one launch setting by selecting among the following:</p>
+<ul class="simple">
+<li>Click <strong>Create a new lauch script</strong> from the <strong>Launch Setting</strong> menu.</li>
+<li>Click <strong>Load a default launch script</strong> from the <strong>Launch Setting</strong> menu.</li>
+<li>Select one launch setting xml from the menu.</li>
+<li>Importing the local launch setting xml by clicking <strong>Import XML</strong>.</li>
+</ul>
 </li>
 <li><p class="first">Select one scenario for the current launch setting from the <strong>Select Scenario</strong> drop down box.</p>
 </li>
 <li><p class="first">Configure the items for the current launch setting.</p>
 </li>
-<li><p class="first">Save the current launch setting to the user-defined xml files by
-clicking <strong>Export</strong>. The configuration app validates the current
-configuration and lists all wrong configurable items and shows errors.</p>
+<li><p class="first">To dynamically add or remove User VM (UOS) launch scripts:</p>
+<ul class="simple">
+<li>Add a UOS launch script by clicking <strong>Configure an UOS below</strong> for the
+current launch setting.</li>
+<li>Remove a UOS launch script by clicking <strong>Remove this VM</strong> for the
+current launch setting.</li>
+</ul>
 </li>
-<li><p class="first">Click <strong>Generate Launch Script</strong> to save the current launch setting and then generate the launch script.</p>
+<li><p class="first">Save the current launch setting to the user-defined xml files by
+clicking <strong>Export XML</strong>. The configuration app validates the current
+configuration and lists all incorrect configurable items and shows errors.</p>
+</li>
+<li><p class="first">Click <strong>Generate Launch Script</strong> to save the current launch setting and
+then generate the launch script.</p>
 <div class="figure align-center">
 <img alt="../_images/generate_launch_script.png" src="../_images/generate_launch_script.png" />
 </div>
@@ -1486,7 +1538,7 @@ configuration and lists all wrong configurable items and shows errors.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on Apr 24, 2020.
+      Last updated on Apr 27, 2020.
 
     </p>
   </div> 
