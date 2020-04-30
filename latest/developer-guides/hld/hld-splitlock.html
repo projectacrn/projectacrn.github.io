@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Virtio-rnd &mdash; Project ACRN™ v 1.7-unstable documentation</title>
+  <title>Handling Split-locked Access in ACRN &mdash; Project ACRN™ v 1.7-unstable documentation</title>
   
 
   
@@ -31,8 +31,8 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Virtio-i2c" href="virtio-i2c.html" />
-    <link rel="prev" title="Virtio-console" href="virtio-console.html" /> 
+    <link rel="next" title="Device Model high-level design" href="hld-devicemodel.html" />
+    <link rel="prev" title="RDT Allocation Feature Supported by Hypervisor" href="hv-rdt.html" /> 
 
   
   <script src="../../_static/js/modernizr.min.js"></script>
@@ -596,10 +596,10 @@
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-vsbl.html">Virtual Bootloader</a></li>
@@ -989,9 +989,9 @@
         
           <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
         
-          <li><a href="hld-virtio-devices.html">Virtio devices high-level design</a> &raquo;</li>
+          <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
         
-      <li>Virtio-rnd</li>
+      <li>Handling Split-locked Access in ACRN</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -1010,67 +1010,133 @@
   
            <div itemprop="articleBody">
             
-  <div class="section" id="virtio-rnd">
-<span id="id1"></span><h1>Virtio-rnd<a class="headerlink" href="#virtio-rnd" title="Permalink to this headline">¶</a></h1>
-<p>Virtio-rnd provides a virtual hardware random source for the User VM. It simulates a PCI device
-followed by a virtio specification, and is implemented based on the virtio user mode framework.</p>
-<div class="section" id="architecture">
-<h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="#virtio-rnd-arch"><span class="std std-numref">Figure 259</span></a> shows the Random Device Virtualization Architecture in ACRN.
-The green components are parts of the ACRN solution while the gray
-components are parts of Linux software or third party tools.</p>
-<p>virtio-rnd is implemented as a virtio legacy device in the ACRN device
-model (DM), and is registered as a PCI virtio device to the guest OS
-(User VM). Tools such as <strong class="command">od</strong> (dump a file in octal or other format) can
-be used to read random values from <code class="docutils literal notranslate"><span class="pre">/dev/random</span></code>.  This device file in the
-User VM is bound with the frontend virtio-rng driver. (The guest kernel must
-be built with <code class="docutils literal notranslate"><span class="pre">CONFIG_HW_RANDOM_VIRTIO=y</span></code>). The backend
-virtio-rnd reads the HW random value from <code class="docutils literal notranslate"><span class="pre">/dev/random</span></code> in the SOS and sends
-them to the frontend.</p>
-<div class="figure align-center" id="virtio-rnd-arch">
-<img alt="../../_images/virtio-hld-image61.png" src="../../_images/virtio-hld-image61.png" />
-<p class="caption"><span class="caption-number">Figure 259 </span><span class="caption-text">Virtio-rnd Architecture on ACRN</span></p>
+  <div class="section" id="handling-split-locked-access-in-acrn">
+<span id="hld-splitlock"></span><h1>Handling Split-locked Access in ACRN<a class="headerlink" href="#handling-split-locked-access-in-acrn" title="Permalink to this headline">¶</a></h1>
+<p>A split lock is any atomic operation whose operand crosses two cache
+lines. Because the operation must be atomic, the system locks the bus
+while the CPU accesses the two cache lines.  Blocking bus access from
+other CPUs plus the bus locking protocol overhead degrades overall
+system performance.</p>
+<p>This document explains Split-locked Access, how to detect it, and how
+ACRN handles it.</p>
+<div class="section" id="split-locked-access-introduction">
+<h2>Split-locked Access Introduction<a class="headerlink" href="#split-locked-access-introduction" title="Permalink to this headline">¶</a></h2>
+<p>Intel-64 and IA32 multiple-processor systems support locked atomic
+operations on locations in system memory. For example, The LOCK instruction
+prefix can be prepended to the following instructions: ADD, ADC, AND, BTC, BTR, BTS,
+CMPXCHG, CMPXCH8B, CMPXCHG16B, DEC, INC, NEG, NOT, OR, SBB, SUB, XOR, XADD,
+and XCHG, when these instructions use memory destination operand forms.
+Reading or writing a byte in system memory is always guaranteed to be
+atomic, otherwise, these locked atomic operations can impact system in two
+ways:</p>
+<ul>
+<li><p class="first"><strong>The destination operand is located in the same cache line.</strong></p>
+<blockquote>
+<div><p>Cache coherency protocols ensure that atomic operations can be
+carried out on cached data structures with cache lock.</p>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>The destination operand is located in two cache lines.</strong></p>
+<blockquote>
+<div><p>This atomic operation is called a Split-locked Access. For this situation,
+the LOCK# bus signal is asserted to lock the system bus, to ensure
+the operation is atomic. See <a class="reference external" href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-3a-3b-3c-and-3d-system-programming-guide">Intel 64 and IA-32 Architectures Software Developer’s Manual(SDM), Volume 3, (Section 8.1.2 Bus Locking)</a>.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>Split-locked Access can cause unexpected long latency to ordinary memory
+operations by other CPUs while the bus is locked. This degraded system
+performance can be hard to investigate.</p>
 </div>
+<div class="section" id="split-locked-access-detection">
+<h2>Split-locked Access Detection<a class="headerlink" href="#split-locked-access-detection" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="https://newsroom.intel.com/news/intel-introduces-tremont-microarchitecture">Intel Tremont Microarchitecture</a>
+introduced a new CPU capability for detecting Split-locked Access. When
+this feature is enabled, an alignment check exception (#AC) with error
+code 0 is raised for instructions causing a Split-locked Access. Because
+#AC is a fault, the instruction is not executed, giving the #AC handler
+an opportunity to decide how to handle this instruction:</p>
+<ul class="simple">
+<li>It can allow the instruction to run with LOCK# bus signal potentially
+impacting performance of other CPUs.</li>
+<li>It can disable LOCK# assertion for split locked access, but
+improperly makes the instruction non-atomic. (Intel plans to remove this CPU feature
+from upcoming products as documented in
+<a class="reference external" href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-software-developers-manual-volume-1-basic-architecture">SDM, Volume 1, (Section 2.4 PROPOSED REMOVAL FROM UPCOMING PRODUCTS.)</a></li>
+<li>It can terminate the software at this instruction.</li>
+</ul>
 </div>
-<div class="section" id="how-to-use">
-<h2>How to Use<a class="headerlink" href="#how-to-use" title="Permalink to this headline">¶</a></h2>
-<p>Add a pci slot to the device model acrn-dm command line; for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">slot_number</span><span class="o">&gt;</span><span class="p">,</span><span class="n">virtio</span><span class="o">-</span><span class="n">rnd</span>
-</pre></div>
+<div class="section" id="feature-enumeration-and-control">
+<h2>Feature Enumeration and Control<a class="headerlink" href="#feature-enumeration-and-control" title="Permalink to this headline">¶</a></h2>
+<p>#AC for Split-locked Access feature is enumerated and controlled via CPUID and
+MSR registers.</p>
+<ul class="simple">
+<li>CPUID.(EAX=0x7, ECX=0):EDX[30], the 30th bit of output value in EDX indicates
+if the platform has IA32_CORE_CAPABILITIES MSR.</li>
+<li>The 5th bit of IA32_CORE_CAPABILITIES MSR(0xcf), enumerates whether the CPU
+supports #AC for Split-locked Access (and has TEST_CTRL MSR).</li>
+<li>The 29th bit of TEST_CTL MSR(0x33) controls enabling and disabling #AC for Split-locked
+Access.</li>
+</ul>
 </div>
-<p>Check to see if the frontend virtio_rng driver is available in the User VM:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> cat /sys/class/misc/hw_random/rng_available
-<span class="go">virtio_rng.0</span>
-</pre></div>
+<div class="section" id="acrn-handling-split-locked-access">
+<h2>ACRN Handling Split-locked Access<a class="headerlink" href="#acrn-handling-split-locked-access" title="Permalink to this headline">¶</a></h2>
+<p>Split-locked Access is not expected in the ACRN hypervisor itself, and
+should never happen. However, such access could happen inside a VM. ACRN
+support for handling split-locked access follows these design principles:</p>
+<ul class="simple">
+<li>Always enable #AC on Split-locked Access for the physical processors.</li>
+<li>Present a virtual split lock capability to guest (VMs), and directly
+deliver the alignment check exception (#AC) to the guest. (This
+virtual split-lock capability helps the guest isolate violations from
+user land).</li>
+<li>Guest write of MSR_TEST_CTL is ignored, and guest read gets the written value.</li>
+<li>Any Split-locked Access in the ACRN hypervisor is a software bug we must fix.</li>
+<li>If split-locked Access happens in a guest kernel, the guest may not be able to
+fix the issue gracefully. (The guest may behave differently than the
+native OS). The real-time (RT) guest must avoid a Split-locked Access
+and consider it a software bug.</li>
+</ul>
+<div class="section" id="enable-split-locked-access-handling-early">
+<h3>Enable Split-Locked Access handling early<a class="headerlink" href="#enable-split-locked-access-handling-early" title="Permalink to this headline">¶</a></h3>
+<p>This feature is enumerated at the Physical CPU (pCPU) pre-initialization
+stage, where ACRN detects CPU capabilities. If the pCPU supports this
+feature:</p>
+<ul class="simple">
+<li>Enable it at each pCPU post-initialization stage.</li>
+<li>ACRN hypervisor presents a virtual emulated TEST_CTRL MSR to each
+Virtual CPU (vCPU).
+Setting or clearing TEST_CTRL[bit 29] in a vCPU, has no effect.</li>
+</ul>
+<p>If pCPU does not have this capability, a vCPU does not have the virtual
+TEST_CTRL either.</p>
 </div>
-<p>Check to see if the frontend virtio_rng is currently connected to <code class="docutils literal notranslate"><span class="pre">/dev/random</span></code>:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> cat /sys/class/misc/hw_random/rng_current
-<span class="go">virtio_rng.0</span>
-</pre></div>
+<div class="section" id="expected-behavior-in-acrn">
+<h3>Expected Behavior in ACRN<a class="headerlink" href="#expected-behavior-in-acrn" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor should never trigger Split-locked Access and it is
+not allowed to run with Split-locked Access. If ACRN does trigger a
+split-locked access, ACRN reports #AC at the instruction and stops
+running. The offending HV instruction is considered a bug that must be
+fixed.</p>
 </div>
-<p>Read random values:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> od /dev/random
-<span class="go">0000000 007265 175751 147323 164223 060601 057377 027072 106352</span>
-<span class="go">0000020 040765 045645 155773 111724 037572 152033 036001 056073</span>
-<span class="go">0000040 057164 065021 024005 031500 156630 026635 022440 000127</span>
-<span class="go">0000060 115071 046756 071656 106721 161340 106726 175275 072403</span>
-<span class="go">0000100 011265 000420 061137 103723 001107 006430 061151 132766</span>
-<span class="go">0000120 166216 015074 100505 015473 057324 102727 005126 051731</span>
-<span class="go">0000140 003727 071115 167622 071407 120301 002616 047451 120733</span>
-<span class="go">0000160 174117 133164 161231 035076 013700 164114 031627 001202</span>
-<span class="go">0000200 011467 055650 016365 140074 060277 150601 043610 006403</span>
-<span class="go">0000220 016170 071666 065540 026615 055073 162363 012002 112371</span>
-<span class="go">0000240 000767 157121 125007 141671 000327 173741 056415 155463</span>
-<span class="go">0000260 105504 066453 152754 136314 175213 063541 001420 053025</span>
-<span class="go">0000300 047631 167425 044125 063176 171334 177234 050063 031640</span>
-<span class="go">...</span>
-</pre></div>
+<div class="section" id="expected-behavior-in-vm">
+<h3>Expected Behavior in VM<a class="headerlink" href="#expected-behavior-in-vm" title="Permalink to this headline">¶</a></h3>
+<p>If a VM process has a Split-locked Access in user space, it will be
+terminated by SIGBUS. When debugging inside a VM, you may find it
+triggers an #AC even if alignment checking is disabled.</p>
+<p>If a VM kernel has a Split-locked Access, it will hang or oops on an
+#AC. A VM kernel may try to disable #AC for Split-locked Access and
+continue, but it will fail. The ACRN hypervisor helps identify the
+problem by reporting a warning message that the VM tried writing to
+TEST_CTRL MSR.</p>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">HW randomness is a precious resource of the system. The
-<strong class="command">od</strong> command will block and wait until randomness is
-available.</p>
+<div class="section" id="disable-split-locked-access-detection">
+<h3>Disable Split-locked Access Detection<a class="headerlink" href="#disable-split-locked-access-detection" title="Permalink to this headline">¶</a></h3>
+<p>If the CPU supports Split-locked Access detection, the ACRN hypervisor
+uses it to prevent any VM running with potential system performance
+impacting split-locked instructions.  This detection can be disabled
+(eventually by using the ACRN configuration tools) for customers not
+caring about system performance.</p>
 </div>
 </div>
 </div>
