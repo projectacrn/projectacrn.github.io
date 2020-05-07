@@ -495,6 +495,16 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/rtvm_workload_design_guideline.html#dm-emulated-device-except-pmd">DM emulated device (Except PMD)</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html">Configure ACRN using OpenStack and libvirt</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#set-up-and-launch-lxc-lxd">Set up and launch LXC/LXD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#set-up-acrn-prerequisites-inside-the-container">Set up ACRN prerequisites inside the container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#set-up-libvirt">Set up libvirt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#set-up-openstack">Set up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#final-steps">Final Steps</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../develop.html#debug">Debug</a><ul>
@@ -916,6 +926,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../asa.html">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v1-6">Addressed in ACRN v1.6</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v1-4">Addressed in ACRN v1.4</a></li>
 </ul>
@@ -1232,9 +1243,20 @@ altogether. For more information, see
 </tr>
 <tr class="row-even"><td>hvlog</td>
 <td>Service VM</td>
-<td>Reserve memory for the ACRN hypervisor log. The reserved space should not
-overlap any other blocks (e.g.  hypervisor’s reserved space).</td>
-<td><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="o">@</span><span class="mh">0x6de00000</span>
+<td><p class="first">Sets the guest physical address and size of the dedicated hypervisor
+log ring buffer between the hypervisor and Service VM.
+A <code class="docutils literal notranslate"><span class="pre">memmap</span></code> parameter is also required to reserve the specified memory
+from the guest VM.</p>
+<p>If hypervisor relocation is disabled, verify that
+<a class="reference internal" href="../reference/kconfig/CONFIG_HV_RAM_START.html#cmdoption-arg-config-hv-ram-start"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_HV_RAM_START</span></code></a> and <a class="reference internal" href="../reference/kconfig/CONFIG_HV_RAM_SIZE.html#cmdoption-arg-config-hv-ram-size"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_HV_RAM_SIZE</span></code></a>
+does not overlap with the hypervisor’s reserved buffer space allocated
+in the Service VM. Service VM GPA and HPA are a 1:1 mapping.</p>
+<p>If hypervisor relocation is enabled, reserve the memory below 256MB,
+since hypervisor could be relocated anywhere between 256MB and 4GB.</p>
+<p class="last">You should enable ASLR on SOS. This ensures that when guest Linux is
+relocating kernel image, it will avoid this buffer address.</p>
+</td>
+<td><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="o">@</span><span class="mh">0xe00000</span>
 </pre></div>
 </div>
 </td>
@@ -1249,7 +1271,7 @@ using <code class="docutils literal notranslate"><span class="pre">K</span></cod
 Gigabytes, respectively.</dd>
 </dl>
 </td>
-<td><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span>memmap=0x400000$0x6da00000
+<td><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span>memmap=0x400000$0xa00000
 </pre></div>
 </div>
 </td>
@@ -1258,11 +1280,14 @@ Gigabytes, respectively.</dd>
 ramoops.mem_size
 ramoops.console_size</td>
 <td>Service VM</td>
-<td>Ramoops is an oops/panic logger that writes its logs to RAM
+<td><p class="first">Ramoops is an oops/panic logger that writes its logs to RAM
 before the system crashes. Ramoops uses a predefined memory area
 to store the dump. See <a class="reference external" href="https://www.kernel.org/doc/html/v4.19/admin-guide/ramoops.html#ramoops-oops-panic-logger">Linux Kernel Ramoops oops/panic logger</a>
-for details.</td>
-<td><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ramoops</span><span class="o">.</span><span class="n">mem_address</span><span class="o">=</span><span class="mh">0x6da00000</span>
+for details.</p>
+<p class="last">This buffer should not overlap with hypervisor reserved memory and
+guest kernel image. See <code class="docutils literal notranslate"><span class="pre">hvlog</span></code>.</p>
+</td>
+<td><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ramoops</span><span class="o">.</span><span class="n">mem_address</span><span class="o">=</span><span class="mh">0xa00000</span>
 <span class="n">ramoops</span><span class="o">.</span><span class="n">mem_size</span><span class="o">=</span><span class="mh">0x400000</span>
 <span class="n">ramoops</span><span class="o">.</span><span class="n">console_size</span><span class="o">=</span><span class="mh">0x200000</span>
 </pre></div>
@@ -1686,7 +1711,7 @@ GPU resets.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on May 04, 2020.
+      Last updated on May 07, 2020.
 
     </p>
   </div> 

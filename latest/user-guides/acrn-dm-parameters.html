@@ -495,6 +495,16 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/rtvm_workload_design_guideline.html#dm-emulated-device-except-pmd">DM emulated device (Except PMD)</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html">Configure ACRN using OpenStack and libvirt</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#set-up-and-launch-lxc-lxd">Set up and launch LXC/LXD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#set-up-acrn-prerequisites-inside-the-container">Set up ACRN prerequisites inside the container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#set-up-libvirt">Set up libvirt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#set-up-openstack">Set up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/setup_openstack_libvert.html#final-steps">Final Steps</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../develop.html#debug">Debug</a><ul>
@@ -916,6 +926,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../asa.html">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v1-6">Addressed in ACRN v1.6</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v1-4">Addressed in ACRN v1.4</a></li>
 </ul>
@@ -1033,7 +1044,7 @@ The bootargs string will be passed to the kernel as its cmdline.</p>
 <td>Enable guest to write io port 0xf4 to exit guest. It’s mainly used by
 guest unit test.</td>
 </tr>
-<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">-E &lt;elf image path&gt;</kbd></td>
+<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">-E, --elf_file &lt;elf image path&gt;</kbd></td>
 <td>This option is to define a static elf binary which could be loaded by
 DM. DM will run elf as guest of ACRN.</td>
 </tr>
@@ -1156,20 +1167,13 @@ name of the VM you are going to launch.</p>
 <tr class="row-even"><td><kbd class="kbd docutils literal notranslate">--part_info &lt;part_info_name&gt;</kbd></td>
 <td>Set guest partition info path.</td>
 </tr>
-<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">--ptdev_no_reset</kbd></td>
-<td>Disable reset check for pci device.
-When assigning a PCI device as a passthrough device, we will reset it
-first to get it to a valid device state. So if the device doesn’t have
-the reset capability, the passthrough will fail. The PCI device reset
-can be disabled using this option.</td>
-</tr>
-<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">-r, --ramdisk &lt;ramdisk_image_path&gt;</kbd></td>
+<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">-r, --ramdisk &lt;ramdisk_image_path&gt;</kbd></td>
 <td><p class="first">Set the ramdisk (full path) for the User VM. The maximum length is 1023.
 The supported ramdisk format depends on your User VM kernel configuration.</p>
 <p class="last">usage: <code class="docutils literal notranslate"><span class="pre">-r</span> <span class="pre">/path/to/your/ramdisk_image</span></code></p>
 </td>
 </tr>
-<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">-s, --pci_slot &lt;slot_config&gt;</kbd></td>
+<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">-s, --pci_slot &lt;slot_config&gt;</kbd></td>
 <td><p class="first">Setup PCI device configuration.</p>
 <p>slot_config format is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">bus</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">slot</span><span class="o">&gt;</span><span class="p">:</span><span class="o">&lt;</span><span class="n">func</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="n">emul</span><span class="o">&gt;</span><span class="p">[,</span><span class="o">&lt;</span><span class="n">config</span><span class="o">&gt;</span><span class="p">]</span>
@@ -1200,7 +1204,7 @@ determine which bus and port a USB device is attached, you could run
 disk image</p>
 </td>
 </tr>
-<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">-U, --uuid &lt;uuid&gt;</kbd></td>
+<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">-U, --uuid &lt;uuid&gt;</kbd></td>
 <td><p class="first">Set UUID for a VM.
 Every VM is identified by a UUID. You can define that UUID with this
 option. If you don’t use this option, a default one
@@ -1212,10 +1216,10 @@ option. If you don’t use this option, a default one
 <p class="last">set the newly created VM’s UUID to <code class="docutils literal notranslate"><span class="pre">42795636-1d31-6512-7432-087d33b34756</span></code></p>
 </td>
 </tr>
-<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">-v, --version</kbd></td>
+<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">-v, --version</kbd></td>
 <td>Show Device Model version</td>
 </tr>
-<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">--vsbl &lt;vsbl_file_path&gt;</kbd></td>
+<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">--vsbl &lt;vsbl_file_path&gt;</kbd></td>
 <td><p class="first">Virtual Slim bootloader (vSBL) is the virtual bootloader supporting
 booting of the User VM on the ACRN hypervisor platform. The vSBL design is
 derived from Slim Bootloader, which follows a staged design approach
@@ -1238,7 +1242,7 @@ Android OS verification mechanism.</p>
 <p class="last">uses <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/bios/VSBL.bin</span></code> as the vSBL image</p>
 </td>
 </tr>
-<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">--ovmf [w,]&lt;ovmf_file_path&gt;</kbd></td>
+<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">--ovmf [w,]&lt;ovmf_file_path&gt;</kbd></td>
 <td><p class="first">Open Virtual Machine Firmware (OVMF) is an EDK II based project to enable
 UEFI support for Virtual Machines.</p>
 <p>ACRN does not support off-the-shelf OVMF builds targeted for QEMU and
@@ -1255,6 +1259,15 @@ store section, using this option to enable NV data store section writeback.</p>
 <div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">ovmf</span> <span class="n">w</span><span class="p">,</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">acrn</span><span class="o">/</span><span class="n">bios</span><span class="o">/</span><span class="n">OVMF</span><span class="o">.</span><span class="n">fd</span>
 </pre></div>
 </div>
+</td>
+</tr>
+<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">--cpu_affinity &lt;list of pCPUs&gt;</kbd></td>
+<td><p class="first">list of pCPUs assigned to this VM.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">cpu_affinity</span> <span class="mi">1</span><span class="p">,</span><span class="mi">3</span>
+</pre></div>
+</div>
+<p class="last">to assign physical CPUs (pCPUs) 1 and 3 to this VM.</p>
 </td>
 </tr>
 <tr class="row-even"><td><kbd class="kbd docutils literal notranslate">--virtio_poll &lt;poll_interval&gt;</kbd></td>
@@ -1343,6 +1356,16 @@ option, service OS can notify user OS to shutdown itself by vUART.</p>
 <p class="last">For different User VM, it can be configured as needed.</p>
 </td>
 </tr>
+<tr class="row-odd"><td><kbd class="kbd docutils literal notranslate">--windows</kbd></td>
+<td><p class="first">This option is used to run Windows User VMs. It supports Oracle
+<code class="docutils literal notranslate"><span class="pre">virtio-blk</span></code>, <code class="docutils literal notranslate"><span class="pre">virtio-net</span></code> and <code class="docutils literal notranslate"><span class="pre">virtio-input</span></code> devices for Windows
+guests with secure boot.</p>
+<dl class="last docutils">
+<dt>usage::</dt>
+<dd>–windows</dd>
+</dl>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1360,7 +1383,7 @@ option, service OS can notify user OS to shutdown itself by vUART.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on May 04, 2020.
+      Last updated on May 07, 2020.
 
     </p>
   </div> 
