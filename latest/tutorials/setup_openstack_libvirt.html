@@ -19,13 +19,31 @@
   
 
   
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'v 1.7-unstable',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
+        <script type="text/javascript" src="../_static/acrn-custom.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
@@ -33,21 +51,16 @@
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="ACRN Debugging Tools" href="debug.html" />
     <link rel="prev" title="Real-Time VM Application Design Guidelines" href="rtvm_workload_design_guideline.html" /> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -202,6 +215,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../getting-started/rt_industry.html#cyclictest-introduction">Cyclictest introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../getting-started/rt_industry.html#pre-configurations">Pre-Configurations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../getting-started/rt_industry.html#run-cyclictest">Run cyclictest</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../getting-started/rt_industry.html#launch-additional-user-vms">Launch additional User VMs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/rt_industry.html#prepare-the-launch-scripts">Prepare the launch scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/rt_industry.html#launch-windows-vm">Launch Windows VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../getting-started/rt_industry.html#launch-other-standard-vms">Launch other standard VMs</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../getting-started/rt_industry.html#troubleshooting">Troubleshooting</a><ul>
@@ -457,10 +476,9 @@
 <li class="toctree-l3"><a class="reference internal" href="cpu_sharing.html">Enable CPU Sharing in ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#scheduling-framework">Scheduling Framework</a></li>
-<li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#vcpu-affinity">vCPU affinity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#cpu-affinity">CPU affinity</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#thread-object-state">Thread object state</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#scheduler">Scheduler</a></li>
-<li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#scheduler-configuration">Scheduler configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="cpu_sharing.html#example">Example</a></li>
 </ul>
 </li>
@@ -1009,52 +1027,74 @@
            <div itemprop="articleBody">
             
   <div class="section" id="configure-acrn-using-openstack-and-libvirt">
-<span id="setup-openstack-libvert"></span><h1>Configure ACRN using OpenStack and libvirt<a class="headerlink" href="#configure-acrn-using-openstack-and-libvirt" title="Permalink to this headline">¶</a></h1>
+<span id="setup-openstack-libvirt"></span><h1>Configure ACRN using OpenStack and libvirt<a class="headerlink" href="#configure-acrn-using-openstack-and-libvirt" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>This document provides instructions for setting up libvirt to configure ACRN. We use OpenStack to use libvirt. Install OpenStack in a container to avoid crashing your system and to take advantage of easy snapshots/restores so that you can quickly roll back your system in the event of setup failure. Install OpenStack directly on Ubuntu <strong>only</strong> if you have a dedicated testing machine. This setup utilizes LXC/LXD on Ubuntu 16.04/18.04.</p>
+<p>This document provides instructions for setting up libvirt to configure
+ACRN. We use OpenStack to use libvirt and we’ll install OpenStack in a container
+to avoid crashing your system and to take advantage of easy
+snapshots/restores so that you can quickly roll back your system in the
+event of setup failure. (You should only install OpenStack directly on Ubuntu if
+you have a dedicated testing machine.) This setup utilizes LXC/LXD on
+Ubuntu 16.04 or 18.04.</p>
 </div>
 <div class="section" id="install-acrn">
 <h2>Install ACRN<a class="headerlink" href="#install-acrn" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first">Install ACRN using Ubuntu 16.04 or 18.04 as its Service VM. Refer to <a class="reference internal" href="using_ubuntu_as_sos.html#ubuntu-service-os"><span class="std std-ref">Run Ubuntu as the Service VM</span></a>.</p>
+<li><p class="first">Install ACRN using Ubuntu 16.04 or 18.04 as its Service VM. Refer to
+<a class="reference internal" href="using_ubuntu_as_sos.html#ubuntu-service-os"><span class="std std-ref">Run Ubuntu as the Service VM</span></a>.</p>
 </li>
-<li><p class="first">Make acrn-kernel; use the <code class="docutils literal notranslate"><span class="pre">kernel_config_uefi_sos</span></code> file located in the <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code> repo.</p>
+<li><p class="first">Make the acrn-kernel using the <a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-kernel/master/kernel_config_uefi_sos">kernel_config_uefi_sos</a>
+configuration file (from the <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code> repo).</p>
 </li>
-<li><p class="first">Add the following kernel bootarg to give SOS more loop devices. Refer to <a class="reference external" href="https://wiki.ubuntu.com/Kernel/KernelBootParameters">Kernel Boot Parameters</a> documentation.</p>
-<p><code class="docutils literal notranslate"><span class="pre">max_loop=16</span></code></p>
+<li><p class="first">Add the following kernel bootarg to give the Service VM  more loop
+devices. Refer to <a class="reference external" href="https://wiki.ubuntu.com/Kernel/KernelBootParameters">Kernel Boot Parameters</a> documentation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">max_loop</span><span class="o">=</span><span class="mi">16</span>
+</pre></div>
+</div>
 </li>
-<li><p class="first">Boot the Service VM with the new <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code> using the ACRN
+<li><p class="first">Boot the Service VM with this new <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code> using the ACRN
 hypervisor.</p>
 </li>
-<li><p class="first">Use <code class="docutils literal notranslate"><span class="pre">losetup</span> <span class="pre">-a</span></code> to verify that Ubuntu’s snap service is <strong>not</strong> using
-all available loop devices. Typically, OpenStack needs at least 4 available loop devices. Follow the <a class="reference external" href="https://maslosoft.com/kb/how-to-clean-old-snaps/">snaps guide</a> to clean up old snap revisions if you’re running out of loop devices.</p>
+<li><p class="first">Use the command: <code class="docutils literal notranslate"><span class="pre">losetup</span> <span class="pre">-a</span></code> to verify that Ubuntu’s snap service is <strong>not</strong>
+using all available loop devices. Typically, OpenStack needs at least 4
+available loop devices. Follow the <a class="reference external" href="https://maslosoft.com/kb/how-to-clean-old-snaps/">snaps guide</a> to clean up old
+snap revisions if you’re running out of loop devices.</p>
 </li>
-<li><p class="first">Make sure <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> is created. If not, create it. Refer to <a class="reference internal" href="using_ubuntu_as_sos.html#enable-network-sharing-user-vm"><span class="std std-ref">Enable network sharing</span></a>.</p>
+<li><p class="first">Make sure the networking bridge <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> is created. If not,
+create it using the instructions in
+<a class="reference internal" href="using_ubuntu_as_sos.html#enable-network-sharing-user-vm"><span class="std std-ref">Enable network sharing</span></a>.</p>
 </li>
 </ol>
 </div>
 <div class="section" id="set-up-and-launch-lxc-lxd">
 <h2>Set up and launch LXC/LXD<a class="headerlink" href="#set-up-and-launch-lxc-lxd" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first">Set up the LXC/LXD container engine. Use the <a class="reference external" href="https://ubuntu.com/tutorials/tutorial-setting-up-lxd-1604">instructions</a> provided by Ubuntu.</p>
-<p>Refer to the following information:</p>
+<li><p class="first">Set up the LXC/LXD Linux container engine using these <a class="reference external" href="https://ubuntu.com/tutorials/tutorial-setting-up-lxd-1604">instructions</a> provided
+by Ubuntu (for release 16.04).</p>
+<p>Refer to the following additional information for the setup
+procedure:</p>
 <ul class="simple">
-<li>Answer <code class="docutils literal notranslate"><span class="pre">dir</span></code> when prompted for the name of the storage backend to use.</li>
-<li>Make sure <code class="docutils literal notranslate"><span class="pre">lxc-checkconfig</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">missing</span></code> does not show any missing
-kernel features.</li>
-<li>Disregard ZFS utils (they are not necessary).</li>
+<li>Disregard ZFS utils (we’re not going to use the ZFS storage
+backend).</li>
+<li>Answer <code class="docutils literal notranslate"><span class="pre">dir</span></code> (and not <code class="docutils literal notranslate"><span class="pre">zfs</span></code>) when prompted for the name of the storage backend to use.</li>
 <li>Set up <code class="docutils literal notranslate"><span class="pre">lxdbr0</span></code> as instructed.</li>
+<li>Before launching a container, make sure <code class="docutils literal notranslate"><span class="pre">lxc-checkconfig</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">missing</span></code> does not show any missing
+kernel features.</li>
 </ul>
 </li>
-<li><p class="first">Create an Ubuntu Bionic container named <strong>openstack</strong>:</p>
-<p><code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">init</span> <span class="pre">ubuntu:18.04</span> <span class="pre">openstack</span></code></p>
+<li><p class="first">Create an Ubuntu 18.04 container named <strong>openstack</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc init ubuntu:18.04 openstack
+</pre></div>
+</div>
 </li>
 <li><p class="first">Export the kernel interfaces necessary to launch a Service VM in the
 <strong>openstack</strong> container:</p>
 <ol class="loweralpha">
-<li><p class="first">Edit the <strong>openstack</strong> config file:</p>
-<p><code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">config</span> <span class="pre">edit</span> <span class="pre">openstack</span></code></p>
+<li><p class="first">Edit the <strong>openstack</strong> config file using the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc config edit openstack
+</pre></div>
+</div>
 <p>In the editor, add the following lines under <strong>config</strong>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>linux.kernel_modules: iptable_nat, ip6table_nat, ebtables, openvswitch
 raw.lxc: |-
@@ -1069,81 +1109,96 @@ security.privileged: &quot;true&quot;
 </div>
 <p>Save and exit the editor.</p>
 </li>
-<li><p class="first">lxc config device add openstack eth1 nic name=eth1 nictype=bridged parent=acrn-br0</p>
-</li>
-<li><p class="first">lxc config device add openstack acrn_vhm unix-char path=/dev/acrn_vhm</p>
-</li>
-<li><p class="first">lxc config device add openstack loop-control unix-char path=/dev/loop-control</p>
-</li>
-<li><p class="first">for n in {0..15}; do lxc config device add openstack loop$n unix-block path=/dev/loop$n; done;</p>
+<li><p class="first">Run the following commands to configure OpenStack:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc config device add openstack eth1 nic name=eth1 nictype=bridged parent=acrn-br0
+$ lxc config device add openstack acrn_vhm unix-char path=/dev/acrn_vhm
+$ lxc config device add openstack loop-control unix-char path=/dev/loop-control
+$ for n in {0..15}; do lxc config device add openstack loop$n unix-block path=/dev/loop$n; done;
+</pre></div>
+</div>
 </li>
 </ol>
 </li>
 <li><p class="first">Launch the <strong>openstack</strong> container:</p>
-<p><code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">start</span> <span class="pre">openstack</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc start openstack
+</pre></div>
+</div>
 </li>
 <li><p class="first">Log in to the <strong>openstack</strong> container:</p>
-<p><code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">exec</span> <span class="pre">openstack</span> <span class="pre">--</span> <span class="pre">su</span> <span class="pre">-l</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc exec openstack -- su -l
+</pre></div>
+</div>
 </li>
 <li><p class="first">Let <code class="docutils literal notranslate"><span class="pre">systemd</span></code> manage <strong>eth1</strong> in the container, with <strong>eth0</strong> as the
 default route:</p>
 <p>Edit <code class="docutils literal notranslate"><span class="pre">/etc/netplan/50-cloud-init.yaml</span></code></p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>network:
-
     version: 2
-
     ethernets:
-
         eth0:
-
             dhcp4: true
-
         eth1:
-
             dhcp4: true
-
             dhcp4-overrides:
-
                 route-metric: 200
 </pre></div>
 </div>
 </li>
 <li><p class="first">Log out and restart the <strong>openstack</strong> container:</p>
-<p><code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">restart</span> <span class="pre">openstack</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc restart openstack
+</pre></div>
+</div>
 </li>
-<li><p class="first">Log in to the <strong>openstack</strong> container:</p>
-<p><code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">exec</span> <span class="pre">openstack</span> <span class="pre">--</span> <span class="pre">su</span> <span class="pre">-l</span></code></p>
+<li><p class="first">Log in to the <strong>openstack</strong> container again:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ xc exec openstack -- su -l
+</pre></div>
+</div>
 </li>
-<li><p class="first">Set up the proxy inside the <strong>openstack</strong> container via <code class="docutils literal notranslate"><span class="pre">/etc/environment</span></code>
-Make sure <code class="docutils literal notranslate"><span class="pre">no_proxy</span></code> is properly set up in <code class="docutils literal notranslate"><span class="pre">/etc/environment</span></code> inside the container. Both IP addresses assigned to <strong>eth0</strong> and <strong>eth1</strong> and their subnets must be included. For example:</p>
-<p><code class="docutils literal notranslate"><span class="pre">no_proxy=xcompany.com,.xcompany.com,10.0.0.0/8,192.168.0.0/16,localhost,.local,127.0.0.0/8,134.134.0.0/16</span></code></p>
+<li><p class="first">If needed, set up the proxy inside the <strong>openstack</strong> container via
+<code class="docutils literal notranslate"><span class="pre">/etc/environment</span></code> and make sure <code class="docutils literal notranslate"><span class="pre">no_proxy</span></code> is properly set up.
+Both IP addresses assigned to <strong>eth0</strong> and
+<strong>eth1</strong> and their subnets must be included. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">no_proxy</span><span class="o">=</span><span class="n">xcompany</span><span class="o">.</span><span class="n">com</span><span class="p">,</span><span class="o">.</span><span class="n">xcompany</span><span class="o">.</span><span class="n">com</span><span class="p">,</span><span class="mf">10.0</span><span class="o">.</span><span class="mf">0.0</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span><span class="mf">192.168</span><span class="o">.</span><span class="mf">0.0</span><span class="o">/</span><span class="mi">16</span><span class="p">,</span><span class="n">localhost</span><span class="p">,</span><span class="o">.</span><span class="n">local</span><span class="p">,</span><span class="mf">127.0</span><span class="o">.</span><span class="mf">0.0</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span><span class="mf">134.134</span><span class="o">.</span><span class="mf">0.0</span><span class="o">/</span><span class="mi">16</span>
+</pre></div>
+</div>
 </li>
 <li><p class="first">Add a new user named <strong>stack</strong> and set permissions:</p>
-<p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">useradd</span> <span class="pre">-s</span> <span class="pre">/bin/bash</span> <span class="pre">-d</span> <span class="pre">/opt/stack</span> <span class="pre">-m</span> <span class="pre">stack</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">&quot;stack</span> <span class="pre">ALL=(ALL)</span> <span class="pre">NOPASSWD:</span> <span class="pre">ALL&quot;</span> <span class="pre">&gt;&gt;</span> <span class="pre">/etc/sudoers</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo useradd -s /bin/bash -d /opt/stack -m stack
+$ echo &quot;stack ALL=(ALL) NOPASSWD: ALL&quot; &gt;&gt; /etc/sudoers
+</pre></div>
+</div>
 </li>
 <li><p class="first">Log out and restart the <strong>openstack</strong> container:</p>
-<p><code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">restart</span> <span class="pre">openstack</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc restart openstack
+</pre></div>
+</div>
 </li>
 </ol>
-<p>The <strong>openstack</strong> container is now properly configured for OpenStack. Use <code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">list</span></code> to verify that both <strong>eth0</strong> and <strong>eth1</strong> appear in the container.</p>
+<p>The <strong>openstack</strong> container is now properly configured for OpenStack.
+Use the <code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">list</span></code> command to verify that both <strong>eth0</strong> and <strong>eth1</strong>
+appear in the container.</p>
 </div>
 <div class="section" id="set-up-acrn-prerequisites-inside-the-container">
 <h2>Set up ACRN prerequisites inside the container<a class="headerlink" href="#set-up-acrn-prerequisites-inside-the-container" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first">Log in to the <strong>openstack</strong> container as <strong>stack</strong> user:</p>
-<p><code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">exec</span> <span class="pre">openstack</span> <span class="pre">--</span> <span class="pre">su</span> <span class="pre">-l</span> <span class="pre">stack</span></code></p>
+<li><p class="first">Log in to the <strong>openstack</strong> container as the <strong>stack</strong> user:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc exec openstack -- su -l stack
+</pre></div>
+</div>
 </li>
 <li><p class="first">Download and compile ACRN’s source code. Refer to <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">All tools and build dependencies must be installed before you run the first <code class="docutils literal notranslate"><span class="pre">make</span></code> command.</p>
 </div>
-<ul class="simple">
-<li>make</li>
-<li>cd misc/acrn-manager/; make</li>
-<li>Install only the user-space components (acrn-dm/acrnctl/acrnd)</li>
-</ul>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor
+$ cd acrn-hypervisor
+$ git checkout v1.6.1
+$ make
+$ cd misc/acrn-manager/; make
+</pre></div>
+</div>
+<p>Install only the user-space components: acrn-dm, acrnctl, and acrnd</p>
 </li>
 <li><p class="first">Download, compile, and install <code class="docutils literal notranslate"><span class="pre">iasl</span></code>. Refer to <a class="reference internal" href="using_ubuntu_as_sos.html#prepare-uos"><span class="std std-ref">Prepare the User VM</span></a>.</p>
 </li>
@@ -1153,23 +1208,38 @@ Make sure <code class="docutils literal notranslate"><span class="pre">no_proxy<
 <h2>Set up libvirt<a class="headerlink" href="#set-up-libvirt" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p class="first">Install the required packages:</p>
-<p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">install</span> <span class="pre">libdevmapper-dev</span> <span class="pre">libnl-route-3-dev</span> <span class="pre">libnl-3-dev</span> <span class="pre">python</span> <span class="pre">automake</span> <span class="pre">autoconf</span> <span class="pre">autopoint</span> <span class="pre">libtool</span> <span class="pre">xsltproc</span> <span class="pre">libxml2-utils</span> <span class="pre">gettext</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo apt install libdevmapper-dev libnl-route-3-dev libnl-3-dev python \
+  automake autoconf autopoint libtool xsltproc libxml2-utils gettext
+</pre></div>
+</div>
 </li>
 <li><p class="first">Download libvirt/ACRN:</p>
-<p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/projectacrn/acrn-libvirt.git</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-libvirt.git
+</pre></div>
+</div>
 </li>
-<li><p class="first">Go to the libvirt directory (<code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">libvirt</span></code>) and enter the following:</p>
-<p><code class="docutils literal notranslate"><span class="pre">./autogen.sh</span> <span class="pre">--prefix=/usr</span> <span class="pre">--disable-werror</span> <span class="pre">--with-test-suite=no</span> <span class="pre">--with-qemu=no</span> <span class="pre">--with-openvz=no</span> <span class="pre">--with-vmware=no</span> <span class="pre">--with-phyp=no</span> <span class="pre">--with-vbox=no</span> <span class="pre">--with-lxc=no</span> <span class="pre">--with-uml=no</span> <span class="pre">--with-esx=no</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">make</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">make</span> <span class="pre">install</span></code></p>
+<li><p class="first">Build and install libvirt:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd acrn-libvirt
+$ ./autogen.sh --prefix=/usr --disable-werror --with-test-suite=no \
+  --with-qemu=no --with-openvz=no --with-vmware=no --with-phyp=no \
+  --with-vbox=no --with-lxc=no --with-uml=no --with-esx=no
+
+$ make
+$ sudo make install
+</pre></div>
+</div>
 </li>
 <li><p class="first">Edit and enable these options in <code class="docutils literal notranslate"><span class="pre">/etc/libvirt/libvirtd.conf</span></code>:</p>
-<p><code class="docutils literal notranslate"><span class="pre">unix_sock_ro_perms</span> <span class="pre">=</span> <span class="pre">&quot;0777&quot;</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">unix_sock_rw_perms</span> <span class="pre">=</span> <span class="pre">&quot;0777&quot;</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">unix_sock_admin_perms</span> <span class="pre">=</span> <span class="pre">&quot;0777&quot;</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">unix_sock_ro_perms</span> <span class="o">=</span> <span class="s2">&quot;0777&quot;</span>
+<span class="n">unix_sock_rw_perms</span> <span class="o">=</span> <span class="s2">&quot;0777&quot;</span>
+<span class="n">unix_sock_admin_perms</span> <span class="o">=</span> <span class="s2">&quot;0777&quot;</span>
+</pre></div>
+</div>
 </li>
-<li><p class="first">Run the following command:</p>
-<p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">systemctl</span> <span class="pre">daemon-reload</span></code></p>
+<li><p class="first">Restart the libvirt daemon:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo systemctl daemon-reload
+</pre></div>
+</div>
 </li>
 </ol>
 </div>
@@ -1179,47 +1249,78 @@ Make sure <code class="docutils literal notranslate"><span class="pre">no_proxy<
 <ol class="arabic">
 <li><p class="first">Use the latest maintenance branch <strong>stable/train</strong> to ensure OpenStack
 stability:</p>
-<p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://opendev.org/openstack/devstack.git</span> <span class="pre">-b</span> <span class="pre">stable/train</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://opendev.org/openstack/devstack.git -b stable/train
+</pre></div>
+</div>
 </li>
 <li><p class="first">Go to the devstack directory (<code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">devstack</span></code>) and apply the following
 patch:</p>
 <p><code class="docutils literal notranslate"><span class="pre">0001-devstack-installation-for-acrn.patch</span></code></p>
 </li>
 <li><p class="first">Edit <code class="docutils literal notranslate"><span class="pre">lib/nova_plugins/hypervisor-libvirt</span></code>:</p>
-<p>Change <code class="docutils literal notranslate"><span class="pre">xen_hvmloader_path</span></code> to the location of your OVMF image file. A stock image is included in the ACRN source tree (<code class="docutils literal notranslate"><span class="pre">devicemodel/bios/OVMF.fd</span></code>).</p>
+<p>Change <code class="docutils literal notranslate"><span class="pre">xen_hvmloader_path</span></code> to the location of your OVMF image
+file. A stock image is included in the ACRN source tree
+(<code class="docutils literal notranslate"><span class="pre">devicemodel/bios/OVMF.fd</span></code>).</p>
 </li>
-<li><p class="first">Copy the attached <code class="docutils literal notranslate"><span class="pre">local.conf</span></code> to <code class="docutils literal notranslate"><span class="pre">devstack/</span></code>.</p>
-</li>
-</ol>
+<li><p class="first">Create a <code class="docutils literal notranslate"><span class="pre">devstack/local.conf</span></code> file as shown below (setting the password as
+appropriate):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[local|localrc]]
+PUBLIC_INTERFACE=eth1
+
+ADMIN_PASSWORD=&lt;password&gt;
+DATABASE_PASSWORD=&lt;password&gt;
+RABBIT_PASSWORD=&lt;password&gt;
+SERVICE_PASSWORD=&lt;password&gt;
+
+ENABLE_KSM=False
+VIRT_DRIVER=libvirt
+LIBVIRT_TYPE=acrn
+DEBUG_LIBVIRT=True
+DEBUG_LIBVIRT_COREDUMPS=True
+USE_PYTHON3=True
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Now is a great time to take a snapshot of the container using <code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">snapshot</span></code>. If the OpenStack installation fails, manually rolling back to the previous state can be difficult. Currently, no step exists to reliably restart OpenStack after restarting the container.</p>
+<p class="last">Now is a great time to take a snapshot of the container using <code class="docutils literal notranslate"><span class="pre">lxc</span>
+<span class="pre">snapshot</span></code>. If the OpenStack installation fails, manually rolling back
+to the previous state can be difficult. Currently, no step exists to
+reliably restart OpenStack after restarting the container.</p>
 </div>
-<ol class="arabic" start="5">
+</li>
 <li><p class="first">Install OpenStack:</p>
-<p><code class="docutils literal notranslate"><span class="pre">execute</span> <span class="pre">./stack.sh</span> <span class="pre">in</span> <span class="pre">devstack/</span></code></p>
-<p>The installation should take about 20-30 minutes. Upon successful installation, the installer reports the URL of OpenStack’s management interface. This URL is accessible from the native Ubuntu.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>…
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">execute</span> <span class="o">./</span><span class="n">stack</span><span class="o">.</span><span class="n">sh</span> <span class="ow">in</span> <span class="n">devstack</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>The installation should take about 20-30 minutes. Upon successful
+installation, the installer reports the URL of OpenStack’s management
+interface. This URL is accessible from the native Ubuntu.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">...</span>
 
-Horizon is now available at http://&lt;IP_address&gt;/dashboard
+<span class="go">Horizon is now available at http://&lt;IP_address&gt;/dashboard</span>
 
-…
+<span class="go">...</span>
 
-2020-04-09 01:21:37.504 | stack.sh completed in 1755 seconds.
+<span class="go">2020-04-09 01:21:37.504 | stack.sh completed in 1755 seconds.</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Verify in <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">status</span> <span class="pre">libvirtd.service</span></code> that libvirtd is active
+<li><p class="first">Verify using the command <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">status</span> <span class="pre">libvirtd.service</span></code> that libvirtd is active
 and running.</p>
 </li>
 <li><p class="first">Set up SNAT for OpenStack instances to connect to the external network.</p>
 <ol class="loweralpha">
-<li><p class="first">Inside the container, use <code class="docutils literal notranslate"><span class="pre">ip</span> <span class="pre">a</span></code> to identify the <code class="docutils literal notranslate"><span class="pre">br-ex</span></code> bridge
-interface. <code class="docutils literal notranslate"><span class="pre">br-ex</span></code> should have two IPs. One should be visible to the native Ubuntu’s <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> interface (e.g. inet 192.168.1.104/24). The other one is internal to OpenStack (e.g. inet 172.24.4.1/24). The latter corresponds to the public network in OpenStack.</p>
+<li><p class="first">Inside the container, use the command <code class="docutils literal notranslate"><span class="pre">ip</span> <span class="pre">a</span></code> to identify the <code class="docutils literal notranslate"><span class="pre">br-ex</span></code> bridge
+interface. <code class="docutils literal notranslate"><span class="pre">br-ex</span></code> should have two IPs. One should be visible to
+the native Ubuntu’s <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> interface (e.g. inet 192.168.1.104/24).
+The other one is internal to OpenStack (e.g. inet 172.24.4.1/24). The
+latter corresponds to the public network in OpenStack.</p>
 </li>
 <li><p class="first">Set up SNAT to establish a link between <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> and OpenStack.
 For example:</p>
-<p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">iptables</span> <span class="pre">-t</span> <span class="pre">nat</span> <span class="pre">-A</span> <span class="pre">POSTROUTING</span> <span class="pre">-s</span> <span class="pre">172.24.4.1/24</span> <span class="pre">-o</span> <span class="pre">br-ex</span> <span class="pre">-j</span> <span class="pre">SNAT</span> <span class="pre">--to-source</span> <span class="pre">192.168.1.104</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo iptables -t nat -A POSTROUTING -s 172.24.4.1/24 -o br-ex -j SNAT --to-source 192.168.1.104
+</pre></div>
+</div>
 </li>
 </ol>
 </li>
@@ -1233,11 +1334,9 @@ For example:</p>
 <li>OpenStack logs to systemd journal</li>
 <li>libvirt logs to /var/log/libvirt/libvirtd.log</li>
 </ul>
-<dl class="docutils">
-<dt>You can now use the URL to manage OpenStack in your native Ubuntu:</dt>
-<dd><p class="first last">admin/intel123</p>
-</dd>
-</dl>
+<p>You can now use the URL to manage OpenStack in your native Ubuntu
+as admin and using the password set in the local.conf file when you
+set up OpenStack earlier.</p>
 </li>
 <li><p class="first">Create a router between <strong>public</strong> (external network) and <strong>shared</strong>
 (internal network) using <a class="reference external" href="https://docs.openstack.org/openstackdocstheme/latest/demo/create_and_manage_networks.html">OpenStack’s network instructions</a>.</p>
@@ -1258,24 +1357,28 @@ it is running (<code class="docutils literal notranslate"><span class="pre">vm_l
 <li><p class="first">Ping the instance inside the container using the instance’s floating IP
 address.</p>
 </li>
-<li><p class="first">Clear Linux prohibits root SSH login by default. Use the <code class="docutils literal notranslate"><span class="pre">virsh</span></code>
+<li><p class="first">Clear Linux prohibits root SSH login by default. Use libvirt’s <code class="docutils literal notranslate"><span class="pre">virsh</span></code>
 console to configure the instance. Inside the container, run:</p>
-<p><code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">virsh</span> <span class="pre">-c</span> <span class="pre">acrn:///system</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">list</span></code> (you should see the instance listed as running)</p>
-<p><code class="docutils literal notranslate"><span class="pre">console</span> <span class="pre">&lt;instance_name&gt;</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo virsh -c acrn:///system
+list   #you should see the instance listed as running
+console &lt;instance_name&gt;
+</pre></div>
+</div>
 </li>
-<li><p class="first">Log in to the Clear Linux instance and set up the root SSH. Refer to the
-Clear Linux instructions on <a class="reference external" href="https://docs.01.org/clearlinux/latest/guides/network/openssh-server.html#enable-root-login">enabling root login</a>.</p>
+<li><p class="first">Log in to the Clear Linux instance and set up the root SSH. Refer to
+the Clear Linux instructions on <a class="reference external" href="https://docs.01.org/clearlinux/latest/guides/network/openssh-server.html#enable-root-login">enabling root login</a>.</p>
 <ol class="loweralpha simple">
-<li>Set up the proxy inside the instance.</li>
+<li>If needed, set up the proxy inside the instance.</li>
 <li>Configure <code class="docutils literal notranslate"><span class="pre">systemd-resolved</span></code> to use the correct DNS server.</li>
 <li>Install ping: <code class="docutils literal notranslate"><span class="pre">swupd</span> <span class="pre">bundle-add</span> <span class="pre">clr-network-troubleshooter</span></code>.</li>
 </ol>
-<p>The ACRN instance should now be able to ping <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> and another ACRN instance. It should also be accessible inside the container via SSH and its floating IP address.</p>
+<p>The ACRN instance should now be able to ping <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> and another
+ACRN instance. It should also be accessible inside the container via SSH
+and its floating IP address.</p>
+<p>The ACRN instance can be deleted via the OpenStack management interface.</p>
 </li>
 </ol>
-<p>The ACRN instance can be deleted via the OpenStack management interface.
-For more advanced CLI usage, refer to this <a class="reference external" href="https://docs.openstack.org/ocata/user-guide/cli-cheat-sheet.html">OpenStack cheat sheet</a>.</p>
+<p>For more advanced CLI usage, refer to this <a class="reference external" href="https://docs.openstack.org/ocata/user-guide/cli-cheat-sheet.html">OpenStack cheat sheet</a>.</p>
 </div>
 </div>
 
@@ -1291,8 +1394,10 @@ For more advanced CLI usage, refer to this <a class="reference external" href="h
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Project ACRN.
-      Last updated on May 07, 2020.
+        &copy; Copyright 2020, Project ACRN
+      <span class="lastupdated">
+        Last updated on May 08, 2020.
+      </span>
 
     </p>
   </div> 
@@ -1307,34 +1412,16 @@ For more advanced CLI usage, refer to this <a class="reference external" href="h
   </div>
   
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'v 1.7-unstable',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
-      <script type="text/javascript" src="../_static/acrn-custom.js"></script>
-
-  
-
-  <script type="text/javascript" src="../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
