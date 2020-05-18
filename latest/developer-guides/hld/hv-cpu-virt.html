@@ -19,31 +19,13 @@
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../../',
-              VERSION:'v 2.0-unstable',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
-        <script type="text/javascript" src="../../_static/acrn-custom.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
+  
+  
     
 
   
+
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
@@ -51,16 +33,21 @@
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Memory Management high-level design" href="hv-memmgt.html" />
     <link rel="prev" title="VM Management" href="hv-vm-management.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -1049,69 +1036,70 @@
 <img alt="../../_images/hld-image47.png" src="../../_images/hld-image47.png" />
 <p class="caption"><span class="caption-number">Figure 124 </span><span class="caption-text">ACRN Hypervisor CPU Virtualization Components</span></p>
 </div>
-<p>The following sections discuss the major modules (shown in blue) in the
-CPU virtualization overview shown in <a class="reference internal" href="#hv-cpu-virt-components"><span class="std std-numref">Figure 124</span></a>.</p>
+<p>The following sections discuss the major modules (indicated above in blue)
+in the CPU virtualization overview shown in <a class="reference internal" href="#hv-cpu-virt-components"><span class="std std-numref">Figure 124</span></a>.</p>
 <p>Based on Intel VT-x virtualization technology, ACRN emulates a virtual CPU
 (vCPU) with the following methods:</p>
-<ul>
-<li><p class="first"><strong>core partition</strong>: one vCPU is dedicated and associated with one
+<ul class="simple">
+<li><strong>core partition</strong>: one vCPU is dedicated and associated with one
 physical CPU (pCPU),
-making much of hardware register emulation simply
-pass-through and provides good isolation for physical interrupt
+making much of the hardware register emulation simply
+passthrough. This provides good isolation for physical interrupts
 and guest execution.  (See <a class="reference internal" href="#static-cpu-partitioning">Static CPU Partitioning</a> for more
-information.)</p>
-</li>
-<li><p class="first"><strong>core sharing</strong> (to be added): two or more vCPUs are sharing one
-physical CPU (pCPU); a more complicated context switch is needed
-between different vCPUs’ switching, and provides flexible computing
-resources sharing for low performance demand vCPU tasks.
-(See <a class="reference internal" href="#flexible-cpu-sharing">Flexible CPU Sharing</a> for more information.)</p>
-</li>
-<li><p class="first"><strong>simple schedule</strong>: a well-designed scheduler framework allows ACRN
-to adopt different scheduling policy, for example - noop &amp; round-robin:</p>
-<p>noop scheduler - only two thread loops are maintained for a CPU -
-vCPU thread and default idle thread. A CPU runs most of the time in
+information.)</li>
+<li><strong>core sharing</strong> (to be added): two or more vCPUs share one
+physical CPU (pCPU). A more complicated context switch is needed
+between different vCPUs’ switching. This provides flexible computing
+resources sharing for low-performance demand vCPU tasks.
+(See <a class="reference internal" href="#flexible-cpu-sharing">Flexible CPU Sharing</a> for more information.)</li>
+<li><strong>simple schedule</strong>: a well-designed scheduler framework that allows ACRN
+to adopt different scheduling policies, such as the <strong>noop</strong> and <strong>round-robin</strong>:<ul>
+<li><strong>noop scheduler</strong>: only two thread loops are maintained for a CPU: a
+vCPU thread and a default idle thread. A CPU runs most of the time in
 the vCPU thread for emulating a guest CPU, switching between VMX root
 mode and non-root mode. A CPU schedules out to default idle when an
 operation needs it to stay in VMX root mode, such as when waiting for
-an I/O request from DM or ready to destroy.</p>
-<p>round-robin scheduler (to be added) - allow more vcpu thread loops
-running on a CPU. A CPU switches among different vCPU thread and default
-idle thread, upon running out corresponding timeslice or necessary
-scheduling out such as waiting for an I/O request. A vCPU could yield
-itself as well, for example when it executes “PAUSE” instruction.</p>
+an I/O request from the DM or when ready to destroy.</li>
+<li><strong>round-robin scheduler</strong> (to be added): allows more vCPU thread loops
+to run on a CPU. A CPU switches among different vCPU threads and default
+idle threads as it runs out corresponding timeslices or necessary
+scheduling outs such as waiting for an I/O request. A vCPU can yield
+itself as well, such as when it executes “PAUSE” instruction.</li>
+</ul>
 </li>
 </ul>
 <div class="section" id="static-cpu-partitioning">
-<h2>Static CPU Partitioning<a class="headerlink" href="#static-cpu-partitioning" title="Permalink to this headline">¶</a></h2>
+<h2>Static CPU partitioning<a class="headerlink" href="#static-cpu-partitioning" title="Permalink to this headline">¶</a></h2>
 <p>CPU partitioning is a policy for mapping a virtual
-CPU (VCPU) to a physical CPU. To enable this, the ACRN hypervisor could
-configure “noop scheduler” as the schedule policy for this physical CPU.</p>
-<p>ACRN then forces a fixed 1:1 mapping between a VCPU and this physical CPU
-when creating a VCPU for the guest Operating System. This makes the VCPU
+CPU (vCPU) to a physical CPU. To enable this, the ACRN hypervisor can
+configure a noop scheduler as the schedule policy for this physical CPU.</p>
+<p>ACRN then forces a fixed 1:1 mapping between a vCPU and this physical CPU
+when creating a vCPU for the guest Operating System. This makes the vCPU
 management code much simpler.</p>
-<p><code class="docutils literal notranslate"><span class="pre">cpu_affinity_bitmap</span></code> in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> helps to decide which physical CPU a
-VCPU in a VM affines to, then finalize the fixed mapping. When launching an
-user VM, need to choose pCPUs from the VM’s cpu_affinity_bitmap that are not
+<p><code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> helps to decide which physical CPU a
+VCPU in a VM affines to, then finalize the fixed mapping. When launching a
+User VM, need to choose pCPUs from the VM’s cpu_affinity that are not
 used by any other VMs.</p>
 </div>
 <div class="section" id="flexible-cpu-sharing">
 <h2>Flexible CPU Sharing<a class="headerlink" href="#flexible-cpu-sharing" title="Permalink to this headline">¶</a></h2>
-<p>To enable CPU sharing, ACRN hypervisor could configure IORR
-(IO sensitive Round-Robin) or BVT (Borrowed Virtual Time) scheduler policy.</p>
-<p><code class="docutils literal notranslate"><span class="pre">cpu_affinity_bitmap</span></code> in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> helps to decide which physical CPU two
-or more vCPUs from different VMs are sharing. A pCPU can be shared among Service OS
-and any user VMs as long as local APIC passthrough is not enabled in that user VM.</p>
-<p>see <a class="reference internal" href="../../tutorials/cpu_sharing.html#cpu-sharing"><span class="std std-ref">Enable CPU Sharing in ACRN</span></a> for more information.</p>
+<p>To enable CPU sharing, ACRN hypervisor can configure IORR
+(IO sensitive Round-Robin) or the BVT (Borrowed Virtual Time) scheduler
+policy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> indicates all the physical CPUs on which
+this VM is allowed to run. A pCPU can be shared among a Service VM and any
+User VM as long as the local APIC passthrough is not enabled in that User
+VM.</p>
+<p>See <a class="reference internal" href="../../tutorials/cpu_sharing.html#cpu-sharing"><span class="std std-ref">Enable CPU Sharing in ACRN</span></a> for more information.</p>
 <div class="section" id="cpu-management-in-the-service-vm-under-static-cpu-partitioning">
 <h3>CPU management in the Service VM under static CPU partitioning<a class="headerlink" href="#cpu-management-in-the-service-vm-under-static-cpu-partitioning" title="Permalink to this headline">¶</a></h3>
-<p>With ACRN, all ACPI table entries are pass-thru to the Service VM, including
+<p>With ACRN, all ACPI table entries are passthrough to the Service VM, including
 the Multiple Interrupt Controller Table (MADT). The Service VM sees all
 physical CPUs by parsing the MADT when the Service VM kernel boots. All
 physical CPUs are initially assigned to the Service VM by creating the same
 number of virtual CPUs.</p>
 <p>When the Service VM boot is finished, it releases the physical CPUs intended
-for UOS use.</p>
+for User VM use.</p>
 <p>Here is an example flow of CPU allocation on a multi-core platform.</p>
 <div class="figure align-center" id="static-core-cpu-allocation">
 <a class="reference internal image-reference" href="../../_images/static-core-image2.png"><img alt="../../_images/static-core-image2.png" src="../../_images/static-core-image2.png" style="width: 600px;" /></a>
@@ -1120,21 +1108,21 @@ for UOS use.</p>
 </div>
 <div class="section" id="cpu-management-in-the-service-vm-under-flexible-cpu-sharing">
 <h3>CPU management in the Service VM under flexible CPU sharing<a class="headerlink" href="#cpu-management-in-the-service-vm-under-flexible-cpu-sharing" title="Permalink to this headline">¶</a></h3>
-<p>As all Service VM CPUs could share with different UOSs, ACRN can still pass-thru
+<p>As all Service VM CPUs could share with different User VMs, ACRN can still passthrough
 MADT to Service VM, and the Service VM is still able to see all physical CPUs.</p>
 <p>But as under CPU sharing, the Service VM does not need offline/release the physical
-CPUs intended for UOS use.</p>
+CPUs intended for User VM use.</p>
 </div>
-<div class="section" id="cpu-management-in-uos">
-<h3>CPU management in UOS<a class="headerlink" href="#cpu-management-in-uos" title="Permalink to this headline">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">cpu_affinity_bitmap</span></code> in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> defines a set of pCPUs that an User VM
+<div class="section" id="cpu-management-in-the-user-vm">
+<h3>CPU management in the User VM<a class="headerlink" href="#cpu-management-in-the-user-vm" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> defines a set of pCPUs that a User VM
 is allowed to run on. acrn-dm could choose to launch on only a subset of the pCPUs
-or on all pCPUs listed in cpu_affinity_bitmap, but it can’t assign
+or on all pCPUs listed in cpu_affinity, but it can’t assign
 any pCPU that is not included in it.</p>
 </div>
 <div class="section" id="cpu-assignment-management-in-hv">
 <h3>CPU assignment management in HV<a class="headerlink" href="#cpu-assignment-management-in-hv" title="Permalink to this headline">¶</a></h3>
-<p>The physical CPU assignment is pre-defined by <code class="docutils literal notranslate"><span class="pre">cpu_affinity_bitmap</span></code> in
+<p>The physical CPU assignment is pre-defined by <code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> in
 <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code>, while post-launched VMs could be launched on pCPUs that are
 a subset of it.</p>
 <p>Currently, the ACRN hypervisor does not support virtual CPU migration to
@@ -1932,7 +1920,7 @@ based on different CPU modes.</p>
 which could be initialized by different objects:<ul>
 <li>The Service VM BSP: hypervisor will do context initialization in different
 SW load based on different boot mode</li>
-<li>UOS BSP: DM context initialization through hypercall</li>
+<li>User VM BSP: DM context initialization through hypercall</li>
 </ul>
 </li>
 <li><dl class="first docutils">
@@ -2391,7 +2379,7 @@ exit reason for reading or writing these MSRs is respectively
 handler is <em>rdmsr_vmexit_handler</em> or <em>wrmsr_vmexit_handler</em>.</p>
 <p>This table shows the predefined MSRs ACRN will trap for all the guests. For
 the MSRs whose bitmap are not set in the MSR bitmap, guest access will be
-pass-through directly:</p>
+passthrough directly:</p>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
 <col width="33%" />
@@ -2642,22 +2630,22 @@ Emulation” section for more details.</p>
 <p>For an emulated device done in the hypervisor, ACRN provide some basic
 APIs to register its IO/MMIO range:</p>
 <ul class="simple">
-<li>For the Service VM, the default I/O bitmap are all set to 0, which means the Service VM will pass
-through all I/O port access by default. Adding an I/O handler
+<li>For the Service VM, the default I/O bitmap are all set to 0, which means
+the Service VM will passthrough all I/O port access by default. Adding an I/O handler
 for a hypervisor emulated device needs to first set its corresponding
 I/O bitmap to 1.</li>
-<li>For UOS, the default I/O bitmap are all set to 1, which means UOS will trap
+<li>For the User VM, the default I/O bitmap are all set to 1, which means the User Vm will trap
 all I/O port access by default. Adding an I/O handler for a
 hypervisor emulated device does not need change its I/O bitmap.
 If the trapped I/O port access does not fall into a hypervisor
 emulated device, it will create an I/O request and pass it to the Service VM
 DM.</li>
 <li>For the Service VM, EPT maps all range of memory to the Service VM except for ACRN hypervisor
-area. This means the Service VM will pass through all MMIO access by
+area. This means the Service VM will passthrough all MMIO access by
 default. Adding a MMIO handler for a hypervisor emulated
 device needs to first remove its MMIO range from EPT mapping.</li>
-<li>For UOS, EPT only maps its system RAM to the UOS, which means UOS will
-trap all MMIO access by default. Adding a MMIO handler for a
+<li>For the User VM, EPT only maps its system RAM to the User VM, which means the User VM will
+trap all MMIO access by default. Adding an MMIO handler for a
 hypervisor emulated device does not need to change its EPT mapping.
 If the trapped MMIO access does not fall into a hypervisor
 emulated device, it will create an I/O request and pass it to the Service VM
@@ -2800,7 +2788,7 @@ exit, ACRN actually needs to take care of XCR0 access.</p>
 <li>If yes for step 1, enable XSAVE in hypervisor by CR4.OSXSAVE</li>
 <li>Emulates XSAVE related CPUID.01H &amp; CPUID.0DH to guest</li>
 <li>Emulates XCR0 access through <em>xsetbv_vmexit_handler</em></li>
-<li>ACRN pass-through the access of IA32_XSS MSR to guest</li>
+<li>ACRN passthrough the access of IA32_XSS MSR to guest</li>
 <li>ACRN hypervisor does NOT use any feature of XSAVE</li>
 <li>As ACRN emulate vCPU with partition mode, so based on above rules 5
 and 6, a guest vCPU will fully control the XSAVE feature in
@@ -2821,10 +2809,8 @@ non-root mode.</li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Project ACRN
-      <span class="lastupdated">
-        Last updated on May 14, 2020.
-      </span>
+        &copy; Copyright 2020, Project ACRN.
+      Last updated on May 18, 2020.
 
     </p>
   </div> 
@@ -2839,16 +2825,34 @@ non-root mode.</li>
   </div>
   
 
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'v 2.0-unstable',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
+      <script type="text/javascript" src="../../_static/acrn-custom.js"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
