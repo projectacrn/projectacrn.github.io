@@ -345,7 +345,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#known-limitations">Known Limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#known-limitations">Known limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm popular command lines</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#secure-boot-enabling">Secure boot enabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#activate-windows-10">Activate Windows 10</a></li>
@@ -475,10 +475,14 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/skl-nuc.html">Enable GPU Passthrough on the Skylake NUC</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#hardware-platform">Hardware platform</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#software-configuration">Software Configuration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#software-setup">Software Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#verified-version">Verified version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#supported-hardware-platform">Supported hardware platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#bios-settings">BIOS settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP driver</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
@@ -509,6 +513,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set up ACRN prerequisites inside the container</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-libvirt">Set up libvirt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-openstack">Set up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and create OpenStack Instance</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
 </ul>
 </li>
@@ -1054,7 +1059,7 @@ delivered to RT VM directly.</p>
 acrn-dm. However, for performance consideration, vLAPIC, vIOAPIC, and vPIC
 are emulated inside HV directly.</p>
 <p>From the guest OS point of view, vPIC is Virtual Wire Mode via vIOAPIC. The
-symmetric I/O Mode is shown in <a class="reference internal" href="#pending-virt-interrupt"><span class="std std-numref">Figure 172</span></a> later in
+symmetric I/O Mode is shown in <a class="reference internal" href="#pending-virt-interrupt"><span class="std std-numref">Figure 207</span></a> later in
 this section.</p>
 <p>The following command line
 options to guest Linux affects whether it uses PIC or IOAPIC:</p>
@@ -1128,6 +1133,12 @@ requests such as flush EPT.</p>
 <dt id="c.ACRN_REQUEST_INIT_VMCS">
 <span class="target" id="group__virt__int__injection_1ga0fa9f6faeaad46ff1b3c3ad8631dee1f"></span><code class="descname">ACRN_REQUEST_INIT_VMCS</code><a class="headerlink" href="#c.ACRN_REQUEST_INIT_VMCS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Request for initilizing VMCS. </p>
+</dd></dl>
+
+<dl class="macro">
+<dt id="c.ACRN_REQUEST_WAIT_WBINVD">
+<span class="target" id="group__virt__int__injection_1ga1346e3638f2d3f4161f281e897ffcd0c"></span><code class="descname">ACRN_REQUEST_WAIT_WBINVD</code><a class="headerlink" href="#c.ACRN_REQUEST_WAIT_WBINVD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Request for sync waiting WBINVD. </p>
 </dd></dl>
 
 <p>The <em>vcpu_make_request</em> is necessary for a virtual interrupt
@@ -1556,7 +1567,7 @@ emulated devices.</li>
 </ul>
 <div class="figure align-center" id="pending-virt-interrupt">
 <img alt="../../_images/virtint-image64.png" src="../../_images/virtint-image64.png" />
-<p class="caption"><span class="caption-number">Figure 172 </span><span class="caption-text">Handle pending virtual interrupt</span></p>
+<p class="caption"><span class="caption-number">Figure 207 </span><span class="caption-text">Handle pending virtual interrupt</span></p>
 </div>
 <p>Before APICv virtual interrupt delivery, a virtual interrupt can be
 injected only if guest interrupt is allowed. There are many cases
@@ -1592,7 +1603,7 @@ injected or acknowledged.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on May 18, 2020.
+      Last updated on May 21, 2020.
 
     </p>
   </div> 

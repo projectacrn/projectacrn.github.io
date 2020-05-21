@@ -345,7 +345,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#known-limitations">Known Limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#known-limitations">Known limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm popular command lines</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#secure-boot-enabling">Secure boot enabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#activate-windows-10">Activate Windows 10</a></li>
@@ -475,10 +475,14 @@
 <li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="skl-nuc.html">Enable GPU Passthrough on the Skylake NUC</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="skl-nuc.html#hardware-platform">Hardware platform</a></li>
-<li class="toctree-l4"><a class="reference internal" href="skl-nuc.html#software-configuration">Software Configuration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="skl-nuc.html#software-setup">Software Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#verified-version">Verified version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#supported-hardware-platform">Supported hardware platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#bios-settings">BIOS settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP driver</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
@@ -509,6 +513,7 @@
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set up ACRN prerequisites inside the container</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-libvirt">Set up libvirt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-openstack">Set up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and create OpenStack Instance</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
 </ul>
 </li>
@@ -1083,30 +1088,30 @@ successfully.</p>
 <div class="section" id="setup-for-using-windows-as-the-guest-vm">
 <h2>Setup for Using Windows as the Guest VM<a class="headerlink" href="#setup-for-using-windows-as-the-guest-vm" title="Permalink to this headline">¶</a></h2>
 <p>All patches to support WaaG have been upstreamed; download them from the
-<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor</span> <span class="pre">repository</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor</span></code> repository.</p>
 <div class="section" id="build-acrn-efi-images">
 <h3>Build ACRN EFI Images<a class="headerlink" href="#build-acrn-efi-images" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p class="first">Follow the steps described at <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a> to set up the build environment.</p>
 </li>
-<li><p class="first">Use the <code class="docutils literal notranslate"><span class="pre">make</span></code> command to compile the <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> and <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>:</p>
+<li><p class="first">Use the <code class="docutils literal notranslate"><span class="pre">make</span></code> command to compile <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> and <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor.git
 $ cd acrn-hypervisor
 $ make FIRMWARE=uefi BOARD=kbl-nuc-i7
 </pre></div>
 </div>
 </li>
-<li><p class="first">Get the outputs from the following:</p>
+<li><p class="first">Get outputs from the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ build/hypervisor/acrn.efi
 $ build/devicemodel/acrn-dm
 </pre></div>
 </div>
 </li>
-<li><p class="first">Replace the <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> and <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> on your NUC:</p>
+<li><p class="first">Replace <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> and <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> on your NUC:</p>
 <ol class="loweralpha">
 <li><p class="first">Log in to the ACRN Service VM and then <code class="docutils literal notranslate"><span class="pre">mount</span></code> the EFI partition to <code class="docutils literal notranslate"><span class="pre">/boot</span></code></p>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">scp</span></code> the <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> and <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> from your host:</p>
+<li><p class="first"><code class="docutils literal notranslate"><span class="pre">scp</span></code> both <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> and <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> from your host:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># scp &lt;acrn.efi from your host&gt; /boot/EFI/acrn/</span>
 <span class="c1"># scp &lt;acrn-dm from your host&gt; /usr/bin/</span>
 <span class="c1"># chmod +x /usr/bin/acrn-dm &amp;&amp; sync</span>
@@ -1118,7 +1123,7 @@ $ build/devicemodel/acrn-dm
 </ol>
 </div>
 <div class="section" id="build-the-service-vm-kernel">
-<h3>Build the Service VM Kernel<a class="headerlink" href="#build-the-service-vm-kernel" title="Permalink to this headline">¶</a></h3>
+<h3>Build the Service VM kernel<a class="headerlink" href="#build-the-service-vm-kernel" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p class="first">Follow the steps described at <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a> to set up
 the build environment.</p>
@@ -1136,8 +1141,8 @@ $ make modules_install INSTALL_MOD_PATH=${WORKDIR}/build-rootfs O=${WORKDIR}/bui
 </li>
 </ol>
 </div>
-<div class="section" id="update-the-kernel-on-kbl-nuc">
-<h3>Update the Kernel on KBL NUC<a class="headerlink" href="#update-the-kernel-on-kbl-nuc" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="update-the-kbl-nuc-kernel">
+<h3>Update the KBL NUC kernel<a class="headerlink" href="#update-the-kbl-nuc-kernel" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p class="first">Copy the new kernel image (bzImage) and its modules to the target machine:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># scp &lt;your host&gt;:$WORKDIR/build/arch/x86/boot/bzImage /boot/bzImage</span>
@@ -1157,40 +1162,43 @@ options console=tty0 console=ttyS0 root=/dev/sda3 rw rootwait ignore_loglevel no
 <p class="last">Change <code class="docutils literal notranslate"><span class="pre">/dev/sda3</span></code> to your file system partition.</p>
 </div>
 </li>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">reboot</span></code> the Service VM and select <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">ACRNGT</span> <span class="pre">Service</span> <span class="pre">VM</span></code> from the
+<li><p class="first">Reboot the Service VM and select <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">ACRNGT</span> <span class="pre">Service</span> <span class="pre">VM</span></code> from the
 boot menu to apply the ACRN kernel and hypervisor updates.</p>
 </li>
 </ol>
 </div>
-<div class="section" id="create-windows-10-image-in-service-vm">
-<h3>Create Windows 10 Image in Service VM<a class="headerlink" href="#create-windows-10-image-in-service-vm" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="create-a-windows-10-image-in-the-service-vm">
+<h3>Create a Windows 10 image in the Service VM<a class="headerlink" href="#create-a-windows-10-image-in-the-service-vm" title="Permalink to this headline">¶</a></h3>
 <p>Create a Windows 10 image to install Windows 10 onto a virtual disk.</p>
 <div class="section" id="download-win10-iso-and-drivers">
-<h4>Download Win10 ISO and Drivers<a class="headerlink" href="#download-win10-iso-and-drivers" title="Permalink to this headline">¶</a></h4>
+<h4>Download Win10 ISO and drivers<a class="headerlink" href="#download-win10-iso-and-drivers" title="Permalink to this headline">¶</a></h4>
 <ol class="arabic simple">
 <li>Download <a class="reference external" href="https://www.microsoft.com/en-us/evalcenter/evaluate-windows-10-enterprise">Windows 10 LTSC ISO</a>.<ul>
-<li>Select <strong>ISO-LTSC</strong>, then click <strong>Continue</strong>.</li>
-<li>Complete the required info then click <strong>Continue</strong>.</li>
-<li>Select the language and <strong>x86 64 bit</strong>, then click <strong>Download ISO</strong> and save as <code class="docutils literal notranslate"><span class="pre">windows10-LTSC-17763.iso</span></code>.</li>
+<li>Select <strong>ISO-LTSC</strong> and click <strong>Continue</strong>.</li>
+<li>Complete the required info. Click <strong>Continue</strong>.</li>
+<li>Select the language and <strong>x86 64 bit</strong>. Click <strong>Download ISO</strong> and save as <code class="docutils literal notranslate"><span class="pre">windows10-LTSC-17763.iso</span></code>.</li>
 </ul>
 </li>
 <li>Download the <a class="reference external" href="https://downloadmirror.intel.com/29074/a08/igfx_win10_100.7212.zip">Intel DCH Graphics Driver</a>.</li>
 <li>Download the <a class="reference external" href="https://edelivery.oracle.com/osdc/faces/SoftwareDelivery">Oracle Windows driver</a>.<ul>
 <li>Sign in. If you do not have an Oracle account, register for one.</li>
-<li>Select <strong>Download Package</strong>. Key in <strong>Oracle Linux 7.6</strong> and click <strong>Search</strong>.</li>
-<li>Click <strong>DLP: Oracle Linux 7.6</strong>; it will be added to your Cart.</li>
-<li>Click <strong>Checkout</strong> which is located at the top right corner.</li>
-<li>Under <strong>Platforms/Language</strong>, select <strong>x86 64 bit</strong>, and click <strong>Continue</strong>.</li>
-<li>Check <strong>I accept the terms in the license agreement</strong>; click <strong>Continue</strong>.</li>
-<li>In the list, right check the item labeled <strong>Oracle VirtIO Drivers Version for Microsoft Windows 1.x.x, yy MB</strong>,
-and then <strong>Save link as …</strong>.  Currently, it is named <strong>V982789-01.zip</strong>.</li>
-<li>Click <strong>Download</strong>. When the download is complete, unzip the file. You will see an ISO named <strong>winvirtio.iso</strong>.</li>
+<li>Select <strong>Download Package</strong>. Key in <strong>Oracle Linux 7.6</strong> and click
+<strong>Search</strong>.</li>
+<li>Click <strong>DLP: Oracle Linux 7.6</strong> to add to your Cart.</li>
+<li>Click <strong>Checkout</strong> which is located at the top-right corner.</li>
+<li>Under <strong>Platforms/Language</strong>, select <strong>x86 64 bit</strong>. Click <strong>Continue</strong>.</li>
+<li>Check <strong>I accept the terms in the license agreement</strong>. Click <strong>Continue</strong>.</li>
+<li>From the list, right check the item labeled <strong>Oracle VirtIO Drivers
+Version for Microsoft Windows 1.x.x, yy MB</strong>, and then <strong>Save link as
+…</strong>.  Currently, it is named <strong>V982789-01.zip</strong>.</li>
+<li>Click <strong>Download</strong>. When the download is complete, unzip the file. You
+will see an ISO named <strong>winvirtio.iso</strong>.</li>
 </ul>
 </li>
 </ol>
 </div>
-<div class="section" id="create-raw-disk">
-<h4>Create Raw Disk<a class="headerlink" href="#create-raw-disk" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="create-a-raw-disk">
+<h4>Create a raw disk<a class="headerlink" href="#create-a-raw-disk" title="Permalink to this headline">¶</a></h4>
 <p>Run these commands on the Service VM:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># swupd bundle-add kvm-host</span>
 <span class="c1"># mkdir /root/img</span>
@@ -1199,8 +1207,8 @@ and then <strong>Save link as …</strong>.  Currently, it is named <strong>V982
 </pre></div>
 </div>
 </div>
-<div class="section" id="prepare-script-to-create-image">
-<h4>Prepare Script to Create Image<a class="headerlink" href="#prepare-script-to-create-image" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="prepare-the-script-to-create-an-image">
+<h4>Prepare the script to create an image<a class="headerlink" href="#prepare-the-script-to-create-an-image" title="Permalink to this headline">¶</a></h4>
 <ol class="arabic">
 <li><p class="first">Copy <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_win.sh</span></code> to <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># cp /usr/share/acrn/samples/nuc/launch_win.sh ~/install_win.sh</span>
@@ -1210,15 +1218,19 @@ and then <strong>Save link as …</strong>.  Currently, it is named <strong>V982
 <li><p class="first">Edit the <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> command line in <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code> as follows:</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Make sure you use GVT-g <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">2,pci-gvt</span> <span class="pre">-G</span> <span class="pre">&quot;$2&quot;</span></code> in acrn-dm
-command line. Now we cannot support creating windows image by GVT-d.</p>
+<p class="last">Make sure you use GVT-g <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">2,pci-gvt</span> <span class="pre">-G</span> <span class="pre">&quot;$2&quot;</span></code> in the
+<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> command line. Currently, we do not support creating a
+windows image by GVT-d.</p>
 </div>
 <ul class="simple">
-<li>Change <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">3,virtio-blk,./win10-ltsc.img</span></code> to your path to the Windows 10 image.</li>
-<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">6,xhci,1-5:1-9</span></code>. You may need to change 1-5:1-9 to match the ports of
-the USB keyboard/Mouse and flash on your platform.</li>
-<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">8,ahci,cd:./windows10-LTSC-17763.iso</span></code> to point to the Win10 ISO.</li>
-<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">9,ahci,cd:./winvirtio.iso</span></code> to point to your path to the winvirtio iso.</li>
+<li>Change <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">3,virtio-blk,./win10-ltsc.img</span></code> to your path to the Windows
+10 image.</li>
+<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">6,xhci,1-5:1-9</span></code>. You may need to change 1-5:1-9 to match the
+ports of the USB keyboard/mouse and flash on your platform.</li>
+<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">8,ahci,cd:./windows10-LTSC-17763.iso</span></code> to point to the Win10
+ISO.</li>
+<li>Add <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">9,ahci,cd:./winvirtio.iso</span></code> to point to your path to the
+winvirtio iso.</li>
 </ul>
 </li>
 </ol>
@@ -1227,16 +1239,16 @@ the USB keyboard/Mouse and flash on your platform.</li>
 <h4>Install Windows 10 by GVT-g<a class="headerlink" href="#install-windows-10-by-gvt-g" title="Permalink to this headline">¶</a></h4>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Make sure you have configured your monitor and display according to <strong>3</strong> of
-<a class="reference internal" href="#waag-display-conf-lable"><span class="std std-ref">Boot Windows with GVT-g on ACRN</span></a>.</p>
+<p class="last">Make sure you have configured your monitor and display according
+to <strong>3</strong> of <a class="reference internal" href="#waag-display-conf-lable"><span class="std std-ref">Boot Windows with GVT-g on ACRN</span></a>.</p>
 </div>
 <ol class="arabic">
 <li><p class="first">Run <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code>. When you see the UEFI shell, input <strong>exit</strong>.</p>
 </li>
 <li><p class="first">Select <strong>Boot Manager</strong> and boot up from Win10 ISO.</p>
 </li>
-<li><p class="first">When the display reads <strong>Press any key to boot from CD or DVD</strong> on the monitor,
-press any key in the terminal on the <strong>Host</strong> side.</p>
+<li><p class="first">When the display reads <strong>Press any key to boot from CD or DVD</strong> on the
+monitor, press any key in the terminal on the <strong>Host</strong> side.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_1.png" src="../_images/windows_install_1.png" />
 </div>
@@ -1266,8 +1278,8 @@ following drivers into the image:</p>
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Be sure to unselect <strong>Hide Drivers that aren’t compatible with this computer’s hardware</strong>
-near the bottom of the page.</p>
+<p class="last">Be sure to unselect <strong>Hide Drivers that aren’t compatible with
+this computer’s hardware</strong> near the bottom of the page.</p>
 </div>
 <div class="figure align-center">
 <img alt="../_images/windows_install_5.png" src="../_images/windows_install_5.png" />
@@ -1283,41 +1295,41 @@ near the bottom of the page.</p>
 <img alt="../_images/windows_install_7.png" src="../_images/windows_install_7.png" />
 </div>
 </li>
-<li><p class="first">The system will restart.</p>
+<li><p class="first">Verify that the system restarts.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_8.png" src="../_images/windows_install_8.png" />
 </div>
 </li>
-<li><p class="first">Windows will restart several times and then you will be asked to configure your system.</p>
+<li><p class="first">Configure your system when Windows completes its restart cycle.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_9.png" src="../_images/windows_install_9.png" />
 </div>
 </li>
-<li><p class="first">The Windows installation is completed after a few configuration steps; the Windows desktop displays.</p>
+<li><p class="first">Verify that the Windows desktop displays after the Windows installation is complete.</p>
 <div class="figure align-center">
 <img alt="../_images/windows_install_10.png" src="../_images/windows_install_10.png" />
 </div>
 </li>
-<li><p class="first">Copy <a class="reference external" href="https://downloadmirror.intel.com/29074/a08/igfx_win10_100.7212.zip">Intel DCH Graphics Driver</a> into
-Windows and install in safe mode, the display driver is updated to 7212.</p>
+<li><p class="first">Copy the <a class="reference external" href="https://downloadmirror.intel.com/29074/a08/igfx_win10_100.7212.zip">Intel DCH Graphics Driver</a> into
+Windows and install in safe mode. The display driver is updated to 7212.</p>
 </li>
 </ol>
 </div>
 </div>
-<div class="section" id="boot-windows-on-acrn-with-default-configuration">
-<span id="waag-display-conf-lable"></span><h3>Boot Windows on ACRN with default configuration<a class="headerlink" href="#boot-windows-on-acrn-with-default-configuration" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="boot-windows-on-acrn-with-a-default-configuration">
+<span id="waag-display-conf-lable"></span><h3>Boot Windows on ACRN with a default configuration<a class="headerlink" href="#boot-windows-on-acrn-with-a-default-configuration" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
-<li><p class="first">Modify the <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_win.sh</span></code> script to specify the Windows image generated above.</p>
+<li><p class="first">Modify the <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_win.sh</span></code> script to
+specify the Windows image that is generated above.</p>
 </li>
-<li><p class="first">Run the <code class="docutils literal notranslate"><span class="pre">launch_win.sh</span></code>. The WaaG desktop displays on the HDMI monitor.</p>
+<li><p class="first">Run <code class="docutils literal notranslate"><span class="pre">launch_win.sh</span></code>. The WaaG desktop displays on the HDMI monitor.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">We support GVT-g and GVT-d while launching Windows guest.
-If you use GVT-g, you can set up Weston in the Service VM,
-and follow the steps in <a class="reference internal" href="skl-nuc.html#skl-nuc-gpu-passthrough"><span class="std std-ref">Enable GPU Passthrough on the Skylake NUC</span></a> to set up Weston as the
-desktop environment in the Service VM to experience Windows with the
-AcrnGT local display feature. If you use GVT-d, please set 64MB for DVMT Pre-Allocated and
-Enabled for PM Support in BIOS at first, then only Windows has display.</p>
+<p class="last">We support GVT-g and GVT-d while launching Windows guest. If you use GVT-g, you can set up Weston in the Service VM, and set up
+Weston as the desktop environment in the Service VM in order to
+experience Windows with the AcrnGT local display feature. If you use
+GVT-d, set <strong>DVMT Pre-Allocated</strong> to <strong>64MB</strong> and set <strong>PM Support</strong>
+to <strong>Enabled</strong> in the BIOS. Then, only Windows displays.</p>
 </div>
 </li>
 </ol>
@@ -1414,7 +1426,7 @@ Enabled for PM Support in BIOS at first, then only Windows has display.</p>
 </table>
 </div>
 <div class="section" id="known-limitations">
-<h2>Known Limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">¶</a></h2>
+<h2>Known limitations<a class="headerlink" href="#known-limitations" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>The cursor is not visible with the GVT-g local display.</li>
 </ul>
@@ -1423,24 +1435,25 @@ Enabled for PM Support in BIOS at first, then only Windows has display.</p>
 <h2>Explanation for acrn-dm popular command lines<a class="headerlink" href="#explanation-for-acrn-dm-popular-command-lines" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">You can use these acrn-dm command lines according to your real requirements.</p>
+<p class="last">Use these acrn-dm command line entries according to your
+real requirements.</p>
 </div>
 <ul>
-<li><p class="first"><em>-s 2,passthru,0/2/0,gpu</em>:
-This is GVT-d, to passthrough VGA controller to Windows.
+<li><p class="first"><strong>-s 2,passthru,0/2/0,gpu</strong>:
+This is GVT-d to passthrough the VGA controller to Windows.
 You may need to change 0/2/0 to match the bdf of the VGA controller on your platform.</p>
 </li>
-<li><p class="first"><em>-s 3,ahci,hd:/root/img/win10.img</em>:
+<li><p class="first"><strong>-s 3,ahci,hd:/root/img/win10.img</strong>:
 This is the hard disk onto which to install Windows 10.
-Make sure that the slot ID 3 points to your win10 img path.</p>
+Make sure that the slot ID <strong>3</strong> points to your win10 img path.</p>
 </li>
-<li><p class="first"><em>-s 4,virtio-net,tap0</em>:
+<li><p class="first"><strong>-s 4,virtio-net,tap0</strong>:
 This is for the network virtualization.</p>
 </li>
-<li><p class="first"><em>-s 5,fbuf,tcp=0.0.0.0:5900,w=800,h=600</em>:
-This opens a port 5900 on the Service VM which can be connected to via vncviewer.</p>
+<li><p class="first"><strong>-s 5,fbuf,tcp=0.0.0.0:5900,w=800,h=600</strong>:
+This opens port 5900 on the Service VM which can be connected to via vncviewer.</p>
 </li>
-<li><p class="first"><em>-s 6,virtio-input,/dev/input/event4</em>:
+<li><p class="first"><strong>-s 6,virtio-input,/dev/input/event4</strong>:
 This is to passthrough the mouse/keyboard to Windows via virtio.
 Change <code class="docutils literal notranslate"><span class="pre">event4</span></code> accordingly. Use the following command to check
 the event node on your Service VM:</p>
@@ -1449,18 +1462,19 @@ the event node on your Service VM:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><em>-s 7,ahci,cd:/root/img/Windows10.iso</em>:
+<li><p class="first"><strong>-s 7,ahci,cd:/root/img/Windows10.iso</strong>:
 This is the IOS image used to install Windows 10. It appears as a cdrom
-device. Make sure that the slot ID 7 points to your win10 ISO path.</p>
+device. Make sure that the slot ID <strong>7</strong> points to your win10 ISO path.</p>
 </li>
-<li><p class="first"><em>-s 8,ahci,cd:/root/img/winvirtio.iso</em>:
+<li><p class="first"><strong>-s 8,ahci,cd:/root/img/winvirtio.iso</strong>:
 This is cdrom device to install the virtio Windows driver. Make sure it points to your VirtIO ISO path.</p>
 </li>
-<li><p class="first"><em>-s 9,passthru,0/14/0</em>:
-This is to passthrough USB controller to Windows.
-You may need to change 0/14/0 to match the bdf of the USB controller on your platform.</p>
+<li><p class="first"><strong>-s 9,passthru,0/14/0</strong>:
+This is to passthrough the USB controller to Windows.
+You may need to change 0/14/0 to match the bdf of the USB controller on
+your platform.</p>
 </li>
-<li><p class="first"><em>–ovmf /usr/share/acrn/bios/OVMF.fd</em>:
+<li><p class="first"><strong>–ovmf /usr/share/acrn/bios/OVMF.fd</strong>:
 Make sure it points to your OVMF binary path.</p>
 </li>
 </ul>
@@ -1472,12 +1486,12 @@ secure boot enabling.</p>
 </div>
 <div class="section" id="activate-windows-10">
 <h2>Activate Windows 10<a class="headerlink" href="#activate-windows-10" title="Permalink to this headline">¶</a></h2>
-<p>If you are using a trial version of Windows 10, you might find that some
+<p>If you use a trial version of Windows 10, you might find that some
 apps and features do not work or that Windows 10 automatically gets shut
 down by the Windows licensing monitoring service. To avoid these issues,
 obtain a licensed version of Windows.</p>
 <p>For Windows 10 activation steps, refer to
-“<a class="reference external" href="https://support.microsoft.com/en-us/help/12440/windows-10-activate">Activate Windows 10</a>”</p>
+<a class="reference external" href="https://support.microsoft.com/en-us/help/12440/windows-10-activate">Activate Windows 10</a>.</p>
 </div>
 </div>
 
@@ -1494,7 +1508,7 @@ obtain a licensed version of Windows.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on May 18, 2020.
+      Last updated on May 21, 2020.
 
     </p>
   </div> 

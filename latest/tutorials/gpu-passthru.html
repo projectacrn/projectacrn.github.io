@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Enable GPU Passthrough on the Skylake NUC &mdash; Project ACRN™ v 2.0-unstable documentation</title>
+  <title>Enable GVT-d in ACRN &mdash; Project ACRN™ v 2.0-unstable documentation</title>
   
 
   
@@ -345,7 +345,7 @@
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#known-limitations">Known Limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#known-limitations">Known limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm popular command lines</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#secure-boot-enabling">Secure boot enabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#activate-windows-10">Activate Windows 10</a></li>
@@ -475,10 +475,14 @@
 <li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Enable GPU Passthrough on the Skylake NUC</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#hardware-platform">Hardware platform</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#software-configuration">Software Configuration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#software-setup">Software Setup</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#verified-version">Verified version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#supported-hardware-platform">Supported hardware platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bios-settings">BIOS settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP driver</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
@@ -509,6 +513,7 @@
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set up ACRN prerequisites inside the container</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-libvirt">Set up libvirt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-openstack">Set up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and create OpenStack Instance</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
 </ul>
 </li>
@@ -1007,7 +1012,7 @@
         
           <li><a href="../develop.html">Advanced Guides</a> &raquo;</li>
         
-      <li>Enable GPU Passthrough on the Skylake NUC</li>
+      <li>Enable GVT-d in ACRN</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -1026,134 +1031,160 @@
   
            <div itemprop="articleBody">
             
-  <div class="section" id="enable-gpu-passthrough-on-the-skylake-nuc">
-<span id="skl-nuc-gpu-passthrough"></span><h1>Enable GPU Passthrough on the Skylake NUC<a class="headerlink" href="#enable-gpu-passthrough-on-the-skylake-nuc" title="Permalink to this headline">¶</a></h1>
-<p>This community reference release for the Skylake NUC with GPU
-passthrough is a one-time snapshot release and is not supported
-or maintained.</p>
-<div class="section" id="hardware-platform">
-<h2>Hardware platform<a class="headerlink" href="#hardware-platform" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="enable-gvt-d-in-acrn">
+<span id="gpu-passthrough"></span><h1>Enable GVT-d in ACRN<a class="headerlink" href="#enable-gvt-d-in-acrn" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial describes how to enable GVT-d in ACRN.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">After GVT-d is enabled, have either a serial port
+or SSH session open in the Service VM to be able to
+continue interact with it.</p>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Intel GVT-d is a graphics virtualization approach that is also known as
+the Intel-Graphics-Device passthrough feature. Based on Intel VT-d technology, it offers useful special graphics-related configurations.
+It allows for direct assignment of an entire GPU’s prowess to a single user,
+passing the native driver capabilities through to the hypervisor without any limitations.</p>
+</div>
+<div class="section" id="verified-version">
+<h2>Verified version<a class="headerlink" href="#verified-version" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><a class="reference external" href="https://www.intel.com/content/www/us/en/products/boards-kits/nuc/kits/nuc6i7kyk.html">Skylake Skull Canyon NUC NUC6i7KYK</a></li>
+<li>ACRN-hypervisor tag: <strong>acrn-2020w17.4-140000p</strong></li>
+<li>ACRN-Kernel (Service VM kernel): <strong>master</strong> branch, commit id <strong>095509221660daf82584ebdd8c50ea0078da3c2d</strong></li>
+<li>ACRN-EDK2 (OVMF): <strong>ovmf-acrn</strong> branch, commit id <strong>0ff86f6b9a3500e4c7ea0c1064e77d98e9745947</strong></li>
 </ul>
 </div>
-<div class="section" id="software-configuration">
-<h2>Software Configuration<a class="headerlink" href="#software-configuration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>Follow <a class="reference internal" href="kbl-nuc-sdc.html#kbl-nuc-sdc"><span class="std std-ref">these instructions</span></a> to set up the ACRN Service VM.</p>
+</div>
+<div class="section" id="supported-hardware-platform">
+<h2>Supported hardware platform<a class="headerlink" href="#supported-hardware-platform" title="Permalink to this headline">¶</a></h2>
+<p>Currently, ACRN has enabled GVT-d on the following platforms:</p>
 <ul class="simple">
-<li><a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/releases/tag/acrn-2018w39.6-140000p">acrn-hypervisor tag acrn-2018w39.6-140000p</a></li>
-<li><a class="reference external" href="https://github.com/projectacrn/acrn-kernel/releases/tag/acrn-2018w39.6-140000p">acrn-kernel tag acrn-2018w39.6-140000p</a></li>
-<li>Clear Linux OS: version: 25130 (User VM and Service VM use this version)</li>
-</ul>
-<p>Source code patches are provided in <a class="reference external" href="../_static/downloads/skl-patches-for-acrn.tar">skl-patches-for-acrn.tar file</a> to work around or add support for
-enabling GPU passthrough:</p>
-<ul class="simple">
-<li>0001-hv-workaround-for-system-hang-on-non-apicv-devices.patch</li>
-<li>0002-hv-More-changes-to-enable-GPU-passthru.patch</li>
-<li>0003-dm-increase-interrupt-storm-threshold-for-gpu-passth.patch</li>
-<li>0004-dm-passthrough-opregion-to-uos-gpu.patch</li>
-<li>0005-dm-modify-launch-script-to-support-gpu-passthrough.patch</li>
+<li>Kaby Lake</li>
+<li>Whiskey Lake</li>
+<li>Elkhart Lake</li>
 </ul>
 </div>
-<div class="section" id="software-setup">
-<h2>Software Setup<a class="headerlink" href="#software-setup" title="Permalink to this headline">¶</a></h2>
-<p>Please follow the <a class="reference internal" href="kbl-nuc-sdc.html#kbl-nuc-sdc"><span class="std std-ref">Use SDC Mode on the NUC</span></a>, with the following changes:</p>
+<div class="section" id="bios-settings">
+<h2>BIOS settings<a class="headerlink" href="#bios-settings" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="kaby-lake-platform">
+<h3>Kaby Lake platform<a class="headerlink" href="#kaby-lake-platform" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Set <strong>IGD Minimum Memory</strong> to <strong>64MB</strong> in <strong>Devices</strong> → <strong>Video</strong> → <strong>IGD Minimum Memory</strong>.</li>
+</ul>
+</div>
+<div class="section" id="whiskey-lake-platform">
+<h3>Whiskey Lake platform<a class="headerlink" href="#whiskey-lake-platform" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Set <strong>PM Support</strong>  to <strong>Enabled</strong> in <strong>Chipset</strong> → <strong>System Agent (SA) Configuration</strong> → <strong>Graphics Configuration</strong> → <strong>PM support</strong>.</li>
+<li>Set <strong>DVMT Pre-Allocated</strong> to <strong>64MB</strong> in <strong>Chipset</strong> → <strong>System Agent (SA) Configuration</strong> → <strong>Graphics Configuration</strong> → <strong>DVMT Pre-Allocated</strong>.</li>
+</ul>
+</div>
+<div class="section" id="elkhart-lake-platform">
+<h3>Elkhart Lake platform<a class="headerlink" href="#elkhart-lake-platform" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Set <strong>DMVT Pre-Allocated</strong> to <strong>64MB</strong> in <strong>Intel Advanced Menu</strong> → <strong>System Agent(SA) Configuration</strong> → <strong>Graphics Configuration</strong> → <strong>DMVT Pre-Allocated</strong>.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="passthrough-the-gpu-to-guest">
+<h2>Passthrough the GPU to Guest<a class="headerlink" href="#passthrough-the-gpu-to-guest" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first">Set up a Clear Linux Operating System</p>
-<p>Clear Linux OS will update to the latest version during installation.
-Run this command (as root) to roll back to version 25130, using the
-<code class="docutils literal notranslate"><span class="pre">-x</span></code> switch to ignore version mismatch:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># swupd verify -x --fix --picky -m 25130</span>
-<span class="c1"># swupd autoupdate --disable</span>
-<span class="c1"># reboot</span>
+<li><p class="first">Copy <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/samples/nuc/launch_win.sh</span></code> to <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">acrn</span><span class="o">/</span><span class="n">samples</span><span class="o">/</span><span class="n">nuc</span><span class="o">/</span><span class="n">launch_win</span><span class="o">.</span><span class="n">sh</span> <span class="o">~/</span><span class="n">install_win</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Add the ACRN hypervisor to the EFI Partition</p>
-<p>Refer to <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a>
-to build the  hypervisor, device model, and tools.</p>
-<p>Download and untar this <a class="reference external" href="../_static/downloads/skl-patches-for-acrn.tar">skl-patches-for-acrn.tar file</a>, apply these patches to the
-acrn-hypervisor, and build it:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor
-$ cd acrn-hypervisor
-$ git checkout acrn-2018w39.6-140000p
-$ curl https://projectacrn.github.io/latest/_static/downloads/skl-patches-for-acrn.tar | tar x
-$ git am *.patch
-$ make
-</pre></div>
-</div>
-<p>This build process creates new <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>, <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> and
-<code class="docutils literal notranslate"><span class="pre">launch_uos.sh</span></code> files.</p>
+<li><p class="first">Modify the <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code> script to specify the Windows image you use.</p>
 </li>
-<li><p class="first">Replace <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> with this new version (as root):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># cp build/devicemodel/acrn-dm  /usr/bin/acrn-dm</span>
+<li><p class="first">Modify the <code class="docutils literal notranslate"><span class="pre">install_win.sh</span></code> script to enable GVT-d.</p>
+</li>
+<li><p class="first">Add the following commands before <code class="docutils literal notranslate"><span class="pre">acrn-dm</span> <span class="pre">-A</span> <span class="pre">-m</span> <span class="pre">$mem_size</span> <span class="pre">-s</span> <span class="pre">0:0,hostbridge</span> <span class="pre">\</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>gpudevice=`cat /sys/bus/pci/devices/0000:00:02.0/device`
+
+echo &quot;8086 $gpudevice&quot; &gt; /sys/bus/pci/drivers/pci-stub/new_id
+echo &quot;0000:00:02.0&quot; &gt; /sys/bus/pci/devices/0000:00:02.0/driver/unbind
+echo &quot;0000:00:02.0&quot; &gt; /sys/bus/pci/drivers/pci-stub/bind
 </pre></div>
 </div>
 </li>
-<li><p class="first">Put the new <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> hypervisor application (included in the
-Clear Linux OS release) on the EFI partition (as root):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># mount /dev/nvme0n1p1 /mnt</span>
-<span class="c1"># mkdir /mnt/EFI/acrn</span>
-<span class="c1"># cp build/hypervisor/acrn.efi /mnt/EFI/acrn/</span>
+<li><p class="first">Replace <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">2,pci-gvt</span> <span class="pre">-G</span> <span class="pre">&quot;$2&quot;</span> <span class="pre">\</span></code> with <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">2,passthru,0/2/0,gpu</span> <span class="pre">\</span></code></p>
+</li>
+<li><p class="first">Run <code class="docutils literal notranslate"><span class="pre">launch_win.sh</span></code>.</p>
+</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want to passthrough the GPU to a Clear Linux User VM, the
+steps are the same as above except your script.</p>
+</div>
+</div>
+<div class="section" id="enable-the-gvt-d-gop-driver">
+<h2>Enable the GVT-d GOP driver<a class="headerlink" href="#enable-the-gvt-d-gop-driver" title="Permalink to this headline">¶</a></h2>
+<p>When enabling GVT-d, the Guest OS cannot light up the physical screen before
+the OS driver loads. As a result, the Guest BIOS and the Grub UI is not visible on the physical screen. The occurs because the physical display is initialized by the GOP driver or VBIOS before the OS driver loads, and the Guest BIOS doesn’t have them.</p>
+<p>The solution is to integrate the GOP driver binary into the OVMF as a DXE
+driver. Then the Guest OVMF can see the GOP driver and run it in the graphic
+passthrough environment. The physical display can be initialized
+by the GOP and used by the Guest BIOS and Guest Grub.</p>
+<div class="section" id="steps">
+<h3>Steps<a class="headerlink" href="#steps" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">Fetch the ACRN OVMF:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">projectacrn</span><span class="o">/</span><span class="n">acrn</span><span class="o">-</span><span class="n">edk2</span><span class="o">.</span><span class="n">git</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Configure the EFI firmware to boot the ACRN hypervisor by default.
-This assumes you are on an NVMe SSD as in the Skull Canyon:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># efibootmgr -c -l &quot;\EFI\acrn\acrn.efi&quot; -d /dev/nvme0n1 -p 1 -L &quot;ACRN&quot;</span>
+<li><p class="first">Fetch the vbt and gop drivers.</p>
+<p>Fetch the <strong>vbt</strong> and <strong>gop</strong> drivers from the board manufacturer according to your CPU model name.</p>
+</li>
+<li><p class="first">Add the <strong>vbt</strong> and <strong>gop</strong> drivers to the OVMF:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span> <span class="n">IntelGopDriver</span><span class="o">.</span><span class="n">efi</span>  <span class="n">acrn</span><span class="o">-</span><span class="n">edk2</span><span class="o">/</span><span class="n">OvmfPkg</span><span class="o">/</span><span class="n">IntelGop</span><span class="o">/</span><span class="n">IntelGopDriver</span><span class="o">.</span><span class="n">efi</span>
+<span class="n">cp</span> <span class="n">Vbt</span><span class="o">.</span><span class="n">bin</span> <span class="n">acrn</span><span class="o">-</span><span class="n">edk2</span><span class="o">/</span><span class="n">OvmfPkg</span><span class="o">/</span><span class="n">Vbt</span><span class="o">/</span><span class="n">Vbt</span><span class="o">.</span><span class="n">bin</span>
 </pre></div>
 </div>
+<p>Confirm that these binaries names match the board manufacturer names.</p>
 </li>
-<li><p class="first">Create a boot entry for ACRN Service OS by making a few edits to the
-<code class="docutils literal notranslate"><span class="pre">acrn.conf</span></code> file (note the options line must be one long line, without
-any line breaks):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># vim /mnt/loader/entries/acrn.conf</span>
-<span class="n">title</span> <span class="n">The</span> <span class="n">ACRN</span> <span class="n">Service</span> <span class="n">OS</span>
-<span class="n">linux</span>   <span class="o">/</span><span class="n">EFI</span><span class="o">/</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">/</span><span class="n">kernel</span><span class="o">-</span><span class="n">org</span><span class="o">.</span><span class="n">clearlinux</span><span class="o">.</span><span class="n">pk414</span><span class="o">-</span><span class="n">sos</span><span class="o">.</span><span class="mf">4.14</span><span class="o">.</span><span class="mi">68</span><span class="o">-</span><span class="mi">99</span>
-<span class="n">options</span> <span class="n">pci_devices_ignore</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">18</span><span class="p">:</span><span class="mi">1</span><span class="p">)</span> <span class="n">console</span><span class="o">=</span><span class="n">tty0</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS2</span> <span class="n">root</span><span class="o">=/</span><span class="n">dev</span><span class="o">/</span><span class="n">nvme0n1p3</span> <span class="n">rw</span> <span class="n">rootwait</span> <span class="n">ignore_loglevel</span> <span class="n">no_timer_check</span> <span class="n">consoleblank</span><span class="o">=</span><span class="mi">0</span> <span class="n">i915</span><span class="o">.</span><span class="n">nuclear_pageflip</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">avail_planes_per_pipe</span><span class="o">=</span><span class="mh">0x01010F</span> <span class="n">i915</span><span class="o">.</span><span class="n">domain_plane_owners</span><span class="o">=</span><span class="mh">0x011111110000</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_gvt</span><span class="o">=</span><span class="mi">1</span> <span class="n">i915</span><span class="o">.</span><span class="n">enable_guc</span><span class="o">=</span><span class="mi">0</span> <span class="n">hvlog</span><span class="o">=</span><span class="mi">2</span><span class="n">M</span><span class="o">@</span><span class="mh">0x1FE00000</span>
-</pre></div>
-</div>
+<li><p class="first">Git apply the following two patches:</p>
+<ul class="simple">
+<li><a class="reference external" href="../_static/downloads/Use-the-default-vbt-released-with-GOP-driver.patch">Use-the-default-vbt-released-with-GOP-driver.patch</a></li>
+<li><a class="reference external" href="../_static/downloads/Integrate-IntelGopDriver-into-OVMF.patch">Integrate-IntelGopDriver-into-OVMF.patch</a></li>
+</ul>
 </li>
-<li><p class="first">Don’t Enable weston service (skip this step found in the NUC’s getting
-started guide).</p>
-</li>
-<li><p class="first">Set up Reference User VM by running the modified <code class="docutils literal notranslate"><span class="pre">launch_uos.sh</span></code> in
-<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/devicemodel/samples/nuc/launch_uos.sh</span></code></p>
-</li>
-<li><p class="first">After User VM is launched, do these steps to run GFX workloads:</p>
-<ol class="loweralpha">
-<li><p class="first">install weston and glmark2:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#swupd bundle-add desktop glmark2</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Add new user cl_uos:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># useradd cl_uos</span>
-<span class="c1"># passwd cl_uos</span>
-<span class="c1"># usermod -G wheel -a cl_uos</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Enable weston service:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># systemctl enable weston@cl_uos</span>
-<span class="c1"># systemctl start weston@cl_uos</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Disable weston screen saver:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># vim .config/weston.ini</span>
-<span class="p">[</span><span class="n">core</span><span class="p">]</span>
-<span class="n">idle</span><span class="o">-</span><span class="n">time</span><span class="o">=</span><span class="mi">0</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">run glmark2:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># glmark2-es2-wayland</span>
+<li><p class="first">Compile the OVMF:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">acrn</span><span class="o">-</span><span class="n">edk2</span>
+<span class="n">git</span> <span class="n">submodule</span> <span class="n">update</span> <span class="o">--</span><span class="n">init</span> <span class="n">CryptoPkg</span><span class="o">/</span><span class="n">Library</span><span class="o">/</span><span class="n">OpensslLib</span><span class="o">/</span><span class="n">openssl</span>
+
+<span class="n">source</span> <span class="n">edksetup</span><span class="o">.</span><span class="n">sh</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">C</span> <span class="n">BaseTools</span>
+
+<span class="n">vim</span> <span class="n">Conf</span><span class="o">/</span><span class="n">target</span><span class="o">.</span><span class="n">txt</span>
+
+  <span class="n">ACTIVE_PLATFORM</span> <span class="o">=</span> <span class="n">OvmfPkg</span><span class="o">/</span><span class="n">OvmfPkgX64</span><span class="o">.</span><span class="n">dsc</span>
+  <span class="n">TARGET_ARCH</span> <span class="o">=</span> <span class="n">X64</span>
+  <span class="n">TOOL_CHAIN_TAG</span> <span class="o">=</span> <span class="n">GCC5</span>
+
+<span class="n">build</span> <span class="o">-</span><span class="n">DFD_SIZE_2MB</span> <span class="o">-</span><span class="n">DDEBUG_ON_SERIAL_PORT</span><span class="o">=</span><span class="n">TRUE</span>
 </pre></div>
 </div>
 </li>
 </ol>
-</li>
-</ol>
+<p>Keep in mind the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Use a build machine that has GCC 5.X version installed.</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">edksetup.sh</span></code> step is needed for compilation every time
+a shell is created.</li>
+<li>This will generate the binary at
+<code class="docutils literal notranslate"><span class="pre">Build/OvmfX64/DEBUG_GCC5/FV/OVMF.fd</span></code>. Transfer the binary to
+your target machine.</li>
+<li>Modify the launch script to specify the OVMF you built just now.</li>
+</ul>
+</div></blockquote>
+</div>
 </div>
 </div>
 
@@ -1170,7 +1201,7 @@ started guide).</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on May 18, 2020.
+      Last updated on May 21, 2020.
 
     </p>
   </div> 

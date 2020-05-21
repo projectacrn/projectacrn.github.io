@@ -345,7 +345,7 @@
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#known-limitations">Known Limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#known-limitations">Known limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm popular command lines</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#secure-boot-enabling">Secure boot enabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_windows_as_uos.html#activate-windows-10">Activate Windows 10</a></li>
@@ -475,10 +475,14 @@
 <li class="toctree-l4"><a class="reference internal" href="sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="skl-nuc.html">Enable GPU Passthrough on the Skylake NUC</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="skl-nuc.html#hardware-platform">Hardware platform</a></li>
-<li class="toctree-l4"><a class="reference internal" href="skl-nuc.html#software-configuration">Software Configuration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="skl-nuc.html#software-setup">Software Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#verified-version">Verified version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#supported-hardware-platform">Supported hardware platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#bios-settings">BIOS settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP driver</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
@@ -509,6 +513,7 @@
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set up ACRN prerequisites inside the container</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-libvirt">Set up libvirt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#set-up-openstack">Set up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and create OpenStack Instance</a></li>
 <li class="toctree-l4"><a class="reference internal" href="setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
 </ul>
 </li>
@@ -1047,19 +1052,19 @@ following command in the Service VM console:</p>
 </div>
 <div class="figure align-center" id="id1">
 <img alt="../_images/debug_image19.png" src="../_images/debug_image19.png" />
-<p class="caption"><span class="caption-number">Figure 96 </span><span class="caption-text">USB controller BDF information</span></p>
+<p class="caption"><span class="caption-number">Figure 131 </span><span class="caption-text">USB controller BDF information</span></p>
 </div>
 <p>Second, we use the <code class="docutils literal notranslate"><span class="pre">pt</span></code> command in the ACRN console, and use this BDF number
 to find the interrupt vector (VEC) “0x31”.</p>
 <div class="figure align-center" id="id2">
 <img alt="../_images/debug_image20.png" src="../_images/debug_image20.png" />
-<p class="caption"><span class="caption-number">Figure 97 </span><span class="caption-text">USB controller interrupt information</span></p>
+<p class="caption"><span class="caption-number">Figure 132 </span><span class="caption-text">USB controller interrupt information</span></p>
 </div>
 <p>Finally we use the <code class="docutils literal notranslate"><span class="pre">int</span></code> command in the ACRN console, and use this
 interrupt vector to find the interrupt number (909) on CPU3.</p>
 <div class="figure align-center" id="id3">
 <img alt="../_images/debug_image21.png" src="../_images/debug_image21.png" />
-<p class="caption"><span class="caption-number">Figure 98 </span><span class="caption-text">USB controller interrupt number information</span></p>
+<p class="caption"><span class="caption-number">Figure 133 </span><span class="caption-text">USB controller interrupt number information</span></p>
 </div>
 </div>
 <div class="section" id="acrn-log">
@@ -1095,7 +1100,7 @@ noted above.  For example, add the following code into function
 <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/hypervisor/debug/shell.c</span></code>:</p>
 <div class="figure align-center" id="id4">
 <img alt="../_images/debug_image22.png" src="../_images/debug_image22.png" />
-<p class="caption"><span class="caption-number">Figure 99 </span><span class="caption-text">shell_cmd_help added information</span></p>
+<p class="caption"><span class="caption-number">Figure 134 </span><span class="caption-text">shell_cmd_help added information</span></p>
 </div>
 <p>Once you have instrumented the code, you need to rebuild the hypervisor and
 install it on your platform. Refer to <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a> and
@@ -1109,7 +1114,7 @@ command:</p>
 just instrumented with additional log information), and check the log as follows.</p>
 <div class="figure align-center" id="id5">
 <img alt="../_images/debug_image23.png" src="../_images/debug_image23.png" />
-<p class="caption"><span class="caption-number">Figure 100 </span><span class="caption-text">console log information</span></p>
+<p class="caption"><span class="caption-number">Figure 135 </span><span class="caption-text">console log information</span></p>
 </div>
 <p>Then we use the command, on the ACRN console:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vm_console</span>
@@ -1122,7 +1127,7 @@ just instrumented with additional log information), and check the log as follows
 <p>and we will see the following log:</p>
 <div class="figure align-center" id="id6">
 <img alt="../_images/debug_image24.png" src="../_images/debug_image24.png" />
-<p class="caption"><span class="caption-number">Figure 101 </span><span class="caption-text">mem log information</span></p>
+<p class="caption"><span class="caption-number">Figure 136 </span><span class="caption-text">mem log information</span></p>
 </div>
 </div>
 </div>
@@ -1161,7 +1166,7 @@ of the trace files produced by <code class="docutils literal notranslate"><span 
 </div>
 <div class="figure align-center" id="id7">
 <img alt="../_images/debug_image28.png" src="../_images/debug_image28.png" />
-<p class="caption"><span class="caption-number">Figure 102 </span><span class="caption-text">vmexit summary information</span></p>
+<p class="caption"><span class="caption-number">Figure 137 </span><span class="caption-text">vmexit summary information</span></p>
 </div>
 </li>
 </ol>
@@ -1175,14 +1180,14 @@ shown in the following example:</p>
 <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/hypervisor/include/debug/trace.h</span></code>:</p>
 <div class="figure align-center" id="id8">
 <img alt="../_images/debug_image25.png" src="../_images/debug_image25.png" />
-<p class="caption"><span class="caption-number">Figure 103 </span><span class="caption-text">trace event id</span></p>
+<p class="caption"><span class="caption-number">Figure 138 </span><span class="caption-text">trace event id</span></p>
 </div>
 </li>
 <li><p class="first">Add the following format to
 <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/misc/tools/acrntrace/scripts/formats</span></code>:</p>
 <div class="figure align-center" id="id9">
 <img alt="../_images/debug_image1.png" src="../_images/debug_image1.png" />
-<p class="caption"><span class="caption-number">Figure 104 </span><span class="caption-text">acrntrace formatted information</span></p>
+<p class="caption"><span class="caption-number">Figure 139 </span><span class="caption-text">acrntrace formatted information</span></p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1202,7 +1207,7 @@ shown in the following example:</p>
 trace for the calling times of function <code class="docutils literal notranslate"><span class="pre">emulate_io</span></code>:</p>
 <div class="figure align-center" id="id10">
 <img alt="../_images/debug_image2.png" src="../_images/debug_image2.png" />
-<p class="caption"><span class="caption-number">Figure 105 </span><span class="caption-text">inserted trace information</span></p>
+<p class="caption"><span class="caption-number">Figure 140 </span><span class="caption-text">inserted trace information</span></p>
 </div>
 </li>
 <li><p class="first">After we have inserted the trace code addition, we need to rebuild
@@ -1217,7 +1222,7 @@ to generate acrntrace data into the current directory:</p>
 </div>
 <div class="figure align-center" id="id11">
 <img alt="../_images/debug_image3.png" src="../_images/debug_image3.png" />
-<p class="caption"><span class="caption-number">Figure 106 </span><span class="caption-text">trace collection</span></p>
+<p class="caption"><span class="caption-number">Figure 141 </span><span class="caption-text">trace collection</span></p>
 </div>
 </li>
 <li><p class="first">Run the console command:</p>
@@ -1234,7 +1239,7 @@ of the trace files produced by <code class="docutils literal notranslate"><span 
 <p>and we will get the following log:</p>
 <div class="figure align-center" id="id12">
 <img alt="../_images/debug_image4.png" src="../_images/debug_image4.png" />
-<p class="caption"><span class="caption-number">Figure 107 </span><span class="caption-text">trace collection</span></p>
+<p class="caption"><span class="caption-number">Figure 142 </span><span class="caption-text">trace collection</span></p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1261,7 +1266,7 @@ CPU to analyze its trace.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on May 18, 2020.
+      Last updated on May 21, 2020.
 
     </p>
   </div> 

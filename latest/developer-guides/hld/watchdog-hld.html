@@ -345,7 +345,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#known-limitations">Known Limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#known-limitations">Known limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm popular command lines</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#secure-boot-enabling">Secure boot enabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#activate-windows-10">Activate Windows 10</a></li>
@@ -475,10 +475,14 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/skl-nuc.html">Enable GPU Passthrough on the Skylake NUC</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#hardware-platform">Hardware platform</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#software-configuration">Software Configuration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#software-setup">Software Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#verified-version">Verified version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#supported-hardware-platform">Supported hardware platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#bios-settings">BIOS settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP driver</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
@@ -509,6 +513,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set up ACRN prerequisites inside the container</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-libvirt">Set up libvirt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-openstack">Set up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and create OpenStack Instance</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
 </ul>
 </li>
@@ -1046,10 +1051,10 @@ RESET line which results in a hard reboot.</p>
 <p>For ACRN we emulate the watchdog hardware in the Intel 6300ESB chipset
 as a PCI device called 6300ESB watchdog and is added into the Device
 Model following the PCI device framework. The following
-<a class="reference internal" href="#watchdog-device"><span class="std std-numref">Figure 209</span></a> shows the watchdog device workflow:</p>
+<a class="reference internal" href="#watchdog-device"><span class="std std-numref">Figure 244</span></a> shows the watchdog device workflow:</p>
 <div class="figure align-center" id="watchdog-device">
 <a class="reference internal image-reference" href="../../_images/watchdog-image2.png"><img alt="../../_images/watchdog-image2.png" src="../../_images/watchdog-image2.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 209 </span><span class="caption-text">Watchdog device flow</span></p>
+<p class="caption"><span class="caption-number">Figure 244 </span><span class="caption-text">Watchdog device flow</span></p>
 </div>
 <p>The DM in the Service VM treats the watchdog as a passive device.
 It receives read/write commands from the watchdog driver, does the
@@ -1068,11 +1073,11 @@ then calls <code class="docutils literal notranslate"><span class="pre">ioctl</s
 hypercall to trap into the hypervisor to tell it the operation is done, and
 the hypervisor will set User VM-related VCPU registers and resume the User VM so the
 User VM watchdog driver will get the return values (or return status). The
-<a class="reference internal" href="#watchdog-workflow"><span class="std std-numref">Figure 210</span></a> below is a typical operation flow:
+<a class="reference internal" href="#watchdog-workflow"><span class="std std-numref">Figure 245</span></a> below is a typical operation flow:
 from a User VM to the Service VM and return back:</p>
 <div class="figure align-center" id="watchdog-workflow">
 <a class="reference internal image-reference" href="../../_images/watchdog-image1.png"><img alt="../../_images/watchdog-image1.png" src="../../_images/watchdog-image1.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 210 </span><span class="caption-text">Watchdog operation workflow</span></p>
+<p class="caption"><span class="caption-number">Figure 245 </span><span class="caption-text">Watchdog operation workflow</span></p>
 </div>
 </div>
 <div class="section" id="implementation-in-acrn-and-how-to-use-it">
@@ -1123,7 +1128,7 @@ will timeout and the DM will reboot the User VM.</p>
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on May 18, 2020.
+      Last updated on May 21, 2020.
 
     </p>
   </div> 

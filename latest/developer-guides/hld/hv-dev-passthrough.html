@@ -345,7 +345,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows verified feature list</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#known-limitations">Known Limitations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#known-limitations">Known limitations</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm popular command lines</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#secure-boot-enabling">Secure boot enabling</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#activate-windows-10">Activate Windows 10</a></li>
@@ -475,10 +475,14 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/skl-nuc.html">Enable GPU Passthrough on the Skylake NUC</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#hardware-platform">Hardware platform</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#software-configuration">Software Configuration</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/skl-nuc.html#software-setup">Software Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#verified-version">Verified version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#supported-hardware-platform">Supported hardware platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#bios-settings">BIOS settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP driver</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
@@ -509,6 +513,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set up ACRN prerequisites inside the container</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-libvirt">Set up libvirt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-openstack">Set up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and create OpenStack Instance</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
 </ul>
 </li>
@@ -1048,13 +1053,13 @@ stack. Passthrough implemented in hypervisor assigns a physical device
 to a VM so the VM can access the hardware device directly with minimal
 (if any) VMM involvement.</p>
 <p>The difference between device emulation and passthrough is shown in
-<a class="reference internal" href="#emu-passthru-diff"><span class="std std-numref">Figure 177</span></a>. You can notice device emulation has
+<a class="reference internal" href="#emu-passthru-diff"><span class="std std-numref">Figure 212</span></a>. You can notice device emulation has
 a longer access path which causes worse performance compared with
 passthrough. Passthrough can deliver near-native performance, but
 can’t support device sharing.</p>
 <div class="figure align-center" id="emu-passthru-diff">
 <img alt="../../_images/passthru-image30.png" src="../../_images/passthru-image30.png" />
-<p class="caption"><span class="caption-number">Figure 177 </span><span class="caption-text">Difference between Emulation and passthrough</span></p>
+<p class="caption"><span class="caption-number">Figure 212 </span><span class="caption-text">Difference between Emulation and passthrough</span></p>
 </div>
 <p>Passthrough in the hypervisor provides the following functionalities to
 allow VM to access PCI devices directly:</p>
@@ -1073,7 +1078,7 @@ VT-d interrupt-remapping for PCI devices for security considerations.</li>
 for post-launched VM:</p>
 <div class="figure align-center" id="id2">
 <img alt="../../_images/passthru-image22.png" src="../../_images/passthru-image22.png" />
-<p class="caption"><span class="caption-number">Figure 178 </span><span class="caption-text">Passthrough devices initialization control flow</span></p>
+<p class="caption"><span class="caption-number">Figure 213 </span><span class="caption-text">Passthrough devices initialization control flow</span></p>
 </div>
 <div class="section" id="passthrough-device-status">
 <h2>Passthrough Device status<a class="headerlink" href="#passthrough-device-status" title="Permalink to this headline">¶</a></h2>
@@ -1081,7 +1086,7 @@ for post-launched VM:</p>
 passthrough, as detailed here:</p>
 <div class="figure align-center" id="id3">
 <img alt="../../_images/passthru-image77.png" src="../../_images/passthru-image77.png" />
-<p class="caption"><span class="caption-number">Figure 179 </span><span class="caption-text">Passthrough Device Status</span></p>
+<p class="caption"><span class="caption-number">Figure 214 </span><span class="caption-text">Passthrough Device Status</span></p>
 </div>
 </div>
 <div class="section" id="owner-of-passthrough-devices">
@@ -1132,11 +1137,11 @@ unit for each passthrough device. The control flow of assigning and de-assigning
 a passthrough device to/from a post-launched VM is shown in the following figures:</p>
 <div class="figure align-center" id="id4">
 <img alt="../../_images/passthru-image86.png" src="../../_images/passthru-image86.png" />
-<p class="caption"><span class="caption-number">Figure 180 </span><span class="caption-text">ptdev assignment control flow</span></p>
+<p class="caption"><span class="caption-number">Figure 215 </span><span class="caption-text">ptdev assignment control flow</span></p>
 </div>
 <div class="figure align-center" id="id5">
 <img alt="../../_images/passthru-image42.png" src="../../_images/passthru-image42.png" />
-<p class="caption"><span class="caption-number">Figure 181 </span><span class="caption-text">ptdev de-assignment control flow</span></p>
+<p class="caption"><span class="caption-number">Figure 216 </span><span class="caption-text">ptdev de-assignment control flow</span></p>
 </div>
 </div>
 <div class="section" id="vt-d-interrupt-remapping">
@@ -1280,7 +1285,7 @@ the subordination relation between physical interrupt and VM, the
 virtual destination, etc. See the following figure for details:</p>
 <div class="figure align-center" id="id6">
 <img alt="../../_images/passthru-image91.png" src="../../_images/passthru-image91.png" />
-<p class="caption"><span class="caption-number">Figure 182 </span><span class="caption-text">Remapping of physical interrupts</span></p>
+<p class="caption"><span class="caption-number">Figure 217 </span><span class="caption-text">Remapping of physical interrupts</span></p>
 </div>
 <p>There are two different types of interrupt source: IOAPIC and MSI.
 The hypervisor will record different information for interrupt
@@ -1290,9 +1295,9 @@ physical and virtual BDF and other info for MSI source.</p>
 done on-demand rather than on hypervisor initialization.</p>
 <div class="figure align-center" id="init-remapping">
 <img alt="../../_images/passthru-image102.png" src="../../_images/passthru-image102.png" />
-<p class="caption"><span class="caption-number">Figure 183 </span><span class="caption-text">Initialization of remapping of virtual IOAPIC interrupts for Service VM</span></p>
+<p class="caption"><span class="caption-number">Figure 218 </span><span class="caption-text">Initialization of remapping of virtual IOAPIC interrupts for Service VM</span></p>
 </div>
-<p><a class="reference internal" href="#init-remapping"><span class="std std-numref">Figure 183</span></a> above illustrates how remapping of (virtual) IOAPIC
+<p><a class="reference internal" href="#init-remapping"><span class="std std-numref">Figure 218</span></a> above illustrates how remapping of (virtual) IOAPIC
 interrupts are remapped for Service VM. VM exit occurs whenever Service VM tries to
 unmask an interrupt in (virtual) IOAPIC by writing to the Redirection
 Table Entry (or RTE). The hypervisor then invokes the IOAPIC emulation
@@ -1301,7 +1306,7 @@ calls APIs to set up a remapping for the to-be-unmasked interrupt.</p>
 <p>Remapping of (virtual) PIC interrupts are set up in a similar sequence:</p>
 <div class="figure align-center" id="id7">
 <img alt="../../_images/passthru-image98.png" src="../../_images/passthru-image98.png" />
-<p class="caption"><span class="caption-number">Figure 184 </span><span class="caption-text">Initialization of remapping of virtual MSI for Service VM</span></p>
+<p class="caption"><span class="caption-number">Figure 219 </span><span class="caption-text">Initialization of remapping of virtual MSI for Service VM</span></p>
 </div>
 <p>This figure illustrates how mappings of MSI or MSIX are set up for
 Service VM. Service VM is responsible for issuing a hypercall to notify the
@@ -1699,7 +1704,7 @@ The following APIs are provided to pre-allocate/free interrupt entries for post-
   <div role="contentinfo">
     <p>
         &copy; Copyright 2020, Project ACRN.
-      Last updated on May 18, 2020.
+      Last updated on May 21, 2020.
 
     </p>
   </div> 
