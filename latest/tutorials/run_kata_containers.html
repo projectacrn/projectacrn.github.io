@@ -19,31 +19,13 @@
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'v 2.0-unstable',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
-        <script type="text/javascript" src="../_static/acrn-custom.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
+  
+  
     
 
   
+
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
@@ -51,16 +33,21 @@
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Trusty and Security Services Reference" href="trustyACRN.html" />
     <link rel="prev" title="Enable GVT-d in ACRN" href="gpu-passthru.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -533,7 +520,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#install-docker">Install Docker</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#install-kata-containers">Install Kata Containers</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#configure-kata-on-acrn">Configure Kata on ACRN</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#run-a-kata-container-with-acrn">Run a Kata Container with ACRN</a></li>
 </ul>
 </li>
@@ -1085,7 +1071,8 @@
             
   <div class="section" id="run-kata-containers-on-a-service-vm">
 <span id="run-kata-containers"></span><h1>Run Kata Containers on a Service VM<a class="headerlink" href="#run-kata-containers-on-a-service-vm" title="Permalink to this headline">¶</a></h1>
-<p>This tutorial describes how to install, configure, and run <a class="reference external" href="https://katacontainers.io/">Kata Containers</a> on the ACRN Service VM. In this configuration,
+<p>This tutorial describes how to install, configure, and run <a class="reference external" href="https://katacontainers.io/">Kata Containers</a> on the Ubuntu based Service VM with the ACRN
+hypervisor. In this configuration,
 Kata Containers leverage the ACRN hypervisor instead of QEMU which is used by
 default. Refer to the <a class="reference external" href="https://drive.google.com/file/d/1ZrqM5ouWUJA0FeIWhU_aitEJe8781rpe/view?usp=sharing">Kata Containers with ACRN</a>
 presentation from a previous ACRN Project Technical Community Meeting for
@@ -1097,54 +1084,71 @@ done.</p>
 <li>Refer to the <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">ACRN supported hardware</span></a>.</li>
 <li>For a default prebuilt ACRN binary in the E2E package, you must have 4
 CPU cores or enable “CPU Hyper-Threading” in order to have 4 CPU threads for 2 CPU cores.</li>
-<li>Follow <a class="reference internal" href="kbl-nuc-sdc.html#kbl-nuc-sdc"><span class="std std-ref">these instructions</span></a> to set up the ACRN Service VM.</li>
+<li>Follow <a class="reference internal" href="using_ubuntu_as_sos.html#ubuntu-service-os"><span class="std std-ref">these instructions</span></a> to set up the ACRN Service VM
+based on Ubuntu. Please note that only ACRN hypervisors compiled for
+SDC scenario support Kata Containers currently.</li>
 </ol>
 </div>
 <div class="section" id="install-docker">
 <h2>Install Docker<a class="headerlink" href="#install-docker" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add containers-basic
-$ sudo systemctl enable docker
-$ sudo systemctl start docker
+<p>The following instructions install Docker* on the Ubuntu Service VM.
+Refer to the <a class="reference external" href="https://docs.docker.com/engine/install/ubuntu/">Get Docker Engine - Community for Ubuntu</a>
+installation guide for detailed information.</p>
+<ol class="arabic">
+<li><p class="first">Install the following prerequisite packages:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo apt-get install apt-transport-https ca-certificates curl
 </pre></div>
 </div>
+</li>
+<li><p class="first">Run the following commands to add Docker’s official GPG key,
+set up the repository, and install the Docker Engine - Community
+from the repository:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+$ sudo add-apt-repository &quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot;
+$ sudo apt-get update
+$ sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+</pre></div>
+</div>
+</li>
+</ol>
 </div>
 <div class="section" id="install-kata-containers">
 <h2>Install Kata Containers<a class="headerlink" href="#install-kata-containers" title="Permalink to this headline">¶</a></h2>
-<p>The Kata Containers installation from Clear Linux’s official repository does
-not work with ACRN at the moment. Therefore, you must install Kata
-Containers using the <a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/Developer-Guide.md">manual installation</a>
-instructions (using a <code class="docutils literal notranslate"><span class="pre">rootfs</span></code> image).</p>
+<p>Kata Containers provide a variety of installation methods, this guide uses
+<strong class="command">kata-manager</strong> to automate the Kata Containers installation procedure.</p>
 <ol class="arabic">
-<li><p class="first">Install the build dependencies.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo swupd bundle-add go-basic devpkg-elfutils
+<li><p class="first">Install Kata Containers packages:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/kata-containers/tests/master/cmd/kata-manager/kata-manager.sh) install-packages&quot;
 </pre></div>
 </div>
 </li>
-<li><p class="first">Install Kata Containers.</p>
-<p>At a high level, the <a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/Developer-Guide.md">manual installation</a>
-steps are:</p>
-<ol class="arabic simple">
-<li>Build and install the Kata runtime.</li>
-<li>Create and install a <code class="docutils literal notranslate"><span class="pre">rootfs</span></code>.</li>
-<li>Build and install the Kata Containers kernel.</li>
-<li>Build and install the Kata proxy.</li>
-<li>Build and install the Kata shim.</li>
-</ol>
-</li>
-</ol>
+<li><p class="first">Add the following settings to <code class="file docutils literal notranslate"><span class="pre">/etc/docker/daemon.json</span></code> to configure
+Docker to use Kata Containers by default. You may need to create the
+file if it doesn’t exist.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{
+  &quot;storage-driver&quot;: &quot;devicemapper&quot;,
+  &quot;default-runtime&quot;: &quot;kata-runtime&quot;,
+  &quot;runtimes&quot;: {
+      &quot;kata-runtime&quot;: {
+          &quot;path&quot;: &quot;/usr/bin/kata-runtime&quot;
+      }
+  }
+}
+</pre></div>
 </div>
-<div class="section" id="configure-kata-on-acrn">
-<h2>Configure Kata on ACRN<a class="headerlink" href="#configure-kata-on-acrn" title="Permalink to this headline">¶</a></h2>
-<p>After the core components are installed on the system, the next step is to
-configure them to work seamlessly together. This includes two parts.</p>
-<ol class="arabic">
-<li><p class="first"><a class="reference external" href="https://github.com/kata-containers/documentation/blob/master/Developer-Guide.md#run-kata-containers-with-docker">Configure Docker</a>
-to recognize the <code class="docutils literal notranslate"><span class="pre">kata-runtime</span></code> as an additional runtime available for
-use.</p>
+<p>In order to run Kata with ACRN, the container stack must provide block-based
+storage, such as <code class="file docutils literal notranslate"><span class="pre">device-mapper</span></code>. Since Docker may be configured to
+use <code class="file docutils literal notranslate"><span class="pre">overlay2</span></code> storage driver, the above configuration also instructs
+Docker to use <code class="file docutils literal notranslate"><span class="pre">devive-mapper</span></code> storage driver.</p>
 </li>
 <li><p class="first">Configure Kata to use ACRN.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo mkdir -p /etc/kata-containers
 $ sudo cp /usr/share/defaults/kata-containers/configuration-acrn.toml /etc/kata-containers/configuration.toml
+</pre></div>
+</div>
+</li>
+<li><p class="first">Restart the Docker service.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo systemctl restart docker
 </pre></div>
 </div>
 </li>
@@ -1207,10 +1211,8 @@ and <code class="docutils literal notranslate"><span class="pre">kata-runtime</s
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Project ACRN
-      <span class="lastupdated">
-        Last updated on Jun 03, 2020.
-      </span>
+        &copy; Copyright 2020, Project ACRN.
+      Last updated on Jun 04, 2020.
 
     </p>
   </div> 
@@ -1225,16 +1227,34 @@ and <code class="docutils literal notranslate"><span class="pre">kata-runtime</s
   </div>
   
 
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'v 2.0-unstable',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
+      <script type="text/javascript" src="../_static/acrn-custom.js"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
