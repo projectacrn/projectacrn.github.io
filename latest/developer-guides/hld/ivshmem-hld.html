@@ -19,31 +19,13 @@
   
 
   
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../../',
-              VERSION:'v 2.0-unstable',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
-        <script type="text/javascript" src="../../_static/acrn-custom.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
+  
+  
     
 
   
+
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
@@ -51,16 +33,21 @@
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Virtio devices high-level design" href="hld-virtio-devices.html" />
     <link rel="prev" title="Split Device Model" href="split-dm.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -155,11 +142,10 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#best-known-configurations">Best Known Configurations</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#sdc-scenario-with-two-vms">SDC scenario with two VMs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#sdc-scenario-with-four-vms">SDC scenario with four VMs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#industry-scenario-without-a-safety-vm">Industry scenario without a safety VM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#industry-scenario-with-a-safety-vm">Industry scenario with a safety VM</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#logical-partitioning-scenario">Logical Partitioning scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#sdc-scenario">SDC scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#industry-scenario">Industry scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hybrid-scenario">Hybrid scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#logical-partition-scenario">Logical Partition scenario</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#licensing">Licensing</a></li>
@@ -207,6 +193,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#install-ubuntu-for-the-service-and-user-vms">Install Ubuntu for the Service and User VMs</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#hardware-connection">Hardware Connection</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#install-the-ubuntu-user-vm-rtvm-on-the-sata-disk">Install the Ubuntu User VM (RTVM) on the SATA disk</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#install-the-ubuntu-service-vm-on-the-nvme-disk">Install the Ubuntu Service VM on the NVMe disk</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#build-and-install-acrn-on-ubuntu">Build and Install ACRN on Ubuntu</a><ul>
@@ -222,6 +209,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#launch-the-rtvm">Launch the RTVM</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#update-the-grub-file">Update the Grub file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#id1">Launch the RTVM</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#launch-the-windows-vm">Launch the Windows VM</a></li>
@@ -1066,43 +1054,46 @@
   <div class="section" id="acrn-shared-memory-based-inter-vm-communication">
 <span id="ivshmem-hld"></span><h1>ACRN Shared Memory Based Inter-VM Communication<a class="headerlink" href="#acrn-shared-memory-based-inter-vm-communication" title="Permalink to this headline">¶</a></h1>
 <p>ACRN supports inter-virtual machine communication based on a shared
-memory mechanism, The ACRN device model and hypervisor emulate a virtual
+memory mechanism. The ACRN device model or hypervisor emulates a virtual
 PCI device (called an <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device) to expose the base address and
 size of this shared memory.</p>
 <div class="section" id="inter-vm-communication-overview">
 <h2>Inter-VM Communication Overview<a class="headerlink" href="#inter-vm-communication-overview" title="Permalink to this headline">¶</a></h2>
 <div class="figure align-center" id="ivshmem-architecture-overview">
-<img alt="../../_images/ivshmem-image1.png" src="../../_images/ivshmem-image1.png" />
-<p class="caption"><span class="caption-number">Figure 277 </span><span class="caption-text">ACRN shared memory based inter-vm communication architecture</span></p>
+<img alt="../../_images/ivshmem-architecture.png" src="../../_images/ivshmem-architecture.png" />
+<p class="caption"><span class="caption-number">Figure 274 </span><span class="caption-text">ACRN shared memory based inter-vm communication architecture</span></p>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is emulated in the ACRN device model (dm-land)
 and its shared memory region is allocated from the Service VM’s memory
-space.  This solution only supports communication between post-launched
+space. This solution only supports communication between post-launched
 VMs.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">In a future implementation, the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device could
 instead be emulated in the hypervisor (hypervisor-land) and the shared
-memory regions reserved in the hypervisor’s memory space.  This solution
+memory regions reserved in the hypervisor’s memory space. This solution
 would work for both pre-launched and post-launched VMs.</p>
 </div>
 <dl class="docutils">
 <dt>ivshmem hv:</dt>
-<dd>The ivshmem device model implements register virtualization
-and shared memory mapping in the hypervisor (not the acrn-dm).
-Will support notification/interrupt mechanism in the future.</dd>
+<dd>The <strong>ivshmem hv</strong> implements register virtualization
+and shared memory mapping in the ACRN hypervisor.
+It will support notification/interrupt mechanism in the future.</dd>
+<dt>ivshmem dm:</dt>
+<dd>The <strong>ivshmem dm</strong> implements register virtualization
+and shared memory mapping in the ACRN Device Model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>).
+It will support notification/interrupt mechanism in the future.</dd>
 <dt>ivshmem server:</dt>
-<dd>A daemon for inter-VM notification capability,
-This is currently <strong>not implemented</strong>, so the inter-VM communication
+<dd>A daemon for inter-VM notification capability that will work with <strong>ivshmem
+dm</strong>. This is currently <strong>not implemented</strong>, so the inter-VM communication
 doesn’t support a notification mechanism.</dd>
 </dl>
 </div>
 <div class="section" id="ivshmem-device-introduction">
 <h2>Ivshmem Device Introduction<a class="headerlink" href="#ivshmem-device-introduction" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is a virtual standard PCI device consisting of
-two Base Address Registers (BARs): BAR0 is used for emulating interrupt related registers,
-and BAR2 is used for exposing shared memory region. The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device
-doesn’t support any extra capabilities.</p>
+two Base Address Registers (BARs): BAR0 is used for emulating interrupt
+related registers, and BAR2 is used for exposing shared memory region. The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device doesn’t support any extra capabilities.</p>
 <p>Configuration Space Definition</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1175,7 +1166,7 @@ ivshmem doesn’t support interrupts.</td>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p>To support two post-launched VMs communicating via an <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device,
-add this line as an acrn-dm boot parameter:</p>
+add this line as an <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> boot parameter:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">slot</span><span class="p">,</span><span class="n">ivshmem</span><span class="p">,</span><span class="n">shm_name</span><span class="p">,</span><span class="n">shm_size</span>
 </pre></div>
 </div>
@@ -1188,6 +1179,77 @@ same <code class="docutils literal notranslate"><span class="pre">shm_name</span
 <li><code class="docutils literal notranslate"><span class="pre">shm_size</span></code> - Specify a shared memory size. The two communicating
 VMs must define the same size.</li>
 </ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This device can be used with Real-Time VM (RTVM) as well.</p>
+</div>
+</div>
+<div class="section" id="inter-vm-communication-example">
+<h2>Inter-VM Communication Example<a class="headerlink" href="#inter-vm-communication-example" title="Permalink to this headline">¶</a></h2>
+<p>The following example uses inter-vm communication between two Linux-based
+post-launched VMs (VM1 and VM2).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">An <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> Windows driver exists and can be found <a class="reference external" href="https://github.com/virtio-win/kvm-guest-drivers-windows/tree/master/ivshmem">here</a></p>
+</div>
+<ol class="arabic">
+<li><p class="first">Add a new virtual PCI device for both VMs: the device type is
+<code class="docutils literal notranslate"><span class="pre">ivshmem</span></code>, shared memory name is <code class="docutils literal notranslate"><span class="pre">test</span></code>, and shared memory size is
+4096 bytes. Both VMs must have the same shared memory name and size:</p>
+<ul>
+<li><p class="first">VM1 Launch Script Sample</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge \
+ -s 2,pci-gvt -G &quot;$2&quot; \
+ -s 5,virtio-console,@stdio:stdio_port \
+ -s 6,virtio-hyper_dmabuf \
+ -s 3,virtio-blk,/home/clear/uos/uos1.img \
+ -s 4,virtio-net,tap0 \
+<span class="hll"> -s 6,ivshmem,test,4096 \
+</span> -s 7,virtio-rnd \
+ --ovmf /usr/share/acrn/bios/OVMF.fd \
+ $vm_name
+</pre></div>
+</div>
+</li>
+<li><p class="first">VM2 Launch Script Sample</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge \
+ -s 2,pci-gvt -G &quot;$2&quot; \
+ -s 3,virtio-blk,/home/clear/uos/uos2.img \
+ -s 4,virtio-net,tap0 \
+<span class="hll"> -s 5,ivshmem,test,4096 \
+</span> --ovmf /usr/share/acrn/bios/OVMF.fd \
+ $vm_name
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">Boot two VMs and use <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">&quot;shared</span> <span class="pre">memory&quot;</span></code> to verify that the virtual device is ready for each VM.</p>
+<ul class="simple">
+<li>For VM1, it shows <code class="docutils literal notranslate"><span class="pre">00:06.0</span> <span class="pre">RAM</span> <span class="pre">memory:</span> <span class="pre">Red</span> <span class="pre">Hat,</span> <span class="pre">Inc.</span> <span class="pre">Inter-VM</span> <span class="pre">shared</span> <span class="pre">memory</span> <span class="pre">(rev</span> <span class="pre">01)</span></code></li>
+<li>For VM2, it shows <code class="docutils literal notranslate"><span class="pre">00:05.0</span> <span class="pre">RAM</span> <span class="pre">memory:</span> <span class="pre">Red</span> <span class="pre">Hat,</span> <span class="pre">Inc.</span> <span class="pre">Inter-VM</span> <span class="pre">shared</span> <span class="pre">memory</span> <span class="pre">(rev</span> <span class="pre">01)</span></code></li>
+</ul>
+</li>
+<li><p class="first">Use these commands to probe the device:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo modprobe uio
+$ sudo modprobe uio_pci_generic
+$ sudo echo &quot;1af4 1110&quot; &gt; /sys/bus/pci/drivers/uio_pci_generic/new_id
+</pre></div>
+</div>
+</li>
+<li><p class="first">Finally, a user application can get the shared memory base address from
+the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device BAR resource
+(<code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/resource2</span></code>) and the shared memory size from
+the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device config resource
+(<code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/config</span></code>).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">X</span></code> in <code class="docutils literal notranslate"><span class="pre">uioX</span></code> above, is a number that can be retrieved using the
+<code class="docutils literal notranslate"><span class="pre">ls</span></code> command:</p>
+<ul class="simple">
+<li>For VM1 use <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">-lh</span> <span class="pre">/sys/bus/pci/devices/0000:00:06.0/uio</span></code></li>
+<li>For VM2 use <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">-lh</span> <span class="pre">/sys/bus/pci/devices/0000:00:05.0/uio</span></code></li>
+</ul>
+</li>
+</ol>
 </div>
 </div>
 
@@ -1203,10 +1265,8 @@ VMs must define the same size.</li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, Project ACRN
-      <span class="lastupdated">
-        Last updated on Jun 08, 2020.
-      </span>
+        &copy; Copyright 2020, Project ACRN.
+      Last updated on Jun 12, 2020.
 
     </p>
   </div> 
@@ -1221,16 +1281,34 @@ VMs must define the same size.</li>
   </div>
   
 
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'v 2.0-unstable',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
+      <script type="text/javascript" src="../../_static/acrn-custom.js"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
