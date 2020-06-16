@@ -10,7 +10,7 @@
  */
 
 
-/* Non-minified version JS is _stemmer.js if file is provided */
+/* Non-minified version JS is _stemmer.js if file is provided */ 
 /**
  * Porter Stemmer
  */
@@ -196,17 +196,36 @@ var Stemmer = function() {
 
 
 /**
- * Simple result scoring code.
+ * Simple search result scoring code.
+ *
+ * Copyright 2007-2018 by the Sphinx team
+ * Copyright (c) 2019, Intel
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 var Scorer = {
-  // Implement the following function to further tweak the score for each result
-  // The function takes a result array [filename, title, anchor, descr, score]
-  // and returns the new score.
-  /*
+  // Implement the following function to further tweak the score for
+  // each result The function takes a result array [filename, title,
+  // anchor, descr, score] and returns the new score.
+
+  // For ACRN search results, push display down for release_notes and
+  // api docs so "regular" docs will show up before them
+
   score: function(result) {
-    return result[4];
+
+    if (result[0].search("release_notes/")>=0) {
+       return -6;
+    }
+    else if (result[0].search("api/")>=0) {
+       return -5;
+    }
+    else if (result[0].search("kconfig/")>=0) {
+       return -5;
+    }
+    else {
+       return result[4];
+    }
   },
-  */
 
   // query matches the full name of an object
   objNameMatch: 11,
@@ -224,6 +243,7 @@ var Scorer = {
   // query found in terms
   term: 5
 };
+
 
 
 
@@ -546,16 +566,9 @@ var Search = {
           $.ajax({url: DOCUMENTATION_OPTIONS.URL_ROOT + '_sources/' + item[5] + (item[5].slice(-suffix.length) === suffix ? '' : suffix),
                   dataType: "text",
                   complete: function(jqxhr, textstatus) {
-                    //var data = jqxhr.responseText;
                     var data = jqxhr.responseText;
                     if (data !== '' && data !== undefined) {
-                      // strip off much of the ReST syntax:
-                      //  .. directivename::   .. _lablehere:
-                      //  :rolename:`name`
-                      //  runs of 3+ (title) underlines (#*+-_)
-                      //  stuff between angle brackets (e.g.,in link definitions)
-                      //  stray backticks
-                      listItem.append(Search.makeSearchSummary(data.replace(/(\.\..*:[:]*)|(:[^:]+:`[^`]+`)|([#\*=\-_+]{3,})|(\<[^\>]+\>)|(`_*)/ig,""), searchterms, hlterms));
+                      listItem.append(Search.makeSearchSummary(data, searchterms, hlterms));
                     }
                     Search.output.append(listItem);
                     listItem.slideDown(5, function() {
