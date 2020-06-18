@@ -1119,12 +1119,14 @@ ELF format when <code class="docutils literal notranslate"><span class="pre">CON
 <code class="docutils literal notranslate"><span class="pre">CONFIG_RELOC</span></code> is set.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p><code class="docutils literal notranslate"><span class="pre">CONFIG_RELOC</span></code> is set by default, so use <code class="docutils literal notranslate"><span class="pre">acrn.32.out</span></code> in multiboot
-protocol and <code class="docutils literal notranslate"><span class="pre">acrn.bin</span></code> in multiboot2 protocol.</p>
-<p class="last">Per ACPI specification, the RSDP pointer is described in the EFI System
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">CONFIG_RELOC</span></code> is set by default, so use <code class="docutils literal notranslate"><span class="pre">acrn.32.out</span></code> in multiboot
+protocol and <code class="docutils literal notranslate"><span class="pre">acrn.bin</span></code> in multiboot2 protocol.</li>
+<li>Per ACPI specification, the RSDP pointer is described in the EFI System
 Table instead of legacy ACPI RSDP area on a UEFI enabled platform. To make
 sure ACRN hypervisor gets the correct ACPI RSDP info, we recommend using
-<code class="docutils literal notranslate"><span class="pre">acrn.bin</span></code> with multiboot2 protocol to load hypervisor on a UEFI platform.</p>
+<code class="docutils literal notranslate"><span class="pre">acrn.bin</span></code> with multiboot2 protocol to load hypervisor on a UEFI platform.</li>
+</ul>
 </div>
 <div class="section" id="using-pre-installed-grub">
 <span id="pre-installed-grub"></span><h2>Using pre-installed GRUB<a class="headerlink" href="#using-pre-installed-grub" title="Permalink to this headline">¶</a></h2>
@@ -1167,25 +1169,31 @@ GRUB_HIDDEN_TIMEOUT_QUIET=false
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>The module <code class="docutils literal notranslate"><span class="pre">/boot/kernel4vm0</span></code> is the VM0 kernel file. The param <code class="docutils literal notranslate"><span class="pre">xxxxxx</span></code> is
-VM0’s kernel file tag and must exactly match the <code class="docutils literal notranslate"><span class="pre">kernel_mod_tag</span></code> of VM0
-configured in the <code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/$(SCENARIO)/vm_configurations.c</span></code>
-file. The multiboot module <code class="docutils literal notranslate"><span class="pre">/boot/kernel4vm1</span></code> is the VM1 kernel file and the param
-<code class="docutils literal notranslate"><span class="pre">yyyyyy</span></code> is its tag and must exactly match the <code class="docutils literal notranslate"><span class="pre">kernel_mod_tag</span></code> of VM1 in the
+<p>The module <code class="docutils literal notranslate"><span class="pre">/boot/kernel4vm0</span></code> is the VM0 kernel file. The param
+<code class="docutils literal notranslate"><span class="pre">xxxxxx</span></code> is VM0’s kernel file tag and must exactly match the
+<code class="docutils literal notranslate"><span class="pre">kernel_mod_tag</span></code> of VM0 configured in the
+<code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/$(SCENARIO)/vm_configurations.c</span></code> file. The
+multiboot module <code class="docutils literal notranslate"><span class="pre">/boot/kernel4vm1</span></code> is the VM1 kernel file and the
+param <code class="docutils literal notranslate"><span class="pre">yyyyyy</span></code> is its tag and must exactly match the
+<code class="docutils literal notranslate"><span class="pre">kernel_mod_tag</span></code> of VM1 in the
 <code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/$(SCENARIO)/vm_configurations.c</span></code> file.</p>
-<p>The guest kernel command line arguments is configured in the hypervisor source code by default
-if no <code class="docutils literal notranslate"><span class="pre">$(VMx</span> <span class="pre">bootargs)</span></code> is present. If <code class="docutils literal notranslate"><span class="pre">$(VMx</span> <span class="pre">bootargs)</span></code> is present, the default
-command line arguments is overridden by the <code class="docutils literal notranslate"><span class="pre">$(VMx</span> <span class="pre">bootargs)</span></code> parameters.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">$(Service</span> <span class="pre">VM</span> <span class="pre">bootargs)</span></code> parameter in the multiboot command is appended to the end of Service
-VM kernel command line. This is useful to override some Service VM kernel cmdline parameters because
-the later one would win if same parameters configured in Linux kernel cmdline. For example,
-adding <code class="docutils literal notranslate"><span class="pre">root=/dev/sda3</span></code> will override the original root device
-to <code class="docutils literal notranslate"><span class="pre">/dev/sda3</span></code> for the Service VM kernel.</p>
-<p>All parameters after <code class="docutils literal notranslate"><span class="pre">#</span></code> character are ignored since GRUB treat them as comments.</p>
-<p class="last"><code class="docutils literal notranslate"><span class="pre">\</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, <code class="docutils literal notranslate"><span class="pre">#</span></code> are special characters in GRUB, a escape character <code class="docutils literal notranslate"><span class="pre">\</span></code> must be added
-before these special characters if they are included in <code class="docutils literal notranslate"><span class="pre">$(HV</span> <span class="pre">bootargs)</span></code> or <code class="docutils literal notranslate"><span class="pre">$(VM</span> <span class="pre">bootargs)</span></code>.
-For example, <code class="docutils literal notranslate"><span class="pre">memmap=0x200000$0xE00000</span></code> for guest kernel cmdline
-must be written as <code class="docutils literal notranslate"><span class="pre">memmap=0x200000\$0xE00000</span></code></p>
+<p>The guest kernel command line arguments is configured in the
+hypervisor source code by default if no <code class="docutils literal notranslate"><span class="pre">$(VMx</span> <span class="pre">bootargs)</span></code> is present.
+If <code class="docutils literal notranslate"><span class="pre">$(VMx</span> <span class="pre">bootargs)</span></code> is present, the default command line arguments
+are overridden by the <code class="docutils literal notranslate"><span class="pre">$(VMx</span> <span class="pre">bootargs)</span></code> parameters.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">$(Service</span> <span class="pre">VM</span> <span class="pre">bootargs)</span></code> parameter in the multiboot command
+is appended to the end of the Service VM kernel command line. This is
+useful to override some Service VM kernel cmdline parameters because the
+later one would win if the same parameters were configured in the Linux
+kernel cmdline. For example, adding <code class="docutils literal notranslate"><span class="pre">root=/dev/sda3</span></code> will override the
+original root device to <code class="docutils literal notranslate"><span class="pre">/dev/sda3</span></code> for the Service VM kernel.</p>
+<p>All parameters after a <code class="docutils literal notranslate"><span class="pre">#</span></code> character are ignored since GRUB
+treat them as comments.</p>
+<p class="last"><code class="docutils literal notranslate"><span class="pre">\</span></code>, <code class="docutils literal notranslate"><span class="pre">$</span></code>, <code class="docutils literal notranslate"><span class="pre">#</span></code> are special characters in GRUB. An escape
+character <code class="docutils literal notranslate"><span class="pre">\</span></code> must be added before these special characters if they
+are included in <code class="docutils literal notranslate"><span class="pre">$(HV</span> <span class="pre">bootargs)</span></code> or <code class="docutils literal notranslate"><span class="pre">$(VM</span> <span class="pre">bootargs)</span></code>.  For example,
+<code class="docutils literal notranslate"><span class="pre">memmap=0x200000$0xE00000</span></code> for guest kernel cmdline must be written as
+<code class="docutils literal notranslate"><span class="pre">memmap=0x200000\$0xE00000</span></code></p>
 </div>
 </li>
 <li><p class="first">Update GRUB:</p>
