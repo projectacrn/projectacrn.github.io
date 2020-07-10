@@ -1298,6 +1298,89 @@ the <code class="docutils literal notranslate"><span class="pre">ivshmem</span><
 </li>
 </ol>
 </div>
+<div class="section" id="inter-vm-communication-security-hardening-bkms">
+<h2>Inter-VM Communication Security hardening (BKMs)<a class="headerlink" href="#inter-vm-communication-security-hardening-bkms" title="Permalink to this headline">¶</a></h2>
+<p>As previously highlighted, ACRN 2.0 provides the capability to create shared
+memory regions between Post-Launch user VMs known as “Inter-VM Communication”.
+This mechanism is based on ivshmem v1.0 exposing virtual PCI devices for the
+shared regions (in Service VM’s memory for this release). This feature adopts a
+community-approved design for shared memory between VMs, following same
+specification for KVM/QEMU (<a class="reference external" href="https://git.qemu.org/?p=qemu.git;a=blob_plain;f=docs/specs/ivshmem-spec.txt;hb=HEAD">Link</a>).</p>
+<p>Following the ACRN threat model, the policy definition for allocation and
+assignment of these regions is controlled by the Service VM, which is part of
+ACRN’s Trusted Computing Base (TCB). However, to secure inter-VM communication
+between any userspace applications that harness this channel, applications will
+face more requirements for the confidentiality, integrity, and authenticity of
+shared or transferred data. It is the application development team’s
+responsibility to define a threat model and security architecture for the
+application and utilize custom or public libraries accordingly. In this document
+we provide an overview about potential hardening techniques from a userspace
+application’s perspective. Consider these techniques when defining the security
+architecture and threat model for your application.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is not a definitive guide on all security technologies or how to implement security. We provide general pointers not bounded to a specific OS or use-case.</p>
+</div>
+<ol class="arabic">
+<li><p class="first"><strong>Secure Feature Configurability</strong></p>
+<ul class="simple">
+<li>ACRN ensure a minimal control plane for the configuration of the memory region’s boundaries and name handles. This is managed only by the Service VM during the creation of the guest VM through the Device Model (DM).</li>
+<li>Service VM Admin should refer to the <a class="reference internal" href="#ivshmem-hld"><span class="std std-ref">usage guide</span></a> for secure configuration flow.</li>
+<li>Create different permissions or groups for the <code class="docutils literal notranslate"><span class="pre">admin</span></code> role to isolate it from other entities that might have access to the Service VM. For example only admin permissions allow R/W/X on DM binary.</li>
+<li>Reference: <a class="reference internal" href="#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a></li>
+</ul>
+</li>
+<li><p class="first"><strong>Apply Access Control</strong></p>
+<ul>
+<li><p class="first">Add restrictions based on behavior or subject and object rules around information flow and accesses.</p>
+</li>
+<li><p class="first">In Service VM, consider the <code class="docutils literal notranslate"><span class="pre">/dev/shm</span></code> device node as a critical interface with special access requirement. Those requirements can be fulfilled using any of the existing opensource MAC technologies or even ACLs depending on the OS compatibility (Ubuntu, Windows, etc..) and integration complexity.</p>
+</li>
+<li><p class="first">In the User VM, the shared memory region can be accessed using <code class="docutils literal notranslate"><span class="pre">mmap()</span></code> of UIO device node. Other complementary info can be found under:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/resource2</span></code> –&gt; shared memory base address</li>
+<li><code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/config</span></code> –&gt; shared memory Size.</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">For Linux-based User VMs, we recommend using the standard <code class="docutils literal notranslate"><span class="pre">UIO</span></code> and <code class="docutils literal notranslate"><span class="pre">UIO_PCI_GENERIC</span></code> drivers through the device node (for example, <code class="docutils literal notranslate"><span class="pre">/dev/uioX</span></code>).</p>
+</li>
+<li><p class="first">Reference: <a class="reference external" href="https://wiki.ubuntuusers.de/AppArmor/">AppArmor</a>, <a class="reference external" href="https://selinuxproject.org/page/Main_Page">SELinux</a>, <a class="reference external" href="https://www.kernel.org/doc/html/v4.12/driver-api/uio-howto.html">UIO driver-API</a></p>
+</li>
+</ul>
+</li>
+<li><p class="first"><strong>Crypto Support and Secure Applied Crypto</strong></p>
+<ul class="simple">
+<li>According to the application’s threat model and the defined assets that need to be shared securely, define the requirements for crypto algorithms.Those algorithms should enable operations such as authenticated encryption and decryption, secure key exchange, true random number generation, and seed extraction. In addition, consider the landscape of your attack surface and define the need for security engine (for example CSME services.</li>
+<li>Don’t implement your own crypto functions. Use available compliant crypto libraries as applicable, such as. (<a class="reference external" href="https://github.com/intel/ipp-crypto">Intel IPP</a> or <a class="reference external" href="https://01.org/tinycrypt">TinyCrypt</a>)</li>
+<li>Utilize the platform/kernel infrastructure and services (e.g., <a class="reference internal" href="hld-security.html#hld-security"><span class="std std-ref">Security high-level design</span></a> , <a class="reference external" href="https://www.kernel.org/doc/html/v5.4/crypto/index.html">Kernel Crypto backend/APIs</a> , <a class="reference external" href="https://www.man7.org/linux/man-pages/man7/keyrings.7.html">keyring subsystem</a>, etc..).</li>
+<li>Implement necessary flows for key lifecycle management including wrapping,revocation and migration, depending on the crypto key type used and if there are requirements for key persistence across system and power management events.</li>
+<li>Follow open source secure crypto coding guidelines for secure wrappers and marshalling data structures: <a class="reference external" href="https://github.comveorq/cryptocoding">Secure Applied Crypto</a></li>
+<li>References: <a class="reference external" href="https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines">NIST Crypto Standards and Guidelines</a>, <a class="reference external" href="https://www.openssl.org/">OpenSSL</a></li>
+</ul>
+</li>
+<li><p class="first"><strong>Applications Whitelisting</strong></p>
+<ul class="simple">
+<li>For use cases implemented in static environments (for example, Industrial and Automotive usages), follow application whitelist techniques and disable any third-party or native app stores.</li>
+<li>This mechanism can be chained with the access control policies to protect access to whitelisting rules and configuration files (refer to opensource or implement your custom solution).</li>
+<li>References: <a class="reference external" href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-167.pdf">NIST SP800-167</a>, <a class="reference external" href="https://github.com/linux-application-whitelisting/fapolicyd">fapolicyd</a></li>
+</ul>
+</li>
+<li><p class="first"><strong>Secure boot and File System Integrity Verification</strong></p>
+<ul class="simple">
+<li>The previously highlighted technologies rely on the kernel, as a secure component, to enforce such policies. Because of this, we strongly recommend enabling secure boot for the Service VM, and extend the secureboot chain to any post-launched VM kernels.</li>
+<li>To ensure no malicious software is introduced or persists, utilize the filesystem (FS) verification methods on every boot to extend the secure boot chain for post-launch VMs (kernel/FS).</li>
+<li>Reference: ACRN secure boot extension guide (<a class="reference external" href="https://projectacrn.github.io/latest/tutorials/enable_laag_secure_boot.html?highlight=secure%20boot">ClearLinux</a>, <a class="reference external" href="https://projectacrn.github.io/latest/tutorials/waag-secure-boot.html">Windows</a>)</li>
+<li>Reference Stack:  <a class="reference external" href="https://www.kernel.org/doc/html/latest/admin-guide/device-mapper/verity.html">dm-verity</a></li>
+</ul>
+</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All the mentioned hardening techniques might require minor extra development efforts.</p>
+</div>
+</div>
 </div>
 
 
@@ -1314,7 +1397,7 @@ the <code class="docutils literal notranslate"><span class="pre">ivshmem</span><
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Jul 04, 2020.
+        Last updated on Jul 10, 2020.
       </span>
 
     </p>
