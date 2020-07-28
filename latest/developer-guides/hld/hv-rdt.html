@@ -1142,56 +1142,35 @@ IA32_PQR_ASSOC MSR to CLOS 0. (Note that CLOS, or Class of Service, is a
 resource allocator.) The user can check the cache capabilities such as cache
 mask and max supported CLOS as described in <a class="reference internal" href="../../tutorials/rdt_configuration.html#rdt-detection-capabilities"><span class="std std-ref">RDT detection and resource capabilities</span></a>
 and then program the IA32_type_MASK_n and IA32_PQR_ASSOC MSR with a
-CLOS ID, to select a cache mask to take effect. ACRN uses
-VMCS MSR loads on every VM Entry/VM Exit for non-root and root modes to
-enforce the settings.</p>
+CLOS ID, to select a cache mask to take effect. These configurations can be
+done in scenario xml file under <code class="docutils literal notranslate"><span class="pre">FEATURES</span></code> section as shown in the below example.
+ACRN uses VMCS MSR loads on every VM Entry/VM Exit for non-root and root modes
+to enforce the settings.</p>
 <blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>struct platform_clos_info platform_l2_clos_array[MAX_PLATFORM_CLOS_NUM] = {
-        {
-<span class="hll">                .clos_mask = 0xff,
-</span>                .msr_index = MSR_IA32_L3_MASK_BASE + 0,
-        },
-        {
-<span class="hll">                .clos_mask = 0xff,
-</span>                .msr_index = MSR_IA32_L3_MASK_BASE + 1,
-        },
-        {
-<span class="hll">                .clos_mask = 0xff,
-</span>                .msr_index = MSR_IA32_L3_MASK_BASE + 2,
-        },
-        {
-<span class="hll">                .clos_mask = 0xff,
-</span>                .msr_index = MSR_IA32_L3_MASK_BASE + 3,
-        },
-};
-</pre></div>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;RDT desc=&quot;Intel RDT (Resource Director Technology).&quot;&gt;
+<span class="hll">      &lt;RDT_ENABLED desc=&quot;Enable RDT&quot;&gt;y&lt;/RDT_ENABLED&gt;
+</span>      &lt;CDP_ENABLED desc=&quot;CDP (Code and Data Prioritization). CDP is an extension of CAT.&quot;&gt;n&lt;/CDP_ENABLED&gt;
+<span class="hll">      &lt;CLOS_MASK desc=&quot;Cache Capacity Bitmask&quot;&gt;0xF&lt;/CLOS_MASK&gt;
+</span></pre></div>
 </div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>struct acrn_vm_config vm_configs[CONFIG_MAX_VM_NUM] __aligned(PAGE_SIZE) = {
-        {
-                .type = SOS_VM,
-                .name = SOS_VM_CONFIG_NAME,
-                .guest_flags = 0UL,
-<span class="hll">                .clos = 0,
-</span>                .memory = {
-                        .start_hpa = 0x0UL,
-                        .size = CONFIG_SOS_RAM_SIZE,
-                },
-                .os_config = {
-                        .name = SOS_VM_CONFIG_OS_NAME,
-                },
-        },
-};
-</pre></div>
+</div></blockquote>
+<p>Once the cache mask is set of each individual CPU, the respective CLOS ID
+needs to be set in the scenario xml file under <code class="docutils literal notranslate"><span class="pre">VM</span></code> section. If user desires
+to use CDP feature, CDP_ENABLED should be set to <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p>
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;clos desc=&quot;Class of Service for Cache Allocation Technology. Please refer SDM 17.19.2 for details and use with caution.&quot;&gt;
+<span class="hll">      &lt;vcpu_clos&gt;0&lt;/vcpu_clos&gt;
+</span></pre></div>
 </div>
 </div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">ACRN takes the lowest common CLOS max value between the supported
-resources and sets the MAX_PLATFORM_CLOS_NUM. For example, if max CLOS
-supported by L3 is 16 and L2 is 8, ACRN programs MAX_PLATFORM_CLOS_NUM to
-8. ACRN recommends consistent capabilities across all RDT
-resources by using the common subset CLOS. This is done in order to
-minimize misconfiguration errors.</p>
+resources as maximum supported CLOS ID. For example, if max CLOS
+supported by L3 is 16 and MBA is 8, ACRN programs MAX_PLATFORM_CLOS_NUM
+to 8. ACRN recommends to have consistent capabilities across all RDT
+resources by using a common subset CLOS. This is done in order to minimize
+misconfiguration errors.</p>
 </div>
 </div>
 </div>
@@ -1224,51 +1203,30 @@ that corresponds to each CLOS and then setting IA32_PQR_ASSOC MSR with CLOS
 users can check the MBA capabilities such as mba delay values and
 max supported CLOS as described in <a class="reference internal" href="../../tutorials/rdt_configuration.html#rdt-detection-capabilities"><span class="std std-ref">RDT detection and resource capabilities</span></a> and
 then program the IA32_MBA_MASK_n and IA32_PQR_ASSOC MSR with the CLOS ID.
-ACRN uses VMCS MSR loads on every VM Entry/VM Exit for non-root and root
-modes to enforce the settings.</p>
+These configurations can be done in scenario xml file under <code class="docutils literal notranslate"><span class="pre">FEATURES</span></code> section
+as shown in the below example. ACRN uses VMCS MSR loads on every VM Entry/VM Exit
+for non-root and root modes to enforce the settings.</p>
 <blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>struct platform_clos_info platform_mba_clos_array[MAX_PLATFORM_CLOS_NUM] = {
-        {
-<span class="hll">                .mba_delay = 0,
-</span>                .msr_index = MSR_IA32_MBA_MASK_BASE + 0,
-        },
-        {
-<span class="hll">                .mba_delay = 0,
-</span>                .msr_index = MSR_IA32_MBA_MASK_BASE + 1,
-        },
-        {
-<span class="hll">                .mba_delay = 0,
-</span>                .msr_index = MSR_IA32_MBA_MASK_BASE + 2,
-        },
-        {
-<span class="hll">                .mba_delay = 0,
-</span>                .msr_index = MSR_IA32_MBA_MASK_BASE + 3,
-        },
-};
-</pre></div>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;RDT desc=&quot;Intel RDT (Resource Director Technology).&quot;&gt;
+<span class="hll">      &lt;RDT_ENABLED desc=&quot;Enable RDT&quot;&gt;y&lt;/RDT_ENABLED&gt;
+</span>      &lt;CDP_ENABLED desc=&quot;CDP (Code and Data Prioritization). CDP is an extension of CAT.&quot;&gt;n&lt;/CDP_ENABLED&gt;
+      &lt;CLOS_MASK desc=&quot;Cache Capacity Bitmask&quot;&gt;&lt;/CLOS_MASK&gt;
+<span class="hll">      &lt;MBA_DELAY desc=&quot;Memory Bandwidth Allocation delay value&quot;&gt;0&lt;/MBA_DELAY&gt;
+</span></pre></div>
 </div>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>struct acrn_vm_config vm_configs[CONFIG_MAX_VM_NUM] __aligned(PAGE_SIZE) = {
-        {
-                .type = SOS_VM,
-                .name = SOS_VM_CONFIG_NAME,
-                .guest_flags = 0UL,
-<span class="hll">                .clos = 0,
-</span>                .memory = {
-                        .start_hpa = 0x0UL,
-                        .size = CONFIG_SOS_RAM_SIZE,
-                },
-                .os_config = {
-                        .name = SOS_VM_CONFIG_OS_NAME,
-                },
-        },
-};
-</pre></div>
+</div></blockquote>
+<p>Once the cache mask is set of each individual CPU, the respective CLOS ID
+needs to be set in the scenario xml file under <code class="docutils literal notranslate"><span class="pre">VM</span></code> section.</p>
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;clos desc=&quot;Class of Service for Cache Allocation Technology. Please refer SDM 17.19.2 for details and use with caution.&quot;&gt;
+<span class="hll">      &lt;vcpu_clos&gt;0&lt;/vcpu_clos&gt;
+</span></pre></div>
 </div>
 </div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">ACRN takes the lowest common CLOS max value between the supported
-resources and sets the MAX_PLATFORM_CLOS_NUM. For example, if max CLOS
+resources as maximum supported CLOS ID. For example, if max CLOS
 supported by L3 is 16 and MBA is 8, ACRN programs MAX_PLATFORM_CLOS_NUM
 to 8. ACRN recommends to have consistent capabilities across all RDT
 resources by using a common subset CLOS. This is done in order to minimize
@@ -1331,7 +1289,7 @@ ACRN hypervisor.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Jul 23, 2020.
+        Last updated on Jul 28, 2020.
       </span>
 
     </p>

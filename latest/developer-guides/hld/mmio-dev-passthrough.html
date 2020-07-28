@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Virtio-net &mdash; Project ACRN™ v 2.1-unstable documentation</title>
+  <title>MMIO Device Passthrough &mdash; Project ACRN™ v 2.1-unstable documentation</title>
   
 
   
@@ -49,8 +49,8 @@
   <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Virtio-input" href="virtio-input.html" />
-    <link rel="prev" title="Virtio-blk" href="virtio-blk.html" /> 
+    <link rel="next" title="Partition mode" href="hv-partitionmode.html" />
+    <link rel="prev" title="Device Passthrough" href="hv-dev-passthrough.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -658,10 +658,10 @@
 </li>
 <li class="toctree-l3 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="hld-vsbl.html">Virtual Bootloader</a></li>
@@ -1087,9 +1087,9 @@
         
           <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
         
-          <li><a href="hld-virtio-devices.html">Virtio devices high-level design</a> &raquo;</li>
+          <li><a href="hld-hypervisor.html">Hypervisor high-level design</a> &raquo;</li>
         
-      <li>Virtio-net</li>
+      <li>MMIO Device Passthrough</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -1108,465 +1108,44 @@
   
            <div itemprop="articleBody">
             
-  <div class="section" id="virtio-net">
-<span id="id1"></span><h1>Virtio-net<a class="headerlink" href="#virtio-net" title="Permalink to this headline">¶</a></h1>
-<p>Virtio-net is the para-virtualization solution used in ACRN for
-networking. The ACRN device model emulates virtual NICs for User VM and the
-frontend virtio network driver, simulating the virtual NIC and following
-the virtio specification. (Refer to <a class="reference internal" href="../../introduction/index.html#introduction"><span class="std std-ref">What is ACRN</span></a> and
-<a class="reference internal" href="hld-virtio-devices.html#virtio-hld"><span class="std std-ref">Virtio devices high-level design</span></a> background introductions to ACRN and Virtio.)</p>
-<p>Here are some notes about Virtio-net support in ACRN:</p>
-<ul class="simple">
-<li>Legacy devices are supported, modern devices are not supported</li>
-<li>Two virtqueues are used in virtio-net: RX queue and TX queue</li>
-<li>Indirect descriptor is supported</li>
-<li>TAP backend is supported</li>
-<li>Control queue is not supported</li>
-<li>NIC multiple queues are not supported</li>
+  <div class="section" id="mmio-device-passthrough">
+<span id="id1"></span><h1>MMIO Device Passthrough<a class="headerlink" href="#mmio-device-passthrough" title="Permalink to this headline">¶</a></h1>
+<p>The ACRN Hypervisor supports both PCI and MMIO device passthrough.
+However there are some constraints on and hypervisor assumptions about
+MMIO devices: there can be no DMA access to the MMIO device and the MMIO
+device may not use IRQs.</p>
+<p>Here is how ACRN supports MMIO device passthrough:</p>
+<ul>
+<li><p class="first">For a pre-launched VM, the VM configuration tells the ACRN hypervisor
+the addresses of the physical MMIO device’s regions and where they are
+mapped to in the pre-launched VM.  The hypervisor then removes these
+MMIO regions from the Service VM and fills the vACPI table for this MMIO
+device based on the device’s physical ACPI table.</p>
+</li>
+<li><p class="first">For a post-launched VM, the same actions are done as in a
+pre-launched VM, plus we use the command line to tell which MMIO
+device we want to pass through to the post-launched VM.</p>
+<p>If the MMIO device has ACPI Tables, use <code class="docutils literal notranslate"><span class="pre">--acpidev_pt</span> <span class="pre">HID</span></code> and
+if not, use <code class="docutils literal notranslate"><span class="pre">--mmiodev_pt</span> <span class="pre">MMIO_regions</span></code>.</p>
+</li>
 </ul>
-<div class="section" id="network-virtualization-architecture">
-<h2>Network Virtualization Architecture<a class="headerlink" href="#network-virtualization-architecture" title="Permalink to this headline">¶</a></h2>
-<p>ACRN’s network virtualization architecture is shown below in
-<a class="reference internal" href="#net-virt-arch"><span class="std std-numref">Figure 288</span></a>, and illustrates the many necessary network
-virtualization components that must cooperate for the User VM to send and
-receive data from the outside world.</p>
-<div class="figure align-center" id="net-virt-arch">
-<a class="reference internal image-reference" href="../../_images/network-virt-arch.png"><img alt="../../_images/network-virt-arch.png" src="../../_images/network-virt-arch.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 288 </span><span class="caption-text">Network Virtualization Architecture</span></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Currently, the vTPM and PT TPM in the ACRN-DM have the same HID so we
+can’t support them both at the same time. The VM will fail to boot if
+both are used.</p>
 </div>
-<p>(The green components are parts of the ACRN solution, while the gray
-components are parts of the Linux kernel.)</p>
-<p>Let’s explore these components further.</p>
-<dl class="docutils">
-<dt>Service VM/User VM Network Stack:</dt>
-<dd>This is the standard Linux TCP/IP stack, currently the most
-feature-rich TCP/IP implementation.</dd>
-<dt>virtio-net Frontend Driver:</dt>
-<dd>This is the standard driver in the Linux Kernel for virtual Ethernet
-devices. This driver matches devices with PCI vendor ID 0x1AF4 and PCI
-Device ID 0x1000 (for legacy devices in our case) or 0x1041 (for modern
-devices). The virtual NIC supports two virtqueues, one for transmitting
-packets and the other for receiving packets. The frontend driver places
-empty buffers into one virtqueue for receiving packets, and enqueues
-outgoing packets into another virtqueue for transmission. The size of
-each virtqueue is 1024, configurable in the virtio-net backend driver.</dd>
-<dt>ACRN Hypervisor:</dt>
-<dd>The ACRN hypervisor is a type 1 hypervisor, running directly on the
-bare-metal hardware, and suitable for a variety of IoT and embedded
-device solutions. It fetches and analyzes the guest instructions, puts
-the decoded information into the shared page as an IOREQ, and notifies
-or interrupts the VHM module in the Service VM for processing.</dd>
-<dt>VHM Module:</dt>
-<dd>The Virtio and Hypervisor Service Module (VHM) is a kernel module in the
-Service VM acting as a middle layer to support the device model
-and hypervisor. The VHM forwards a IOREQ to the virtio-net backend
-driver for processing.</dd>
-<dt>ACRN Device Model and virtio-net Backend Driver:</dt>
-<dd>The ACRN Device Model (DM) gets an IOREQ from a shared page and calls
-the virtio-net backend driver to process the request. The backend driver
-receives the data in a shared virtqueue and sends it to the TAP device.</dd>
-<dt>Bridge and TAP Device:</dt>
-<dd>Bridge and TAP are standard virtual network infrastructures. They play
-an important role in communication among the Service VM, the User VM, and the
-outside world.</dd>
-<dt>IGB Driver:</dt>
-<dd>IGB is the physical Network Interface Card (NIC) Linux kernel driver
-responsible for sending data to and receiving data from the physical
-NIC.</dd>
-</dl>
-<p>The virtual network card (NIC) is implemented as a virtio legacy device
-in the ACRN device model (DM). It is registered as a PCI virtio device
-to the guest OS (User VM) and uses the standard virtio-net in the Linux kernel as
-its driver (the guest kernel should be built with
-<code class="docutils literal notranslate"><span class="pre">CONFIG_VIRTIO_NET=y</span></code>).</p>
-<p>The virtio-net backend in DM forwards the data received from the
-frontend to the TAP device, then from the TAP device to the bridge, and
-finally from the bridge to the physical NIC driver, and vice versa for
-returning data from the NIC to the frontend.</p>
-</div>
-<div class="section" id="acrn-virtio-network-calling-stack">
-<h2>ACRN Virtio-Network Calling Stack<a class="headerlink" href="#acrn-virtio-network-calling-stack" title="Permalink to this headline">¶</a></h2>
-<p>Various components of ACRN network virtualization are shown in the
-architecture diagram shows in <a class="reference internal" href="#net-virt-arch"><span class="std std-numref">Figure 288</span></a>.  In this section,
-we will use User VM data transmission (TX) and reception (RX) examples to
-explain step-by-step how these components work together to implement
-ACRN network virtualization.</p>
-<div class="section" id="initialization-in-device-model">
-<h3>Initialization in Device Model<a class="headerlink" href="#initialization-in-device-model" title="Permalink to this headline">¶</a></h3>
-<p><strong>virtio_net_init</strong></p>
+<p>These issues remain to be implemented:</p>
 <ul class="simple">
-<li>Present frontend for a virtual PCI based NIC</li>
-<li>Setup control plan callbacks</li>
-<li>Setup data plan callbacks, including TX, RX</li>
-<li>Setup TAP backend</li>
+<li>Save the MMIO regions in a field of the VM structure in order to
+release the resources when the post-launched VM shuts down abnormally.</li>
+<li>Allocate the guest MMIO regions for the MMIO device in a guest-reserved
+MMIO region instead of being hard-coded. With this, we could add more
+passthrough MMIO devices.</li>
+<li>De-assign the MMIO device from the Service VM first before passing
+through it to the post-launched VM and not only removing the MMIO
+regions from the Service VM.</li>
 </ul>
-</div>
-<div class="section" id="initialization-in-virtio-net-frontend-driver">
-<h3>Initialization in virtio-net Frontend Driver<a class="headerlink" href="#initialization-in-virtio-net-frontend-driver" title="Permalink to this headline">¶</a></h3>
-<p><strong>virtio_pci_probe</strong></p>
-<ul class="simple">
-<li>Construct virtio device using virtual pci device and register it to
-virtio bus</li>
-</ul>
-<p><strong>virtio_dev_probe –&gt; virtnet_probe –&gt; init_vqs</strong></p>
-<ul class="simple">
-<li>Register network driver</li>
-<li>Setup shared virtqueues</li>
-</ul>
-</div>
-<div class="section" id="acrn-user-vm-tx-flow">
-<h3>ACRN User VM TX FLOW<a class="headerlink" href="#acrn-user-vm-tx-flow" title="Permalink to this headline">¶</a></h3>
-<p>The following shows the ACRN User VM network TX flow, using TCP as an
-example, showing the flow through each layer:</p>
-<p><strong>User VM TCP Layer</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tcp_sendmsg</span> <span class="o">--&gt;</span>
-    <span class="n">tcp_sendmsg_locked</span> <span class="o">--&gt;</span>
-        <span class="n">tcp_push_one</span> <span class="o">--&gt;</span>
-            <span class="n">tcp_write_xmit</span> <span class="o">--&gt;</span>
-                <span class="n">tcp_transmit_skb</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>User VM IP Layer</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">ip_queue_xmit</span> <span class="o">--&gt;</span>
-    <span class="n">ip_local_out</span> <span class="o">--&gt;</span>
-        <span class="n">__ip_local_out</span> <span class="o">--&gt;</span>
-            <span class="n">dst_output</span> <span class="o">--&gt;</span>
-                <span class="n">ip_output</span> <span class="o">--&gt;</span>
-                    <span class="n">ip_finish_output</span> <span class="o">--&gt;</span>
-                        <span class="n">ip_finish_output2</span> <span class="o">--&gt;</span>
-                            <span class="n">neigh_output</span> <span class="o">--&gt;</span>
-                                <span class="n">neigh_resolve_output</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>User VM MAC Layer</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">dev_queue_xmit</span> <span class="o">--&gt;</span>
-    <span class="n">__dev_queue_xmit</span> <span class="o">--&gt;</span>
-        <span class="n">dev_hard_start_xmit</span> <span class="o">--&gt;</span>
-            <span class="n">xmit_one</span> <span class="o">--&gt;</span>
-                <span class="n">netdev_start_xmit</span> <span class="o">--&gt;</span>
-                    <span class="n">__netdev_start_xmit</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>User VM MAC Layer virtio-net Frontend Driver</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">start_xmit</span> <span class="o">--&gt;</span>                   <span class="c1">// virtual NIC driver xmit in virtio_net</span>
-    <span class="n">xmit_skb</span> <span class="o">--&gt;</span>
-        <span class="n">virtqueue_add_outbuf</span> <span class="o">--&gt;</span> <span class="c1">// add out buffer to shared virtqueue</span>
-            <span class="n">virtqueue_add</span> <span class="o">--&gt;</span>
-
-    <span class="n">virtqueue_kick</span> <span class="o">--&gt;</span>           <span class="c1">// notify the backend</span>
-        <span class="n">virtqueue_notify</span> <span class="o">--&gt;</span>
-            <span class="n">vp_notify</span> <span class="o">--&gt;</span>
-                <span class="n">iowrite16</span> <span class="o">--&gt;</span>    <span class="c1">// trap here, HV will first get notified</span>
-</pre></div>
-</div>
-<p><strong>ACRN Hypervisor</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vmexit_handler</span> <span class="o">--&gt;</span>                      <span class="c1">// vmexit because VMX_EXIT_REASON_IO_INSTRUCTION</span>
-    <span class="n">pio_instr_vmexit_handler</span> <span class="o">--&gt;</span>
-        <span class="n">emulate_io</span> <span class="o">--&gt;</span>                  <span class="c1">// ioreq cant be processed in HV, forward it to VHM</span>
-            <span class="n">acrn_insert_request_wait</span> <span class="o">--&gt;</span>
-                <span class="n">fire_vhm_interrupt</span> <span class="o">--&gt;</span>  <span class="c1">// interrupt Service VM, VHM will get notified</span>
-</pre></div>
-</div>
-<p><strong>VHM Module</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vhm_intr_handler</span> <span class="o">--&gt;</span>                          <span class="c1">// VHM interrupt handler</span>
-    <span class="n">tasklet_schedule</span> <span class="o">--&gt;</span>
-        <span class="n">io_req_tasklet</span> <span class="o">--&gt;</span>
-            <span class="n">acrn_ioreq_distribute_request</span> <span class="o">--&gt;</span> <span class="c1">// ioreq can&#39;t be processed in VHM, forward it to device DM</span>
-                <span class="n">acrn_ioreq_notify_client</span> <span class="o">--&gt;</span>
-                    <span class="n">wake_up_interruptible</span> <span class="o">--&gt;</span> <span class="c1">// wake up DM to handle ioreq</span>
-</pre></div>
-</div>
-<p><strong>ACRN Device Model / virtio-net Backend Driver</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">handle_vmexit</span> <span class="o">--&gt;</span>
-    <span class="n">vmexit_inout</span> <span class="o">--&gt;</span>
-        <span class="n">emulate_inout</span> <span class="o">--&gt;</span>
-            <span class="n">pci_emul_io_handler</span> <span class="o">--&gt;</span>
-                <span class="n">virtio_pci_write</span> <span class="o">--&gt;</span>
-                    <span class="n">virtio_pci_legacy_write</span> <span class="o">--&gt;</span>
-                        <span class="n">virtio_net_ping_txq</span> <span class="o">--&gt;</span>       <span class="c1">// start TX thread to process, notify thread return</span>
-                            <span class="n">virtio_net_tx_thread</span> <span class="o">--&gt;</span>  <span class="c1">// this is TX thread</span>
-                                <span class="n">virtio_net_proctx</span> <span class="o">--&gt;</span> <span class="c1">// call corresponding backend (tap) to process</span>
-                                    <span class="n">virtio_net_tap_tx</span> <span class="o">--&gt;</span>
-                                        <span class="n">writev</span> <span class="o">--&gt;</span>    <span class="c1">// write data to tap device</span>
-</pre></div>
-</div>
-<p><strong>Service VM TAP Device Forwarding</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">do_writev</span> <span class="o">--&gt;</span>
-    <span class="n">vfs_writev</span> <span class="o">--&gt;</span>
-        <span class="n">do_iter_write</span> <span class="o">--&gt;</span>
-            <span class="n">do_iter_readv_writev</span> <span class="o">--&gt;</span>
-                <span class="n">call_write_iter</span> <span class="o">--&gt;</span>
-                    <span class="n">tun_chr_write_iter</span> <span class="o">--&gt;</span>
-                        <span class="n">tun_get_user</span> <span class="o">--&gt;</span>
-                            <span class="n">netif_receive_skb</span> <span class="o">--&gt;</span>
-                                <span class="n">netif_receive_skb_internal</span> <span class="o">--&gt;</span>
-                                    <span class="n">__netif_receive_skb</span> <span class="o">--&gt;</span>
-                                        <span class="n">__netif_receive_skb_core</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>Service VM Bridge Forwarding</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">br_handle_frame</span> <span class="o">--&gt;</span>
-    <span class="n">br_handle_frame_finish</span> <span class="o">--&gt;</span>
-        <span class="n">br_forward</span> <span class="o">--&gt;</span>
-            <span class="n">__br_forward</span> <span class="o">--&gt;</span>
-                <span class="n">br_forward_finish</span> <span class="o">--&gt;</span>
-                    <span class="n">br_dev_queue_push_xmit</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>Service VM MAC Layer</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">dev_queue_xmit</span> <span class="o">--&gt;</span>
-    <span class="n">__dev_queue_xmit</span> <span class="o">--&gt;</span>
-        <span class="n">dev_hard_start_xmit</span> <span class="o">--&gt;</span>
-            <span class="n">xmit_one</span> <span class="o">--&gt;</span>
-                <span class="n">netdev_start_xmit</span> <span class="o">--&gt;</span>
-                    <span class="n">__netdev_start_xmit</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>Service VM MAC Layer IGB Driver</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">igb_xmit_frame</span> <span class="o">--&gt;</span> <span class="c1">// IGB physical NIC driver xmit function</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="acrn-user-vm-rx-flow">
-<h3>ACRN User VM RX FLOW<a class="headerlink" href="#acrn-user-vm-rx-flow" title="Permalink to this headline">¶</a></h3>
-<p>The following shows the ACRN User VM network RX flow, using TCP as an example.
-Let’s start by receiving a device interrupt. (Note that the hypervisor
-will first get notified when receiving an interrupt even in passthrough
-cases.)</p>
-<p><strong>Hypervisor Interrupt Dispatch</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vmexit_handler</span> <span class="o">--&gt;</span>                          <span class="c1">// vmexit because VMX_EXIT_REASON_EXTERNAL_INTERRUPT</span>
-    <span class="n">external_interrupt_vmexit_handler</span> <span class="o">--&gt;</span>
-        <span class="n">dispatch_interrupt</span> <span class="o">--&gt;</span>
-            <span class="n">common_handler_edge</span> <span class="o">--&gt;</span>
-               <span class="n">ptdev_interrupt_handler</span> <span class="o">--&gt;</span>
-                  <span class="n">ptdev_enqueue_softirq</span> <span class="o">--&gt;</span> <span class="c1">// Interrupt will be delivered in bottom-half softirq</span>
-</pre></div>
-</div>
-<p><strong>Hypervisor Interrupt Injection</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">do_softirq</span> <span class="o">--&gt;</span>
-    <span class="n">ptdev_softirq</span> <span class="o">--&gt;</span>
-        <span class="n">vlapic_intr_msi</span> <span class="o">--&gt;</span>     <span class="c1">// insert the interrupt into Service VM</span>
-
-<span class="n">start_vcpu</span> <span class="o">--&gt;</span>                  <span class="c1">// VM Entry here, will process the pending interrupts</span>
-</pre></div>
-</div>
-<p><strong>Service VM MAC Layer IGB Driver</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">do_IRQ</span> <span class="o">--&gt;</span>
-    <span class="p">...</span>
-    <span class="n">igb_msix_ring</span> <span class="o">--&gt;</span>
-        <span class="n">igbpoll</span> <span class="o">--&gt;</span>
-            <span class="n">napi_gro_receive</span> <span class="o">--&gt;</span>
-                <span class="n">napi_skb_finish</span> <span class="o">--&gt;</span>
-                    <span class="n">netif_receive_skb_internal</span> <span class="o">--&gt;</span>
-                        <span class="n">__netif_receive_skb</span> <span class="o">--&gt;</span>
-                            <span class="n">__netif_receive_skb_core</span> <span class="o">--</span>
-</pre></div>
-</div>
-<p><strong>Service VM Bridge Forwarding</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">br_handle_frame</span> <span class="o">--&gt;</span>
-    <span class="n">br_handle_frame_finish</span> <span class="o">--&gt;</span>
-        <span class="n">br_forward</span> <span class="o">--&gt;</span>
-            <span class="n">__br_forward</span> <span class="o">--&gt;</span>
-                <span class="n">br_forward_finish</span> <span class="o">--&gt;</span>
-                    <span class="n">br_dev_queue_push_xmit</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>Service VM MAC Layer</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">dev_queue_xmit</span> <span class="o">--&gt;</span>
-    <span class="n">__dev_queue_xmit</span> <span class="o">--&gt;</span>
-        <span class="n">dev_hard_start_xmit</span> <span class="o">--&gt;</span>
-            <span class="n">xmit_one</span> <span class="o">--&gt;</span>
-                <span class="n">netdev_start_xmit</span> <span class="o">--&gt;</span>
-                    <span class="n">__netdev_start_xmit</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>Service VM MAC Layer TAP Driver</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tun_net_xmit</span> <span class="o">--&gt;</span> <span class="c1">// Notify and wake up reader process</span>
-</pre></div>
-</div>
-<p><strong>ACRN Device Model / virtio-net Backend Driver</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">virtio_net_rx_callback</span> <span class="o">--&gt;</span>       <span class="c1">// the tap fd get notified and this function invoked</span>
-    <span class="n">virtio_net_tap_rx</span> <span class="o">--&gt;</span>        <span class="c1">// read data from tap, prepare virtqueue, insert interrupt into the User VM</span>
-        <span class="n">vq_endchains</span> <span class="o">--&gt;</span>
-            <span class="n">vq_interrupt</span> <span class="o">--&gt;</span>
-                <span class="n">pci_generate_msi</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>VHM Module</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vhm_dev_ioctl</span> <span class="o">--&gt;</span>                <span class="c1">// process the IOCTL and call hypercall to inject interrupt</span>
-    <span class="n">hcall_inject_msi</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>ACRN Hypervisor</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vmexit_handler</span> <span class="o">--&gt;</span>               <span class="c1">// vmexit because VMX_EXIT_REASON_VMCALL</span>
-    <span class="n">vmcall_vmexit_handler</span> <span class="o">--&gt;</span>
-        <span class="n">hcall_inject_msi</span> <span class="o">--&gt;</span>     <span class="c1">// insert interrupt into User VM</span>
-            <span class="n">vlapic_intr_msi</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>User VM MAC Layer virtio_net Frontend Driver</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vring_interrupt</span> <span class="o">--&gt;</span>              <span class="c1">// virtio-net frontend driver interrupt handler</span>
-    <span class="n">skb_recv_done</span> <span class="o">--&gt;</span>            <span class="c1">// registered by virtnet_probe--&gt;init_vqs--&gt;virtnet_find_vqs</span>
-        <span class="n">virtqueue_napi_schedule</span> <span class="o">--&gt;</span>
-            <span class="n">__napi_schedule</span> <span class="o">--&gt;</span>
-                <span class="n">virtnet_poll</span> <span class="o">--&gt;</span>
-                    <span class="n">virtnet_receive</span> <span class="o">--&gt;</span>
-                        <span class="n">receive_buf</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>User VM MAC Layer</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">napi_gro_receive</span> <span class="o">--&gt;</span>
-    <span class="n">napi_skb_finish</span> <span class="o">--&gt;</span>
-        <span class="n">netif_receive_skb_internal</span> <span class="o">--&gt;</span>
-            <span class="n">__netif_receive_skb</span> <span class="o">--&gt;</span>
-                <span class="n">__netif_receive_skb_core</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>User VM IP Layer</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">ip_rcv</span> <span class="o">--&gt;</span>
-    <span class="n">ip_rcv_finish</span> <span class="o">--&gt;</span>
-        <span class="n">dst_input</span> <span class="o">--&gt;</span>
-            <span class="n">ip_local_deliver</span> <span class="o">--&gt;</span>
-                <span class="n">ip_local_deliver_finish</span> <span class="o">--&gt;</span>
-</pre></div>
-</div>
-<p><strong>User VM TCP Layer</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">tcp_v4_rcv</span> <span class="o">--&gt;</span>
-    <span class="n">tcp_v4_do_rcv</span> <span class="o">--&gt;</span>
-        <span class="n">tcp_rcv_established</span> <span class="o">--&gt;</span>
-            <span class="n">tcp_data_queue</span> <span class="o">--&gt;</span>
-                <span class="n">tcp_queue_rcv</span> <span class="o">--&gt;</span>
-                    <span class="n">__skb_queue_tail</span> <span class="o">--&gt;</span>
-
-                <span class="n">sk</span><span class="o">-&gt;</span><span class="n">sk_data_ready</span> <span class="o">--&gt;</span> <span class="c1">// application will get notified</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="how-to-use-tap-interface">
-<h3>How to Use TAP Interface<a class="headerlink" href="#how-to-use-tap-interface" title="Permalink to this headline">¶</a></h3>
-<p>The network infrastructure shown in <a class="reference internal" href="#net-virt-infra"><span class="std std-numref">Figure 289</span></a> needs to be
-prepared in the Service VM before we start. We need to create a bridge and at
-least one TAP device (two TAP devices are needed to create a dual
-virtual NIC) and attach a physical NIC and TAP device to the bridge.</p>
-<div class="figure align-center" id="net-virt-infra">
-<a class="reference internal image-reference" href="../../_images/network-virt-sos-infrastruct.png"><img alt="../../_images/network-virt-sos-infrastruct.png" src="../../_images/network-virt-sos-infrastruct.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 289 </span><span class="caption-text">Network Infrastructure in Service VM</span></p>
-</div>
-<p>You can use Linux commands (e.g. ip, brctl) to create this network. In
-our case, we use systemd to automatically create the network by default.
-You can check the files with prefix 50- in the Service VM
-<code class="docutils literal notranslate"><span class="pre">/usr/lib/systemd/network/</span></code>:</p>
-<ul class="simple">
-<li><a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/misc/acrnbridge/acrn.netdev">50-acrn.netdev</a></li>
-<li><a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/misc/acrnbridge/acrn.network">50-acrn.network</a></li>
-<li><a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/misc/acrnbridge/tap0.netdev">50-tap0.netdev</a></li>
-<li><a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/misc/acrnbridge/eth.network">50-eth.network</a></li>
-</ul>
-<p>When the Service VM is started, run <code class="docutils literal notranslate"><span class="pre">ifconfig</span></code> to show the devices created by
-this systemd configuration:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-br0 Link encap:Ethernet HWaddr B2:50:41:FE:F7:A3
-   inet addr:10.239.154.43 Bcast:10.239.154.255 Mask:255.255.255.0
-   inet6 addr: fe80::b050:41ff:fefe:f7a3/64 Scope:Link
-   UP BROADCAST RUNNING MULTICAST MTU:1500 Metric:1
-   RX packets:226932 errors:0 dropped:21383 overruns:0 frame:0
-   TX packets:14816 errors:0 dropped:0 overruns:0 carrier:0
-   collisions:0 txqueuelen:1000
-   RX bytes:100457754 (95.8 Mb) TX bytes:83481244 (79.6 Mb)
-
-tap0 Link encap:Ethernet HWaddr F6:A7:7E:52:50:C6
-   UP BROADCAST MULTICAST MTU:1500 Metric:1
-   RX packets:0 errors:0 dropped:0 overruns:0 frame:0
-   TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
-   collisions:0 txqueuelen:1000
-   RX bytes:0 (0.0 b) TX bytes:0 (0.0 b)
-
-enp3s0 Link encap:Ethernet HWaddr 98:4F:EE:14:5B:74
-   inet6 addr: fe80::9a4f:eeff:fe14:5b74/64 Scope:Link
-   UP BROADCAST RUNNING MULTICAST MTU:1500 Metric:1
-   RX packets:279174 errors:0 dropped:0 overruns:0 frame:0
-   TX packets:69923 errors:0 dropped:0 overruns:0 carrier:0
-   collisions:0 txqueuelen:1000
-   RX bytes:107312294 (102.3 Mb) TX bytes:87117507 (83.0 Mb)
-   Memory:82200000-8227ffff
-
-lo Link encap:Local Loopback
-   inet addr:127.0.0.1 Mask:255.0.0.0
-   inet6 addr: ::1/128 Scope:Host
-   UP LOOPBACK RUNNING MTU:65536 Metric:1
-   RX packets:16 errors:0 dropped:0 overruns:0 frame:0
-   TX packets:16 errors:0 dropped:0 overruns:0 carrier:0
-   collisions:0 txqueuelen:1000
-   RX bytes:1216 (1.1 Kb) TX bytes:1216 (1.1 Kb)
-</pre></div>
-</div>
-<p>Run <code class="docutils literal notranslate"><span class="pre">brctl</span> <span class="pre">show</span></code> to see the bridge <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> and attached devices:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>bridge name   bridge id STP       enabled   interfaces
-
-acrn-br0      8000.b25041fef7a3   no        tap0
-                                            enp3s0
-</pre></div>
-</div>
-<p>Add a pci slot to the device model acrn-dm command line (mac address is
-optional):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-s 4,virtio-net,&lt;tap_name&gt;,[mac=&lt;XX:XX:XX:XX:XX:XX&gt;]
-</pre></div>
-</div>
-<p>When the User VM is launched, run <code class="docutils literal notranslate"><span class="pre">ifconfig</span></code> to check the network. enp0s4r
-is the virtual NIC created by acrn-dm:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>enp0s4 Link encap:Ethernet HWaddr 00:16:3E:39:0F:CD
-   inet addr:10.239.154.186 Bcast:10.239.154.255 Mask:255.255.255.0
-   inet6 addr: fe80::216:3eff:fe39:fcd/64 Scope:Link
-   UP BROADCAST RUNNING MULTICAST MTU:1500 Metric:1
-   RX packets:140 errors:0 dropped:8 overruns:0 frame:0
-   TX packets:46 errors:0 dropped:0 overruns:0 carrier:0
-   collisions:0 txqueuelen:1000
-   RX bytes:110727 (108.1 Kb) TX bytes:4474 (4.3 Kb)
-
-lo Link encap:Local Loopback
-   inet addr:127.0.0.1 Mask:255.0.0.0
-   inet6 addr: ::1/128 Scope:Host
-   UP LOOPBACK RUNNING MTU:65536 Metric:1
-   RX packets:0 errors:0 dropped:0 overruns:0 frame:0
-   TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
-   collisions:0 txqueuelen:1000
-   RX bytes:0 (0.0 b) TX bytes:0 (0.0 b)
-</pre></div>
-</div>
-</div>
-<div class="section" id="how-to-use-macvtap-interface">
-<h3>How to Use MacVTap Interface<a class="headerlink" href="#how-to-use-macvtap-interface" title="Permalink to this headline">¶</a></h3>
-<p>In addition to TAP interface, ACRN also supports MacVTap interface.
-MacVTap replaces the combination of the TAP and bridge drivers with
-a single module based on MacVLan driver. With MacVTap, each
-virtual network interface is assigned its own MAC and IP address
-and is directly attached to the physical interface of the host machine
-to improve throughput and latencies.</p>
-<p>Create a MacVTap interface in the Service VM as shown here:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo ip link add link eth0 name macvtap0 type macvtap
-</pre></div>
-</div>
-<p>where <code class="docutils literal notranslate"><span class="pre">eth0</span></code> is the name of the physical network interface, and
-<code class="docutils literal notranslate"><span class="pre">macvtap0</span></code> is the name of the MacVTap interface being created. (Make
-sure the MacVTap interface name includes the keyword <code class="docutils literal notranslate"><span class="pre">tap</span></code>.)</p>
-<p>Once the MacVTap interface is created, the User VM can be launched by adding
-a PCI slot to the device model acrn-dm as shown below.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-s 4,virtio-net,&lt;macvtap_name&gt;,[mac=&lt;XX:XX:XX:XX:XX:XX&gt;]
-</pre></div>
-</div>
-</div>
-<div class="section" id="performance-estimation">
-<h3>Performance Estimation<a class="headerlink" href="#performance-estimation" title="Permalink to this headline">¶</a></h3>
-<p>We’ve introduced the network virtualization solution in ACRN, from the
-top level architecture to the detailed TX and RX flow.  Currently, the
-control plane and data plane are all processed in ACRN device model,
-which may bring some overhead. But this is not a bottleneck for 1000Mbit
-NICs or below. Network bandwidth for virtualization can be very close to
-the native bandwidth. For high speed NIC (e.g.  10Gb or above), it is
-necessary to separate the data plane from the control plane. We can use
-vhost for acceleration. For most IoT scenarios, processing in user space
-is simple and reasonable.</p>
-</div>
-</div>
 </div>
 
 

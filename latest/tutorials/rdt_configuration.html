@@ -1189,6 +1189,15 @@ cpuid leaf: 0x10, subleaf: 0x3, 0x59:0x0:0x4:0x7
 </div>
 </li>
 </ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">ACRN takes the lowest common CLOS max value between the supported
+resources as maximum supported CLOS ID. For example, if max CLOS
+supported by L3 is 16 and MBA is 8, ACRN programs MAX_PLATFORM_CLOS_NUM
+to 8. ACRN recommends to have consistent capabilities across all RDT
+resources by using a common subset CLOS. This is done in order to minimize
+misconfiguration errors.</p>
+</div>
 </div>
 <div class="section" id="tuning-rdt-resources-in-hv-debug-shell">
 <h2>Tuning RDT resources in HV debug shell<a class="headerlink" href="#tuning-rdt-resources-in-hv-debug-shell" title="Permalink to this headline">¶</a></h2>
@@ -1233,41 +1242,45 @@ ACRN:\&gt;wrmsr   -p1   0xc8f    0x100000000
 <div class="section" id="configure-rdt-for-vm-using-vm-configuration">
 <span id="rdt-vm-configuration"></span><h2>Configure RDT for VM using VM Configuration<a class="headerlink" href="#configure-rdt-for-vm-using-vm-configuration" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first">RDT on ACRN is enabled by default on supported platforms. This
+<li><p class="first">RDT hardware feature is enabled by default on supported platforms. This
 information can be found using an offline tool that generates a
 platform-specific xml file that helps ACRN identify RDT-supported
-platforms. This feature can be also be toggled using the
-CONFIG_RDT_ENABLED flag with the <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">menuconfig</span></code> command. The first
-step is to clone the ACRN source code (if you haven’t already done so):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor.git
-$ cd acrn-hypervisor/
+platforms. RDT on ACRN is enabled by configuring the <code class="docutils literal notranslate"><span class="pre">FEATURES</span></code>
+sub-section of the scenario xml file as in the below example. For
+details on building ACRN with scenario refer  to <a class="reference internal" href="../getting-started/building-from-source.html#build-with-acrn-scenario"><span class="std std-ref">Build with the ACRN scenario</span></a>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;FEATURES&gt;
+   &lt;RELOC desc=&quot;Enable hypervisor relocation&quot;&gt;y&lt;/RELOC&gt;
+   &lt;SCHEDULER desc=&quot;The CPU scheduler to be used by the hypervisor.&quot;&gt;SCHED_BVT&lt;/SCHEDULER&gt;
+   &lt;MULTIBOOT2 desc=&quot;Support boot ACRN from multiboot2 protocol.&quot;&gt;y&lt;/MULTIBOOT2&gt;
+   &lt;RDT desc=&quot;Intel RDT (Resource Director Technology).&quot;&gt;
+<span class="hll">      &lt;RDT_ENABLED desc=&quot;Enable RDT&quot;&gt;*y*&lt;/RDT_ENABLED&gt;
+</span>      &lt;CDP_ENABLED desc=&quot;CDP (Code and Data Prioritization). CDP is an extension of CAT.&quot;&gt;n&lt;/CDP_ENABLED&gt;
+      &lt;CLOS_MASK desc=&quot;Cache Capacity Bitmask&quot;&gt;&lt;/CLOS_MASK&gt;
+      &lt;MBA_DELAY desc=&quot;Memory Bandwidth Allocation delay value&quot;&gt;&lt;/MBA_DELAY&gt;
+   &lt;/RDT&gt;
 </pre></div>
 </div>
-<div class="figure align-center">
-<img alt="../_images/menuconfig-rdt.png" src="../_images/menuconfig-rdt.png" />
-</div>
 </li>
-<li><p class="first">The predefined cache masks can be found at
-<code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/$(CONFIG_BOARD)/board.c</span></code> for respective boards.
-For example, apl-up2 can found at <code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/apl-up2/board.c</span></code>.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>struct platform_clos_info platform_l2_clos_array[MAX_PLATFORM_CLOS_NUM] = {
-        {
-<span class="hll">                .clos_mask = 0xff,
-</span>                .msr_index = MSR_IA32_L3_MASK_BASE + 0,
-        },
-        {
-<span class="hll">                .clos_mask = 0xff,
-</span>                .msr_index = MSR_IA32_L3_MASK_BASE + 1,
-        },
-        {
-<span class="hll">                .clos_mask = 0xff,
-</span>                .msr_index = MSR_IA32_L3_MASK_BASE + 2,
-        },
-        {
-<span class="hll">                .clos_mask = 0xff,
-</span>                .msr_index = MSR_IA32_L3_MASK_BASE + 3,
-        },
-};
+<li><p class="first">Once RDT is enabled in the scenario xml file, the next step is to program
+the desired cache mask or/and the MBA delay value as needed in the
+scenario file. Each cache mask or MBA delay configuration corresponds
+to a CLOS ID. For example, if the maximum supported CLOS ID is 4, then 4
+cache mask settings needs to be in place where each setting corresponds
+to a CLOS ID starting from 0. To set the cache masks for 4 CLOS ID and
+use default delay value for MBA, it can be done as shown in the example below.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;FEATURES&gt;
+   &lt;RELOC desc=&quot;Enable hypervisor relocation&quot;&gt;y&lt;/RELOC&gt;
+   &lt;SCHEDULER desc=&quot;The CPU scheduler to be used by the hypervisor.&quot;&gt;SCHED_BVT&lt;/SCHEDULER&gt;
+   &lt;MULTIBOOT2 desc=&quot;Support boot ACRN from multiboot2 protocol.&quot;&gt;y&lt;/MULTIBOOT2&gt;
+   &lt;RDT desc=&quot;Intel RDT (Resource Director Technology).&quot;&gt;
+      &lt;RDT_ENABLED desc=&quot;Enable RDT&quot;&gt;y&lt;/RDT_ENABLED&gt;
+      &lt;CDP_ENABLED desc=&quot;CDP (Code and Data Prioritization). CDP is an extension of CAT.&quot;&gt;n&lt;/CDP_ENABLED&gt;
+<span class="hll">      &lt;CLOS_MASK desc=&quot;Cache Capacity Bitmask&quot;&gt;*0xff*&lt;/CLOS_MASK&gt;
+</span><span class="hll">      &lt;CLOS_MASK desc=&quot;Cache Capacity Bitmask&quot;&gt;*0x3f*&lt;/CLOS_MASK&gt;
+</span><span class="hll">      &lt;CLOS_MASK desc=&quot;Cache Capacity Bitmask&quot;&gt;*0xf*&lt;/CLOS_MASK&gt;
+</span><span class="hll">      &lt;CLOS_MASK desc=&quot;Cache Capacity Bitmask&quot;&gt;*0x3*&lt;/CLOS_MASK&gt;
+</span><span class="hll">      &lt;MBA_DELAY desc=&quot;Memory Bandwidth Allocation delay value&quot;&gt;*0*&lt;/MBA_DELAY&gt;
+</span>   &lt;/RDT&gt;
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1278,27 +1291,20 @@ programming an MBA delay value, be sure to set the value to less than or
 equal to the MAX delay value.</p>
 </div>
 </li>
-<li><p class="first">Set up the CLOS in the VM config. Follow <a class="reference internal" href="#rdt-detection-and-resource-capabilities">RDT detection and resource capabilities</a>
-to identify the MAX CLOS that can be used. ACRN uses the
+<li><p class="first">Configure each CPU in VMs to a desired CLOS ID in the <code class="docutils literal notranslate"><span class="pre">VM</span></code> section of the
+scenario file. Follow <a class="reference internal" href="#rdt-detection-and-resource-capabilities">RDT detection and resource capabilities</a>
+to identify the maximum supported CLOS ID that can be used. ACRN uses the
 <strong>the lowest common MAX CLOS</strong> value among all RDT resources to avoid
-resource misconfigurations. For example, configuration data for the
-Service VM sharing mode can be found at
-<code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/configs/vm_config.c</span></code></p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>struct acrn_vm_config vm_configs[CONFIG_MAX_VM_NUM] __aligned(PAGE_SIZE) = {
-        {
-                .type = SOS_VM,
-                .name = SOS_VM_CONFIG_NAME,
-                .guest_flags = 0UL,
-<span class="hll">                .clos = 1,
-</span>                .memory = {
-                        .start_hpa = 0x0UL,
-                        .size = CONFIG_SOS_RAM_SIZE,
-                },
-                .os_config = {
-                        .name = SOS_VM_CONFIG_OS_NAME,
-                },
-        },
-};
+resource misconfigurations.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;vm id=&quot;0&quot;&gt;
+   &lt;vm_type desc=&quot;Specify the VM type&quot; readonly=&quot;true&quot;&gt;PRE_STD_VM&lt;/vm_type&gt;
+   &lt;name desc=&quot;Specify the VM name which will be shown in hypervisor console command: vm_list.&quot;&gt;ACRN PRE-LAUNCHED VM0&lt;/name&gt;
+   &lt;uuid configurable=&quot;0&quot; desc=&quot;vm uuid&quot;&gt;26c5e0d8-8f8a-47d8-8109-f201ebd61a5e&lt;/uuid&gt;
+<span class="hll">   &lt;clos desc=&quot;Class of Service for Cache Allocation Technology. Please refer SDM 17.19.2 for details and use with caution.&quot;&gt;
+</span><span class="hll">      &lt;vcpu_clos&gt;*0*&lt;/vcpu_clos&gt;
+</span><span class="hll">      &lt;vcpu_clos&gt;*1*&lt;/vcpu_clos&gt;
+</span><span class="hll">   &lt;/clos&gt;
+</span>&lt;/vm&gt;
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1369,7 +1375,7 @@ $ scp &lt;acrn.efi-at-your-compile-PC&gt; /boot/EFI/acrn
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Jul 23, 2020.
+        Last updated on Jul 28, 2020.
       </span>
 
     </p>
