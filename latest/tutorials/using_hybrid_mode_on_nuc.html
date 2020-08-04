@@ -1112,7 +1112,7 @@
   <div class="section" id="getting-started-guide-for-acrn-hybrid-mode">
 <span id="using-hybrid-mode-on-nuc"></span><h1>Getting Started Guide for ACRN hybrid mode<a class="headerlink" href="#getting-started-guide-for-acrn-hybrid-mode" title="Permalink to this headline">¶</a></h1>
 <p>ACRN hypervisor supports a hybrid scenario where the User VM (such as Zephyr
-or Clear Linux) runs in a pre-launched VM or in a post-launched VM that is
+or Ubuntu) runs in a pre-launched VM or in a post-launched VM that is
 launched by a Device model in the Service VM. The following guidelines
 describe how to set up the ACRN hypervisor hybrid scenario on the Intel NUC,
 as shown in <a class="reference internal" href="#hybrid-scenario-on-nuc"><span class="std std-numref">Figure 18</span></a>.</p>
@@ -1125,7 +1125,7 @@ as shown in <a class="reference internal" href="#hybrid-scenario-on-nuc"><span c
 <ul class="simple">
 <li>Use the <a class="reference external" href="https://www.intel.com/content/www/us/en/products/boards-kits/nuc/kits/nuc7i7dnhe.html">Intel NUC Kit NUC7i7DNHE</a>.</li>
 <li>Connect to the serial port as described in <a class="reference internal" href="cl_servicevm.html#connect-serial-port"><span class="std std-ref">Connecting to the serial port</span></a>.</li>
-<li>Install GRUB on your SATA device or on the NVME disk of your NUC.</li>
+<li>Install Ubuntu 18.04 on your SATA device or on the NVME disk of your NUC.</li>
 </ul>
 </div>
 <div class="section" id="update-ubuntu-grub">
@@ -1133,7 +1133,7 @@ as shown in <a class="reference internal" href="#hybrid-scenario-on-nuc"><span c
 <p>Perform the following to update Ubuntu GRUB so it can boot the hypervisor and load the kernel image:</p>
 <ol class="arabic">
 <li><p class="first">Append the following configuration in the <code class="docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code> file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>menuentry <span class="s1">&#39;ACRN hypervisor Hybird Scenario&#39;</span> --class ubuntu --class gnu-linux --class gnu --class os <span class="nv">$menuentry_id_option</span> <span class="s1">&#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39;</span> <span class="o">{</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>menuentry <span class="s1">&#39;ACRN hypervisor Hybrid Scenario&#39;</span> --id ACRN_Hybrid --class ubuntu --class gnu-linux --class gnu --class os <span class="nv">$menuentry_id_option</span> <span class="s1">&#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39;</span> <span class="o">{</span>
    recordfail
    load_video
    gfxmode <span class="nv">$linux_gfx_mode</span>
@@ -1141,9 +1141,9 @@ as shown in <a class="reference internal" href="#hybrid-scenario-on-nuc"><span c
    insmod part_gpt
    insmod ext2
    <span class="nb">echo</span> <span class="s1">&#39;Loading hypervisor Hybrid scenario ...&#39;</span>
-   multiboot --quirk-modules-after-kernel /boot/acrn.32.out
-<span class="hll">   module /boot/zephyr.bin xxxxxx
-</span><span class="hll">   module /boot/bzImage yyyyyy
+   multiboot2 /boot/acrn.bin
+<span class="hll">   module2 /boot/zephyr.bin xxxxxx
+</span><span class="hll">   module2 /boot/bzImage yyyyyy
 </span>
 <span class="o">}</span>
 </pre></div>
@@ -1152,18 +1152,20 @@ as shown in <a class="reference internal" href="#hybrid-scenario-on-nuc"><span c
 <p class="first admonition-title">Note</p>
 <p class="last">The module <code class="docutils literal notranslate"><span class="pre">/boot/zephyr.bin</span></code> is the VM0 (Zephyr) kernel file.
 The param <code class="docutils literal notranslate"><span class="pre">xxxxxx</span></code> is VM0’s kernel file tag and must exactly match the
-<code class="docutils literal notranslate"><span class="pre">kernel_mod_tag</span></code> of VM0 which is configured in the <code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/hybrid/vm_configurations.c</span></code>
+<code class="docutils literal notranslate"><span class="pre">kernel_mod_tag</span></code> of VM0 which is configured in the <code class="docutils literal notranslate"><span class="pre">misc/vm_configs/scenarios/hybrid/vm_configurations.c</span></code>
 file. The multiboot module <code class="docutils literal notranslate"><span class="pre">/boot/bzImage</span></code> is the Service VM kernel
 file. The param <code class="docutils literal notranslate"><span class="pre">yyyyyy</span></code> is the bzImage tag and must exactly match the
-<code class="docutils literal notranslate"><span class="pre">kernel_mod_tag</span></code> of VM1 in the <code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/hybrid/vm_configurations.c</span></code>
+<code class="docutils literal notranslate"><span class="pre">kernel_mod_tag</span></code> of VM1 in the <code class="docutils literal notranslate"><span class="pre">misc/vm_configs/scenarios/hybrid/vm_configurations.c</span></code>
 file. The kernel command line arguments used to boot the Service VM are
-located in the header file <code class="docutils literal notranslate"><span class="pre">hypervisor/scenarios/hybrid/vm_configurations.h</span></code>
+located in the header file <code class="docutils literal notranslate"><span class="pre">misc/vm_configs/scenarios/hybrid/vm_configurations.h</span></code>
 and are configured by the <cite>SOS_VM_BOOTARGS</cite> macro.</p>
 </div>
 </li>
 <li><p class="first">Modify the <code class="docutils literal notranslate"><span class="pre">/etc/default/grub</span></code> file as follows to make the GRUB menu
 visible when booting:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># GRUB_HIDDEN_TIMEOUT=0</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">GRUB_DEFAULT</span><span class="o">=</span>ACRN_Hybrid
+<span class="nv">GRUB_TIMEOUT</span><span class="o">=</span><span class="m">5</span>
+<span class="c1"># GRUB_HIDDEN_TIMEOUT=0</span>
 <span class="nv">GRUB_HIDDEN_TIMEOUT_QUIET</span><span class="o">=</span><span class="nb">false</span>
 </pre></div>
 </div>
@@ -1217,7 +1219,7 @@ hypervisor, and the hypervisor will start the VMs automatically.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Jul 29, 2020.
+        Last updated on Aug 04, 2020.
       </span>
 
     </p>
