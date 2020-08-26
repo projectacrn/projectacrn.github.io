@@ -148,14 +148,15 @@
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-open-source-roadmap">ACRN Open Source Roadmap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-high-level-architecture">ACRN High-Level Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#usage-scenarios">Usage Scenarios</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#automotive-application-scenarios">Automotive Application Scenarios</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#industrial-workload-consolidation">Industrial Workload Consolidation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#automotive-application-scenarios">Automotive Application Scenarios</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#best-known-configurations">Best Known Configurations</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#sdc-scenario">SDC scenario</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#industry-scenario">Industry scenario</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hybrid-scenario">Hybrid scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hybrid-real-time-rt-scenario">Hybrid Real-Time (RT) scenario</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#logical-partition-scenario">Logical Partition scenario</a></li>
 </ul>
 </li>
@@ -1119,10 +1120,10 @@
 <div class="section" id="workflow">
 <h3>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
 <p>Error detection and error handling workflow in the ACRN hypervisor is shown in
-<a class="reference internal" href="#work-flow-of-error-detection-and-error-handling"><span class="std std-numref">Figure 313</span></a>.</p>
+<a class="reference internal" href="#work-flow-of-error-detection-and-error-handling"><span class="std std-numref">Figure 314</span></a>.</p>
 <div class="figure align-center" id="work-flow-of-error-detection-and-error-handling">
 <img alt="../_images/work_flow_of_error_detection_and_error_handling.png" src="../_images/work_flow_of_error_detection_and_error_handling.png" />
-<p class="caption"><span class="caption-number">Figure 313 </span><span class="caption-text">Error Detection and Error Handling Workflow</span></p>
+<p class="caption"><span class="caption-number">Figure 314 </span><span class="caption-text">Error Detection and Error Handling Workflow</span></p>
 </div>
 </div>
 <div class="section" id="design-assumption">
@@ -1709,8 +1710,8 @@ instead of checking the pointer for NULL.</li>
 <div class="section" id="use-cases">
 <h3>Use Cases<a class="headerlink" href="#use-cases" title="Permalink to this headline">¶</a></h3>
 <p>The following table shows some use cases of module level configuration design:</p>
-<table border="1" class="colwidths-given docutils" id="id9">
-<caption><span class="caption-number">Table 14 </span><span class="caption-text">Module Level Configuration Design Use Cases</span><a class="headerlink" href="#id9" title="Permalink to this table">¶</a></caption>
+<table border="1" class="colwidths-given docutils" id="id8">
+<caption><span class="caption-number">Table 14 </span><span class="caption-text">Module Level Configuration Design Use Cases</span><a class="headerlink" href="#id8" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="18%" />
 <col width="45%" />
@@ -1755,90 +1756,6 @@ vLAPIC.</td>
 configuration is dereferenced after it has been instantiated.</p>
 </div>
 </div>
-<div class="section" id="id8">
-<h3>Examples<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
-<p>Take the module for parsing boot information as an example to illustrate the
-idea of module level configuration design.</p>
-<div class="figure align-center" id="boot-information-parsing-module">
-<a class="reference internal image-reference" href="../_images/boot_information_parsing_module.png"><img alt="../_images/boot_information_parsing_module.png" src="../_images/boot_information_parsing_module.png" style="width: 621.5999999999999px; height: 362.59999999999997px;" /></a>
-<p class="caption"><span class="caption-number">Figure 314 </span><span class="caption-text">Boot Information Parsing Module</span></p>
-</div>
-<p>As shown in the source code below, ‘struct firmware_operations’ is an operations
-data structure that contains a set of function pointers.
-Different firmware may have different implementations:</p>
-<ul class="simple">
-<li>‘firmware_uefi_ops’ is for UEFI platform;</li>
-<li>‘firmware_sbl_ops’ is for SBL platform.</li>
-</ul>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">firmware_operations</span> <span class="p">{</span>
-        <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">init</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
-        <span class="kt">uint64_t</span> <span class="p">(</span><span class="o">*</span><span class="n">get_ap_trampoline</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
-        <span class="kt">void</span> <span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">get_rsdp</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
-        <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">init_irq</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
-        <span class="kt">int32_t</span> <span class="p">(</span><span class="o">*</span><span class="n">init_vm_boot_info</span><span class="p">)(</span><span class="k">struct</span> <span class="n">acrn_vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">);</span>
-<span class="p">};</span>
-
-<span class="k">static</span> <span class="k">struct</span> <span class="n">firmware_operations</span> <span class="n">firmware_uefi_ops</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="p">.</span><span class="n">init</span> <span class="o">=</span> <span class="n">uefi_init</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">get_ap_trampoline</span> <span class="o">=</span> <span class="n">uefi_get_ap_trampoline</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">get_rsdp</span> <span class="o">=</span> <span class="n">uefi_get_rsdp</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">init_irq</span> <span class="o">=</span> <span class="n">uefi_init_irq</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">init_vm_boot_info</span> <span class="o">=</span> <span class="n">uefi_init_vm_boot_info</span><span class="p">,</span>
-<span class="p">};</span>
-
-<span class="k">static</span> <span class="k">struct</span> <span class="n">firmware_operations</span> <span class="n">firmware_sbl_ops</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="p">.</span><span class="n">init</span> <span class="o">=</span> <span class="n">sbl_init</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">get_ap_trampoline</span> <span class="o">=</span> <span class="n">sbl_get_ap_trampoline</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">get_rsdp</span> <span class="o">=</span> <span class="n">sbl_get_rsdp</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">init_irq</span> <span class="o">=</span> <span class="n">sbl_init_irq</span><span class="p">,</span>
-        <span class="p">.</span><span class="n">init_vm_boot_info</span> <span class="o">=</span> <span class="n">sbl_init_vm_boot_info</span><span class="p">,</span>
-<span class="p">};</span>
-</pre></div>
-</div>
-<p>‘firmware_ops’ is the operations set that is dereferenced and takes effect.</p>
-<p>‘init_firmware_operations’ is called when the hypervisor is in DETECT mode and
-‘firmware_ops’ is instantiated here to either ‘firmware_uefi_ops’ or
-‘firmware_sbl_ops’ depending on the platform.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">All the other exported interfaces using ‘firmware_ops’ shall be called
-after the instantiation.</p>
-</div>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="k">struct</span> <span class="n">firmware_operations</span> <span class="o">*</span><span class="n">firmware_ops</span><span class="p">;</span>
-
-<span class="k">struct</span> <span class="n">firmware_operations</span><span class="o">*</span> <span class="nf">uefi_get_firmware_operations</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-<span class="p">{</span>
-        <span class="k">return</span> <span class="o">&amp;</span><span class="n">firmware_uefi_ops</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">struct</span> <span class="n">firmware_operations</span><span class="o">*</span> <span class="nf">sbl_get_firmware_operations</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-<span class="p">{</span>
-        <span class="k">return</span> <span class="o">&amp;</span><span class="n">firmware_sbl_ops</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">void</span> <span class="nf">init_firmware_operations</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-<span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">is_firmware_sbl</span><span class="p">())</span> <span class="p">{</span>
-                <span class="n">firmware_ops</span> <span class="o">=</span> <span class="n">sbl_get_firmware_operations</span><span class="p">();</span>
-        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-                <span class="n">firmware_ops</span> <span class="o">=</span> <span class="n">uefi_get_firmware_operations</span><span class="p">();</span>
-        <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>For example, when the hypervisor needs to initialize the VM boot information,
-it calls ‘firmware_init_vm_boot_info’ and ‘firmware_ops-&gt;init_vm_boot_info’ is
-dereferenced here with correct API being called.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
-<span class="cm"> * @pre firmware_ops-&gt;init_vm_boot_info != NULL</span>
-<span class="cm"> */</span>
-<span class="kt">int32_t</span> <span class="nf">firmware_init_vm_boot_info</span><span class="p">(</span><span class="k">struct</span> <span class="n">acrn_vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
-<span class="p">{</span>
-        <span class="k">return</span> <span class="n">firmware_ops</span><span class="o">-&gt;</span><span class="n">init_vm_boot_info</span><span class="p">(</span><span class="n">vm</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</div>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
@@ -1865,7 +1782,7 @@ dereferenced here with correct API being called.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Aug 20, 2020.
+        Last updated on Aug 25, 2020.
       </span>
 
     </p>
