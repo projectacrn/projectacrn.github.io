@@ -342,6 +342,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#install-acrn-on-the-debian-vm">Install ACRN on the Debian VM</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_yp.html">Using Yocto Project with ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_yp.html#the-meta-acrn-layer">The meta-acrn layer</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#user-vm-tutorials">User VM Tutorials</a><ul>
@@ -995,7 +999,7 @@
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code> tool helps users create, delete, launch, and stop a User
-OS (UOS).  The tool runs under the Service OS, and UOSs should be based
+VM (aka UOS).  The tool runs under the Service VM, and User VMs should be based
 on <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>. The daemon for acrn-manager is <a class="reference internal" href="#acrnd">acrnd</a>.</p>
 <div class="section" id="usage">
 <h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
@@ -1023,7 +1027,7 @@ Use acrnctl [cmd] help for details
 <div class="section" id="add-a-vm">
 <h3>Add a VM<a class="headerlink" href="#add-a-vm" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">add</span></code> command lets you add a VM by specifying a
-script that will launch a UOS, for example <code class="docutils literal notranslate"><span class="pre">launch_uos.sh</span></code>:</p>
+script that will launch a User VM, for example <code class="docutils literal notranslate"><span class="pre">launch_uos.sh</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># acrnctl add launch_uos.sh -U 1
 vm1-14:59:30 added
 </pre></div>
@@ -1038,7 +1042,7 @@ container:</p>
 <p class="last">You can download an <a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-hypervisor/master/devicemodel/samples/nuc/launch_uos.sh">example launch_uos.sh script</a>
 that supports the <code class="docutils literal notranslate"><span class="pre">-C</span></code>  (<code class="docutils literal notranslate"><span class="pre">run_container</span></code> function) option.</p>
 </div>
-<p>Note that the launch script must only launch one UOS instance.
+<p>Note that the launch script must only launch one User VM instance.
 The VM name is important. <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code> searches VMs by their
 names so duplicate VM names are not allowed. If the
 launch script changes the VM name at launch time, <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code>
@@ -1084,7 +1088,7 @@ gracefully by itself.</p>
 </div>
 </div>
 <div class="section" id="rescan-block-device">
-<h3>RESCAN BLOCK DEVICE<a class="headerlink" href="#rescan-block-device" title="Permalink to this headline">¶</a></h3>
+<h3>Rescan Block Device<a class="headerlink" href="#rescan-block-device" title="Permalink to this headline">¶</a></h3>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">blkrescan</span></code> command to trigger a rescan of
 virtio-blk device by guest VM, in order to revalidate and
 update the backend file.</p>
@@ -1107,10 +1111,10 @@ result in error.</p>
 </div>
 <div class="section" id="acrnd">
 <span id="id1"></span><h2>acrnd<a class="headerlink" href="#acrnd" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon process provides a way for launching or resuming a UOS
-should the UOS shut down, either planned or unexpected. A UOS can ask <code class="docutils literal notranslate"><span class="pre">acrnd</span></code>
-to set up a timer to make sure the UOS is running, even if the SOS is
-suspended or stopped.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon process provides a way for launching or resuming a User VM
+should the User VM shut down, either in a planned manner or unexpectedly. A User
+VM can ask <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> to set up a timer to make sure the User VM is running, even
+if the Service VM is suspended or stopped.</p>
 <div class="section" id="id2">
 <h3>Usage<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>You can see the available <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> commands by running:</p>
@@ -1126,12 +1130,12 @@ acrnd - Daemon for ACRN VM Management
 <p>Normally, <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> runs silently (messages are directed to
 <code class="docutils literal notranslate"><span class="pre">/dev/null</span></code>).  Use the <code class="docutils literal notranslate"><span class="pre">-t</span></code> option to direct messages to <code class="docutils literal notranslate"><span class="pre">stdout</span></code>,
 useful for debugging.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon stores pending UOS work to <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/conf/timer_list</span></code>
-and sets an RTC timer to wake up the SOS or bring the SOS back up again.
+<p>The <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon stores pending User VM work to <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/conf/timer_list</span></code>
+and sets an RTC timer to wake up the Service VM or bring the Service VM back up again.
 When <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon is restarted, it restores the previously saved timer
-list and launches the UOSs at the right time.</p>
+list and launches the User VMs at the right time.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">systemd</span></code> service file (<code class="docutils literal notranslate"><span class="pre">acrnd.service</span></code>) is installed by default that will
-start the <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon when the Service OS comes up.
+start the <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> daemon when the Service VM (Linux-based) comes up.
 You can restart/stop acrnd service using <code class="docutils literal notranslate"><span class="pre">systemctl</span></code></p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1141,10 +1145,10 @@ You can restart/stop acrnd service using <code class="docutils literal notransla
 </div>
 <div class="section" id="build-and-install">
 <h2>Build and Install<a class="headerlink" href="#build-and-install" title="Permalink to this headline">¶</a></h2>
-<p>Source code for both <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code> and <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> is in the <code class="docutils literal notranslate"><span class="pre">tools/acrn-manager</span></code> folder.
+<p>Source code for both <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code> and <code class="docutils literal notranslate"><span class="pre">acrnd</span></code> is in the <code class="docutils literal notranslate"><span class="pre">misc/acrn-manager</span></code> folder.
 Change to that folder and run:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># make
-# make install
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make
+$ sudo make install
 </pre></div>
 </div>
 </div>
@@ -1164,7 +1168,7 @@ Change to that folder and run:</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Sep 01, 2020.
+        Last updated on Sep 10, 2020.
       </span>
 
     </p>
