@@ -504,6 +504,12 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/pre-launched-rt.html#example-of-pre-launched-rt">Example of Pre-Launched RT</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ivshmem.html">Enable Inter-VM Communication Based on <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-dm-land-usage">ivshmem dm-land usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">ivshmem hv-land usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
@@ -1010,17 +1016,21 @@ size of this shared memory.</p>
 <img alt="../../_images/ivshmem-architecture.png" src="../../_images/ivshmem-architecture.png" />
 <p class="caption"><span class="caption-number">Figure 262 </span><span class="caption-text">ACRN shared memory based inter-vm communication architecture</span></p>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is emulated in the ACRN device model (dm-land)
-and its shared memory region is allocated from the Service VM’s memory
-space. This solution only supports communication between post-launched
-VMs.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">In a future implementation, the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device could
-instead be emulated in the hypervisor (hypervisor-land) and the shared
-memory regions reserved in the hypervisor’s memory space. This solution
-would work for both pre-launched and post-launched VMs.</p>
-</div>
+<p>There are two ways ACRN can emulate the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device:</p>
+<dl class="docutils">
+<dt><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> dm-land</dt>
+<dd>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is emulated in the ACRN device model,
+and the shared memory regions are reserved in the Service VM’s
+memory space.  This solution only supports communication between
+post-launched VMs.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> hv-land</dt>
+<dd>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is emulated in the hypervisor, and the
+shared memory regions are reserved in the hypervisor’s
+memory space.  This solution works for both pre-launched and
+post-launched VMs.</dd>
+</dl>
+<p>While both solutions can be used at the same time,  Inter-VM communication
+may only be done between VMs using the same solution.</p>
 <dl class="docutils">
 <dt>ivshmem hv:</dt>
 <dd>The <strong>ivshmem hv</strong> implements register virtualization
@@ -1112,91 +1122,7 @@ ivshmem doesn’t support interrupts.</td>
 </div>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
-<p>To support two post-launched VMs communicating via an <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device,
-add this line as an <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> boot parameter:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">slot</span><span class="p">,</span><span class="n">ivshmem</span><span class="p">,</span><span class="n">shm_name</span><span class="p">,</span><span class="n">shm_size</span>
-</pre></div>
-</div>
-<p>where</p>
-<ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">slot</span></code> - Specify the virtual PCI slot number</li>
-<li><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> - Virtual PCI device name</li>
-<li><code class="docutils literal notranslate"><span class="pre">shm_name</span></code> - Specify a shared memory name. Post-launched VMs with the
-same <code class="docutils literal notranslate"><span class="pre">shm_name</span></code> share a shared memory region.</li>
-<li><code class="docutils literal notranslate"><span class="pre">shm_size</span></code> - Specify a shared memory size. The two communicating
-VMs must define the same size.</li>
-</ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This device can be used with Real-Time VM (RTVM) as well.</p>
-</div>
-</div>
-<div class="section" id="inter-vm-communication-example">
-<h2>Inter-VM Communication Example<a class="headerlink" href="#inter-vm-communication-example" title="Permalink to this headline">¶</a></h2>
-<p>The following example uses inter-vm communication between two Linux-based
-post-launched VMs (VM1 and VM2).</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">An <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> Windows driver exists and can be found <a class="reference external" href="https://github.com/virtio-win/kvm-guest-drivers-windows/tree/master/ivshmem">here</a></p>
-</div>
-<ol class="arabic">
-<li><p class="first">Add a new virtual PCI device for both VMs: the device type is
-<code class="docutils literal notranslate"><span class="pre">ivshmem</span></code>, shared memory name is <code class="docutils literal notranslate"><span class="pre">test</span></code>, and shared memory size is
-4096 bytes. Both VMs must have the same shared memory name and size:</p>
-<ul>
-<li><p class="first">VM1 Launch Script Sample</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge \
- -s 2,pci-gvt -G &quot;$2&quot; \
- -s 5,virtio-console,@stdio:stdio_port \
- -s 6,virtio-hyper_dmabuf \
- -s 3,virtio-blk,/home/acrn/uos1.img \
- -s 4,virtio-net,tap0 \
-<span class="hll"> -s 6,ivshmem,test,4096 \
-</span> -s 7,virtio-rnd \
- --ovmf /usr/share/acrn/bios/OVMF.fd \
- $vm_name
-</pre></div>
-</div>
-</li>
-<li><p class="first">VM2 Launch Script Sample</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge \
- -s 2,pci-gvt -G &quot;$2&quot; \
- -s 3,virtio-blk,/home/acrn/uos2.img \
- -s 4,virtio-net,tap0 \
-<span class="hll"> -s 5,ivshmem,test,4096 \
-</span> --ovmf /usr/share/acrn/bios/OVMF.fd \
- $vm_name
-</pre></div>
-</div>
-</li>
-</ul>
-</li>
-<li><p class="first">Boot two VMs and use <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">&quot;shared</span> <span class="pre">memory&quot;</span></code> to verify that the virtual device is ready for each VM.</p>
-<ul class="simple">
-<li>For VM1, it shows <code class="docutils literal notranslate"><span class="pre">00:06.0</span> <span class="pre">RAM</span> <span class="pre">memory:</span> <span class="pre">Red</span> <span class="pre">Hat,</span> <span class="pre">Inc.</span> <span class="pre">Inter-VM</span> <span class="pre">shared</span> <span class="pre">memory</span> <span class="pre">(rev</span> <span class="pre">01)</span></code></li>
-<li>For VM2, it shows <code class="docutils literal notranslate"><span class="pre">00:05.0</span> <span class="pre">RAM</span> <span class="pre">memory:</span> <span class="pre">Red</span> <span class="pre">Hat,</span> <span class="pre">Inc.</span> <span class="pre">Inter-VM</span> <span class="pre">shared</span> <span class="pre">memory</span> <span class="pre">(rev</span> <span class="pre">01)</span></code></li>
-</ul>
-</li>
-<li><p class="first">Use these commands to probe the device:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo modprobe uio
-$ sudo modprobe uio_pci_generic
-$ sudo echo &quot;1af4 1110&quot; &gt; /sys/bus/pci/drivers/uio_pci_generic/new_id
-</pre></div>
-</div>
-</li>
-<li><p class="first">Finally, a user application can get the shared memory base address from
-the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device BAR resource
-(<code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/resource2</span></code>) and the shared memory size from
-the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device config resource
-(<code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/config</span></code>).</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">X</span></code> in <code class="docutils literal notranslate"><span class="pre">uioX</span></code> above, is a number that can be retrieved using the
-<code class="docutils literal notranslate"><span class="pre">ls</span></code> command:</p>
-<ul class="simple">
-<li>For VM1 use <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">-lh</span> <span class="pre">/sys/bus/pci/devices/0000:00:06.0/uio</span></code></li>
-<li>For VM2 use <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">-lh</span> <span class="pre">/sys/bus/pci/devices/0000:00:05.0/uio</span></code></li>
-</ul>
-</li>
-</ol>
+<p>For usage information, see <a class="reference internal" href="../../tutorials/enable_ivshmem.html#enable-ivshmem"><span class="std std-ref">Enable Inter-VM Communication Based on ivshmem</span></a></p>
 </div>
 <div class="section" id="inter-vm-communication-security-hardening-bkms">
 <h2>Inter-VM Communication Security hardening (BKMs)<a class="headerlink" href="#inter-vm-communication-security-hardening-bkms" title="Permalink to this headline">¶</a></h2>
@@ -1297,7 +1223,7 @@ architecture and threat model for your application.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Sep 10, 2020.
+        Last updated on Sep 15, 2020.
       </span>
 
     </p>
