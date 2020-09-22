@@ -1131,6 +1131,23 @@ are allowed. The value will be ignored when hardware does not support RDT.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">MCE_ON_PSC_DISABLED</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">FEATURE</span></code>):</dt>
 <dd>Specify whether force to disable software workaround for Machine Check
 Error on Page Size Change is enabled.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">IVSHMEM</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">FEATURE</span></code>):</dt>
+<dd>Specify the inter-VM shared memory configuration</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">IVSHMEM_ENABLED</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">FEATURE/IVSHMEM</span></code>):</dt>
+<dd>Specify if the inter-VM shared memory feature is enabled.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">FEATURE/IVSHMEM</span></code>):</dt>
+<dd><p class="first">Specify a comma-separated list of the inter-VM shared memory region name,
+size, and VM IDs that may communicate using this shared region.</p>
+<ul class="last simple">
+<li>Prefix the region <code class="docutils literal notranslate"><span class="pre">name</span></code> with <code class="docutils literal notranslate"><span class="pre">hv:/</span></code> (for an hv-land solution).
+(See <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> for details.)</li>
+<li>Specify the region <code class="docutils literal notranslate"><span class="pre">size</span></code> in MB, and a power of 2 (e.g., 2, 4, 8, 16)
+up to 512.</li>
+<li>Specify all VM IDs that may use this shared memory area,
+separated by a <code class="docutils literal notranslate"><span class="pre">:</span></code>, for example, <code class="docutils literal notranslate"><span class="pre">0:2</span></code> (to share this area between
+VMs 0 and 2), or <code class="docutils literal notranslate"><span class="pre">0:1:2</span></code> (to let VMs 0, 1, and 2 share this area).</li>
+</ul>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">STACK_SIZE</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">MEMORY</span></code>):</dt>
 <dd>Specify the size of stacks used by physical cores. Each core uses one stack
 for normal operations and another three for specific exceptions.</dd>
@@ -1240,6 +1257,14 @@ is not configurable for now.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">pci_devs</span></code>:</dt>
 <dd>PCI devices list of the VM; it is hard-coded for each scenario so it
 is not configurable for now.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">mmio_resources</span></code>:</dt>
+<dd>MMIO resources to passthrough.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">TPM2</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">mmio_resources</span></code>):</dt>
+<dd>TPM2 device to passthrough.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">p2sb</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">mmio_resources</span></code>):</dt>
+<dd>Exposing the P2SB (Primary-to-Sideband) bridge to the pre-launched VM.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">pt_intx</span></code>:</dt>
+<dd>Forward specific IOAPIC interrupts (with interrupt line remapping) to the pre-launched VM.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">board_private</span></code>:</dt>
 <dd>Stores scenario-relevant board configuration.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">rootfs</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">board_private</span></code>):</dt>
@@ -1288,6 +1313,11 @@ Powerbutton, or vUART.</dd>
 <dd>USB xHCI mediator configuration. Input format:
 <code class="docutils literal notranslate"><span class="pre">bus#-port#[:bus#-port#:</span> <span class="pre">...]</span></code>, e.g.: <code class="docutils literal notranslate"><span class="pre">1-2:2-4</span></code>.
 Refer to <a class="reference internal" href="../developer-guides/hld/usb-virt-hld.html#usb-virtualization"><span class="std std-ref">USB Virtualization</span></a> for details.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">shm_regions</span></code>:</dt>
+<dd>List of shared memory regions for inter-VM communication.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">shm_region</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">shm_regions</span></code>):</dt>
+<dd>configure the shm regions for current VM, input format: hv:/&lt;;shm name&gt;;,
+&lt;;shm size in MB&gt;;. Refer to <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> for details.</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">passthrough_devices</span></code>:</dt>
 <dd>Select the passthrough device from the lspci list. Currently we support:
 usb_xdci, audio, audio_codec, ipu, ipu_i2c, cse, wifi, Bluetooth, sd_card,
@@ -1622,7 +1652,7 @@ then generate the launch script.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Sep 18, 2020.
+        Last updated on Sep 22, 2020.
       </span>
 
     </p>
