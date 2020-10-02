@@ -1024,8 +1024,8 @@ higher priorities VMs (such as RTVMs) are not impacted.</p>
 <ol class="arabic simple">
 <li>Detect and enumerate RDT allocation capabilities on supported
 resources such as cache and memory bandwidth.</li>
-<li>Set up resource mask array MSRs (Model-Specific Registers) for each
-CLOS (Class of Service, which is a resource allocation), basically to
+<li>Set up resource mask array MSRs (model-specific registers) for each
+CLOS (class of service, which is a resource allocation), basically to
 limit or allow access to resource usage.</li>
 <li>Select the CLOS for the CPU associated with the VM that will apply
 the resource mask on the CP.</li>
@@ -1044,12 +1044,14 @@ Manual, (Section 17.19 Intel Resource Director Technology Allocation Features)</
 <span id="rdt-detection-capabilities"></span><h2>RDT detection and resource capabilities<a class="headerlink" href="#rdt-detection-and-resource-capabilities" title="Permalink to this headline">¶</a></h2>
 <p>From the ACRN HV debug shell, use <code class="docutils literal notranslate"><span class="pre">cpuid</span></code> to detect and identify the
 resource capabilities. Use the platform’s serial port for the HV shell.</p>
-<p>Check if the platform supports RDT with <code class="docutils literal notranslate"><span class="pre">cpuid</span></code>. First, run <code class="docutils literal notranslate"><span class="pre">cpuid</span> <span class="pre">0x7</span> <span class="pre">0x0</span></code>; the return value ebx [bit 15] is set to 1 if the platform supports
-RDT. Next, run <code class="docutils literal notranslate"><span class="pre">cpuid</span> <span class="pre">0x10</span> <span class="pre">0x0</span></code> and check the EBX [3-1] bits. EBX [bit 1]
-indicates that L3 CAT is supported. EBX [bit 2] indicates that L2 CAT is
-supported. EBX [bit 3] indicates that MBA is supported. To query the
-capabilities of the supported resources, use the bit position as a subleaf
-index. For example, run <code class="docutils literal notranslate"><span class="pre">cpuid</span> <span class="pre">0x10</span> <span class="pre">0x2</span></code> to query the L2 CAT capability.</p>
+<p>Check if the platform supports RDT with <code class="docutils literal notranslate"><span class="pre">cpuid</span></code>. First, run
+<code class="docutils literal notranslate"><span class="pre">cpuid</span> <span class="pre">0x7</span> <span class="pre">0x0</span></code>; the return value EBX [bit 15] is set to 1 if the
+platform supports RDT. Next, run <code class="docutils literal notranslate"><span class="pre">cpuid</span> <span class="pre">0x10</span> <span class="pre">0x0</span></code> and check the EBX
+[3-1] bits.  EBX [bit 1] indicates that L3 CAT is supported. EBX [bit 2]
+indicates that L2 CAT is supported. EBX [bit 3] indicates that MBA is
+supported. To query the capabilities of the supported resources, use the
+bit position as a subleaf index. For example, run <code class="docutils literal notranslate"><span class="pre">cpuid</span> <span class="pre">0x10</span> <span class="pre">0x2</span></code> to
+query the L2 CAT capability.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ACRN:\&gt;cpuid 0x7 0x0
 cpuid leaf: 0x7, subleaf: 0x0, 0x0:0xd39ffffb:0x00000818:0xbc000400
 </pre></div>
@@ -1111,11 +1113,11 @@ misconfiguration errors.</p>
 <p>This section explains how to configure the RDT resources from the HV debug
 shell.</p>
 <ol class="arabic">
-<li><p class="first">Check the PCPU IDs of each VM; the <code class="docutils literal notranslate"><span class="pre">vcpu_list</span></code> below shows that VM0 is
-running on PCPU0, and VM1 is running on PCPU1:</p>
+<li><p class="first">Check the pCPU IDs of each VM; the <code class="docutils literal notranslate"><span class="pre">vcpu_list</span></code> below shows that VM0 is
+running on pCPU0, and VM1 is running on pCPU1:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ACRN:\&gt;vcpu_list
 
-VM ID    PCPU ID    VCPU ID    VCPU ROLE    VCPU STATE
+VM ID    pCPU ID    VCPU ID    VCPU ROLE    VCPU STATE
 =====    =======    =======    =========    ==========
   0         0          0        PRIMARY       Running
   1         1          0        PRIMARY       Running
@@ -1135,8 +1137,8 @@ ACRN:\&gt;wrmsr  -p1 0xc91  0xf
 </pre></div>
 </div>
 </li>
-<li><p class="first">Assign CLOS1 to PCPU1 by programming the MSR IA32_PQR_ASSOC [bit 63:32]
-(0xc8f) to 0x100000000 to use CLOS1 and assign CLOS0 to PCPU 0 by
+<li><p class="first">Assign CLOS1 to pCPU1 by programming the MSR IA32_PQR_ASSOC [bit 63:32]
+(0xc8f) to 0x100000000 to use CLOS1 and assign CLOS0 to pCPU 0 by
 programming MSR IA32_PQR_ASSOC [bit 63:32] to 0x0. Note that
 IA32_PQR_ASSOC is per LP MSR and CLOS must be programmed on each LP.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ACRN:\&gt;wrmsr   -p0   0xc8f    0x000000000 (this is default and can be skipped)
@@ -1193,7 +1195,7 @@ use default delay value for MBA, it can be done as shown in the example below.</
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Users can change the mask values, but the cache mask must have
-<strong>continuous bits</strong> or a #GP fault can be triggered. Similary, when
+<strong>continuous bits</strong> or a #GP fault can be triggered. Similarly, when
 programming an MBA delay value, be sure to set the value to less than or
 equal to the MAX delay value.</p>
 </div>
@@ -1216,7 +1218,7 @@ resource misconfigurations.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">In ACRN, Lower CLOS always means higher priority (clos 0 &gt; clos 1 &gt; clos 2&gt; …clos n).
+<p class="last">In ACRN, Lower CLOS always means higher priority (CLOS 0 &gt; CLOS 1 &gt; CLOS 2 &gt; … CLOS n).
 So, carefully program each VM’s CLOS accordingly.</p>
 </div>
 </li>
@@ -1250,7 +1252,7 @@ priority threads on sibling LPs running lower priority threads.</p>
 </li>
 <li><p class="first">Based on our scenario, build the ACRN hypervisor and copy the
 artifact <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> to the
-<code class="docutils literal notranslate"><span class="pre">/boot/EFI/acrn</span></code> directory. If needed, update the devicemodel
+<code class="docutils literal notranslate"><span class="pre">/boot/EFI/acrn</span></code> directory. If needed, update the device model
 <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> as well in <code class="docutils literal notranslate"><span class="pre">/usr/bin</span></code> directory. see
 <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a> for building instructions.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make hypervisor BOARD=apl-up2 FIRMWARE=uefi
