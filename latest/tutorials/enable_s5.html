@@ -428,7 +428,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Enable S5 in ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#s5-architecture">S5 Architecture</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id1">Enable S5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Enable S5</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#how-to-test">How to test</a></li>
 </ul>
 </li>
@@ -1031,7 +1031,7 @@ ACRN S5 function is required.</p>
 <p>ACRN provides a mechanism to trigger the S5 state transition throughout the system.
 It uses a vUART channel to communicate between the Service and User VMs.
 The diagram below shows the overall architecture:</p>
-<div class="figure align-center" id="id3">
+<div class="figure align-center" id="id1">
 <img alt="../_images/s5_overall_architecture.png" src="../_images/s5_overall_architecture.png" />
 <p class="caption"><span class="caption-number">Figure 59 </span><span class="caption-text">S5 overall architecture</span></p>
 </div>
@@ -1088,8 +1088,8 @@ then it can power off the User VM. If the User VM is not ready to power off,
 it can ignore the <code class="docutils literal notranslate"><span class="pre">shutdown</span></code> command.</p>
 </div>
 </div>
-<div class="section" id="id1">
-<span id="id2"></span><h2>Enable S5<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<span id="id3"></span><h2>Enable S5<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>The procedure for enabling S5 is specific to the particular OS:</p>
 <ul>
 <li><p class="first">For Linux (LaaG) or Windows (WaaG), refer to the following configurations in the
@@ -1268,24 +1268,22 @@ to be run before powering off the Service VM.</p>
 </div>
 <div class="section" id="how-to-test">
 <h2>How to test<a class="headerlink" href="#how-to-test" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>The <a class="reference internal" href="../developer-guides/hld/hv-ioc-virt.html#ioc-virtualization-hld"><span class="std std-ref">CBC</span></a> tools and service installed by
-the <a class="reference external" href="https://github.com/clearlinux/clr-bundles/blob/master/bundles/software-defined-cockpit">software-defined-cockpit</a> bundle
-will conflict with the vUART and hence need to be masked.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">systemctl</span> <span class="n">mask</span> <span class="n">cbc_attach</span>
-<span class="n">systemctl</span> <span class="n">mask</span> <span class="n">cbc_thermal_fuse</span>
-<span class="n">systemctl</span> <span class="n">mask</span> <span class="n">cbc_thermald</span>
-<span class="n">systemctl</span> <span class="n">mask</span> <span class="n">cbc_lifecycle</span><span class="o">.</span><span class="n">service</span>
+<blockquote>
+<div><p>As described in <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">Enable vUART Configurations</span></a>, two vUARTs are defined in
+pre-defined ACRN scenarios: vUART0/ttyS0 for the console and
+vUART1/ttyS1 for S5-related communication (as shown in <a class="reference internal" href="#id1"><span class="std std-ref">S5 overall architecture</span></a>).</p>
+<p>For Yocto Project (Poky) or Ubuntu rootfs, the <code class="docutils literal notranslate"><span class="pre">serial-getty</span></code>
+service for <code class="docutils literal notranslate"><span class="pre">ttyS1</span></code> conflicts with the S5-related communication
+use of <code class="docutils literal notranslate"><span class="pre">vUART1</span></code>. We can eliminate the conflict by preventing
+that service from being started
+either automatically or manually, by masking the service
+using this command</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">systemctl</span> <span class="n">mask</span> <span class="n">serial</span><span class="o">-</span><span class="n">getty</span><span class="nd">@ttyS1</span><span class="o">.</span><span class="n">service</span>
 </pre></div>
 </div>
-<p>Or:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ps</span> <span class="o">-</span><span class="n">ef</span><span class="o">|</span><span class="n">grep</span> <span class="n">cbc</span><span class="p">;</span> <span class="n">kill</span> <span class="o">-</span><span class="mi">9</span> <span class="n">cbc_pid</span>
-</pre></div>
-</div>
-</div>
+</div></blockquote>
 <ol class="arabic">
-<li><p class="first">Refer to the <a class="reference internal" href="#id1"><span class="std std-ref">Enable S5</span></a> section to set up the S5 environment for the User VMs.</p>
+<li><p class="first">Refer to the <a class="reference internal" href="#id2"><span class="std std-ref">Enable S5</span></a> section to set up the S5 environment for the User VMs.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">RT-Linux’s UUID must use <code class="docutils literal notranslate"><span class="pre">495ae2e5-2603-4d64-af76-d4bc5a8ec0e5</span></code>. Also, the
@@ -1344,7 +1342,7 @@ IF you executed the <code class="docutils literal notranslate"><span class="pre"
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Nov 05, 2020.
+        Last updated on Nov 23, 2020.
       </span>
 
     </p>

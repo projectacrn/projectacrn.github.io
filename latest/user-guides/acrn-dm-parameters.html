@@ -428,7 +428,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/enable_s5.html">Enable S5 in ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#s5-architecture">S5 Architecture</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#id1">Enable S5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#id2">Enable S5</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#how-to-test">How to test</a></li>
 </ul>
 </li>
@@ -1063,12 +1063,12 @@ not vice versa. See <a class="reference internal" href="../developer-guides/trus
 <tr class="row-even"><td><kbd class="kbd docutils literal notranslate">-G, --gvtargs &lt;GVT_args&gt;</kbd></td>
 <td><p class="first">ACRN implements GVT-g for graphics virtualization (aka AcrnGT). This
 option allows you to set some of its parameters.</p>
-<p>GVT_args format: <code class="docutils literal notranslate"><span class="pre">gvt_high_gm_sz</span> <span class="pre">gvt_low_gm_sz</span> <span class="pre">gvt_fence_sz</span></code></p>
+<p>GVT_args format: <code class="docutils literal notranslate"><span class="pre">low_gm_sz</span> <span class="pre">high_gm_sz</span> <span class="pre">fence_sz</span></code></p>
 <p>Where:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">gvt_high_gm_sz</span></code>: GVT-g aperture size, unit is MB</li>
-<li><code class="docutils literal notranslate"><span class="pre">gvt_low_gm_sz</span></code>: GVT-g hidden gfx memory size, unit is MB</li>
-<li><code class="docutils literal notranslate"><span class="pre">gvt_fence_sz</span></code>: the number of fence registers</li>
+<li><code class="docutils literal notranslate"><span class="pre">low_gm_sz</span></code>: GVT-g aperture size, unit is MB</li>
+<li><code class="docutils literal notranslate"><span class="pre">high_gm_sz</span></code>: GVT-g hidden gfx memory size, unit is MB</li>
+<li><code class="docutils literal notranslate"><span class="pre">fence_sz</span></code>: the number of fence registers</li>
 </ul>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">G</span> <span class="s2">&quot;10 128 6&quot;</span>
@@ -1244,7 +1244,8 @@ Android OS verification mechanism.</p>
 <p class="last">uses <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/bios/VSBL.bin</span></code> as the vSBL image</p>
 </td>
 </tr>
-<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">--ovmf [w,]&lt;ovmf_file_path&gt;</kbd></td>
+<tr class="row-even"><td><kbd class="kbd docutils literal notranslate">--ovmf [w,]&lt;ovmf_file_path&gt;</kbd>
+<kbd class="kbd docutils literal notranslate">--ovmf [w,]code=&lt;ovmf_code_file&gt;,vars=&lt;ovmf_vars_file&gt;</kbd></td>
 <td><p class="first">Open Virtual Machine Firmware (OVMF) is an EDK II based project to enable
 UEFI support for Virtual Machines.</p>
 <p>ACRN does not support off-the-shelf OVMF builds targeted for QEMU and
@@ -1255,8 +1256,18 @@ KVM. Compatible OVMF images are included in the source tree, under
 </pre></div>
 </div>
 <p>uses <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/bios/OVMF.fd</span></code> as the OVMF image</p>
-<p>ACRN supports option “w” of OVMF. To preserve any change of OVMF NV data
-store section, using this option to enable NV data store section writeback.</p>
+<p>ACRN also supports using OVMF split images; <code class="docutils literal notranslate"><span class="pre">OVMF_CODE.fd</span></code> that contains
+the OVMF firmware executable and <code class="docutils literal notranslate"><span class="pre">OVMF_VARS.fd</span></code> that contains the NV
+data store.</p>
+<p>usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">ovmf</span> <span class="n">code</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">acrn</span><span class="o">/</span><span class="n">bios</span><span class="o">/</span><span class="n">OVMF_CODE</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span><span class="nb">vars</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">acrn</span><span class="o">/</span><span class="n">bios</span><span class="o">/</span><span class="n">OVMF_VARS</span><span class="o">.</span><span class="n">fd</span>
+</pre></div>
+</div>
+<p>ACRN supports the option “w” for OVMF. To preserve all changes in OVMF’s
+NV data store section, use this option to enable writeback mode.</p>
+<p>Writeback mode is only enabled for the <code class="docutils literal notranslate"><span class="pre">OVMF_VARS.fd</span></code> file in case of
+OVMF split images, the firmware executable (<code class="docutils literal notranslate"><span class="pre">OVMF_CODE.fd</span></code>) remains
+read-only.</p>
 <p>usage:</p>
 <div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span><span class="n">ovmf</span> <span class="n">w</span><span class="p">,</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">share</span><span class="o">/</span><span class="n">acrn</span><span class="o">/</span><span class="n">bios</span><span class="o">/</span><span class="n">OVMF</span><span class="o">.</span><span class="n">fd</span>
 </pre></div>
@@ -1419,7 +1430,7 @@ guests with secure boot.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Nov 05, 2020.
+        Last updated on Nov 23, 2020.
       </span>
 
     </p>

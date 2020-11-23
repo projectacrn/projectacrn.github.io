@@ -428,7 +428,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_s5.html">Enable S5 in ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#s5-architecture">S5 Architecture</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#id1">Enable S5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#id2">Enable S5</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#how-to-test">How to test</a></li>
 </ul>
 </li>
@@ -1045,22 +1045,40 @@ may only be done between VMs using the same solution.</p>
 <dt>ivshmem hv:</dt>
 <dd>The <strong>ivshmem hv</strong> implements register virtualization
 and shared memory mapping in the ACRN hypervisor.
-It will support notification/interrupt mechanism in the future.</dd>
+Notification/interrupt mechanism is supported.</dd>
 <dt>ivshmem dm:</dt>
 <dd>The <strong>ivshmem dm</strong> implements register virtualization
 and shared memory mapping in the ACRN Device Model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>).
 It will support notification/interrupt mechanism in the future.</dd>
 <dt>ivshmem server:</dt>
-<dd>A daemon for inter-VM notification capability that will work with <strong>ivshmem
-dm</strong>. This is currently <strong>not implemented</strong>, so the inter-VM communication
-doesn’t support a notification mechanism.</dd>
+<dd><p class="first">With <strong>ivshmem server</strong> support, VMs with ivshmem devices enabled can send
+notification (interrupt) to each other by writing the target peer ID (VM ID)
+and vector index to the doorbell register of ivshmem device, <strong>ivshmem server</strong>
+forwards this notification event to target VM.</p>
+<p>Two types of <strong>ivshmem server</strong> are defined in ACRN:</p>
+<p>User land <strong>ivshmem server</strong> is a daemon in user space to forward notifications
+for <strong>dm-land</strong> ivshmem devices only, by co-working with <strong>ivshmem dm</strong>.
+User land <strong>ivshmem server</strong> is not implemented.</p>
+<p class="last">HV-land <strong>ivshmem server</strong> plays similar role with user land <strong>ivshmem server</strong>,
+but it is a hypervisor module and forwards notification (virtual interrupt) to
+target VM with  <strong>hv-land</strong> ivshmem devices enabled.</p>
+</dd>
 </dl>
 </div>
 <div class="section" id="ivshmem-device-introduction">
 <h2>Ivshmem Device Introduction<a class="headerlink" href="#ivshmem-device-introduction" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is a virtual standard PCI device consisting of
-two Base Address Registers (BARs): BAR0 is used for emulating interrupt
-related registers, and BAR2 is used for exposing shared memory region. The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device doesn’t support any extra capabilities.</p>
+<blockquote>
+<div><blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is a virtual standard PCI device consisting of
+three Base Address Registers (BARs):</p>
+<ul class="simple">
+<li>BAR0 is used for emulating interrupt related registers,</li>
+<li>BAR1 is used for emulating MSIX entry table, and</li>
+<li>BAR2 is used for exposing a shared memory region.</li>
+</ul>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device supports no extra capabilities.</p>
+</div></blockquote>
 <p>Configuration Space Definition</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1241,7 +1259,7 @@ architecture and threat model for your application.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Nov 05, 2020.
+        Last updated on Nov 23, 2020.
       </span>
 
     </p>
