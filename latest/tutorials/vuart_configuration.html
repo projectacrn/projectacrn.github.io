@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Enable vUART Configurations &mdash; Project ACRN™ 2.3-unstable documentation</title>
+  <title>Enable vUART Configurations &mdash; Project ACRN™ 2.4-unstable documentation</title>
   
 
   
@@ -25,7 +25,7 @@
       <script type="text/javascript">
           var DOCUMENTATION_OPTIONS = {
               URL_ROOT:'../',
-              VERSION:'2.3-unstable',
+              VERSION:'2.4-unstable',
               LANGUAGE:'None',
               COLLAPSE_INDEX:false,
               FILE_SUFFIX:'.html',
@@ -412,6 +412,14 @@
 <li class="toctree-l4"><a class="reference internal" href="#com-port-configurations-for-post-launched-vms">COM port configurations for Post-Launched VMs</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#use-pci-vuart">Use PCI-vUART</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pci-interface-of-acrn-vuart">PCI Interface of ACRN vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#index-of-vuart">Index of vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setup-acrn-vuart-using-configuration-tools">Setup ACRN vUART Using Configuration Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-config-for-legacy-vuart">Kernel Config for Legacy vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kernel-cmdline-for-pci-vuart-console">Kernel Cmdline for PCI-vUART console</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="rdt_configuration.html">Enable RDT Configuration</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="rdt_configuration.html#rdt-detection-and-resource-capabilities">RDT detection and resource capabilities</a></li>
 <li class="toctree-l4"><a class="reference internal" href="rdt_configuration.html#tuning-rdt-resources-in-hv-debug-shell">Tuning RDT resources in HV debug shell</a></li>
@@ -668,6 +676,13 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_2.3.html">ACRN v2.3 (Dec 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.3.html#what-s-new-in-v2-3">What’s New in v2.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.3.html#document-updates">Document updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_2.2.html">ACRN v2.2 (Sep 2020)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.2.html#what-s-new-in-v2-2">What’s New in v2.2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.2.html#document-updates">Document updates</a></li>
@@ -1088,7 +1103,7 @@ RTVM</td>
 </table>
 </div>
 <div class="section" id="how-to-configure-a-console-port">
-<h2>How to configure a console port<a class="headerlink" href="#how-to-configure-a-console-port" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>How to configure a console port<a class="headerlink" href="#how-to-configure-a-console-port" title="Permalink to this headline">¶</a></h2>
 <p>To enable the console port for a VM, change only the <code class="docutils literal notranslate"><span class="pre">port_base</span></code> and
 <code class="docutils literal notranslate"><span class="pre">irq</span></code>. If the IRQ number is already in use in your system (<code class="docutils literal notranslate"><span class="pre">cat</span>
 <span class="pre">/proc/interrupt</span></code>), choose another IRQ number. If you set the <code class="docutils literal notranslate"><span class="pre">.irq</span> <span class="pre">=0</span></code>,
@@ -1109,7 +1124,7 @@ the vUART will work in polling mode.</p>
 </div>
 </div>
 <div class="section" id="how-to-configure-a-communication-port">
-<h2>How to configure a communication port<a class="headerlink" href="#how-to-configure-a-communication-port" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>How to configure a communication port<a class="headerlink" href="#how-to-configure-a-communication-port" title="Permalink to this headline">¶</a></h2>
 <p>To enable the communication port, configure <code class="docutils literal notranslate"><span class="pre">vuart[1]</span></code> in the two VMs that want to communicate.</p>
 <p>The port_base and IRQ should differ from the <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code> in the same VM.</p>
 <p><code class="docutils literal notranslate"><span class="pre">t_vuart.vm_id</span></code> is the target VM’s vm_id, start from 0. (0 means VM0)</p>
@@ -1271,6 +1286,177 @@ future.</p>
 </div>
 </div>
 </div>
+<div class="section" id="use-pci-vuart">
+<h1>Use PCI-vUART<a class="headerlink" href="#use-pci-vuart" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="pci-interface-of-acrn-vuart">
+<h2>PCI Interface of ACRN vUART<a class="headerlink" href="#pci-interface-of-acrn-vuart" title="Permalink to this headline">¶</a></h2>
+<p>When you set <a class="reference internal" href="#vuart-config"><span class="std std-ref">vuart[0] and vuart[1]</span></a>, the ACRN
+hypervisor emulates virtual legacy serial devices (I/O port and IRQ) for
+VMs. So <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code> and <code class="docutils literal notranslate"><span class="pre">vuart[1]</span></code> are legacy vUARTs.  ACRN
+hypervisor can also emulate virtual PCI serial devices (BDF, MMIO
+registers and MSIX capability). These virtual PCI serial devices are
+called PCI-vUART, and have an advantage in device enumeration for the
+guest OS.  It is easy to add new PCI-vUART ports to a VM.</p>
+</div>
+<div class="section" id="index-of-vuart">
+<span id="id3"></span><h2>Index of vUART<a class="headerlink" href="#index-of-vuart" title="Permalink to this headline">¶</a></h2>
+<p>ACRN hypervisor supports PCI-vUARTs and legacy vUARTs as ACRN vUARTs.
+Each vUART port has its own <code class="docutils literal notranslate"><span class="pre">vuart_idx</span></code>.  ACRN hypervisor supports up
+to 8 vUART for each VM, from <code class="docutils literal notranslate"><span class="pre">vuart_idx=0</span></code> to <code class="docutils literal notranslate"><span class="pre">vuart_idx=7</span></code>.
+Suppose we use vUART0 for a port with <code class="docutils literal notranslate"><span class="pre">vuart_idx=0</span></code>, vUART1 for
+<code class="docutils literal notranslate"><span class="pre">vuart_idx=1</span></code>, and so on.</p>
+<p>Please pay attention to these points:</p>
+<ul class="simple">
+<li>vUART0 is the console port, vUART1-vUART7 are inter-VM communication ports.</li>
+<li>Each communication port must set the connection to another communication vUART port of another VM.</li>
+<li>When legacy <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code> is available, it is vUART0. A PCI-vUART can’t
+be vUART0 unless <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code> is not set.</li>
+<li>When legacy <code class="docutils literal notranslate"><span class="pre">vuart[1]</span></code> is available, it is vUART1. PCI-vUART can’t
+be vUART1 unless <code class="docutils literal notranslate"><span class="pre">vuart[1]</span></code> is not set.</li>
+</ul>
+</div>
+<div class="section" id="setup-acrn-vuart-using-configuration-tools">
+<h2>Setup ACRN vUART Using Configuration Tools<a class="headerlink" href="#setup-acrn-vuart-using-configuration-tools" title="Permalink to this headline">¶</a></h2>
+<p>When you set up ACRN VM configurations with PCI-vUART, it is better to
+use the ACRN configuration tools because of all the PCI resources required: BDF number,
+address and size of mmio registers, and address and size of MSIX entry
+tables. These settings can’t conflict with another PCI device.  Furthermore,
+whether PCI-vUART can use <code class="docutils literal notranslate"><span class="pre">vuart_idx=0</span></code> and <code class="docutils literal notranslate"><span class="pre">vuart_idx=1</span></code> depends on legacy
+vUART settings.  Configuration tools will override your settings in
+<a class="reference internal" href="#how-to-configure-a-console-port"><span class="std std-ref">How to Configure a Console Port</span></a>
+and <a class="reference internal" href="#how-to-configure-a-communication-port"><span class="std std-ref">How to Configure a Communication Port</span></a>.</p>
+<p>You can configure both Legacy vUART and PCI-vUART in
+<code class="docutils literal notranslate"><span class="pre">./misc/vm_configs/xmls/config-xmls/&lt;board&gt;/&lt;scenario&gt;.xml</span></code>. For
+example, if VM0 has a legacy vUART0 and a PCI-vUART1, VM1 has no legacy
+vUART but has a PCI-vUART0 and a PCI-vUART1, VM0’s PCI-vUART1 and VM1’s
+PCI-vUART1 are connected to each other. You  should configure then like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;vm id=&quot;0&quot;&gt;
+   &lt;legacy_vuart id=&quot;0&quot;&gt;
+     &lt;type&gt;VUART_LEGACY_PIO&lt;/type&gt;     /* vuart[0] is console port */
+     &lt;base&gt;COM1_BASE&lt;/base&gt;            /* vuart[0] is used */
+     &lt;irq&gt;COM1_IRQ&lt;/irq&gt;
+   &lt;/legacy_vuart&gt;
+   &lt;legacy_vuart id=&quot;1&quot;&gt;
+     &lt;type&gt;VUART_LEGACY_PIO&lt;/type&gt;
+     &lt;base&gt;INVALID_COM_BASE&lt;/base&gt;     /* vuart[1] is not used */
+   &lt;/legacy_vuart&gt;
+   &lt;console_vuart id=&quot;0&quot;&gt;
+     &lt;base&gt;INVALID_PCI_BASE&lt;/base&gt;     /* PCI-vUART0 can&#39;t be used, because vuart[0] */
+   &lt;/console_vuart&gt;
+   &lt;communication_vuart id=&quot;1&quot;&gt;
+     &lt;base&gt;PCI_VUART&lt;/base&gt;            /* PCI-vUART1 is communication port, connect to vUART1 of VM1 */
+     &lt;target_vm_id&gt;1&lt;/target_vm_id&gt;
+     &lt;target_uart_id&gt;1&lt;/target_uart_id&gt;
+   &lt;/communication_vuart&gt;
+&lt;/vm&gt;
+
+&lt;vm id=&quot;1&quot;&gt;
+   &lt;legacy_vuart id=&quot;0&quot;&gt;
+     &lt;type&gt;VUART_LEGACY_PIO&lt;/type&gt;
+     &lt;base&gt;INVALID_COM_BASE&lt;/base&gt;     /* vuart[0] is not used */
+   &lt;/legacy_vuart&gt;
+   &lt;legacy_vuart id=&quot;1&quot;&gt;
+     &lt;type&gt;VUART_LEGACY_PIO&lt;/type&gt;
+     &lt;base&gt;INVALID_COM_BASE&lt;/base&gt;     /* vuart[1] is not used */
+   &lt;/legacy_vuart&gt;
+   &lt;console_vuart id=&quot;0&quot;&gt;
+     &lt;base&gt;PCI_VUART&lt;/base&gt;            /* PCI-vUART0 is console port */
+   &lt;/console_vuart&gt;
+   &lt;communication_vuart id=&quot;1&quot;&gt;
+     &lt;base&gt;PCI_VUART&lt;/base&gt;            /* PCI-vUART1 is communication port, connect to vUART1 of VM0 */
+     &lt;target_vm_id&gt;0&lt;/target_vm_id&gt;
+     &lt;target_uart_id&gt;1&lt;/target_uart_id&gt;
+   &lt;/communication_vuart&gt;
+&lt;/vm&gt;
+</pre></div>
+</div>
+<p>The ACRN vUART related XML fields:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">id</span></code> in <code class="docutils literal notranslate"><span class="pre">&lt;legacy_vuart&gt;</span></code>, value of <code class="docutils literal notranslate"><span class="pre">vuart_idx</span></code>, <code class="docutils literal notranslate"><span class="pre">id=0</span></code> is for
+legacy <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code> configuration, <code class="docutils literal notranslate"><span class="pre">id=1</span></code> is for <code class="docutils literal notranslate"><span class="pre">vuart[1]</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">type</span></code> in <code class="docutils literal notranslate"><span class="pre">&lt;legacy_vuart&gt;</span></code>, type is always <code class="docutils literal notranslate"><span class="pre">VUART_LEGACY_PIO</span></code>
+for legacy vUART.</li>
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code> in <code class="docutils literal notranslate"><span class="pre">&lt;legacy_vuart&gt;</span></code>, if use the legacy vUART port, set
+COM1_BASE for <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code>, set <code class="docutils literal notranslate"><span class="pre">COM2_BASE</span></code> for <code class="docutils literal notranslate"><span class="pre">vuart[1]</span></code>.
+<code class="docutils literal notranslate"><span class="pre">INVALID_COM_BASE</span></code> means do not use the legacy vUART port.</li>
+<li><code class="docutils literal notranslate"><span class="pre">irq</span></code> in <code class="docutils literal notranslate"><span class="pre">&lt;legacy_vuart&gt;</span></code>, if you use the legacy vUART port, set
+<code class="docutils literal notranslate"><span class="pre">COM1_IRQ</span></code> for <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code>, set <code class="docutils literal notranslate"><span class="pre">COM2_IRQ</span></code> for <code class="docutils literal notranslate"><span class="pre">vuart[1]</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">id</span></code> in <code class="docutils literal notranslate"><span class="pre">&lt;console_vuart&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;communication_vuart&gt;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">vuart_idx</span></code> for PCI-vUART</li>
+<li><code class="docutils literal notranslate"><span class="pre">base</span></code> in <code class="docutils literal notranslate"><span class="pre">&lt;console_vuart&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;communication_vuart&gt;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">PCI_VUART</span></code> means use this PCI-vUART, <code class="docutils literal notranslate"><span class="pre">INVALID_PCI_BASE</span></code> means do
+not use this PCI-VUART.</li>
+<li><code class="docutils literal notranslate"><span class="pre">target_vm_id</span></code> and <code class="docutils literal notranslate"><span class="pre">target_uart_id</span></code>, connection settings for this
+vUART port.</li>
+</ul>
+</div></blockquote>
+<p>Run the command to build ACRN with this XML configuration file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>make BOARD_FILE=$PWD/misc/acrn-config/xmls/board-xmls/&lt;board&gt;.xml \
+   SCENARIO_FILE=$PWD/misc/acrn-config/xmls/config-xmls/&lt;board&gt;/&lt;scenario&gt;.xml
+</pre></div>
+</div>
+<p>The configuration tools will test your settings, and check <a class="reference internal" href="#index-of-vuart"><span class="std std-ref">vUART
+Rules</span></a> for compilation issue. After compiling, you can find
+<code class="docutils literal notranslate"><span class="pre">./misc/vm_configs/scenarios/&lt;scenario&gt;/&lt;board&gt;/pci_dev.c</span></code> has been
+changed by the configuration tools based on the XML settings, something like:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>struct acrn_vm_pci_dev_config vm0_pci_devs[] = {
+    {
+       .emu_type = PCI_DEV_TYPE_HVEMUL,
+       .vbdf.bits = {.b = 0x00U, .d = 0x05U, .f = 0x00U},
+       .vdev_ops = &amp;vmcs9900_ops,
+       .vbar_base[0] = 0x80003000,
+       .vbar_base[1] = 0x80004000,
+       .vuart_idx = 1,               /* PCI-vUART1 of VM0 */
+       .t_vuart.vm_id = 1U,          /* connected to VM1&#39;s vUART1 */
+       .t_vuart.vuart_id = 1U,
+    },
+ }
+</pre></div>
+</div>
+<p>This struct shows a PCI-vUART with <code class="docutils literal notranslate"><span class="pre">vuart_idx=1</span></code>, <code class="docutils literal notranslate"><span class="pre">BDF</span> <span class="pre">00:05.0</span></code>, its
+a PCI-vUART1 of
+VM0, and it is connected to VM1’s vUART1 port. When VM0 wants to communicate
+with VM1, it can use <code class="docutils literal notranslate"><span class="pre">/dev/ttyS*</span></code>, the character device file of
+VM0’s PCI-vUART1. Usually, legacy <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code> is <code class="docutils literal notranslate"><span class="pre">ttyS0</span></code> in VM, and
+<code class="docutils literal notranslate"><span class="pre">vuart[1]</span></code> is <code class="docutils literal notranslate"><span class="pre">ttyS1</span></code>. So we hope PCI-vUART0 is <code class="docutils literal notranslate"><span class="pre">ttyS0</span></code>,
+PCI-VUART1 is <code class="docutils literal notranslate"><span class="pre">ttyS1</span></code> and so on through
+PCI-vUART7 is <code class="docutils literal notranslate"><span class="pre">ttyS7</span></code>, but that is not true. We can use BDF to identify
+PCI-vUART in VM.</p>
+<p>If you run <code class="docutils literal notranslate"><span class="pre">dmesg</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">tty</span></code> at a VM shell, you may see:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[    1.276891] 0000:00:05.0: ttyS4 at MMIO 0xa1414000 (irq = 124, base_baud = 115200) is a 16550A
+</pre></div>
+</div>
+<p>We know for VM0 guest OS, <code class="docutils literal notranslate"><span class="pre">ttyS4</span></code> has BDF 00:05.0 and is PCI-vUART1.
+VM0 can communicate with VM1 by reading from or writing to <code class="docutils literal notranslate"><span class="pre">/dev/ttyS4</span></code>.</p>
+<p>If VM0 and VM1 are pre-launched VMs, or Service VM, ACRN hypervisor will
+create PCI-vUART virtual devices automatically. For post-launched VMs,
+created by <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>, an additional <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> option is needed
+to create a PCI-vUART virtual device:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-s &lt;slot&gt;,uart,vuart_idx:&lt;val&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="kernel-config-for-legacy-vuart">
+<h2>Kernel Config for Legacy vUART<a class="headerlink" href="#kernel-config-for-legacy-vuart" title="Permalink to this headline">¶</a></h2>
+<p>When ACRN hypervisor passthroughs a local APIC to a VM, there is IRQ
+injection issue for legacy vUART. The kernel driver must work in
+polling mode to avoid the problem.  The VM kernel should have these config
+symbols set:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>CONFIG_SERIAL_8250_EXTENDED=y
+CONFIG_SERIAL_8250_DETECT_IRQ=y
+</pre></div>
+</div>
+</div>
+<div class="section" id="kernel-cmdline-for-pci-vuart-console">
+<h2>Kernel Cmdline for PCI-vUART console<a class="headerlink" href="#kernel-cmdline-for-pci-vuart-console" title="Permalink to this headline">¶</a></h2>
+<p>When an ACRN VM does not have a legacy <code class="docutils literal notranslate"><span class="pre">vuart[0]</span></code> but has a
+PCI-vUART0, you can use PCI-vUART0 for VM serial input/output.  Check
+which tty has the BDF of PCI-vUART0; usually it is not <code class="docutils literal notranslate"><span class="pre">/dev/ttyS0</span></code>.
+For example, if <code class="docutils literal notranslate"><span class="pre">/dev/ttyS4</span></code> is PCI-vUART0, you must set
+<code class="docutils literal notranslate"><span class="pre">console=/dev/ttyS4</span></code> in the kernel cmdline.</p>
+</div>
+</div>
 
 
            </div>
@@ -1294,7 +1480,7 @@ future.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Nov 23, 2020.
+        Last updated on Nov 30, 2020.
       </span>
 
     </p>
