@@ -515,6 +515,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Enable Inter-VM Communication Based on <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#ivshmem-dm-land-usage">ivshmem dm-land usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ivshmem-hv-land-usage">ivshmem hv-land usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ivshmem-notification-mechanism">ivshmem notification mechanism</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
@@ -941,6 +942,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../asa.html">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v2-3">Addressed in ACRN v2.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v2-1">Addressed in ACRN v2.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../asa.html#addressed-in-acrn-v1-6">Addressed in ACRN v1.6</a></li>
@@ -1064,15 +1066,12 @@ enable it using the  <a class="reference internal" href="acrn_configuration_tool
 XML configuration file for the hybrid_rt scenario on a whl-ipc-i5 board is found in
 <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/misc/vm_configs/xmls/config-xmls/whl-ipc-i5/hybrid_rt.xml</span></code></p>
 <blockquote>
-<div><ul>
-<li><p class="first">Edit <code class="docutils literal notranslate"><span class="pre">IVSHMEM_ENABLED</span></code> to <code class="docutils literal notranslate"><span class="pre">y</span></code> in ACRN scenario XML configuration
-to enable <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> hv-land</p>
-</li>
-<li><p class="first">Edit <code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code> to specify the shared memory name, size and
-communication VMs in ACRN scenario XML configuration. The <code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code>
-format is <code class="docutils literal notranslate"><span class="pre">shm_name,shm_size,VM</span> <span class="pre">IDs</span></code>:</p>
-<blockquote>
 <div><ul class="simple">
+<li>Edit <code class="docutils literal notranslate"><span class="pre">IVSHMEM_ENABLED</span></code> to <code class="docutils literal notranslate"><span class="pre">y</span></code> in ACRN scenario XML configuration
+to enable <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> hv-land</li>
+<li>Edit <code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code> to specify the shared memory name, size and
+communication VMs in ACRN scenario XML configuration. The <code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code>
+format is <code class="docutils literal notranslate"><span class="pre">shm_name,shm_size,VM</span> <span class="pre">IDs</span></code>:<ul>
 <li><code class="docutils literal notranslate"><span class="pre">shm_name</span></code> - Specify a shared memory name. The name needs to start
 with the <code class="docutils literal notranslate"><span class="pre">hv:/</span></code> prefix. For example, <code class="docutils literal notranslate"><span class="pre">hv:/shm_region_0</span></code></li>
 <li><code class="docutils literal notranslate"><span class="pre">shm_size</span></code> - Specify a shared memory size. The unit is megabyte. The
@@ -1083,7 +1082,6 @@ instead of <code class="docutils literal notranslate"><span class="pre">shm_size
 communication and separate it with <code class="docutils literal notranslate"><span class="pre">:</span></code>. For example, the
 communication between VM0 and VM2, it can be written as <code class="docutils literal notranslate"><span class="pre">0:2</span></code></li>
 </ul>
-</div></blockquote>
 </li>
 </ul>
 <div class="admonition note">
@@ -1095,6 +1093,31 @@ communication between VM0 and VM2, it can be written as <code class="docutils li
 <li><p class="first">Build the XML configuration, refer to <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN from Source</span></a></p>
 </li>
 </ul>
+</div>
+<div class="section" id="ivshmem-notification-mechanism">
+<h2>ivshmem notification mechanism<a class="headerlink" href="#ivshmem-notification-mechanism" title="Permalink to this headline">¶</a></h2>
+<p>Notification (doorbell) of ivshmem device allows VMs with ivshmem
+devices enabled to notify (interrupt) each other following this flow:</p>
+<dl class="docutils">
+<dt>Notification Sender (VM):</dt>
+<dd>VM triggers the notification to target VM by writing target Peer ID
+(Equals to VM ID of target VM) and vector index to doorbell register of
+ivshmem device, the layout of doorbell register is described in
+<a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a>.</dd>
+<dt>Hypervisor:</dt>
+<dd>When doorbell register is programmed, hypervisor will search the
+target VM by target Peer ID and inject MSI interrupt to the target VM.</dd>
+<dt>Notification Receiver (VM):</dt>
+<dd>VM receives MSI interrupt and forward it to related application.</dd>
+</dl>
+<p>ACRN supports up to 8 (MSI-X) interrupt vectors for ivshmem device.
+Guest VMs shall implement their own mechanism to forward MSI interrupts
+to applications.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Notification is supported only for HV-land ivshmem devices. (Future
+support may include notification for DM-land ivshmem devices.)</p>
+</div>
 </div>
 <div class="section" id="inter-vm-communication-examples">
 <h2>Inter-VM Communication Examples<a class="headerlink" href="#inter-vm-communication-examples" title="Permalink to this headline">¶</a></h2>
@@ -1251,7 +1274,7 @@ depending on the configuration.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Nov 30, 2020.
+        Last updated on Dec 01, 2020.
       </span>
 
     </p>
