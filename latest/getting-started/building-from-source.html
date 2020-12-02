@@ -438,6 +438,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#s5-architecture">S5 Architecture</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#id2">Enable S5</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#how-to-test">How to test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_s5.html#system-shutdown">System Shutdown</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/cpu_sharing.html">Enable CPU Sharing in ACRN</a><ul>
@@ -505,6 +506,15 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_grub.html">Using GRUB to boot ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_grub.html#using-pre-installed-grub">Using pre-installed GRUB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_grub.html#installing-self-built-grub">Installing self-built GRUB</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-grub.html">Enable ACRN Secure Boot with GRUB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-grub.html#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-grub.html#generate-gpg-key">Generate GPG Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-grub.html#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-grub.html#prepare-grub-cfg">Prepare grub.cfg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-grub.html#sign-grub-cfg-and-acrn-binaries">Sign grub.cfg and ACRN Binaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/pre-launched-rt.html">Pre-Launched Preempt-RT Linux Mode in ACRN</a><ul>
@@ -1083,7 +1093,6 @@ library.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo apt install gcc \
      git \
      make \
-     gnu-efi \
      libssl-dev \
      libpciaccess-dev \
      uuid-dev \
@@ -1125,7 +1134,6 @@ and <code class="docutils literal notranslate"><span class="pre">ld</span> <span
 repository contains four main components:</p>
 <ol class="arabic simple">
 <li>The ACRN hypervisor code, located in the <code class="docutils literal notranslate"><span class="pre">hypervisor</span></code> directory.</li>
-<li>The EFI stub code, located in the <code class="docutils literal notranslate"><span class="pre">misc/efi-stub</span></code> directory.</li>
 <li>The ACRN device model code, located in the <code class="docutils literal notranslate"><span class="pre">devicemodel</span></code> directory.</li>
 <li>The ACRN tools source code, located in the <code class="docutils literal notranslate"><span class="pre">misc/tools</span></code> directory.</li>
 </ol>
@@ -1238,23 +1246,14 @@ $ make menuconfig -C hypervisor
 </div>
 <p>The build results are found in the <code class="docutils literal notranslate"><span class="pre">build</span></code> directory. You can specify
 a different Output folder by setting the <code class="docutils literal notranslate"><span class="pre">O</span></code> <code class="docutils literal notranslate"><span class="pre">make</span></code> parameter,
-for example: <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">O=build-nuc</span> <span class="pre">BOARD=nuc7i7dnb</span></code>.</p>
-<p>If you only need the hypervisor, use this command:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make clean                       # Remove files previously built
-$ make -C hypervisor
-$ make -C misc/efi-stub HV_OBJDIR=$PWD/hypervisor/build EFI_OBJDIR=$PWD/hypervisor/build
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">acrn.efi</span></code> will be generated in the <code class="docutils literal notranslate"><span class="pre">./hypervisor/build/acrn.efi</span></code> directory hypervisor.</p>
-<p>As mentioned in <a class="reference internal" href="../tutorials/acrn_configuration_tool.html#vm-config-workflow"><span class="std std-ref">ACRN Configuration Tool</span></a>, the
-Board configuration and VM configuration can be imported from XML files.
-If you want to build the hypervisor with XML configuration files,
-specify the file location as follows (assuming you’re at the top level
-of the acrn-hypervisor directory):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make BOARD_FILE=$PWD/misc/vm_configs/xmls/board-xmls/nuc7i7dnb.xml \
+for example: <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">O=build-nuc</span></code>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make all BOARD_FILE=$PWD/misc/vm_configs/xmls/board-xmls/nuc7i7dnb.xml \
 SCENARIO_FILE=$PWD/misc/vm_configs/xmls/config-xmls/nuc7i7dnb/industry.xml TARGET_DIR=xxx
 </pre></div>
 </div>
+<p>The build results are found in the <code class="docutils literal notranslate"><span class="pre">build</span></code> directory. You can specify
+a different build folder by setting the <code class="docutils literal notranslate"><span class="pre">O</span></code> <code class="docutils literal notranslate"><span class="pre">make</span></code> parameter,
+for example: <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">O=build-nuc</span></code>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The <code class="docutils literal notranslate"><span class="pre">BOARD</span></code> and <code class="docutils literal notranslate"><span class="pre">SCENARIO</span></code> parameters are not needed because the
@@ -1290,7 +1289,7 @@ configuration files of acrn-hypervisor would be overridden.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Dec 01, 2020.
+        Last updated on Dec 02, 2020.
       </span>
 
     </p>

@@ -438,6 +438,7 @@
 <li class="toctree-l4"><a class="reference internal" href="enable_s5.html#s5-architecture">S5 Architecture</a></li>
 <li class="toctree-l4"><a class="reference internal" href="enable_s5.html#id2">Enable S5</a></li>
 <li class="toctree-l4"><a class="reference internal" href="enable_s5.html#how-to-test">How to test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enable_s5.html#system-shutdown">System Shutdown</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cpu_sharing.html">Enable CPU Sharing in ACRN</a><ul>
@@ -505,6 +506,15 @@
 <li class="toctree-l3"><a class="reference internal" href="using_grub.html">Using GRUB to boot ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="using_grub.html#using-pre-installed-grub">Using pre-installed GRUB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_grub.html#installing-self-built-grub">Installing self-built GRUB</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="acrn-secure-boot-with-grub.html">Enable ACRN Secure Boot with GRUB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#generate-gpg-key">Generate GPG Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#prepare-grub-cfg">Prepare grub.cfg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#sign-grub-cfg-and-acrn-binaries">Sign grub.cfg and ACRN Binaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="pre-launched-rt.html">Pre-Launched Preempt-RT Linux Mode in ACRN</a><ul>
@@ -1037,24 +1047,20 @@ to avoid crashing your system and to take advantage of easy
 snapshots/restores so that you can quickly roll back your system in the
 event of setup failure. (You should only install OpenStack directly on Ubuntu if
 you have a dedicated testing machine.) This setup utilizes LXC/LXD on
-Ubuntu 16.04 or 18.04.</p>
+Ubuntu 18.04.</p>
 </div>
 <div class="section" id="install-acrn">
 <h2>Install ACRN<a class="headerlink" href="#install-acrn" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p class="first">Install ACRN using Ubuntu 16.04 or 18.04 as its Service VM.</p>
-<div class="admonition important">
-<p class="first admonition-title">Important</p>
-<p class="last">Need instructions from deleted document (using Ubuntu
-as SOS)</p>
-</div>
+<li><p class="first">Install ACRN using Ubuntu 18.04 as its Service VM. Refer to
+<a class="reference internal" href="../getting-started/rt_industry_ubuntu.html#build-and-install-acrn-on-ubuntu"><span class="std std-ref">Build and Install ACRN on Ubuntu</span></a>.</p>
 </li>
 <li><p class="first">Make the acrn-kernel using the <a class="reference external" href="https://raw.githubusercontent.com/projectacrn/acrn-kernel/master/kernel_config_uefi_sos">kernel_config_uefi_sos</a>
 configuration file (from the <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code> repo).</p>
 </li>
-<li><p class="first">Add the following kernel boot arg to give the Service VM  more loop
-devices. Refer to <a class="reference external" href="https://wiki.ubuntu.com/Kernel/KernelBootParameters">Kernel Boot Parameters</a> documentation:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">max_loop</span><span class="o">=</span><span class="mi">16</span>
+<li><p class="first">Add the following kernel boot arg to give the Service VM  more memory
+and more loop devices. Refer to <a class="reference external" href="https://wiki.ubuntu.com/Kernel/KernelBootParameters">Kernel Boot Parameters</a> documentation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hugepagesz</span><span class="o">=</span><span class="mi">1</span><span class="n">G</span> <span class="n">hugepages</span><span class="o">=</span><span class="mi">10</span> <span class="n">max_loop</span><span class="o">=</span><span class="mi">16</span>
 </pre></div>
 </div>
 </li>
@@ -1067,12 +1073,8 @@ available loop devices. Follow the <a class="reference external" href="https://m
 snap revisions if you’re running out of loop devices.</p>
 </li>
 <li><p class="first">Make sure the networking bridge <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> is created. If not,
-create it using the instructions in XXX.</p>
-<div class="admonition important">
-<p class="first admonition-title">Important</p>
-<p class="last">need instructions from deleted document (using Ubuntu
-as SOS)</p>
-</div>
+create it using the instructions in
+<a class="reference internal" href="../getting-started/rt_industry_ubuntu.html#build-and-install-acrn-on-ubuntu"><span class="std std-ref">Build and Install ACRN on Ubuntu</span></a>.</p>
 </li>
 </ol>
 </div>
@@ -1080,7 +1082,7 @@ as SOS)</p>
 <h2>Set up and launch LXC/LXD<a class="headerlink" href="#set-up-and-launch-lxc-lxd" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p class="first">Set up the LXC/LXD Linux container engine using these <a class="reference external" href="https://ubuntu.com/tutorials/tutorial-setting-up-lxd-1604">instructions</a> provided
-by Ubuntu (for release 16.04).</p>
+by Ubuntu.</p>
 <p>Refer to the following additional information for the setup
 procedure:</p>
 <ul class="simple">
@@ -1088,8 +1090,10 @@ procedure:</p>
 backend).</li>
 <li>Answer <code class="docutils literal notranslate"><span class="pre">dir</span></code> (and not <code class="docutils literal notranslate"><span class="pre">zfs</span></code>) when prompted for the name of the storage backend to use.</li>
 <li>Set up <code class="docutils literal notranslate"><span class="pre">lxdbr0</span></code> as instructed.</li>
-<li>Before launching a container, make sure <code class="docutils literal notranslate"><span class="pre">lxc-checkconfig</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">missing</span></code> does not show any missing
-kernel features.</li>
+<li>Before launching a container, install lxc-utils by <code class="docutils literal notranslate"><span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">lxc-utils</span></code>,
+make sure <code class="docutils literal notranslate"><span class="pre">lxc-checkconfig</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">missing</span></code> does not show any missing kernel features
+except <code class="docutils literal notranslate"><span class="pre">CONFIG_NF_NAT_IPV4</span></code> and <code class="docutils literal notranslate"><span class="pre">CONFIG_NF_NAT_IPV6</span></code>, which
+were renamed in recent kernels.</li>
 </ul>
 </li>
 <li><p class="first">Create an Ubuntu 18.04 container named <code class="docutils literal notranslate"><span class="pre">openstack</span></code>:</p>
@@ -1159,7 +1163,7 @@ default route:</p>
 </div>
 </li>
 <li><p class="first">Log in to the <code class="docutils literal notranslate"><span class="pre">openstack</span></code> container again:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ xc exec openstack -- su -l
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ lxc exec openstack -- su -l
 </pre></div>
 </div>
 </li>
@@ -1172,7 +1176,7 @@ Both IP addresses assigned to <strong>eth0</strong> and
 </div>
 </li>
 <li><p class="first">Add a new user named <strong>stack</strong> and set permissions:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo useradd -s /bin/bash -d /opt/stack -m stack
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ useradd -s /bin/bash -d /opt/stack -m stack
 $ echo &quot;stack ALL=(ALL) NOPASSWD: ALL&quot; &gt;&gt; /etc/sudoers
 </pre></div>
 </div>
@@ -1202,7 +1206,7 @@ appear in the container.</p>
 </div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor
 $ cd acrn-hypervisor
-$ git checkout v1.6.1
+$ git checkout v2.3
 $ make
 $ cd misc/acrn-manager/; make
 </pre></div>
@@ -1210,12 +1214,8 @@ $ cd misc/acrn-manager/; make
 <p>Install only the user-space components: <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>, <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">acrnd</span></code></p>
 </li>
-<li><p class="first">Download, compile, and install <code class="docutils literal notranslate"><span class="pre">iasl</span></code>. Refer to XXX.</p>
-<div class="admonition important">
-<p class="first admonition-title">Important</p>
-<p class="last">need instructions from deleted document (using Ubuntu
-as SOS)</p>
-</div>
+<li><p class="first">Download, compile, and install <code class="docutils literal notranslate"><span class="pre">iasl</span></code>. Refer to
+<a class="reference internal" href="../getting-started/rt_industry_ubuntu.html#build-and-install-acrn-on-ubuntu"><span class="std std-ref">Build and Install ACRN on Ubuntu</span></a>.</p>
 </li>
 </ol>
 </div>
@@ -1225,7 +1225,7 @@ as SOS)</p>
 <li><p class="first">Install the required packages:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo apt install libdevmapper-dev libnl-route-3-dev libnl-3-dev python \
   automake autoconf autopoint libtool xsltproc libxml2-utils gettext \
-  libxml2-dev libpciaccess-dev
+  libxml2-dev libpciaccess-dev gnutls-dev python3-docutils
 </pre></div>
 </div>
 </li>
@@ -1236,7 +1236,9 @@ as SOS)</p>
 </li>
 <li><p class="first">Build and install libvirt:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd acrn-libvirt
-$ ./autogen.sh --prefix=/usr --disable-werror --with-test-suite=no \
+$ mkdir build
+$ cd build
+$ ../autogen.sh --prefix=/usr --disable-werror --with-test-suite=no \
   --with-qemu=no --with-openvz=no --with-vmware=no --with-phyp=no \
   --with-vbox=no --with-lxc=no --with-uml=no --with-esx=no
 
@@ -1623,7 +1625,7 @@ and its floating IP address.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Dec 01, 2020.
+        Last updated on Dec 02, 2020.
       </span>
 
     </p>

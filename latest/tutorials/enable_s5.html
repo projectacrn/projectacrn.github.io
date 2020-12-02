@@ -438,6 +438,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#s5-architecture">S5 Architecture</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#id2">Enable S5</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#how-to-test">How to test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#system-shutdown">System Shutdown</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cpu_sharing.html">Enable CPU Sharing in ACRN</a><ul>
@@ -505,6 +506,15 @@
 <li class="toctree-l3"><a class="reference internal" href="using_grub.html">Using GRUB to boot ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="using_grub.html#using-pre-installed-grub">Using pre-installed GRUB</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_grub.html#installing-self-built-grub">Installing self-built GRUB</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="acrn-secure-boot-with-grub.html">Enable ACRN Secure Boot with GRUB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#generate-gpg-key">Generate GPG Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#prepare-grub-cfg">Prepare grub.cfg</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#sign-grub-cfg-and-acrn-binaries">Sign grub.cfg and ACRN Binaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="pre-launched-rt.html">Pre-Launched Preempt-RT Linux Mode in ACRN</a><ul>
@@ -1322,7 +1332,7 @@ industry EFI image is required for launching the RT-Linux VM.</p>
 IF you executed the <code class="docutils literal notranslate"><span class="pre">bcdedit</span> <span class="pre">/set</span> <span class="pre">debug</span> <span class="pre">on</span></code> when you set up the WaaG, because it occupies the <code class="docutils literal notranslate"><span class="pre">COM2</span></code>.</p>
 </div>
 </li>
-<li><p class="first">Use the``acrnctl stop`` command on the Service VM to trigger S5 to the User VMs:</p>
+<li><p class="first">Use the <code class="docutils literal notranslate"><span class="pre">acrnctl</span> <span class="pre">stop</span></code> command on the Service VM to trigger S5 to the User VMs:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> acrnctl stop vm1
 </pre></div>
 </div>
@@ -1333,6 +1343,47 @@ IF you executed the <code class="docutils literal notranslate"><span class="pre"
 </pre></div>
 </div>
 </li>
+</ol>
+</div>
+<div class="section" id="system-shutdown">
+<h2>System Shutdown<a class="headerlink" href="#system-shutdown" title="Permalink to this headline">¶</a></h2>
+<p>Using a coordinating script, <code class="docutils literal notranslate"><span class="pre">misc/life_mngr/s5_trigger.sh</span></code>, in conjunction with
+the lifecycle manager in each VM, graceful system shutdown can be performed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Please install <code class="docutils literal notranslate"><span class="pre">s5_trigger.sh</span></code> manually to root’s home directory.</p>
+<div class="last highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo install -p -m 0755 -t ~root misc/life_mngr/s5_trigger.sh
+</pre></div>
+</div>
+</div>
+<p>In the <code class="docutils literal notranslate"><span class="pre">hybrid_rt</span></code> scenario, the script can send a shutdown command via <code class="docutils literal notranslate"><span class="pre">ttyS1</span></code>
+in the Service VM, which is connected to <code class="docutils literal notranslate"><span class="pre">ttyS1</span></code> in the pre-launched VM. The
+lifecycle manager in the pre-launched VM receives the shutdown command, sends an
+ack message, and proceeds to shut itself down accordingly.</p>
+<div class="figure align-center" id="id4">
+<img alt="../_images/system_shutdown.png" src="../_images/system_shutdown.png" />
+<p class="caption"><span class="caption-number">Figure 60 </span><span class="caption-text">Graceful system shutdown flow</span></p>
+</div>
+<ol class="arabic simple">
+<li>The HMI Windows Guest uses the lifecycle manager to send a shutdown request to
+the Service VM</li>
+<li>The lifecycle manager in the Service VM responds with an ack message and
+executes <code class="docutils literal notranslate"><span class="pre">s5_trigger.sh</span></code></li>
+<li>After receiving the ack message, the lifecycle manager in the HMI Windows Guest
+shuts down the guest</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">s5_trigger.sh</span></code> script in the Service VM shuts down the Linux Guest by
+using <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code> to send a shutdown request</li>
+<li>After receiving the shutdown request, the lifecycle manager in the Linux Guest
+responds with an ack message and shuts down the guest</li>
+<li>The <code class="docutils literal notranslate"><span class="pre">s5_trigger.sh</span></code> script in the Service VM shuts down the Pre-launched RTVM
+by sending a shutdown request to its <code class="docutils literal notranslate"><span class="pre">ttyS1</span></code></li>
+<li>After receiving the shutdown request, the lifecycle manager in the Pre-launched
+RTVM responds with an ack message</li>
+<li>The lifecycle manager in the Pre-launched RTVM shuts down the guest using
+standard PM registers</li>
+<li>After receiving the ack message, the <code class="docutils literal notranslate"><span class="pre">s5_trigger.sh</span></code> script in the Service VM
+shuts down the Service VM</li>
+<li>The hypervisor shuts down the system after all of its guests have shut down</li>
 </ol>
 </div>
 </div>
@@ -1359,7 +1410,7 @@ IF you executed the <code class="docutils literal notranslate"><span class="pre"
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Dec 01, 2020.
+        Last updated on Dec 02, 2020.
       </span>
 
     </p>
