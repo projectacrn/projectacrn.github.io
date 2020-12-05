@@ -514,8 +514,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#generate-gpg-key">Generate GPG Key</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#prepare-grub-cfg">Prepare grub.cfg</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sign-grub-cfg-and-acrn-binaries">Sign grub.cfg and ACRN Binaries</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
 </ul>
 </li>
@@ -1180,9 +1178,8 @@ This would allow you to restore GRUB in case of errors updating it.</p>
 </pre></div>
 </div>
 </div>
-</div>
-<div class="numbered-step section" id="prepare-grub-cfg">
-<h2>Prepare grub.cfg<a class="headerlink" href="#prepare-grub-cfg" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="prepare-grub-cfg">
+<h3>Prepare grub.cfg<a class="headerlink" href="#prepare-grub-cfg" title="Permalink to this headline">¶</a></h3>
 <p>Define the menu entry for your system in a new GRUB configuration <code class="file docutils literal notranslate"><span class="pre">grub.cfg</span></code>.
 For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># @/boot/efi/grub.cfg for grub secure boot</span>
@@ -1207,8 +1204,8 @@ UUID (<code class="docutils literal notranslate"><span class="pre">--set</span><
 partition (e.g. <cite>/dev/nvme0n1p2</cite>) according to your your hardware.</p>
 <p>Copy this new <code class="file docutils literal notranslate"><span class="pre">grub.cfg</span></code> to your ESP (e.g. <cite>/boot/efi/EFI/</cite>).</p>
 </div>
-<div class="numbered-step section" id="sign-grub-cfg-and-acrn-binaries">
-<h2>Sign grub.cfg and ACRN Binaries<a class="headerlink" href="#sign-grub-cfg-and-acrn-binaries" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="sign-grub-cfg-and-acrn-binaries">
+<h3>Sign grub.cfg and ACRN Binaries<a class="headerlink" href="#sign-grub-cfg-and-acrn-binaries" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="file docutils literal notranslate"><span class="pre">grub.cfg</span></code> and all ACRN binaries that will be loaded by GRUB
 <strong>must</strong> be signed with the same GPG key.</p>
 <p>Here’s sequence example of signing the individual binaries:</p>
@@ -1220,6 +1217,7 @@ partition (e.g. <cite>/dev/nvme0n1p2</cite>) according to your your hardware.</p
 <p>Now, you can reboot and the system will boot with the signed GRUB EFI binary.
 GRUB will refuse to boot if any files it attempts to load have been tampered
 with.</p>
+</div>
 </div>
 <div class="numbered-step section" id="enable-uefi-secure-boot">
 <h2>Enable UEFI Secure Boot<a class="headerlink" href="#enable-uefi-secure-boot" title="Permalink to this headline">¶</a></h2>
@@ -1241,6 +1239,12 @@ with.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sign</span><span class="o">-</span><span class="n">efi</span><span class="o">-</span><span class="n">sig</span><span class="o">-</span><span class="nb">list</span> <span class="o">-</span><span class="n">k</span> <span class="n">PK</span><span class="o">.</span><span class="n">key</span> <span class="o">-</span><span class="n">c</span> <span class="n">PK</span><span class="o">.</span><span class="n">crt</span> <span class="n">PK</span> <span class="n">PK</span><span class="o">.</span><span class="n">esl</span> <span class="n">PK</span><span class="o">.</span><span class="n">auth</span>
 <span class="n">sign</span><span class="o">-</span><span class="n">efi</span><span class="o">-</span><span class="n">sig</span><span class="o">-</span><span class="nb">list</span> <span class="o">-</span><span class="n">k</span> <span class="n">PK</span><span class="o">.</span><span class="n">key</span> <span class="o">-</span><span class="n">c</span> <span class="n">PK</span><span class="o">.</span><span class="n">crt</span> <span class="n">KEK</span> <span class="n">KEK</span><span class="o">.</span><span class="n">esl</span> <span class="n">KEK</span><span class="o">.</span><span class="n">auth</span>
 <span class="n">sign</span><span class="o">-</span><span class="n">efi</span><span class="o">-</span><span class="n">sig</span><span class="o">-</span><span class="nb">list</span> <span class="o">-</span><span class="n">k</span> <span class="n">KEK</span><span class="o">.</span><span class="n">key</span> <span class="o">-</span><span class="n">c</span> <span class="n">KEK</span><span class="o">.</span><span class="n">crt</span> <span class="n">db</span> <span class="n">db</span><span class="o">.</span><span class="n">esl</span> <span class="n">db</span><span class="o">.</span><span class="n">auth</span>
+</pre></div>
+</div>
+<p>-Convert to DER format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">x509</span> <span class="o">-</span><span class="n">outform</span> <span class="n">DER</span> <span class="o">-</span><span class="ow">in</span> <span class="n">PK</span><span class="o">.</span><span class="n">crt</span> <span class="o">-</span><span class="n">out</span> <span class="n">PK</span><span class="o">.</span><span class="n">der</span>
+<span class="n">openssl</span> <span class="n">x509</span> <span class="o">-</span><span class="n">outform</span> <span class="n">DER</span> <span class="o">-</span><span class="ow">in</span> <span class="n">KEK</span><span class="o">.</span><span class="n">crt</span> <span class="o">-</span><span class="n">out</span> <span class="n">KEK</span><span class="o">.</span><span class="n">der</span>
+<span class="n">openssl</span> <span class="n">x509</span> <span class="o">-</span><span class="n">outform</span> <span class="n">DER</span> <span class="o">-</span><span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">crt</span> <span class="o">-</span><span class="n">out</span> <span class="n">db</span><span class="o">.</span><span class="n">der</span>
 </pre></div>
 </div>
 <p>The keys to be enrolled in UEFI firmware: <code class="file docutils literal notranslate"><span class="pre">PK.der</span></code>, <code class="file docutils literal notranslate"><span class="pre">KEK.der</span></code>, <code class="file docutils literal notranslate"><span class="pre">db.der</span></code>.
@@ -1287,7 +1291,7 @@ be loaded by UEFI firmware.</p>
     <p>
         &copy; Copyright 2020, Project ACRN
       <span class="lastupdated">
-        Last updated on Dec 03, 2020.
+        Last updated on Dec 05, 2020.
       </span>
 
     </p>
