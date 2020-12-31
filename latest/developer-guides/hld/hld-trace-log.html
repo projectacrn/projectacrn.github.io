@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,6 +11,16 @@
   
 
   
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/menu.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
+
+  
   
     <link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
   
@@ -19,39 +28,40 @@
   
 
   
-
-  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
+        <script src="../../_static/acrn-custom.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
+    
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Virtual Slim-Bootloader high-level design" href="hld-vsbl.html" />
     <link rel="prev" title="Power Management high-level design" href="hld-power-management.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
-            <a href="../../index.html" class="icon icon-home"> Project ACRN™
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> Project ACRN™
           
 
           
@@ -81,6 +91,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
   
@@ -996,6 +1007,7 @@
           
 
         </div>
+        
       </div>
     </nav>
 
@@ -1064,27 +1076,27 @@
   <div class="section" id="tracing-and-logging-high-level-design">
 <span id="hld-trace-log"></span><h1>Tracing and Logging high-level design<a class="headerlink" href="#tracing-and-logging-high-level-design" title="Permalink to this headline">¶</a></h1>
 <p>Both Trace and Log are built on top of a mechanism named shared
-buffer (Sbuf).</p>
+buffer (sbuf).</p>
 <div class="section" id="shared-buffer">
 <h2>Shared Buffer<a class="headerlink" href="#shared-buffer" title="Permalink to this headline">¶</a></h2>
 <p>Shared Buffer is a ring buffer divided into predetermined-size slots. There
-are two use scenarios of Sbuf:</p>
+are two use scenarios of sbuf:</p>
 <ul class="simple">
-<li>sbuf can serve as a lockless ring buffer to share data from ACRN HV to
+<li><p>sbuf can serve as a lockless ring buffer to share data from ACRN HV to
 Service VM in non-overwritten mode. (Writing will fail if an overrun
-happens.)</li>
-<li>sbuf can serve as a conventional ring buffer in hypervisor in
+happens.)</p></li>
+<li><p>sbuf can serve as a conventional ring buffer in hypervisor in
 over-written mode. A lock is required to synchronize access by the
-producer and consumer.</li>
+producer and consumer.</p></li>
 </ul>
-<p>Both ACRNTrace and ACRNLog use sbuf as a lockless ring buffer.  The Sbuf
+<p>Both ACRNTrace and ACRNLog use sbuf as a lockless ring buffer.  The sbuf
 is allocated by Service VM and assigned to HV via a hypercall. To hold pointers
 to sbuf passed down via hypercall, an array <code class="docutils literal notranslate"><span class="pre">sbuf[ACRN_SBUF_ID_MAX]</span></code>
 is defined in per_cpu region of HV, with predefined sbuf ID to identify
 the usage, such as ACRNTrace, ACRNLog, etc.</p>
-<p>For each physical CPU, there is a dedicated Sbuf. Only a single producer
-is allowed to put data into that Sbuf in HV, and a single consumer is
-allowed to get data from Sbuf in Service VM. Therefore, no lock is required to
+<p>For each physical CPU, there is a dedicated sbuf. Only a single producer
+is allowed to put data into that sbuf in HV, and a single consumer is
+allowed to get data from sbuf in Service VM. Therefore, no lock is required to
 synchronize access by the producer and consumer.</p>
 <div class="section" id="sbuf-apis">
 <h3>sbuf APIs<a class="headerlink" href="#sbuf-apis" title="Permalink to this headline">¶</a></h3>
@@ -1099,19 +1111,19 @@ key locations to get a picture of what is going on inside the
 hypervisor.  Scripts to analyze the collected trace data are also
 provided.</p>
 <p>As shown in <a class="reference internal" href="#acrntrace-arch"><span class="std std-numref">Figure 290</span></a>, ACRNTrace is built using
-Shared Buffers (Sbuf), and consists of three parts from bottom layer
+Shared Buffers (sbuf), and consists of three parts from bottom layer
 up:</p>
 <ul class="simple">
-<li><strong>ACRNTrace userland app</strong>: Userland application collecting trace data to
-files (Per Physical CPU)</li>
-<li><strong>Service VM Trace Module</strong>: allocates/frees SBufs, creates device for each
-SBuf, sets up sbuf shared between Service VM and HV, and provides a dev node for the
-userland app to retrieve trace data from Sbuf</li>
-<li><strong>Trace APIs</strong>: provide APIs to generate trace event and insert to Sbuf.</li>
+<li><p><strong>ACRNTrace userland app</strong>: Userland application collecting trace data to
+files (Per Physical CPU)</p></li>
+<li><p><strong>Service VM Trace Module</strong>: allocates/frees sbufs, creates device for each
+sbuf, sets up sbuf shared between Service VM and HV, and provides a dev node for the
+userland app to retrieve trace data from sbuf</p></li>
+<li><p><strong>Trace APIs</strong>: provide APIs to generate trace event and insert to sbuf.</p></li>
 </ul>
 <div class="figure align-center" id="acrntrace-arch">
 <img alt="../../_images/log-image50.png" src="../../_images/log-image50.png" />
-<p class="caption"><span class="caption-number">Figure 290 </span><span class="caption-text">Architectural diagram of ACRNTrace</span></p>
+<p class="caption"><span class="caption-number">Figure 290 </span><span class="caption-text">Architectural diagram of ACRNTrace</span><a class="headerlink" href="#acrntrace-arch" title="Permalink to this image">¶</a></p>
 </div>
 <div class="section" id="trace-apis">
 <h3>Trace APIs<a class="headerlink" href="#trace-apis" title="Permalink to this headline">¶</a></h3>
@@ -1122,91 +1134,91 @@ for trace_entry struct and function APIs.</p>
 <h3>Service VM Trace Module<a class="headerlink" href="#service-vm-trace-module" title="Permalink to this headline">¶</a></h3>
 <p>The Service VM trace module is responsible for:</p>
 <ul class="simple">
-<li>allocating sbuf in Service VM memory range for each physical CPU, and assign
-the GPA of Sbuf to <code class="docutils literal notranslate"><span class="pre">per_cpu</span> <span class="pre">sbuf[ACRN_TRACE]</span></code></li>
-<li>create a misc device for each physical CPU</li>
-<li>provide mmap operation to map entire Sbuf to userspace for high
-flexible and efficient access.</li>
+<li><p>allocating sbuf in Service VM memory range for each physical CPU, and assign
+the GPA of sbuf to <code class="docutils literal notranslate"><span class="pre">per_cpu</span> <span class="pre">sbuf[ACRN_TRACE]</span></code></p></li>
+<li><p>create a misc device for each physical CPU</p></li>
+<li><p>provide mmap operation to map entire sbuf to userspace for high
+flexible and efficient access.</p></li>
 </ul>
 <p>On Service VM shutdown, the trace module is responsible to remove misc devices, free
-SBufs, and set <code class="docutils literal notranslate"><span class="pre">per_cpu</span> <span class="pre">sbuf[ACRN_TRACE]</span></code> to null.</p>
+sbufs, and set <code class="docutils literal notranslate"><span class="pre">per_cpu</span> <span class="pre">sbuf[ACRN_TRACE]</span></code> to null.</p>
 </div>
 <div class="section" id="acrntrace-application">
 <h3>ACRNTrace Application<a class="headerlink" href="#acrntrace-application" title="Permalink to this headline">¶</a></h3>
 <p>ACRNTrace application includes a binary to retrieve trace data from
-Sbuf, and Python scripts to convert trace data from raw format into
+sbuf, and Python scripts to convert trace data from raw format into
 readable text, and do analysis.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">There was no Figure showing the sequence of trace
+<p class="admonition-title">Note</p>
+<p>There was no Figure showing the sequence of trace
 initialization and trace data collection.</p>
 </div>
 <p>With a debug build, trace components are initialized at boot
 time. After initialization, HV writes trace event date into sbuf
 until sbuf is full, which can happen easily if the ACRNTrace app is not
-consuming trace data from Sbuf on Service VM user space.</p>
+consuming trace data from sbuf on Service VM user space.</p>
 <p>Once ACRNTrace is launched, for each physical CPU a consumer thread is
 created to periodically read RAW trace data from sbuf and write to a
 file.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">TODO figure is missing
+<p class="admonition-title">Note</p>
+<p>TODO figure is missing
 Figure 2.2 Sequence of trace init and trace data collection</p>
 </div>
 <p>These are the Python scripts provided:</p>
 <ul class="simple">
-<li><strong>acrntrace_format.py</strong> converts RAW trace data to human-readable
-text offline according to given format;</li>
-<li><strong>acrnalyze.py</strong> analyzes trace data (as output by acrntrace)
+<li><p><strong>acrntrace_format.py</strong> converts RAW trace data to human-readable
+text offline according to given format;</p></li>
+<li><p><strong>acrnalyze.py</strong> analyzes trace data (as output by acrntrace)
 based on given analyzer filters, such as vm_exit or IRQ, and generates a
-report.</li>
+report.</p></li>
 </ul>
 <p>See <a class="reference internal" href="../../misc/tools/acrntrace/README.html#acrntrace"><span class="std std-ref">acrntrace</span></a> for details and usage.</p>
 </div>
 </div>
 <div class="section" id="acrn-log">
 <h2>ACRN Log<a class="headerlink" href="#acrn-log" title="Permalink to this headline">¶</a></h2>
-<p>acrnlog is a tool used to capture ACRN hypervisor log to files on
+<p><code class="docutils literal notranslate"><span class="pre">acrnlog</span></code> is a tool used to capture ACRN hypervisor log to files on
 Service VM filesystem. It can run as a Service VM service at boot, capturing two
 kinds of logs:</p>
 <ul class="simple">
-<li>Current runtime logs;</li>
-<li>Logs remaining in the buffer, from last crashed running.</li>
+<li><p>Current runtime logs;</p></li>
+<li><p>Logs remaining in the buffer, from the last crashed run.</p></li>
 </ul>
 <div class="section" id="architectural-diagram">
 <h3>Architectural diagram<a class="headerlink" href="#architectural-diagram" title="Permalink to this headline">¶</a></h3>
-<p>Similar to the design of ACRN Trace, ACRN Log is built on the top of
-Shared Buffer (Sbuf), and consists of three parts from bottom layer
+<p>Similar to the design of ACRN Trace, ACRN Log is built on top of
+Shared Buffer (sbuf), and consists of three parts from bottom layer
 up:</p>
 <ul class="simple">
-<li><strong>ACRN Log app</strong>: Userland application collecting hypervisor log to
-files;</li>
-<li><strong>Service VM ACRN Log Module</strong>: constructs/frees SBufs at reserved memory
+<li><p><strong>ACRN Log app</strong>: Userland application collecting hypervisor log to
+files;</p></li>
+<li><p><strong>Service VM ACRN Log Module</strong>: constructs/frees sbufs at reserved memory
 area, creates dev for current/last logs, sets up sbuf shared between
 Service VM and HV, and provides a dev node for the userland app to
-retrieve logs</li>
-<li><strong>ACRN log support in HV</strong>: put logs at specified loglevel to Sbuf.</li>
+retrieve logs</p></li>
+<li><p><strong>ACRN log support in HV</strong>: put logs at specified loglevel to sbuf.</p></li>
 </ul>
 <div class="figure align-center" id="id1">
 <img alt="../../_images/log-image73.png" src="../../_images/log-image73.png" />
-<p class="caption"><span class="caption-number">Figure 291 </span><span class="caption-text">Architectural diagram of ACRN Log</span></p>
+<p class="caption"><span class="caption-number">Figure 291 </span><span class="caption-text">Architectural diagram of ACRN Log</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="acrn-log-support-in-hypervisor">
 <h3>ACRN log support in Hypervisor<a class="headerlink" href="#acrn-log-support-in-hypervisor" title="Permalink to this headline">¶</a></h3>
-<p>To support acrn log, the following adaption was made to hypervisor log
+<p>To support <code class="docutils literal notranslate"><span class="pre">acrnlog</span></code>, the following adaption was made to hypervisor log
 system:</p>
 <ul class="simple">
-<li>log messages with severity level higher than a specified value will
-be put into Sbuf when calling logmsg in hypervisor</li>
-<li>allocate sbuf to accommodate early hypervisor logs before Service VM
-can allocate and set up sbuf</li>
+<li><p>log messages with severity level higher than a specified value will
+be put into sbuf when calling <code class="docutils literal notranslate"><span class="pre">logmsg</span></code> in hypervisor</p></li>
+<li><p>allocate sbuf to accommodate early hypervisor logs before Service VM
+can allocate and set up sbuf</p></li>
 </ul>
 <p>There are 6 different loglevels, as shown below. The specified
 severity loglevel is stored in <code class="docutils literal notranslate"><span class="pre">mem_loglevel</span></code>, initialized
-by <a class="reference internal" href="../../reference/kconfig/CONFIG_MEM_LOGLEVEL_DEFAULT.html#cmdoption-arg-config-mem-loglevel-default"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_MEM_LOGLEVEL_DEFAULT</span></code></a>. The loglevel can
+by <a class="reference internal" href="../../reference/kconfig/CONFIG_MEM_LOGLEVEL_DEFAULT.html#cmdoption-arg-CONFIG_MEM_LOGLEVEL_DEFAULT"><code class="xref std std-option docutils literal notranslate"><span class="pre">CONFIG_MEM_LOGLEVEL_DEFAULT</span></code></a>. The loglevel can
 be set to a new value
-at runtime via hypervisor shell command “loglevel”.</p>
+at runtime via hypervisor shell command <code class="docutils literal notranslate"><span class="pre">loglevel</span></code>.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define LOG_FATAL     1U</span>
 <span class="cp">#define LOG_ACRN      2U</span>
 <span class="cp">#define LOG_ERROR     3U</span>
@@ -1229,22 +1241,22 @@ the size and base address of hypervisor log buffer. This space will be further d
 into two buffers with equal size: last log buffer and current log buffer.</p>
 <p>On Service VM boot, Service VM acrnlog module is responsible to:</p>
 <ul class="simple">
-<li>examine if there are log messages remaining from last crashed
-run by checking the magic number of each sbuf</li>
-<li>if there are previous crash logs, construct sbuf and create misc devices for
-these last logs</li>
-<li>construct sbuf in the usable buf range for each physical CPU,
-assign the GPA of Sbuf to <code class="docutils literal notranslate"><span class="pre">per_cpu</span> <span class="pre">sbuf[ACRN_LOG]</span></code> and create a misc
-device for each physical CPU</li>
-<li>the misc devices implement read() file operation to allow
-userspace app to read one Sbuf element.</li>
+<li><p>examine if there are log messages remaining from last crashed
+run by checking the magic number of each sbuf</p></li>
+<li><p>if there are previous crash logs, construct sbuf and create misc devices for
+these last logs</p></li>
+<li><p>construct sbuf in the usable buf range for each physical CPU,
+assign the GPA of sbuf to <code class="docutils literal notranslate"><span class="pre">per_cpu</span> <span class="pre">sbuf[ACRN_LOG]</span></code> and create a misc
+device for each physical CPU</p></li>
+<li><p>the misc devices implement read() file operation to allow
+userspace app to read one sbuf element.</p></li>
 </ul>
 <p>When checking the validity of sbuf for last logs examination, it sets the
 current sbuf with magic number <code class="docutils literal notranslate"><span class="pre">0x5aa57aa71aa13aa3</span></code>, and changes the
 magic number of last sbuf to <code class="docutils literal notranslate"><span class="pre">0x5aa57aa71aa13aa2</span></code>, to distinguish which is
 the current/last.</p>
 <p>On Service VM shutdown, the module is responsible to remove misc devices,
-free SBufs, and set <code class="docutils literal notranslate"><span class="pre">per_cpu</span> <span class="pre">sbuf[ACRN_TRACE]</span></code> to null.</p>
+free sbufs, and set <code class="docutils literal notranslate"><span class="pre">per_cpu</span> <span class="pre">sbuf[ACRN_TRACE]</span></code> to null.</p>
 </div>
 <div class="section" id="acrn-log-application">
 <h3>ACRN Log Application<a class="headerlink" href="#acrn-log-application" title="Permalink to this headline">¶</a></h3>
@@ -1273,7 +1285,7 @@ messages, combine them, and save them into last log files.</p>
         <a href="hld-vsbl.html" class="btn btn-neutral float-right" title="Virtual Slim-Bootloader high-level design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="hld-power-management.html" class="btn btn-neutral" title="Power Management high-level design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="hld-power-management.html" class="btn btn-neutral float-left" title="Power Management high-level design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1282,8 +1294,11 @@ messages, combine them, and save them into last log files.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018-2020, Project ACRN™.
-      Last updated on Dec 24, 2020.
+        
+        &copy; Copyright 2018-2020, Project ACRN™
+      <span class="lastupdated">
+        Last updated on Dec 31, 2020.
+      </span>
 
     </p>
   </div> 
@@ -1298,34 +1313,16 @@ messages, combine them, and save them into last log files.</p>
   </div>
   
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'2.4-unstable',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
-      <script type="text/javascript" src="../../_static/acrn-custom.js"></script>
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

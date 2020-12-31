@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,6 +11,16 @@
   
 
   
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/menu.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
+
+  
   
     <link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
   
@@ -19,39 +28,40 @@
   
 
   
-
-  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
+        <script src="../../_static/acrn-custom.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
+    
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Watchdog Virtualization in Device Model" href="watchdog-hld.html" />
     <link rel="prev" title="USB Virtualization" href="usb-virt-hld.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
-            <a href="../../index.html" class="icon icon-home"> Project ACRN™
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> Project ACRN™
           
 
           
@@ -81,6 +91,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
   
@@ -996,6 +1007,7 @@
           
 
         </div>
+        
       </div>
     </nav>
 
@@ -1080,7 +1092,7 @@ ACRN in <a class="reference internal" href="../../introduction/index.html#acrn-i
 <p>The ACRN DM architecture for UART virtualization is shown here:</p>
 <div class="figure align-center" id="uart-arch">
 <a class="reference internal image-reference" href="../../_images/uart-image1.png"><img alt="../../_images/uart-image1.png" src="../../_images/uart-image1.png" style="width: 800px;" /></a>
-<p class="caption"><span class="caption-number">Figure 229 </span><span class="caption-text">Device Model’s UART virtualization architecture</span></p>
+<p class="caption"><span class="caption-number">Figure 229 </span><span class="caption-text">Device Model’s UART virtualization architecture</span><a class="headerlink" href="#uart-arch" title="Permalink to this image">¶</a></p>
 </div>
 <p>There are three objects used to emulate one UART device in DM:
 UART registers, rxFIFO, and backend tty devices.</p>
@@ -1094,8 +1106,8 @@ When the Guest application tries to read from the UART, the access to
 register <code class="docutils literal notranslate"><span class="pre">com_data</span></code> causes a <code class="docutils literal notranslate"><span class="pre">vmexit</span></code>. Device model catches the
 <code class="docutils literal notranslate"><span class="pre">vmexit</span></code> and emulates the UART by returning one character from rxFIFO.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">When <code class="docutils literal notranslate"><span class="pre">com_fcr</span></code> is available, the Guest application can write
+<p class="admonition-title">Note</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">com_fcr</span></code> is available, the Guest application can write
 <code class="docutils literal notranslate"><span class="pre">0</span></code> to this register to disable rxFIFO. In this case the rxFIFO in
 device model degenerates to a buffer containing only one character.</p>
 </div>
@@ -1144,26 +1156,28 @@ with 0x3F8 address to the Service VM and acts as the Service VM console. The gen
 emulation is the same as used in the device model, with the following
 differences:</p>
 <ul class="simple">
-<li>PIO region is directly registered to the vmexit handler dispatcher via
-<code class="docutils literal notranslate"><span class="pre">vuart_register_io_handler</span></code></li>
-<li>Two FIFOs are implemented, one for RX, the other of TX</li>
-<li>RX flow:<ul>
-<li>Characters are read from the UART HW into a 2048-byte sbuf,
-triggered by <code class="docutils literal notranslate"><span class="pre">console_read</span></code></li>
-<li>Characters are read from the sbuf and put to rxFIFO,
-triggered by <code class="docutils literal notranslate"><span class="pre">vuart_console_rx_chars</span></code></li>
-<li>A virtual interrupt is sent to the Service VM that triggered the read,
+<li><p>PIO region is directly registered to the vmexit handler dispatcher via
+<code class="docutils literal notranslate"><span class="pre">vuart_register_io_handler</span></code></p></li>
+<li><p>Two FIFOs are implemented, one for RX, the other of TX</p></li>
+<li><p>RX flow:</p>
+<ul>
+<li><p>Characters are read from the UART HW into a 2048-byte sbuf,
+triggered by <code class="docutils literal notranslate"><span class="pre">console_read</span></code></p></li>
+<li><p>Characters are read from the sbuf and put to rxFIFO,
+triggered by <code class="docutils literal notranslate"><span class="pre">vuart_console_rx_chars</span></code></p></li>
+<li><p>A virtual interrupt is sent to the Service VM that triggered the read,
 and characters from rxFIFO are sent to the Service VM by emulating a read
-of register <code class="docutils literal notranslate"><span class="pre">UART16550_RBR</span></code></li>
+of register <code class="docutils literal notranslate"><span class="pre">UART16550_RBR</span></code></p></li>
 </ul>
 </li>
-<li>TX flow:<ul>
-<li>Characters are put into txFIFO by emulating a write of register
-<code class="docutils literal notranslate"><span class="pre">UART16550_THR</span></code></li>
-<li>Characters in txFIFO are read out one by one, and sent to the console
-by printf, triggered by <code class="docutils literal notranslate"><span class="pre">vuart_console_tx_chars</span></code></li>
-<li>Implementation of printf is based on the console, which finally sends
-characters to the UART HW by writing to register <code class="docutils literal notranslate"><span class="pre">UART16550_RBR</span></code></li>
+<li><p>TX flow:</p>
+<ul>
+<li><p>Characters are put into txFIFO by emulating a write of register
+<code class="docutils literal notranslate"><span class="pre">UART16550_THR</span></code></p></li>
+<li><p>Characters in txFIFO are read out one by one, and sent to the console
+by printf, triggered by <code class="docutils literal notranslate"><span class="pre">vuart_console_tx_chars</span></code></p></li>
+<li><p>Implementation of printf is based on the console, which finally sends
+characters to the UART HW by writing to register <code class="docutils literal notranslate"><span class="pre">UART16550_RBR</span></code></p></li>
 </ul>
 </li>
 </ul>
@@ -1181,7 +1195,7 @@ characters to the UART HW by writing to register <code class="docutils literal n
         <a href="watchdog-hld.html" class="btn btn-neutral float-right" title="Watchdog Virtualization in Device Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="usb-virt-hld.html" class="btn btn-neutral" title="USB Virtualization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="usb-virt-hld.html" class="btn btn-neutral float-left" title="USB Virtualization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1190,8 +1204,11 @@ characters to the UART HW by writing to register <code class="docutils literal n
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018-2020, Project ACRN™.
-      Last updated on Dec 24, 2020.
+        
+        &copy; Copyright 2018-2020, Project ACRN™
+      <span class="lastupdated">
+        Last updated on Dec 31, 2020.
+      </span>
 
     </p>
   </div> 
@@ -1206,34 +1223,16 @@ characters to the UART HW by writing to register <code class="docutils literal n
   </div>
   
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'2.4-unstable',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
-      <script type="text/javascript" src="../../_static/acrn-custom.js"></script>
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
