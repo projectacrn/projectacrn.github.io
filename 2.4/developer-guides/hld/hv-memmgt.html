@@ -1,0 +1,2022 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Memory Management High-Level Design &mdash; Project ACRN™ 2.4 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/menu.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/sphinx_tabs/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
+        <script src="../../_static/acrn-custom.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="I/O Emulation High-Level Design" href="hv-io-emulation.html" />
+    <link rel="prev" title="CPU Virtualization" href="hv-cpu-virt.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> Project ACRN™
+          
+
+          
+            
+            <img src="../../_static/ACRN_Logo_200w.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+  
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Project ACRN</span>
+      v: 2.4
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Document Versions</dt>
+        
+          <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/2.3/">2.3</a></dd>
+        
+          <dd><a href="/2.2/">2.2</a></dd>
+        
+          <dd><a href="/2.1/">2.1</a></dd>
+        
+          <dd><a href="/2.0/">2.0</a></dd>
+        
+          <dd><a href="/1.6.1/">1.6.1</a></dd>
+        
+          <dd><a href="/1.6/">1.6</a></dd>
+        
+          <dd><a href="/1.5/">1.5</a></dd>
+        
+          <dd><a href="/1.4/">1.4</a></dd>
+        
+          <dd><a href="/1.0/">1.0</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>projectacrn.org links</dt>
+          <dd>
+            <a href="https://www.projectacrn.org/">Project Home</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/projectacrn/acrn-hypervisor/wiki">Wiki</a>
+          </dd>
+      </dl>
+    </div>
+  </div>
+  
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Documentation Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction/index.html">What Is ACRN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#introduction-to-project-acrn">Introduction to Project ACRN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-open-source-roadmap">ACRN Open Source Roadmap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-high-level-architecture">ACRN High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#usage-scenarios">Usage Scenarios</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#industrial-workload-consolidation">Industrial Workload Consolidation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#automotive-application-scenarios">Automotive Application Scenarios</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#best-known-configurations">Best Known Configurations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#sdc-scenario">SDC Scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#industry-scenario">Industry Scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hybrid-scenario">Hybrid Scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hybrid-real-time-rt-scenario">Hybrid Real-Time (RT) Scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#logical-partition-scenario">Logical Partition Scenario</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-service-vm-and-user-vm">ACRN Device Model, Service VM, and User VM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-hypervisor-architecture">ACRN Hypervisor Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#device-passthrough">Device Passthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-i-o-mediator">ACRN I/O Mediator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#virtio-framework-architecture">Virtio Framework Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../try.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/hardware.html">Supported Hardware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#minimum-system-requirements-for-installing-acrn">Minimum System Requirements for Installing ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#minimum-requirements-for-processor">Minimum Requirements for Processor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#known-limitations">Known Limitations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#new-processor-families">New Processor Families</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#verified-platforms-according-to-acrn-usage">Verified Platforms According to ACRN Usage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#verified-hardware-specifications-detail">Verified Hardware Specifications Detail</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/building-from-source.html">Build ACRN From Source</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#install-build-tools-and-dependencies">Install Build Tools and Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#get-the-acrn-hypervisor-source-code">Get the ACRN Hypervisor Source Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#build-with-the-acrn-scenario">Build With the ACRN Scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/building-from-source.html#modify-the-hypervisor-configuration">Modify the Hypervisor Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html">Getting Started Guide for ACRN Industry Scenario With Ubuntu Service VM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#verified-version">Verified Version</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#hardware-connection">Hardware Connection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#install-the-ubuntu-user-vm-rtvm-on-the-sata-disk">Install the Ubuntu User VM (RTVM) on the SATA Disk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#install-the-ubuntu-service-vm-on-the-nvme-disk">Install the Ubuntu Service VM on the NVMe Disk</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#build-and-install-acrn-on-ubuntu">Build and Install ACRN on Ubuntu</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#pre-steps">Pre-Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#build-the-acrn-hypervisor-on-ubuntu">Build the ACRN Hypervisor on Ubuntu</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#build-and-install-the-acrn-kernel">Build and Install the ACRN Kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#install-the-service-vm-kernel-and-modules">Install the Service VM Kernel and Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#update-grub-for-the-ubuntu-service-vm">Update Grub for the Ubuntu Service VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#enable-network-sharing-for-the-user-vm">Enable Network Sharing for the User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#reboot-the-system">Reboot the System</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#additional-settings-in-the-service-vm">Additional Settings in the Service VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#launch-the-rtvm">Launch the RTVM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#update-the-grub-file">Update the Grub File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#id2">Launch the RTVM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#launch-the-windows-vm">Launch the Windows VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#enabling-the-network-on-the-rtvm">Enabling the Network on the RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/rt_industry_ubuntu.html#passthrough-a-hard-disk-to-rtvm">Passthrough a Hard Disk to RTVM</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html">Getting Started Guide for ACRN Industry Scenario With ROScube-I</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#verified-version">Verified Version</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#architecture">Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#install-acrn-hypervisor">Install ACRN Hypervisor</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#set-up-environment">Set Up Environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#configure-hypervisor">Configure Hypervisor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#install-service-vm-kernel">Install Service VM Kernel</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#build-service-vm-kernel">Build Service VM Kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#update-grub">Update Grub</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#install-user-vm">Install User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#before-create-user-vm">Before Create User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#create-user-vm-image">Create User VM Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#run-user-vm">Run User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#install-real-time-vm">Install Real-Time VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#copy-real-time-vm-image">Copy Real-Time VM Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#set-up-real-time-vm">Set Up Real-Time VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#run-real-time-vm">Run Real-Time VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#customizing-the-launch-file">Customizing the Launch File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#cpu">CPU</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#memory">Memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#ethernet">Ethernet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#usb">USB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/roscube/roscube-gsg.html#gpio">GPIO</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html">Getting Started Guide for ACRN Hybrid Mode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-check">Hybrid Scenario Startup Check</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html">Getting Started Guide for ACRN Logical Partition Mode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#validated-versions">Validated Versions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-kernel-image-and-modules-of-pre-launched-vm">Update Kernel Image and Modules of Pre-Launched VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-acrn-hypervisor-image">Update ACRN Hypervisor Image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#logical-partition-scenario-startup-check">Logical Partition Scenario Startup Check</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../develop.html">Advanced Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#configuration-and-tools">Configuration and Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html">Introduction to ACRN Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#types-of-configurations">Types of Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#using-acrn-configuration-toolset">Using ACRN Configuration Toolset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#acrn-configuration-data">ACRN Configuration Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#use-the-acrn-configuration-editor">Use the ACRN Configuration Editor</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/config-options.html">Scenario Configuration Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#common-option-value-types">Common Option Value Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#hv">hv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#vm">vm</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/hv-parameters.html">ACRN Hypervisor Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/hv-parameters.html#generic-hypervisor-parameters">Generic Hypervisor Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/kernel-parameters.html">ACRN Kernel Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/kernel-parameters.html#intel-gvt-g-acrngt-parameters">Intel GVT-g (AcrnGT) Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-shell.html">ACRN Shell Commands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-shell.html#command-examples">Command Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html">Device Model Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html">ACRN-Crashlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#enabling-disabling">Enabling/Disabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/packaging/README.html">ACRN Installation via Debian Packages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#set-up-prerequisites">Set Up Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#configure-debian-packaging-details">Configure Debian Packaging Details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#run-the-package-building-script">Run the Package-Building Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#prepare-your-target-system-with-ubuntu-18-04">Prepare Your Target System With Ubuntu 18.04</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#install-debian-packages-on-your-target-system">Install Debian Packages on Your Target System</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#boot-acrn-using-the-multiboot2-grub-choice">Boot ACRN Using the Multiboot2 Grub Choice</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#verify-acrn-is-running">Verify ACRN Is Running</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html">Acrnprobe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#source-files">Source Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#configuration-files">Configuration Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html">Acrnprobe Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#layout">Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#properties-of-group-members">Properties of Group Members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#crash-tree-in-acrnprobe">Crash Tree in Acrnprobe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#sections">Sections</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html">Usercrash</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#design">Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html">Acrnlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html">Acrntrace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/services/acrn_manager/README.html">Acrnctl and Acrnd</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#acrnd">Acrnd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#service-vm-tutorials">Service VM Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html">Run Debian as the Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#validated-versions">Validated Versions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#install-acrn-on-the-debian-vm">Install ACRN on the Debian VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#enable-the-network-sharing-to-give-network-access-to-user-vm">Enable the Network Sharing to Give Network Access to User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_yp.html">Using Yocto Project With ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_yp.html#the-meta-acrn-layer">The meta-acrn Layer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#user-vm-tutorials">User VM Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html">Launch Windows as the Guest VM on ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#acrn-windows-verified-feature-list">ACRN Windows Verified Feature List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm Popular Command Lines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#secure-boot-enabling">Secure Boot Enabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_uos.html#activate-windows-10">Activate Windows 10</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html">Run Ubuntu as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html#build-the-ubuntu-kvm-image">Build the Ubuntu KVM Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html#launch-the-ubuntu-image-as-the-user-vm">Launch the Ubuntu Image as the User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html#enable-the-ubuntu-console-instead-of-the-user-interface">Enable the Ubuntu Console Instead of the User Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html">Run Debian as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html#build-the-debian-kvm-image">Build the Debian KVM Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html#launch-the-debian-image-as-the-user-vm">Launch the Debian Image as the User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html#enable-the-ttys0-console-on-the-debian-vm">Enable the ttyS0 Console on the Debian VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_xenomai_as_uos.html">Run Xenomai as the User VM OS (Real-Time VM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_uos.html#build-the-xenomai-kernel">Build the Xenomai Kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_uos.html#launch-the-rtvm">Launch the RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_uos.html#install-the-xenomai-libraries-and-tools">Install the Xenomai Libraries and Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_vxworks_as_uos.html">Run VxWorks as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_vxworks_as_uos.html#steps-for-using-vxworks-as-user-vm">Steps for Using VxWorks as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_zephyr_as_uos.html">Run Zephyr as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_uos.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_uos.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#enable-acrn-features">Enable ACRN Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/sgx_virtualization.html">Enable SGX Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#high-level-acrn-sgx-virtualization-design">High Level ACRN SGX Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#enable-sgx-support-for-guest">Enable SGX Support for Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#sgx-capability-exposure">SGX Capability Exposure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#enclave-system-function-handling">Enclave System Function Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#other-vmexit-control">Other VMExit Control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#future-development">Future Development</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html">Enable vUART Configurations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#console-enable-list">Console Enable List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#how-to-configure-a-console-port">How to Configure a Console Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#how-to-configure-a-communication-port">How to Configure a Communication Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#communication-vuart-enable-list">Communication vUART Enable List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#launch-script">Launch Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#test-the-communication-port">Test the Communication Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#vuart-design">vUART Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#com-port-configurations-for-post-launched-vms">COM Port Configurations for Post-Launched VMs</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html#use-pci-vuart">Use PCI-vUART</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#pci-interface-of-acrn-vuart">PCI Interface of ACRN vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#index-of-vuart">Index of vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#setup-acrn-vuart-using-configuration-tools">Setup ACRN vUART Using Configuration Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#kernel-config-for-legacy-vuart">Kernel Config for Legacy vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#kernel-cmdline-for-pci-vuart-console">Kernel Cmdline for PCI-vUART Console</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rdt_configuration.html">Enable RDT Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#rdt-detection-and-resource-capabilities">RDT Detection and Resource Capabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#tuning-rdt-resources-in-hv-debug-shell">Tuning RDT Resources in HV Debug Shell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM Using VM Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">Enable Secure Boot in Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB From Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF With Secure Boot Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to Inject Secure Boot Keys Into OVMF</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_s5.html">Enable S5 in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#s5-architecture">S5 Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#id2">Enable S5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#how-to-test">How to Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#system-shutdown">System Shutdown</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/cpu_sharing.html">Enable CPU Sharing in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#scheduling-framework">Scheduling Framework</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#cpu-affinity">CPU Affinity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#thread-object-state">Thread Object State</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#scheduler">Scheduler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/sriov_virtualization.html">Enable SR-IOV Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#verified-version">Verified Version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#supported-hardware-platform">Supported Hardware Platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#bios-settings">BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP Driver</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-docker">Install Docker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-kata-containers">Install Kata Containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#run-a-kata-container-with-acrn">Run a Kata Container With ACRN</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/trustyACRN.html">Trusty and Security Services Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-services">Trusty Services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html">Real-Time VM Application Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#run-rtvm-with-dedicated-resources-devices">Run RTVM With Dedicated Resources/Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-virtio-pmd-polling-mode-driver-for-i-o-sharing">RTVM With Virtio PMD (Polling Mode Driver) for I/O Sharing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-hv-emulated-device">RTVM With HV Emulated Device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#dm-emulated-device-except-pmd">DM Emulated Device (Except PMD)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html">Configure ACRN Using OpenStack and Libvirt</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-and-launch-lxc-lxd">Set Up and Launch LXC/LXD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set Up ACRN Prerequisites Inside the Container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-libvirt">Set Up Libvirt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-openstack">Set Up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and Create OpenStack Instance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html">Enable ACRN Over QEMU/KVM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#service-vm-networking-updates-for-user-vm">Service VM Networking Updates for User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#using-pre-installed-grub">Using Pre-Installed GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#installing-self-built-grub">Installing Self-Built GRUB</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html">Enable ACRN Secure Boot With GRUB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#generate-gpg-key">Generate GPG Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/pre-launched-rt.html">Pre-Launched Preempt-Rt Linux Mode in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/pre-launched-rt.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/pre-launched-rt.html#example-of-pre-launched-rt">Example of Pre-Launched RT</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ivshmem.html">Enable Inter-VM Communication Based on Ivshmem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Using the Serial Port on KBL Intel NUC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/debug.html">ACRN Debugging Tools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-console-command">ACRN Console Command</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#an-example">An Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-log">ACRN Log</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-trace">ACRN Trace</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html">ACRN Real-Time (RT) Performance Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#vmexit-analysis-for-acrn-rt-performance">vmexit Analysis for ACRN RT Performance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#collecting-performance-monitoring-counters-data">Collecting Performance Monitoring Counters Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html">ACRN Real-Time VM Performance Tips</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#background">Background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#mandatory-options-for-an-rtvm">Mandatory Options for an RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#avoid-vm-exit-latency">Avoid VM-exit Latency</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#isolating-the-impact-of-neighbor-vms">Isolating the Impact of Neighbor VMs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../contribute.html">Developer Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../contribute.html#design-guides">Design Guides</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html">ACRN Hypervisor: Modular Design</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#principles">Principles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-vsbl.html">Virtual Bootloader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-security.html">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../sw_design_guidelines.html">Software Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#error-detection-and-error-handling">Error Detection and Error Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#module-level-configuration-design-guidelines">Module Level Configuration Design Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../GVT-g-porting.html">GVT-g Enabling and Porting Guide</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#purpose-of-this-document">Purpose of This Document</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#overall-components">Overall Components</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#core-scenario-interaction-sequences">Core Scenario Interaction Sequences</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../GVT-g-porting.html#api-details">API Details</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html">Trusty TEE</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-specific-hypercalls">Trusty Specific Hypercalls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-boot-flow">Trusty Boot Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#ept-hierarchy">EPT Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../VBSK-analysis.html">VBS-K Framework Virtualization Overhead Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../VBSK-analysis.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../VBSK-analysis.html#architecture-of-virtio-echo">Architecture of VIRTIO-ECHO</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../VBSK-analysis.html#virtualization-overhead-analysis">Virtualization Overhead Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../VBSK-analysis.html#conclusion">Conclusion</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#contribute-guides">Contribute Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute_guidelines.html">Contribution Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#licensing">Licensing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#developer-certification-of-origin-dco">Developer Certification of Origin (DCO)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#repository-layout">Repository Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#submitting-issues">Submitting Issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-tools-and-git-setup">Contribution Tools and Git Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#coding-style">Coding Style</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-workflow">Contribution Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#commit-guidelines">Commit Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../coding_guidelines.html">Coding Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../c_coding_guidelines.html">C Programming Language Coding Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../asm_coding_guidelines.html">Assembly Language Coding Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../doc_guidelines.html">Documentation Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#headings">Headings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#content-highlighting">Content Highlighting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#lists">Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#multi-column-lists">Multi-Column Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#file-names-and-commands">File Names and Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#internal-cross-reference-linking">Internal Cross-Reference Linking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#non-ascii-characters">Non-ASCII Characters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#code-and-command-examples">Code and Command Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#images">Images</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tabs-spaces-and-indenting">Tabs, Spaces, and Indenting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#drawings">Drawings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#alternative-tabbed-content">Alternative Tabbed Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#instruction-steps">Instruction Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#first-instruction-step">First Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#second-instruction-step">Second Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#documentation-generation">Documentation Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../graphviz.html">Drawings Using Graphviz</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#simple-directed-graph">Simple Directed Graph</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#adding-edge-labels">Adding Edge Labels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#finite-state-machine">Finite-State Machine</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html">ACRN Documentation Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-overview">Documentation Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#set-up-the-documentation-working-folders">Set Up the Documentation Working Folders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#install-the-documentation-tools">Install the Documentation Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-presentation-theme">Documentation Presentation Theme</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#run-the-documentation-processors">Run the Documentation Processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#publish-content">Publish Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#document-versioning">Document Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#filter-expected-warnings">Filter Expected Warnings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#api-documentation">API Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/hypercall_api.html">Hypercall APIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/devicemodel_api.html">Device Model APIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/GVT-g_api.html">ACRN GVT-g APIs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.4.html">ACRN v2.4 (Apr 2021)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#what-s-new-in-v2-4">What’s New in v2.4</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#acrn-configuration-and-build">ACRN Configuration and Build</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#upgrading-to-v2-4-from-previous-releases">Upgrading to v2.4 From Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#additional-dependencies">Additional Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#configuration-file-format">Configuration File Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#new-configuration-options">New Configuration Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#build-commands">Build Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#patches-on-generated-sources">Patches on Generated Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#document-updates">Document Updates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#deprivileged-boot-mode-support">Deprivileged Boot Mode Support</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.3.html">ACRN v2.3 (Dec 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.3.html#what-s-new-in-v2-3">What’s New in v2.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.2.html">ACRN v2.2 (Sep 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.2.html#what-s-new-in-v2-2">What’s New in v2.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.2.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.2.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.2.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.1.html">ACRN v2.1 (Aug 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.1.html#what-s-new-in-v2-1">What’s New in v2.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.1.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.1.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.0.html">ACRN v2.0 (Jun 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#version-2-0-key-features-comparing-with-v1-0">Version 2.0 Key Features (Comparing With v1.0)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#acrn-architecture-upgrade-to-support-hybrid-mode">ACRN Architecture Upgrade to Support Hybrid Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#new-hardware-platform-support">New Hardware Platform Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#pre-launched-safety-vm-support">Pre-Launched Safety VM Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#post-launched-vm-support-via-ovmf">Post-Launched VM Support via OVMF</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#post-launched-real-time-vm-support">Post-Launched Real-Time VM Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#real-time-vm-performance-optimizations">Real-Time VM Performance Optimizations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#cpu-sharing-support">CPU Sharing Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#large-selection-of-oss-for-user-vms">Large Selection of OSs for User VMs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#grub-bootloader">GRUB Bootloader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#sr-iov-support">SR-IOV Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#graphics-passthrough-support">Graphics Passthrough Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#shared-memory-based-inter-vm-communication">Shared Memory Based Inter-Vm Communication</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#configuration-tool-support">Configuration Tool Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#kata-containers-support">Kata Containers Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#vm-orchestration">VM Orchestration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html">ACRN v1.6.1 (May 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#version-1-6-1-major-features">Version 1.6.1 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#what-s-new-in-v1-6-1">What’s New in v1.6.1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.6.html">ACRN v1.6 (Mar 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#version-1-6-major-features">Version 1.6 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#what-s-new-in-v1-6">What’s New in v1.6</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.5.html">ACRN v1.5 (Jan 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#version-1-5-major-features">Version 1.5 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#what-s-new-in-v1-5">What’s New in v1.5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.4.html">ACRN v1.4 (Oct 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#version-1-4-major-features">Version 1.4 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#what-s-new-in-v1-4">What’s New in v1.4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#security-vulnerabilities">Security Vulnerabilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.3.html">ACRN v1.3 (Sep 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#version-1-3-major-features">Version 1.3 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#what-s-new-in-v1-3">What’s New in v1.3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.2.html">ACRN v1.2 (Aug 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#version-1-2-major-features">Version 1.2 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#what-s-new-in-v1-2">What’s New in v1.2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.1.html">ACRN v1.1 (Jun 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#version-1-1-major-features">Version 1.1 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#hybrid-mode-introduced">Hybrid Mode Introduced</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#support-for-new-guest-operating-systems">Support for New Guest Operating Systems</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.0.2.html">ACRN v1.0.2 (Nov 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.2.html#change-log-in-v1-0-2-since-v1-0-1">Change Log in v1.0.2 Since v1.0.1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.0.1.html">ACRN v1.0.1 (July 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.1.html#change-log-in-version-1-0-1-since-version-1-0">Change Log in Version 1.0.1 Since Version 1.0</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.0.html">ACRN v1.0 (May 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#version-1-0-major-features">Version 1.0 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#hardware-support">Hardware Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#apl-up2-board-with-sbl-firmware">APL UP2 Board With SBL Firmware</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#enable-post-launched-rtvm-support-for-real-time-uos-in-acrn">Enable Post-Launched RTVM Support for Real-Time UOS in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#enable-cache-qos-with-cat">Enable Cache QOS With CAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#enable-qos-based-on-runc-container">Enable QoS Based on runC Container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#s5-support-for-rtvm">S5 Support for RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#ovmf-support-initial-patches-merged-in-acrn">OVMF Support Initial Patches Merged in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#support-acpi-power-key-mediator">Support ACPI Power Key Mediator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#vt-x-vt-d">VT-x, VT-d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#pic-ioapic-msi-msi-x-pci-lapic">PIC/IOAPIC/MSI/MSI-X/PCI/LAPIC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#ethernet">Ethernet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#mass-storage">Mass Storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#usb-xdci">USB (xDCI)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#usb-mediator-xhci">USB Mediator (xHCI)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#wi-fi">Wi-Fi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#ipu-mipi-csi-2-hdmi-in">IPU (MIPI CSI-2, HDMI-In)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#bluetooth">Bluetooth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#gvt-g-for-acrn">GVT-g for ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#gpu-preemption">GPU - Preemption</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#gpu-display-surface-sharing-via-hyper-dma">GPU - Display Surface Sharing via Hyper DMA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#virtio-standard-is-supported">Virtio Standard Is Supported</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#device-pass-through-support">Device Pass-Through Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#gpio-virtualization">GPIO Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#new-acrn-tools">New ACRN Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.8.html">ACRN v0.8 (Apr 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#version-0-8-new-features">Version 0.8 New Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#gpio-virtualization">GPIO Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#enable-qos-based-on-runc-container">Enable QoS Based on runC Container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#s5-support-for-rtvm">S5 Support for RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.7.html">ACRN v0.7 (Mar 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#version-0-7-new-features">Version 0.7 New Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#enable-cache-qos-with-cat">Enable Cache QOS With CAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#support-acpi-power-key-mediator">Support ACPI Power Key Mediator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.6.html">ACRN v0.6 (Feb 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.6.html#version-0-6-new-features">Version 0.6 New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.6.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.6.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.6.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.5.html">ACRN v0.5 (Jan 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.5.html#version-0-5-new-features">Version 0.5 New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.5.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.5.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.5.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.4.html">ACRN v0.4 (Dec 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.4.html#version-0-4-new-features">Version 0.4 New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.4.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.4.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.4.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.3.html">ACRN v0.3 (Nov 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.3.html#version-0-3-new-features">Version 0.3 New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.3.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.3.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.3.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.2.html">ACRN v0.2 (Sep 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#version-0-2-new-features">Version 0.2 New Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#vt-x-vt-d">VT-x, VT-d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#pic-ioapic-msi-msi-x-pci-lapic">PIC/IOAPIC/MSI/MSI-X/PCI/LAPIC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#ethernet">Ethernet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#storage-emmc">Storage (eMMC)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#usb-xdci">USB (xDCI)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#usb-mediator-xhci-and-drd">USB Mediator (xHCI and DRD)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#csme">CSME</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#wifi">WiFi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#ipu-mipi-cs2-hdmi-in">IPU (MIPI-CS2, HDMI-In)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#bluetooth">Bluetooth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#gpu-preemption">GPU  - Preemption</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#gpu-display-surface-sharing-via-hyper-dma">GPU - Display Surface Sharing via Hyper DMA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#s3">S3</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.1.html">ACRN v0.1 (July 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#version-0-1-new-features">Version 0.1 New Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#hardware-support">Hardware Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#gvt-g-for-acrn">GVT-g for ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#virtio-standard-is-supported">Virtio Standard Is Supported</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#device-pass-through-support">Device Pass-Through Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#hypervisor-configuration">Hypervisor Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#new-acrn-tools">New ACRN Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#change-log">Change Log</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../asa.html">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-3">Addressed in ACRN v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-1">Addressed in ACRN v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6">Addressed in ACRN v1.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-4">Addressed in ACRN v1.4</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq.html#what-hardware-does-acrn-support">What Hardware Does ACRN Support?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq.html#how-do-i-configure-acrn-s-memory-size">How Do I Configure ACRN’s Memory Size?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../faq.html#why-does-acrn-need-to-know-how-much-ram-the-system-has">Why Does ACRN Need to Know How Much RAM the System Has?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary of Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+            
+          
+
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Project ACRN™</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+  <!-- 2.4 -->
+  
+  
+
+  <li><a href="../../index.html">2.4</a> &raquo;</li>
+  
+     <li><a href="../../contribute.html">Developer Reference</a> &raquo;</li>
+  
+     <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
+  
+     <li><a href="hld-hypervisor.html">Hypervisor High-Level Design</a> &raquo;</li>
+  
+  <li>Memory Management High-Level Design</li>
+
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="memory-management-high-level-design">
+<span id="memmgt-hld"></span><h1>Memory Management High-Level Design<a class="headerlink" href="#memory-management-high-level-design" title="Permalink to this headline">¶</a></h1>
+<p>This document describes memory management for the ACRN hypervisor.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The hypervisor (HV) virtualizes real physical memory so an unmodified OS
+(such as Linux or Android) that is running in a virtual machine can
+manage its own contiguous physical memory. The HV uses virtual-processor
+identifiers (VPIDs) and the extended page-table mechanism (EPT) to
+translate a guest-physical address into a host-physical address. The HV enables
+EPT and VPID hardware virtualization features, establishes EPT page
+tables for Service and User VMs, and provides EPT page tables operation interfaces to others.</p>
+<p>In the ACRN hypervisor system, there are few different memory spaces to
+consider. From the hypervisor’s point of view:</p>
+<ul class="simple">
+<li><p><strong>Host Physical Address (HPA)</strong>: the native physical address space.</p></li>
+<li><p><strong>Host Virtual Address (HVA)</strong>: the native virtual address space based on
+an MMU. A page table is used to translate from HVA to HPA spaces.</p></li>
+</ul>
+<p>From the Guest OS running on a hypervisor:</p>
+<ul class="simple">
+<li><p><strong>Guest Physical Address (GPA)</strong>: the guest physical address space from a
+virtual machine. GPA to HPA transition is usually based on an
+MMU-like hardware module (EPT in X86), and is associated with a page
+table.</p></li>
+<li><p><strong>Guest Virtual Address (GVA)</strong>: the guest virtual address space from a
+virtual machine based on a vMMU.</p></li>
+</ul>
+<div class="figure align-center" id="mem-overview">
+<a class="reference internal image-reference" href="../../_images/mem-image2a.png"><img alt="../../_images/mem-image2a.png" src="../../_images/mem-image2a.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 150 </span><span class="caption-text">ACRN Memory Mapping Overview</span><a class="headerlink" href="#mem-overview" title="Permalink to this image">¶</a></p>
+</div>
+<p><a class="reference internal" href="#mem-overview"><span class="std std-numref">Figure 150</span></a> provides an overview of the ACRN system memory
+mapping, showing:</p>
+<ul class="simple">
+<li><p>GVA to GPA mapping based on vMMU on a VCPU in a VM</p></li>
+<li><p>GPA to HPA mapping based on EPT for a VM in the hypervisor</p></li>
+<li><p>HVA to HPA mapping based on MMU in the hypervisor</p></li>
+</ul>
+<p>This document illustrates the memory management infrastructure for the
+ACRN hypervisor and how it handles the different memory space views
+inside the hypervisor and from a VM:</p>
+<ul class="simple">
+<li><p>How ACRN hypervisor manages host memory (HPA/HVA)</p></li>
+<li><p>How ACRN hypervisor manages the Service VM guest memory (HPA/GPA)</p></li>
+<li><p>How ACRN hypervisor and the Service VM DM manage the User MV guest memory (HPA/GPA)</p></li>
+</ul>
+</div>
+<div class="section" id="hypervisor-physical-memory-management">
+<h2>Hypervisor Physical Memory Management<a class="headerlink" href="#hypervisor-physical-memory-management" title="Permalink to this headline">¶</a></h2>
+<p>In ACRN, the HV initializes MMU page tables to manage all physical
+memory and then switches to the new MMU page tables. After MMU page
+tables are initialized at the platform initialization stage, no updates
+are made for MMU page tables except when hv_access_memory_region_update is called.
+However, the memory region updated by hv_access_memory_region_update
+must not be accessed by the ACRN hypervisor in advance because access could
+make mapping in the TLB and there is no TLB flush mechanism for the ACRN HV memory.</p>
+<div class="section" id="hypervisor-physical-memory-layout-e820">
+<h3>Hypervisor Physical Memory Layout - E820<a class="headerlink" href="#hypervisor-physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor is the primary owner for managing system memory.
+Typically, the boot firmware (e.g., EFI) passes the platform physical
+memory layout - E820 table to the hypervisor. The ACRN hypervisor does
+its memory management based on this table using 4-level paging.</p>
+<p>The BIOS/bootloader firmware (e.g., EFI) passes the E820 table through a
+multiboot protocol. This table contains the original memory layout for
+the platform.</p>
+<div class="figure align-center" id="mem-layout">
+<a class="reference internal image-reference" href="../../_images/mem-image1.png"><img alt="../../_images/mem-image1.png" src="../../_images/mem-image1.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 151 </span><span class="caption-text">Physical Memory Layout Example</span><a class="headerlink" href="#mem-layout" title="Permalink to this image">¶</a></p>
+</div>
+<p><a class="reference internal" href="#mem-layout"><span class="std std-numref">Figure 151</span></a> is an example of the physical memory layout based on a simple platform E820 table.</p>
+</div>
+<div class="section" id="hypervisor-memory-initialization">
+<h3>Hypervisor Memory Initialization<a class="headerlink" href="#hypervisor-memory-initialization" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor runs in paging mode. After the bootstrap
+processor (BSP) gets the platform E820 table, the BSP creates its MMU page
+table based on it. This is done by the function <em>init_paging()</em>.
+After the application processor (AP) receives the IPI CPU startup
+interrupt, it uses the MMU page tables created by the BSP. In order to bring
+the memory access rights into effect, some other APIs are provided:
+enable_paging will enable IA32_EFER.NXE and CR0.WP, enable_smep will
+enable CR4.SMEP, and enable_smap will enable CR4.SMAP.
+<a class="reference internal" href="#hv-mem-init"><span class="std std-numref">Figure 152</span></a>  describes the hypervisor memory initialization for the BSP
+and APs.</p>
+<div class="figure align-center" id="hv-mem-init">
+<img alt="../../_images/mem-image8.png" src="../../_images/mem-image8.png" />
+<p class="caption"><span class="caption-number">Figure 152 </span><span class="caption-text">Hypervisor Memory Initialization</span><a class="headerlink" href="#hv-mem-init" title="Permalink to this image">¶</a></p>
+</div>
+<p>The following memory mapping policy used is:</p>
+<ul class="simple">
+<li><p>Identical mapping (ACRN hypervisor memory could be relocatable in
+the future)</p></li>
+<li><p>Map all address spaces with UNCACHED type, read/write, user
+and execute-disable access right</p></li>
+<li><p>Remap [0, low32_max_ram) regions to WRITE-BACK type</p></li>
+<li><p>Remap [4G, high64_max_ram) regions to WRITE-BACK type</p></li>
+<li><p>set the paging-structure entries’ U/S flag to
+supervisor-mode for hypervisor-owned memory
+(exclude the memory reserve for trusty)</p></li>
+<li><p>Remove ‘NX’ bit for pages that contain the hv code section</p></li>
+</ul>
+<div class="figure align-center" id="hv-mem-vm-init">
+<img alt="../../_images/mem-image69.png" src="../../_images/mem-image69.png" />
+<p class="caption"><span class="caption-number">Figure 153 </span><span class="caption-text">Hypervisor Virtual Memory Layout</span><a class="headerlink" href="#hv-mem-vm-init" title="Permalink to this image">¶</a></p>
+</div>
+<p><a class="reference internal" href="#hv-mem-vm-init"><span class="std std-numref">Figure 153</span></a> above shows:</p>
+<ul class="simple">
+<li><p>Hypervisor has a view of and can access all system memory</p></li>
+<li><p>Hypervisor has UNCACHED MMIO/PCI hole reserved for devices such as
+LAPIC/IOAPIC accessing</p></li>
+<li><p>Hypervisor has its own memory with WRITE-BACK cache type for its
+code/data (&lt; 1M part is for secondary CPU reset code)</p></li>
+</ul>
+<p>The hypervisor should use minimum memory pages to map from virtual
+address space into the physical address space. So ACRN only supports
+map linear addresses to 2-MByte pages, or 1-GByte pages; it doesn’t
+support map linear addresses to 4-KByte pages.</p>
+<ul class="simple">
+<li><p>If 1GB hugepage can be used
+for virtual address space mapping, the corresponding PDPT entry shall be
+set for this 1GB hugepage.</p></li>
+<li><p>If 1GB hugepage can’t be used for virtual
+address space mapping and 2MB hugepage can be used, the corresponding
+PDT entry shall be set for this 2MB hugepage.</p></li>
+</ul>
+<p>If the memory type or access rights of a page is updated, or some virtual
+address space is deleted, it will lead to splitting of the corresponding
+page. The hypervisor will still keep using minimum memory pages to map from
+the virtual address space into the physical address space.</p>
+</div>
+<div class="section" id="memory-pages-pool-functions">
+<h3>Memory Pages Pool Functions<a class="headerlink" href="#memory-pages-pool-functions" title="Permalink to this headline">¶</a></h3>
+<p>Memory pages pool functions provide static management of one
+4KB page-size memory block for each page level for each VM or HV; it is
+used by the hypervisor to do memory mapping.</p>
+</div>
+<div class="section" id="data-flow-design">
+<h3>Data Flow Design<a class="headerlink" href="#data-flow-design" title="Permalink to this headline">¶</a></h3>
+<p>The physical memory management unit provides MMU 4-level page tables
+creation and services updates, MMU page tables switching service, SMEP
+enable service, and HPA/HVA retrieving service to other units.
+<a class="reference internal" href="#mem-data-flow-physical"><span class="std std-numref">Figure 154</span></a> shows the data flow diagram
+of physical memory management.</p>
+<div class="figure align-center" id="mem-data-flow-physical">
+<img alt="../../_images/mem-image45.png" src="../../_images/mem-image45.png" />
+<p class="caption"><span class="caption-number">Figure 154 </span><span class="caption-text">Data Flow of Hypervisor Physical Memory Management</span><a class="headerlink" href="#mem-data-flow-physical" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="interfaces-design">
+<h3>Interfaces Design<a class="headerlink" href="#interfaces-design" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="mmu-initialization">
+<h4>MMU Initialization<a class="headerlink" href="#mmu-initialization" title="Permalink to this headline">¶</a></h4>
+<dl class="c function">
+<dt id="c.enable_smep">
+<span class="target" id="group__acrn__mem_ga7bb574e29bce9e800481c5db00ef3cd3_1ga7bb574e29bce9e800481c5db00ef3cd3"></span>void <code class="sig-name descname">enable_smep</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.enable_smep" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Supervisor-mode execution prevention (SMEP) enable. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.enable_smap">
+<span class="target" id="group__acrn__mem_ga30096afd17c36eca5a9b0553e2851204_1ga30096afd17c36eca5a9b0553e2851204"></span>void <code class="sig-name descname">enable_smap</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.enable_smap" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Supervisor-mode Access Prevention (SMAP) enable. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.enable_paging">
+<span class="target" id="group__acrn__mem_ga0ad77ccada03a5abedf6917e6f2649a5_1ga0ad77ccada03a5abedf6917e6f2649a5"></span>void <code class="sig-name descname">enable_paging</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.enable_paging" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>MMU paging enable. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.init_paging">
+<span class="target" id="group__acrn__mem_gac3abd519b92ce6ac308db69e4c4ff04e_1gac3abd519b92ce6ac308db69e4c4ff04e"></span>void <code class="sig-name descname">init_paging</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.init_paging" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>MMU page tables initialization. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="section" id="address-space-translation">
+<h4>Address Space Translation<a class="headerlink" href="#address-space-translation" title="Permalink to this headline">¶</a></h4>
+<dl class="c function">
+<dt id="c.hpa2hva_early">
+<span class="target" id="group__acrn__mem_ga4b0bc3ae664b3185783805b8447b2685_1ga4b0bc3ae664b3185783805b8447b2685"></span>void *<code class="sig-name descname">hpa2hva_early</code><span class="sig-paren">(</span>uint64_t <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#c.hpa2hva_early" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate host-physical address to host-virtual address. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>The translated host-virtual address </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">x</span></code>: The specified host-physical address</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.hva2hpa_early">
+<span class="target" id="group__acrn__mem_ga41826c8ec996f85cff4bafe892b6ef5e_1ga41826c8ec996f85cff4bafe892b6ef5e"></span>uint64_t <code class="sig-name descname">hva2hpa_early</code><span class="sig-paren">(</span>void *<em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#c.hva2hpa_early" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate host-virtual address to host-physical address. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>The translated host-physical address </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">x</span></code>: The specified host-virtual address</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.hpa2hva">
+<span class="target" id="group__acrn__mem_ga30c6f3439527ad05a3a70f384e14faf9_1ga30c6f3439527ad05a3a70f384e14faf9"></span>void *<code class="sig-name descname">hpa2hva</code><span class="sig-paren">(</span>uint64_t <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#c.hpa2hva" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate host-physical address to host-virtual address. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>The translated host-virtual address </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">x</span></code>: The specified host-physical address</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.hva2hpa">
+<span class="target" id="group__acrn__mem_gad0e9d97f969ab90789edd8b4ee7548ee_1gad0e9d97f969ab90789edd8b4ee7548ee"></span>uint64_t <code class="sig-name descname">hva2hpa</code><span class="sig-paren">(</span><em class="property">const</em> void *<em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#c.hva2hpa" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate host-virtual address to host-physical address. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>The translated host-physical address </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">x</span></code>: The specified host-virtual address</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="hypervisor-memory-virtualization">
+<h2>Hypervisor Memory Virtualization<a class="headerlink" href="#hypervisor-memory-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>The hypervisor provides a contiguous region of physical memory for the Service VM
+and each User VM. It also guarantees that the Service and User VMs can not access the
+code and internal data in the hypervisor, and each User VM can not access
+the code and internal data of the Service VM and other User VMs.</p>
+<p>The hypervisor:</p>
+<ul class="simple">
+<li><p>enables EPT and VPID hardware virtualization features</p></li>
+<li><p>establishes EPT page tables for the Service and User VMs</p></li>
+<li><p>provides EPT page tables operations services</p></li>
+<li><p>virtualizes MTRR for Service and User VMs</p></li>
+<li><p>provides VPID operations services</p></li>
+<li><p>provides services for address spaces translation between the GPA and HPA</p></li>
+<li><p>provides services for data transfer between the hypervisor and the virtual machine</p></li>
+</ul>
+<div class="section" id="memory-virtualization-capability-checking">
+<h3>Memory Virtualization Capability Checking<a class="headerlink" href="#memory-virtualization-capability-checking" title="Permalink to this headline">¶</a></h3>
+<p>In the hypervisor, memory virtualization provides EPT/VPID capability
+checking service and an EPT hugepage supporting checking service. Before the HV
+enables memory virtualization and uses the EPT hugepage, these services need
+to be invoked by other units.</p>
+</div>
+<div class="section" id="data-transfer-between-different-address-spaces">
+<h3>Data Transfer Between Different Address Spaces<a class="headerlink" href="#data-transfer-between-different-address-spaces" title="Permalink to this headline">¶</a></h3>
+<p>In ACRN, different memory space management is used in the hypervisor,
+Service VM, and User VM to achieve spatial isolation. Between memory
+spaces, there are different kinds of data transfer, such as when a Service/User VM
+may hypercall to request hypervisor services which includes data
+transferring, or when the hypervisor does instruction emulation: the HV
+needs to access the guest instruction pointer register to fetch guest
+instruction data.</p>
+<div class="section" id="access-gpa-from-hypervisor">
+<h4>Access GPA From Hypervisor<a class="headerlink" href="#access-gpa-from-hypervisor" title="Permalink to this headline">¶</a></h4>
+<p>When the hypervisor needs to access the GPA for data transfer, the caller from guest
+must make sure this memory range’s GPA is continuous. But for HPA in the
+hypervisor, it could be discontinuous (especially for User VM under hugetlb
+allocation mechanism). For example, a 4M GPA range may map to 2
+different 2M huge host-physical pages. The ACRN hypervisor must take
+care of this kind of data transfer by doing EPT page walking based on
+its HPA.</p>
+</div>
+<div class="section" id="access-gva-from-hypervisor">
+<h4>Access GVA From Hypervisor<a class="headerlink" href="#access-gva-from-hypervisor" title="Permalink to this headline">¶</a></h4>
+<p>When the hypervisor needs to access GVA for data transfer, it’s likely both
+GPA and HPA could be address discontinuous. The ACRN hypervisor must
+watch for this kind of data transfer and handle it by doing page
+walking based on both its GPA and HPA.</p>
+</div>
+</div>
+<div class="section" id="ept-page-tables-operations">
+<h3>EPT Page Tables Operations<a class="headerlink" href="#ept-page-tables-operations" title="Permalink to this headline">¶</a></h3>
+<p>The hypervisor should use a minimum of memory pages to map from
+guest-physical address (GPA) space into host-physical address (HPA)
+space.</p>
+<ul class="simple">
+<li><p>If 1GB hugepage can be used for GPA space mapping, the
+corresponding EPT PDPT entry shall be set for this 1GB hugepage.</p></li>
+<li><p>If 1GB hugepage can’t be used for GPA space mapping and 2MB hugepage can be
+used, the corresponding EPT PDT entry shall be set for this 2MB
+hugepage.</p></li>
+<li><p>If both 1GB hugepage and 2MB hugepage can’t be used for GPA
+space mapping, the corresponding EPT PT entry shall be set.</p></li>
+</ul>
+<p>If memory type or access rights of a page is updated or some GPA space
+is deleted, it will lead to the corresponding EPT page being split. The
+hypervisor should still keep to using minimum EPT pages to map from GPA
+space into HPA space.</p>
+<p>The hypervisor provides EPT guest-physical mappings adding service, EPT
+guest-physical mappings modifying/deleting service and EPT guest-physical
+mappings invalidation service.</p>
+</div>
+</div>
+<div class="section" id="virtual-mtrr">
+<h2>Virtual MTRR<a class="headerlink" href="#virtual-mtrr" title="Permalink to this headline">¶</a></h2>
+<p>In ACRN, the hypervisor only virtualizes MTRRs fixed range (0~1MB).
+The HV sets MTRRs of the fixed range as Write-Back for a User VM, and
+the Service VM reads
+native MTRRs of the fixed range set by BIOS.</p>
+<p>If the guest physical address is not in the fixed range (0~1MB), the
+hypervisor uses the default memory type in the MTRR (Write-Back).</p>
+<p>When the guest disables MTRRs, the HV sets the guest address memory type
+as UC.</p>
+<p>If the guest physical address is in fixed range (0~1MB), the HV sets
+memory type according to the fixed virtual MTRRs.</p>
+<p>When the guest enable MTRRs, MTRRs have no effect on the memory type
+used for access to GPA. The HV first intercepts MTRR MSR registers
+access through MSR access VM exit and updates EPT memory type field in EPT
+PTE according to the memory type selected by MTRRs.  This combines with
+PAT entry in the PAT MSR (which is determined by PAT, PCD, and PWT bits
+from the guest paging structures) to determine the effective memory
+type.</p>
+<div class="section" id="vpid-operations">
+<h3>VPID Operations<a class="headerlink" href="#vpid-operations" title="Permalink to this headline">¶</a></h3>
+<p>Virtual-processor identifier (VPID) is a hardware feature to optimize
+TLB management. When VPID is enabled, hardware will add a tag for the TLB of
+a logical processor and cache information for multiple linear-address
+spaces. VMX transitions may retain cached information and the logical
+processor switches to a different address space, avoiding unnecessary
+TLB flushes.</p>
+<p>In ACRN, an unique VPID must be allocated for each virtual CPU
+when a virtual CPU is created. The logical processor invalidates linear
+mappings and combined mapping associated with all VPIDs (except VPID
+0000H), and with all PCIDs when the logical processor launches the virtual
+CPU. The logical processor invalidates all linear mapping and combined
+mappings associated with the specified VPID when the interrupt pending
+request handling needs to invalidate cached mapping of the specified
+VPID.</p>
+</div>
+<div class="section" id="id1">
+<h3>Data Flow Design<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>The memory virtualization unit includes address space translation
+functions, data transferring functions, VM EPT operations functions,
+VPID operations functions, VM exit hanging about EPT violation and EPT
+misconfiguration, and MTRR virtualization functions. This unit handles
+guest-physical mapping updates by creating or updating related EPT page
+tables. It virtualizes MTRR for guest OS by updating related EPT page
+tables. It handles address translation from GPA to HPA by walking EPT
+page tables. It copies data from VM into the HV or from the HV to VM by
+walking guest MMU page tables and EPT page tables. It provides services
+to allocate VPID for each virtual CPU and TLB invalidation related VPID.
+It handles VM exit about EPT violation and EPT misconfiguration. The
+following <a class="reference internal" href="#mem-flow-mem-virt"><span class="std std-numref">Figure 155</span></a> describes the data flow diagram of
+the memory virtualization unit.</p>
+<div class="figure align-center" id="mem-flow-mem-virt">
+<img alt="../../_images/mem-image84.png" src="../../_images/mem-image84.png" />
+<p class="caption"><span class="caption-number">Figure 155 </span><span class="caption-text">Data Flow of Hypervisor Memory Virtualization</span><a class="headerlink" href="#mem-flow-mem-virt" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="data-structure-design">
+<h3>Data Structure Design<a class="headerlink" href="#data-structure-design" title="Permalink to this headline">¶</a></h3>
+<p>EPT Memory Type Definition:</p>
+<dl class="c macro">
+<dt id="c.EPT_MT_SHIFT">
+<span class="target" id="group__ept__mem__type_1ga18046ba6662a853e196e711c122dd9c2"></span><code class="sig-name descname">EPT_MT_SHIFT</code><a class="headerlink" href="#c.EPT_MT_SHIFT" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory type is specified in bits 5:3 of the EPT paging-structure entry. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.EPT_UNCACHED">
+<span class="target" id="group__ept__mem__type_1gaadcf2e121830db65a351660f3443f5b0"></span><code class="sig-name descname">EPT_UNCACHED</code><a class="headerlink" href="#c.EPT_UNCACHED" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory type is uncacheable. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.EPT_WC">
+<span class="target" id="group__ept__mem__type_1ga1c96c36bcf74af18413710e923184a5d"></span><code class="sig-name descname">EPT_WC</code><a class="headerlink" href="#c.EPT_WC" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory type is write combining. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.EPT_WT">
+<span class="target" id="group__ept__mem__type_1gaf27375d3e08216c4e024c0191dbf1c95"></span><code class="sig-name descname">EPT_WT</code><a class="headerlink" href="#c.EPT_WT" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory type is write through. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.EPT_WP">
+<span class="target" id="group__ept__mem__type_1ga2772895d7f14283263414d9b62a93be0"></span><code class="sig-name descname">EPT_WP</code><a class="headerlink" href="#c.EPT_WP" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory type is write protected. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.EPT_WB">
+<span class="target" id="group__ept__mem__type_1ga4124c6b2258211373c9d2ac0da596a42"></span><code class="sig-name descname">EPT_WB</code><a class="headerlink" href="#c.EPT_WB" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory type is write back. </p>
+</dd></dl>
+
+<p>EPT Memory Access Right Definition:</p>
+<dl class="c macro">
+<dt id="c.EPT_RD">
+<span class="target" id="group__ept__mem__access__right_1ga33c40ffb0963d41e800be368ce472043"></span><code class="sig-name descname">EPT_RD</code><a class="headerlink" href="#c.EPT_RD" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory access right is read-only. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.EPT_WR">
+<span class="target" id="group__ept__mem__access__right_1gaba5eb28f636e4536706c96b63007794c"></span><code class="sig-name descname">EPT_WR</code><a class="headerlink" href="#c.EPT_WR" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory access right is read/write. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.EPT_EXE">
+<span class="target" id="group__ept__mem__access__right_1ga9ced54158d6cd6e22b82cf5d878d9927"></span><code class="sig-name descname">EPT_EXE</code><a class="headerlink" href="#c.EPT_EXE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory access right is executable. </p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.EPT_RWX">
+<span class="target" id="group__ept__mem__access__right_1gabc06dc868f9819201e0a936791fccadc"></span><code class="sig-name descname">EPT_RWX</code><a class="headerlink" href="#c.EPT_RWX" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT memory access right is read/write and executable. </p>
+</dd></dl>
+
+</div>
+<div class="section" id="id2">
+<h3>Interfaces Design<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>The memory virtualization unit interacts with external units through VM
+exit and APIs.</p>
+</div>
+<div class="section" id="vm-exit-about-ept">
+<h3>VM Exit About EPT<a class="headerlink" href="#vm-exit-about-ept" title="Permalink to this headline">¶</a></h3>
+<p>There are two VM exit handlers for EPT violation and EPT
+misconfiguration in the hypervisor. EPT page tables are
+always configured correctly for the Service and User VMs. If an EPT misconfiguration is
+detected, a fatal error is reported by the HV. The hypervisor
+uses EPT violation to intercept MMIO access to do device emulation. EPT
+violation handling data flow is described in the
+<a class="reference internal" href="hv-cpu-virt.html#instruction-emulation"><span class="std std-ref">Instruction Emulation</span></a>.</p>
+</div>
+<div class="section" id="memory-virtualization-apis">
+<h3>Memory Virtualization APIs<a class="headerlink" href="#memory-virtualization-apis" title="Permalink to this headline">¶</a></h3>
+<p>Here is a list of major memory related APIs in the HV:</p>
+<div class="section" id="ept-vpid-capability-checking">
+<h4>EPT/VPID Capability Checking<a class="headerlink" href="#ept-vpid-capability-checking" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="data-transferring-between-hypervisor-and-vm">
+<h4>Data Transferring Between Hypervisor and VM<a class="headerlink" href="#data-transferring-between-hypervisor-and-vm" title="Permalink to this headline">¶</a></h4>
+<dl class="c function">
+<dt id="c.copy_from_gpa">
+<span class="target" id="group__acrn__mem_gaf76b800fc29948379f856ea78ea0eb34_1gaf76b800fc29948379f856ea78ea0eb34"></span>int32_t <code class="sig-name descname">copy_from_gpa</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, void *<em>h_ptr</em>, uint64_t <em>gpa</em>, uint32_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#c.copy_from_gpa" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Copy data from VM GPA space to HV address space. </p>
+<p><dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>Caller(Guest) should make sure gpa is continuous.<ul class="simple">
+<li><p>gpa from hypercall input which from kernel stack is gpa continuous, not support kernel stack from vmap</p></li>
+<li><p>some other gpa from hypercall parameters, VHM should make sure it’s continuous </p></li>
+</ul>
+</p>
+</dd>
+<dt><strong>Preconditions</strong></dt><dd><p>Pointer vm is non-NULL </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: The pointer that points to VM data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">h_ptr</span></code>: The pointer that points the start HV address of HV memory region which data is stored in </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[out]</span> <span class="pre">gpa</span></code>: The start GPA address of GPA memory region which data will be copied into </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">size</span></code>: The size (bytes) of GPA memory region which data is stored in</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.copy_to_gpa">
+<span class="target" id="group__acrn__mem_gabc8ab821205d666d41a90b4c7d2e7976_1gabc8ab821205d666d41a90b4c7d2e7976"></span>int32_t <code class="sig-name descname">copy_to_gpa</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, void *<em>h_ptr</em>, uint64_t <em>gpa</em>, uint32_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#c.copy_to_gpa" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Copy data from HV address space to VM GPA space. </p>
+<p><dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>Caller(Guest) should make sure gpa is continuous.<ul class="simple">
+<li><p>gpa from hypercall input which from kernel stack is gpa continuous, not support kernel stack from vmap</p></li>
+<li><p>some other gpa from hypercall parameters, VHM should make sure it’s continuous </p></li>
+</ul>
+</p>
+</dd>
+<dt><strong>Preconditions</strong></dt><dd><p>Pointer vm is non-NULL </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: The pointer that points to VM data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">h_ptr</span></code>: The pointer that points the start HV address of HV memory region which data is stored in </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[out]</span> <span class="pre">gpa</span></code>: The start GPA address of GPA memory region which data will be copied into </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">size</span></code>: The size (bytes) of GPA memory region which data will be copied into</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.copy_from_gva">
+<span class="target" id="group__acrn__mem_ga8d917d7c9042547c7ddc9d706f413673_1ga8d917d7c9042547c7ddc9d706f413673"></span>int32_t <code class="sig-name descname">copy_from_gva</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em>, void *<em>h_ptr</em>, uint64_t <em>gva</em>, uint32_t <em>size</em>, uint32_t *<em>err_code</em>, uint64_t *<em>fault_addr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.copy_from_gva" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Copy data from VM GVA space to HV address space. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vcpu</span></code>: The pointer that points to vcpu data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[out]</span> <span class="pre">h_ptr</span></code>: The pointer that returns the start HV address of HV memory region which data will be copied to </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">gva</span></code>: The start GVA address of GVA memory region which data is stored in </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">size</span></code>: The size (bytes) of GVA memory region which data is stored in </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[out]</span> <span class="pre">err_code</span></code>: The page fault flags </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[out]</span> <span class="pre">fault_addr</span></code>: The GVA address that causes a page fault </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id3">
+<h4>Address Space Translation<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<dl class="c function">
+<dt id="c.gpa2hpa">
+<span class="target" id="ept_8h_a952f4921ff63f1287c48a9fbf2550dc9_1a952f4921ff63f1287c48a9fbf2550dc9"></span>uint64_t <code class="sig-name descname">gpa2hpa</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint64_t <em>gpa</em><span class="sig-paren">)</span><a class="headerlink" href="#c.gpa2hpa" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translating from guest-physical address to host-physcial address. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: the pointer that points to VM data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">gpa</span></code>: the specified guest-physical address</p></li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">hpa</span></code>: the host physical address mapping to the <code class="docutils literal notranslate"><span class="pre">gpa</span></code> </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INVALID_HPA</span></code>: the HPA of parameter gpa is unmapping </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.sos_vm_hpa2gpa">
+<span class="target" id="ept_8h_a0111ba05b983f92e399b28efdff6e3d8_1a0111ba05b983f92e399b28efdff6e3d8"></span>uint64_t <code class="sig-name descname">sos_vm_hpa2gpa</code><span class="sig-paren">(</span>uint64_t <em>hpa</em><span class="sig-paren">)</span><a class="headerlink" href="#c.sos_vm_hpa2gpa" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translating from host-physical address to guest-physical address for SOS_VM. </p>
+<p><dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>: the gpa and hpa are identical mapping in SOS. </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">hpa</span></code>: the specified host-physical address</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="section" id="ept">
+<h4>EPT<a class="headerlink" href="#ept" title="Permalink to this headline">¶</a></h4>
+<dl class="c function">
+<dt id="c.ept_add_mr">
+<span class="target" id="ept_8h_ad9abfc7e72efc9ae4ed216d0180ef8e3_1ad9abfc7e72efc9ae4ed216d0180ef8e3"></span>void <code class="sig-name descname">ept_add_mr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint64_t *<em>pml4_page</em>, uint64_t <em>hpa</em>, uint64_t <em>gpa</em>, uint64_t <em>size</em>, uint64_t <em>prot_orig</em><span class="sig-paren">)</span><a class="headerlink" href="#c.ept_add_mr" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Guest-physical memory region mapping. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: the pointer that points to VM data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">pml4_page</span></code>: The physical address of The EPTP </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">hpa</span></code>: The specified start host physical address of host physical memory region that GPA will be mapped </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">gpa</span></code>: The specified start guest physical address of guest physical memory region that needs to be mapped </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">size</span></code>: The size of guest physical memory region that needs to be mapped </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">prot_orig</span></code>: The specified memory access right and memory type</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.ept_del_mr">
+<span class="target" id="ept_8h_a9f117b8aa17f2946e7d9b2c7c20d42de_1a9f117b8aa17f2946e7d9b2c7c20d42de"></span>void <code class="sig-name descname">ept_del_mr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint64_t *<em>pml4_page</em>, uint64_t <em>gpa</em>, uint64_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#c.ept_del_mr" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Guest-physical memory region unmapping. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None</p>
+</dd>
+<dt><strong>Preconditions</strong></dt><dd><p>[gpa,gpa+size) has been mapped into host physical memory region </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: the pointer that points to VM data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">pml4_page</span></code>: The physical address of The EPTP </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">gpa</span></code>: The specified start guest physical address of guest physical memory region whoes mapping needs to be deleted </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">size</span></code>: The size of guest physical memory region</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.ept_modify_mr">
+<span class="target" id="ept_8h_af6723cdc09cfe6293a2c6f241fad8412_1af6723cdc09cfe6293a2c6f241fad8412"></span>void <code class="sig-name descname">ept_modify_mr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, uint64_t *<em>pml4_page</em>, uint64_t <em>gpa</em>, uint64_t <em>size</em>, uint64_t <em>prot_set</em>, uint64_t <em>prot_clr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.ept_modify_mr" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Guest-physical memory page access right or memory type updating. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: the pointer that points to VM data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">pml4_page</span></code>: The physical address of The EPTP </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">gpa</span></code>: The specified start guest physical address of guest physical memory region whoes mapping needs to be updated </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">size</span></code>: The size of guest physical memory region </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">prot_set</span></code>: The specified memory access right and memory type that will be set </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">prot_clr</span></code>: The specified memory access right and memory type that will be cleared</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.destroy_ept">
+<span class="target" id="ept_8h_a2df86e77ed6bcb68cd35eaea4f00b0af_1a2df86e77ed6bcb68cd35eaea4f00b0af"></span>void <code class="sig-name descname">destroy_ept</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em><span class="sig-paren">)</span><a class="headerlink" href="#c.destroy_ept" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT page tables destroy. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[inout]</span> <span class="pre">vm</span></code>: the pointer that points to VM data structure</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.invept">
+<span class="target" id="group__acrn__mem_ga091e38f38e1189f69172b020c48d8bc1_1ga091e38f38e1189f69172b020c48d8bc1"></span>void <code class="sig-name descname">invept</code><span class="sig-paren">(</span><em class="property">const</em> void *<em>eptp</em><span class="sig-paren">)</span><a class="headerlink" href="#c.invept" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Guest-physical mappings and combined mappings invalidation. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">eptp</span></code>: the pointer that points the eptp</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.ept_misconfig_vmexit_handler">
+<span class="target" id="ept_8h_aaef31925fc86072935ac1f91135a4c5d_1aaef31925fc86072935ac1f91135a4c5d"></span>int32_t <code class="sig-name descname">ept_misconfig_vmexit_handler</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#c.ept_misconfig_vmexit_handler" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>EPT misconfiguration handling. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vcpu</span></code>: the pointer that points to vcpu data structure</p></li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-EINVAL</span></code>: fail to handle the EPT misconfig </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code>: Success to handle the EPT misconfig </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.ept_flush_leaf_page">
+<span class="target" id="ept_8h_a6787e6c0770190057f16b88aa60f9fe6_1a6787e6c0770190057f16b88aa60f9fe6"></span>void <code class="sig-name descname">ept_flush_leaf_page</code><span class="sig-paren">(</span>uint64_t *<em>pge</em>, uint64_t <em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#c.ept_flush_leaf_page" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Flush address space from the page entry. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">pge</span></code>: the pointer that points to the page entry</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">size</span></code>: the size of the page</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.get_ept_entry">
+<span class="target" id="ept_8h_a63198a50df79f300ff882c3dc219165a_1a63198a50df79f300ff882c3dc219165a"></span>void *<code class="sig-name descname">get_ept_entry</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em><span class="sig-paren">)</span><a class="headerlink" href="#c.get_ept_entry" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get EPT pointer of the vm. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: the pointer that points to VM data structure</p></li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">If</span></code>: the current context of vm is SECURE_WORLD, return EPT pointer of secure world, otherwise return EPT pointer of normal world. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.walk_ept_table">
+<span class="target" id="ept_8h_ab39f452ccd0e225d34b2362d1c152292_1ab39f452ccd0e225d34b2362d1c152292"></span>void <code class="sig-name descname">walk_ept_table</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vm *<em>vm</em>, pge_handler <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.walk_ept_table" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Walking through EPT table. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: the pointer that points to VM data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">cb</span></code>: the pointer that points to walk_ept_table callback, the callback will be invoked when getting a present page entry from EPT, and the callback could get the page entry and page size parameters.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id4">
+<h4>Virtual MTRR<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<dl class="c function">
+<dt id="c.init_vmtrr">
+<span class="target" id="group__acrn__mem_ga635875e8f1671d8992f7b3056ef95a57_1ga635875e8f1671d8992f7b3056ef95a57"></span>void <code class="sig-name descname">init_vmtrr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em><span class="sig-paren">)</span><a class="headerlink" href="#c.init_vmtrr" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Virtual MTRR initialization. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[inout]</span> <span class="pre">vcpu</span></code>: The pointer that points VCPU data structure</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.write_vmtrr">
+<span class="target" id="group__acrn__mem_gab4d55d5cb7fc588801f2dcfdd248d471_1gab4d55d5cb7fc588801f2dcfdd248d471"></span>void <code class="sig-name descname">write_vmtrr</code><span class="sig-paren">(</span><em class="property">struct</em> acrn_vcpu *<em>vcpu</em>, uint32_t <em>msr</em>, uint64_t <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#c.write_vmtrr" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Virtual MTRR MSR write. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[inout]</span> <span class="pre">vcpu</span></code>: The pointer that points VCPU data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">msr</span></code>: Virtual MTRR MSR Address </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">value</span></code>: The value that will be writen into virtual MTRR MSR</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.read_vmtrr">
+<span class="target" id="group__acrn__mem_ga64b08edce2649aecf61a13abae5b4b26_1ga64b08edce2649aecf61a13abae5b4b26"></span>uint64_t <code class="sig-name descname">read_vmtrr</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> acrn_vcpu *<em>vcpu</em>, uint32_t <em>msr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.read_vmtrr" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Virtual MTRR MSR read. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>The specified virtual MTRR MSR value </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vcpu</span></code>: The pointer that points VCPU data structure </p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">msr</span></code>: Virtual MTRR MSR Address</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+<div class="section" id="vpid">
+<h4>VPID<a class="headerlink" href="#vpid" title="Permalink to this headline">¶</a></h4>
+<dl class="c function">
+<dt id="c.flush_vpid_single">
+<span class="target" id="group__acrn__mem_gacfc5041fe000c3cc78e1063a1f51207a_1gacfc5041fe000c3cc78e1063a1f51207a"></span>void <code class="sig-name descname">flush_vpid_single</code><span class="sig-paren">(</span>uint16_t <em>vpid</em><span class="sig-paren">)</span><a class="headerlink" href="#c.flush_vpid_single" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Specified signle VPID flush. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vpid</span></code>: the specified VPID</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.flush_vpid_global">
+<span class="target" id="group__acrn__mem_ga5c02afec6c9e9ecbdda3ff5b93f4b579_1ga5c02afec6c9e9ecbdda3ff5b93f4b579"></span>void <code class="sig-name descname">flush_vpid_global</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.flush_vpid_global" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>All VPID flush. </p>
+<p><dl class="simple">
+<dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="service-os-memory-management">
+<h2>Service OS Memory Management<a class="headerlink" href="#service-os-memory-management" title="Permalink to this headline">¶</a></h2>
+<p>After the ACRN hypervisor starts, it creates the Service VM as its first
+VM. The Service VM runs all the native device drivers, manages the
+hardware devices, and provides I/O mediation to guest VMs. The Service
+OS is in charge of the memory allocation for Guest VMs as well.</p>
+<p>ACRN hypervisor passes the whole system memory access (except its own
+part) to the Service VM. The Service VM must be able to access all of
+the system memory except the hypervisor part.</p>
+<div class="section" id="guest-physical-memory-layout-e820">
+<h3>Guest Physical Memory Layout - E820<a class="headerlink" href="#guest-physical-memory-layout-e820" title="Permalink to this headline">¶</a></h3>
+<p>The ACRN hypervisor passes the original E820 table to the Service VM
+after filtering out its own part. So from Service VM’s view, it sees
+almost all the system memory as shown here:</p>
+<div class="figure align-center" id="sos-mem-layout">
+<a class="reference internal image-reference" href="../../_images/mem-image3.png"><img alt="../../_images/mem-image3.png" src="../../_images/mem-image3.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 156 </span><span class="caption-text">Service VM Physical Memory Layout</span><a class="headerlink" href="#sos-mem-layout" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="host-to-guest-mapping">
+<h3>Host to Guest Mapping<a class="headerlink" href="#host-to-guest-mapping" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor creates the Service OS’s guest (GPA) to host (HPA) mapping
+(EPT mapping) through the function <code class="docutils literal notranslate"><span class="pre">prepare_sos_vm_memmap()</span></code>
+when it creates the Service VM. It follows these rules:</p>
+<ul class="simple">
+<li><p>Identical mapping</p></li>
+<li><p>Map all memory range with UNCACHED type</p></li>
+<li><p>Remap RAM entries in E820 (revised) with WRITE-BACK type</p></li>
+<li><p>Unmap ACRN hypervisor memory range</p></li>
+<li><p>Unmap all platform EPC resource</p></li>
+<li><p>Unmap ACRN hypervisor emulated vLAPIC/vIOAPIC MMIO range</p></li>
+</ul>
+<p>The guest to host mapping is static for the Service VM; it will not
+change after the Service VM begins running except the PCI device BAR
+address mapping could be re-programmed by the Service VM. EPT violation
+is serving for vLAPIC/vIOAPIC’s emulation or PCI MSI-X table BAR’s emulation
+in the hypervisor for Service VM.</p>
+</div>
+</div>
+<div class="section" id="trusty">
+<h2>Trusty<a class="headerlink" href="#trusty" title="Permalink to this headline">¶</a></h2>
+<p>For an Android User OS, there is a secure world named trusty world
+support, whose memory must be secured by the ACRN hypervisor and
+must not be accessible by the Seervice/User VM normal world.</p>
+<div class="figure align-center" id="id5">
+<img alt="../../_images/mem-image18.png" src="../../_images/mem-image18.png" />
+<p class="caption"><span class="caption-number">Figure 157 </span><span class="caption-text">User VM Physical Memory Layout with Trusty</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="hv-io-emulation.html" class="btn btn-neutral float-right" title="I/O Emulation High-Level Design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="hv-cpu-virt.html" class="btn btn-neutral float-left" title="CPU Virtualization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2018-2021, Project ACRN™
+      <span class="lastupdated">
+        Last updated on Apr 06, 2021.
+      </span>
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
