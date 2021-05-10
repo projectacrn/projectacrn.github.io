@@ -1127,38 +1127,38 @@ All post-conditions shall be guaranteed by the function. All callers of the
 function should trust these post-conditions are met.
 Error checking of the post-conditions is not needed in release version of
 each caller. Developers could use ASSERT to catch design errors in a debug
-version for some cases. Verification of the hypervisor shall check whether the
-function guarantees all post-conditions (or not).</p>
+version for some cases. Verification of the hypervisor shall check whether
+the function guarantees all post-conditions (or not).</p>
 <p>This design assumption applies to the following case:</p>
 <ul>
 <li><p>Return value of the function</p>
-<p>It is used to guarantee that the return value is valid, such as the return
-pointer is not NULL, the return value is within a valid range, or the
-members of the return structure are valid.</p>
+<p>It is used to guarantee that the return value is valid; for example, the
+return pointer is not NULL, the return value is within a valid range, or
+the  members of the return structure are valid.</p>
 </li>
 </ul>
 </dd>
-<dt><strong>Application Constraints</strong></dt><dd><p>Application constraints of the hypervisor shall be defined in design document
-and safety manual.
-All application constraints shall be guaranteed by external safety
-applications, such as Board Support Package, firmware, safety VM, or Hardware.
-The verification of application integration shall check whether the safety
-application meets all application constraints. These constraints must be verified
-during hypervisor validation test. It is optional to do error checking for
-application constraints at hypervisor boot time.</p>
+<dt><strong>Application Constraints</strong></dt><dd><p>Application constraints of the hypervisor shall be defined in design
+document and safety manual. All application constraints shall be guaranteed
+by external safety applications, such as Board Support Package, firmware,
+safety VM, and Hardware. The verification of application integration shall
+check whether the safety application meets all application constraints.
+These constraints must be verified during hypervisor validation test. It is
+optional to do error checking for application constraints at hypervisor
+boot time.</p>
 <p>This design assumption applies to the following cases:</p>
 <ul class="simple">
-<li><p>Configuration data defined by external safety application, such as physical
-PCI device information specific for each board design.</p></li>
-<li><p>Input data that is only specified by external safety application.</p></li>
+<li><p>Configuration data defined by external safety application, such as
+physical PCI device information specific for each board design.</p></li>
+<li><p>Input data that is specified only by external safety application.</p></li>
 </ul>
 </dd>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If input data can be specified by both a non-safety VM and a safety VM,
-the application constraint isn’t applicable to these data. Related error checking
-and handling shall be done during hypervisor design.</p>
+<p>If input data can be specified by both a non-safety VM and a
+safety VM, the application constraint isn’t applicable to these data.
+Related error checking and handling shall be done during hypervisor design.</p>
 </div>
 <p>Refer to the <a class="reference internal" href="c_coding_guidelines.html#c-coding-guidelines"><span class="std std-ref">C Programming Language Coding Guidelines</span></a>
 to document these design assumptions with doxygen-style comments.</p>
@@ -1172,14 +1172,14 @@ according to Table A.2 of FuSA Standards <a class="reference internal" href="#ie
 </div>
 <div class="section" id="error-handling-methods">
 <h4>Error Handling Methods<a class="headerlink" href="#error-handling-methods" title="Permalink to this headline">¶</a></h4>
-<p>The error handling methods used in the ACRN hypervisor on an architecture level
-are shown below.</p>
+<p>The error handling methods used in the ACRN hypervisor on an architecture
+level are shown below.</p>
 <dl>
 <dt><strong>Invoke default fatal error handler</strong></dt><dd><p>The hypervisor shall invoke the default fatal error handler when the below
-cases occur. Customers can define platform-specific handlers, allowing them to
-implement additional error reporting (mostly to hardware) if required. The
-default fatal error handler will invoke platform-specific handlers defined by
-users at first, then it will panic the system.</p>
+cases occur. Customers can define platform-specific handlers, allowing them
+to implement additional error reporting (mostly to hardware) if required.
+The default fatal error handler will invoke platform-specific handlers
+defined by users at first, then it will panic the system.</p>
 <p>This method applies to the following cases:</p>
 <ul class="simple">
 <li><p>Related hardware resources are unavailable.</p></li>
@@ -1197,9 +1197,9 @@ parameter, device not found, device busy, resource unavailable, etc).</p>
 </ul>
 </dd>
 <dt><strong>Inform the safety VM through specific register or memory area</strong></dt><dd><p>The hypervisor shall inform the safety VM through a specific register or
-memory area when the below cases occur. The VM will decide how to handle the
-related error. This shall only be done after the VM (Safety OS or Service OS)
-dedicated to error handling has started.</p>
+memory area when the below cases occur. The VM will decide how to handle
+the related error. This shall be done only after the VM (Safety OS or
+Service OS) dedicated to error handling has started.</p>
 <p>This method applies to the following cases:</p>
 <ul class="simple">
 <li><p>Machine check errors occur due to hardware failures.</p></li>
@@ -1316,8 +1316,8 @@ it’s the caller’s responsibility to guarantee these pre-conditions.</p>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">vcpu_from_vid</span></code> is called by <code class="docutils literal notranslate"><span class="pre">hcall_set_vcpu_regs</span></code>, which is a hypercall.
-<code class="docutils literal notranslate"><span class="pre">hcall_set_vcpu_regs</span></code> is an external interface and <code class="docutils literal notranslate"><span class="pre">vcpu_id</span></code> is provided by
-VM. In this case, we shall add the error checking codes before calling
+<code class="docutils literal notranslate"><span class="pre">hcall_set_vcpu_regs</span></code> is an external interface and <code class="docutils literal notranslate"><span class="pre">vcpu_id</span></code> is provided
+by the VM. In this case, we shall add the error checking codes before calling
 <code class="docutils literal notranslate"><span class="pre">vcpu_from_vid</span></code> to make sure that the passed parameters are valid and the
 pre-conditions are guaranteed.</p>
 <p>Here is the sample code for error checking before calling <code class="docutils literal notranslate"><span class="pre">vcpu_from_vid</span></code>:</p>
@@ -1343,9 +1343,9 @@ pre-conditions are guaranteed.</p>
 <h3>Module Level<a class="headerlink" href="#module-level" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="id2">
 <h4>Functional Safety Consideration<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
-<p>Data verification, and explicit specification of pre-conditions and post-conditions
-are applied for internal functions of the hypervisor according to Table A.4 of
-FuSA Standards <a class="reference internal" href="#iec-61508-3-2010" id="id3"><span>[IEC_61508-3_2010]</span></a> .</p>
+<p>Data verification, and explicit specification of pre-conditions and
+post-conditions are applied for internal functions of the hypervisor
+according to Table A.4 of FuSA Standards <a class="reference internal" href="#iec-61508-3-2010" id="id3"><span>[IEC_61508-3_2010]</span></a> .</p>
 </div>
 <div class="section" id="id4">
 <h4>Error Handling Methods<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
@@ -1520,32 +1520,33 @@ post-condition of <code class="docutils literal notranslate"><span class="pre">g
 <p><strong>Question_2: Is error checking required for ``vdev``?</strong></p>
 <p>No. Here are the reasons:</p>
 <ol class="loweralpha simple">
-<li><p>The pre-condition of <code class="docutils literal notranslate"><span class="pre">partition_mode_vpci_init</span></code> guarantees that <code class="docutils literal notranslate"><span class="pre">vm</span></code> is not
-NULL. It indicates that <code class="docutils literal notranslate"><span class="pre">vpci</span></code> is not NULL. Since <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is getting data from
-the array <code class="docutils literal notranslate"><span class="pre">pci_vdevs[]</span></code> via indexing, <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is not NULL as long as the index
-is valid.</p></li>
-<li><p>The post-condition of <code class="docutils literal notranslate"><span class="pre">get_vm_config</span></code> guarantees that <code class="docutils literal notranslate"><span class="pre">vpci-&gt;pci_vdev_cnt</span></code>
-is less than or equal to <code class="docutils literal notranslate"><span class="pre">CONFIG_MAX_PCI_DEV_NUM</span></code>, which is the array size of
-<code class="docutils literal notranslate"><span class="pre">pci_vdevs[]</span></code>. It indicates that the index used to get <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is always
-valid.</p></li>
+<li><p>The pre-condition of <code class="docutils literal notranslate"><span class="pre">partition_mode_vpci_init</span></code> guarantees that <code class="docutils literal notranslate"><span class="pre">vm</span></code>
+is not NULL. It indicates that <code class="docutils literal notranslate"><span class="pre">vpci</span></code> is not NULL. Since <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is
+getting data from the array <code class="docutils literal notranslate"><span class="pre">pci_vdevs[]</span></code> via indexing, <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is not
+NULL as long as the index is valid.</p></li>
+<li><p>The post-condition of <code class="docutils literal notranslate"><span class="pre">get_vm_config</span></code> guarantees that
+<code class="docutils literal notranslate"><span class="pre">vpci-&gt;pci_vdev_cnt</span></code> is less than or equal to <code class="docutils literal notranslate"><span class="pre">CONFIG_MAX_PCI_DEV_NUM</span></code>,
+which is the array size of <code class="docutils literal notranslate"><span class="pre">pci_vdevs[]</span></code>. It indicates that the index
+used to get <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is always valid.</p></li>
 </ol>
-<p>Given the two reasons above, <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is always not NULL. So, the error checking
-codes are not required for <code class="docutils literal notranslate"><span class="pre">vdev</span></code>.</p>
+<p>Given the two reasons above, <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is always not NULL. So, the error
+checking codes are not required for <code class="docutils literal notranslate"><span class="pre">vdev</span></code>.</p>
 <p><strong>Question_3: Is error checking required for ``pci_dev_config``?</strong></p>
-<p>No. <code class="docutils literal notranslate"><span class="pre">pci_dev_config</span></code> is getting data from the array <code class="docutils literal notranslate"><span class="pre">pci_vdevs[]</span></code>, which is the
-physical PCI device information coming from Board Support Package and firmware.
-For physical PCI device information, the related application constraints
-shall be defined in the design document or safety manual. For debug purpose,
-developers could use ASSERT here to catch the Board Support Package or firmware
-failures, which do not guarantee these application constraints.</p>
+<p>No. <code class="docutils literal notranslate"><span class="pre">pci_dev_config</span></code> is getting data from the array <code class="docutils literal notranslate"><span class="pre">pci_vdevs[]</span></code>, which
+is the physical PCI device information coming from Board Support Package and
+firmware. For physical PCI device information, the related application
+constraints shall be defined in the design document or safety manual. For
+debug purposes, developers could use ASSERT here to catch the Board Support
+Package or firmware failures, which do not guarantee these application
+constraints.</p>
 <p><strong>Question_4: Is error checking required for ``vdev-&gt;ops-&gt;init``?</strong></p>
 <p>No. Here are the reasons:</p>
 <ol class="loweralpha simple">
 <li><p>Question_2 proves that <code class="docutils literal notranslate"><span class="pre">vdev</span></code> is always not NULL.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">vdev-&gt;ops</span></code> is fully initialized before <code class="docutils literal notranslate"><span class="pre">vdev-&gt;ops-&gt;init</span></code> is called.</p></li>
 </ol>
-<p>Given the two reasons above, <code class="docutils literal notranslate"><span class="pre">vdev-&gt;ops-&gt;init</span></code> is always not NULL. So, the error
-checking codes are not required for <code class="docutils literal notranslate"><span class="pre">vdev-&gt;ops-&gt;init</span></code>.</p>
+<p>Given the two reasons above, <code class="docutils literal notranslate"><span class="pre">vdev-&gt;ops-&gt;init</span></code> is always not NULL. So, the
+error checking codes are not required for <code class="docutils literal notranslate"><span class="pre">vdev-&gt;ops-&gt;init</span></code>.</p>
 <p><strong>Question_5: How to handle the case when ``vdev-&gt;ops-&gt;init(vdev)`` returns non-zero?</strong></p>
 <p>This case indicates that the initialization of specific virtual device fails.
 Investigation has to be done to figure out the root-cause. Default fatal error
@@ -1575,7 +1576,8 @@ boot information.</p>
 </div>
 <p><strong>Question_6: Is error checking required for ``vdev-&gt;ops`` and ``vdev-&gt;ops-&gt;init``?</strong></p>
 <p>Yes. Because <code class="docutils literal notranslate"><span class="pre">vdev-&gt;ops</span></code> and <code class="docutils literal notranslate"><span class="pre">vdev-&gt;ops-&gt;init</span></code> cannot be guaranteed to be
-not NULL. If the VM called <code class="docutils literal notranslate"><span class="pre">partition_mode_vpci_deinit</span></code> twice, it may be NULL.</p>
+not NULL. If the VM called <code class="docutils literal notranslate"><span class="pre">partition_mode_vpci_deinit</span></code> twice, it may be
+NULL.</p>
 </div>
 </div>
 </div>
@@ -1657,15 +1659,16 @@ fatal error.</p></td>
 <h3>Design Rules<a class="headerlink" href="#design-rules" title="Permalink to this headline">¶</a></h3>
 <p>The module level configuration design rules are shown below:</p>
 <ol class="arabic simple">
-<li><p>The platform configurations shall be detectable by hypervisor in DETECT mode;</p></li>
+<li><p>The platform configurations shall be detectable by the hypervisor in
+DETECT mode;</p></li>
 <li><p>Configurable module APIs shall be abstracted as operations that are
 implemented through a set of function pointers in the operations data
 structure;</p></li>
-<li><p>Every function pointer in the operations data structure shall be instantiated
-as one module API in DETECT mode and the API is allowed to be implemented as
-empty function for some specific configurations;</p></li>
-<li><p>The operations data structure shall be read-only in STARTUP mode, OPERATIONAL
-mode, and TERMINATION mode;</p></li>
+<li><p>Every function pointer in the operations data structure shall be
+instantiated as one module API in DETECT mode and the API is allowed to be
+implemented as empty function for some specific configurations;</p></li>
+<li><p>The operations data structure shall be read-only in STARTUP mode,
+OPERATIONAL mode, and TERMINATION mode;</p></li>
 <li><p>The configurable module shall only be accessed via APIs in the operations
 data structure in STARTUP mode or OPERATIONAL mode;</p></li>
 <li><p>In order to guarantee that the function pointer in the operations data
@@ -1699,8 +1702,8 @@ instead of checking the pointer for NULL.</p></li>
 <td><p>This module is used to virtualize part of LAPIC functionalities.
 It can be done via APICv or software emulation depending on CPU
 capabilities.
-For example, KBL Intel NUC doesn’t support virtual-interrupt delivery, while
-other platforms support it.</p></td>
+For example, KBL Intel NUC doesn’t support virtual-interrupt delivery,
+while other platforms support it.</p></td>
 <td><p>If a function pointer is used, the prerequisite is
 “hv_operation_mode == OPERATIONAL”.</p></td>
 </tr>
@@ -1760,7 +1763,7 @@ configuration is dereferenced after it has been instantiated.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 06, 2021.
+        Last updated on May 10, 2021.
       </span>
 
     </p>

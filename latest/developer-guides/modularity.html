@@ -1094,9 +1094,9 @@
 <span id="modularity"></span><h1>ACRN Hypervisor: Modular Design<a class="headerlink" href="#acrn-hypervisor-modular-design" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>ACRN highly emphasizes modular design, i.e. the separation of functionality info
-modules that define a concise set of interfaces. The goals of modular design
-include:</p>
+<p>ACRN highly emphasizes modular design, which is the separation of
+functionality into modules that define a concise set of interfaces. The goals
+of modular design include:</p>
 <ul class="simple">
 <li><p><strong>Understandability</strong> A modular design is easier to understand due to
 encapsulation.</p></li>
@@ -1105,89 +1105,90 @@ dependencies among them. Modular integration tests help improve the coverage
 of tests and identify corner cases that are hard to trigger when testing the
 hypervisor as a whole.</p></li>
 <li><p><strong>Configurability</strong> Modular design makes it easy to configure certain
-functionalities in or out. This is crucial in safety-critical scenarios
-because absence of irrelevant code is required in both MISRA-C and functional
-safety standards.</p></li>
-<li><p><strong>Meet functional safety requirements</strong> Functional safety standards explicitly
-require a hierarchical structure of modules in software architectural
-design. This applies to any safety integrity level defined in
+functionalities in or out. This is crucial in safety-critical scenarios,
+because absence of irrelevant code is required in both MISRA-C and
+functional safety standards.</p></li>
+<li><p><strong>Meet functional safety requirements</strong> Functional safety standards
+explicitly require a hierarchical structure of modules in software
+architectural design. This applies to any safety integrity level defined in
 <a class="reference internal" href="#iec-61508-3" id="id1"><span>[IEC_61508-3]</span></a> and <a class="reference internal" href="#iso-26262-6" id="id2"><span>[ISO_26262-6]</span></a>.</p></li>
 </ul>
 </div>
 <div class="section" id="principles">
 <h2>Principles<a class="headerlink" href="#principles" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><p>Each source file shall belong to one module only. One module may consist of
-one or multiple source files, though. A source file can be a C source, a C
-header or an assembly file.</p></li>
-<li><p>Each module shall have well-defined interfaces, including the exported
-functions and global variables. Functions and variables that are not
-interfaces shall be static and used inside the module only.</p></li>
+<li><p>Each source file belongs to one module only. One module may consist of one
+or multiple source files, though. A source file can be a C source, a C
+header, or an assembly file.</p></li>
+<li><p>Each module has well-defined interfaces, including the exported functions
+and global variables. Functions and variables that are not interfaces are
+static and used inside the module only.</p></li>
 <li><p>Dependencies among the modules should be acyclic. Any cyclic dependency must
 be deviated explicitly.</p></li>
-<li><p>The complexity of a module shall be limited.</p></li>
+<li><p>The complexity of a module should be limited.</p></li>
 </ul>
 <div class="section" id="minimizing-cyclic-dependencies">
 <h3>Minimizing Cyclic Dependencies<a class="headerlink" href="#minimizing-cyclic-dependencies" title="Permalink to this headline">¶</a></h3>
-<p>Cyclic dependencies can be mostly avoided by carefully defining the boundary of
-modules. The following methods can be used when certain cyclic dependency cannot
-be resolved by design.</p>
+<p>Cyclic dependencies are mostly avoided through careful definition of module
+boundaries. The following methods can be used when a cyclic dependency cannot
+be resolved by design:</p>
 <ul class="simple">
-<li><p><strong>Use callbacks</strong> Callback registration and invocation help reverse dependencies
-between two modules and break cyclic dependencies. However callbacks shall be
-used with care due to its dynamic behavior. Send proposals or patches to the
+<li><p><strong>Use callbacks</strong> Callback registration and invocation help to reverse
+dependencies between modules and break cyclic dependencies. However,
+callbacks must be used with care due to their dynamic behavior. Send
+proposals or patches to the
 <a class="reference external" href="https://lists.projectacrn.org/g/acrn-dev">acrn-dev mailing list</a> for
-discussing if specific callbacks are appropriate.</p></li>
-<li><p><strong>Making the cyclic dependency an exception</strong> A specific cyclic dependency can
-be regarded as an exception if it is well justified and a workaround is
+discussing whether specific callbacks are appropriate.</p></li>
+<li><p><strong>Making the cyclic dependency an exception</strong> A specific cyclic dependency
+can be regarded as an exception if it is well justified and a workaround is
 available to break the cyclic dependency for integration testing.</p></li>
 </ul>
 </div>
 <div class="section" id="measuring-complexity">
 <h3>Measuring Complexity<a class="headerlink" href="#measuring-complexity" title="Permalink to this headline">¶</a></h3>
 <p>ACRN uses the number of functions and the cyclomatic complexity <a class="reference internal" href="#cc" id="id3"><span>[CC]</span></a> of each
-function to measure the complexity of a module. Concrete criteria on complexity
-will be determined while enhancing the modularity of the hypervisor. The current
-recommendation is to limit the cyclomatic complexity of a function under 20.</p>
+function to measure the complexity of a module. Concrete criteria on
+complexity will be determined during the process of enhancing the modularity
+of the hypervisor. The current recommendation is to limit the cyclomatic
+complexity of a function to under 20.</p>
 </div>
 </div>
 <div class="section" id="architecture">
 <h2>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h2>
-<p>The following figure shows the high-level components of ACRN hypervisor.</p>
+<p>The following figure shows the high-level components of ACRN hypervisor:</p>
 <div class="figure align-center" id="modularity-architecture">
 <img alt="../_images/modularity-architecture.png" src="../_images/modularity-architecture.png" />
 <p class="caption"><span class="caption-number">Figure 128 </span><span class="caption-text">Layered Architecture of ACRN Hypervisor</span><a class="headerlink" href="#modularity-architecture" title="Permalink to this image">¶</a></p>
 </div>
 <p>The components are listed as follows.</p>
 <ul class="simple">
-<li><p><strong>Boot</strong> This component carries out the most basic hardware initialization to
-enable the execution of C code.</p></li>
+<li><p><strong>Boot</strong> This component carries out the most basic hardware initialization
+to enable the execution of C code.</p></li>
 <li><p><strong>Library</strong> This component consists of subroutines that require no explicit
 initialization. Examples include standard memory and string manipulation
-functions like strncpy, atomic operations and bitmap operations. This
+functions like strncpy, atomic operations, and bitmap operations. This
 component is independent from and widely used in the other components.</p></li>
 <li><p><strong>Hardware Management and Utilities</strong> This component abstracts hardware
 resources and provide services such as timers and physical interrupt handler
 registration to the upper layers.</p></li>
-<li><p><strong>Virtual CPU</strong> This component implements CPU, memory and interrupt
-virtualization. The vCPU loop module in this component handles VM exit events
-by calling the proper handler in the other components. Hypercalls are
-implemented as a special type of VM exit event. This component is also able to
-inject upcall interrupts to the Service VM.</p></li>
+<li><p><strong>Virtual CPU</strong> This component implements CPU, memory, and interrupt
+virtualization. The vCPU loop module in this component handles VM exit
+events by calling the proper handler in the other components. Hypercalls are
+implemented as a special type of VM exit event. This component is also able
+to inject upcall interrupts to the Service VM.</p></li>
 <li><p><strong>Device Emulation</strong> This component implements devices that are emulated in
-the hypervisor itself, such as the virtual programmable interrupt controllers
-including vPIC, vLAPIC and vIOAPIC.</p></li>
-<li><p><strong>Passthrough Management</strong> This component manages devices that are passed-through
-to specific VMs.</p></li>
+the hypervisor itself, such as the virtual programmable interrupt
+controllers including vPIC, vLAPIC, and vIOAPIC.</p></li>
+<li><p><strong>Passthrough Management</strong> This component manages devices that are passed
+through to specific VMs.</p></li>
 <li><p><strong>Extended Device Emulation</strong> This component implements an I/O request
-mechanism that allows the hypervisor to forward I/O accesses from a User
-VM to the Service VM.
-for emulation.</p></li>
-<li><p><strong>VM Management</strong> This component manages the creation, deletion and other
+mechanism that enables the hypervisor to forward I/O accesses from a User
+VM to the Service VM for emulation.</p></li>
+<li><p><strong>VM Management</strong> This component manages the creation, deletion, and other
 lifecycle operations of VMs.</p></li>
 <li><p><strong>Hypervisor Initialization</strong> This component invokes the initialization
-subroutines in the other components to bring up the hypervisor and
-start the Service VM in sharing mode or all the VMs in partitioning mode.</p></li>
+subroutines in the other components to bring up the hypervisor and start
+the Service VM in sharing mode or all the VMs in partitioning mode.</p></li>
 </ul>
 <p>ACRN hypervisor adopts a layered design where higher layers can invoke the
 interfaces of lower layers but not vice versa. The only exception is the
@@ -1198,16 +1199,16 @@ reasons.</p>
 <ul class="simple">
 <li><p><strong>Boot</strong> enables the execution of C code and thus has to be the lowest layer
 in the architecture.</p></li>
-<li><p><strong>Hypervisor Initialization</strong> contains the hypervisor initialization function
-that calls the initialization functions of each layer. Thus this component is
-the highest layer to minimize reverse dependencies.</p></li>
-<li><p><strong>Boot</strong> shall invoke the hypervisor initialization routine after bringing up
-the hardware. This inevitably causes a reverse dependency from <strong>Boot</strong> to
-<strong>Hypervisor Initialization</strong>.</p></li>
+<li><p><strong>Hypervisor Initialization</strong> contains the hypervisor initialization
+function that calls the initialization functions of each layer. Thus this
+component is the highest layer to minimize reverse dependencies.</p></li>
+<li><p><strong>Boot</strong> shall invoke the hypervisor initialization routine after bringing
+up the hardware. This inevitably causes a reverse dependency from <strong>Boot</strong>
+to <strong>Hypervisor Initialization</strong>.</p></li>
 </ul>
 <p>To enable integration testing of a layer in the middle (e.g. <strong>Virtual CPU</strong>),
-<strong>Boot</strong> will invoke a customized function that only invokes the initialization
-functions of that layer as well as the layers below.</p>
+<strong>Boot</strong> will invoke a customized function that invokes only the
+initialization functions of that layer as well as the layers below.</p>
 </div>
 <div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
@@ -1248,7 +1249,7 @@ functions of that layer as well as the layers below.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 06, 2021.
+        Last updated on May 10, 2021.
       </span>
 
     </p>

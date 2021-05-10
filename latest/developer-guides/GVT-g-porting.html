@@ -1094,72 +1094,71 @@
 <span id="gvt-g-porting"></span><h1>GVT-g Enabling and Porting Guide<a class="headerlink" href="#gvt-g-enabling-and-porting-guide" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>GVT-g is Intel’s Open Source GPU virtualization solution, up-streamed to
+<p>GVT-g is Intel’s open-source GPU virtualization solution, up-streamed to
 the Linux kernel. Its implementation over KVM is named KVMGT, over Xen
-is named XenGT, and over ACRN is named AcrnGT. GVT-g can export
-multiple virtual-GPU (vGPU) instances for virtual machine (VM) system. A
-VM can be assigned one instance of a vGPU. The guest OS graphic driver
-needs only minor modifications to drive the vGPU adapter in a VM. Every
-vGPU instance adopts the full HW GPU’s acceleration capability for
-media, 3D rendering, and display.</p>
+is named XenGT, and over ACRN is named AcrnGT. GVT-g can export multiple
+virtual-GPU (vGPU) instances for a virtual machine (VM) system. A VM can be
+assigned one instance of a vGPU. The guest OS graphic driver needs only
+minor modifications to drive the vGPU adapter in a VM. Every vGPU instance
+adopts the full HW GPU’s acceleration capability for media, 3D rendering,
+and display.</p>
 <p>AcrnGT refers to the glue layer between the ACRN hypervisor and GVT-g
 core device model. It works as the agent of hypervisor-related services.
-It is the only layer that needs to be rewritten when porting GVT-g to
-other specific hypervisors.</p>
-<p>For simplicity, in the rest of this document, the term GVT is used to
-refer to the core device model component of GVT-g, specifically
-corresponding to <code class="docutils literal notranslate"><span class="pre">gvt.ko</span></code> when build as a module.</p>
+It is the only layer that must be rewritten when porting GVT-g to other
+specific hypervisors.</p>
+<p>For simplicity, in the rest of this document, the term GVT is used to refer
+to the core device model component of GVT-g, specifically corresponding to
+<code class="docutils literal notranslate"><span class="pre">gvt.ko</span></code> when built as a module.</p>
 </div>
 <div class="section" id="purpose-of-this-document">
 <h2>Purpose of This Document<a class="headerlink" href="#purpose-of-this-document" title="Permalink to this headline">¶</a></h2>
-<p>This document explains the relationship between components of GVT-g in
-the ACRN hypervisor, shows how to enable GVT-g on ACRN, and guides
-developers  porting GVT-g to work on other hypervisors.</p>
+<p>This document explains the relationship between components of GVT-g in the
+ACRN hypervisor, shows how to enable GVT-g on ACRN, and guides developers
+porting GVT-g to work on other hypervisors.</p>
 <p>This document describes:</p>
 <ul class="simple">
 <li><p>the overall components of GVT-g</p></li>
-<li><p>interaction interface of each component</p></li>
-<li><p>core interaction scenarios</p></li>
+<li><p>the interaction interface of each component</p></li>
+<li><p>the core interaction scenarios</p></li>
 </ul>
 <p>APIs of each component interface can be found in the <a class="reference internal" href="../api/GVT-g_api.html#gvt-g-api"><span class="std std-ref">ACRN GVT-g APIs</span></a>
 documentation.</p>
 </div>
 <div class="section" id="overall-components">
 <h2>Overall Components<a class="headerlink" href="#overall-components" title="Permalink to this headline">¶</a></h2>
-<p>For the GVT-g solution for the ACRN  hypervisor, there are two
-key modules: AcrnGT and GVT:</p>
+<p>For the GVT-g solution for the ACRN  hypervisor, there are two key modules:
+AcrnGT and GVT.</p>
 <dl>
 <dt>AcrnGT module</dt><dd><p>Compiled from <code class="docutils literal notranslate"><span class="pre">drivers/gpu/drm/i915/gvt/acrn_gvt.c</span></code>, the AcrnGT
 module acts as a glue layer between the ACRN hypervisor and the
 interface to the ACRN-DM in user space.</p>
-<p>AcrnGT is the agent of hypervisor related services, including I/O trap
+<p>AcrnGT is the agent of hypervisor-related services, including I/O trap
 request, IRQ injection, address translation, VM controls, etc. It also
-listens to ACRN hypervisor in <code class="docutils literal notranslate"><span class="pre">acrngt_emulation_thread</span></code>, and informs GVT
-module of I/O traps.</p>
+listens to ACRN hypervisor in <code class="docutils literal notranslate"><span class="pre">acrngt_emulation_thread</span></code>, and informs the
+GVT module of I/O traps.</p>
 <p>It calls into the GVT module’s <a class="reference internal" href="../api/GVT-g_api.html#intel-gvt-ops-interface"><span class="std std-ref">GVT-g intel_gvt_ops Interface</span></a> to invoke
-Device Model’s routines, and receives request from GVT module through
+Device Model’s routines, and receives requests from the GVT module through
 the <a class="reference internal" href="../api/GVT-g_api.html#mpt-interface"><span class="std std-ref">AcrnGT Mediated Passthrough (MPT) Interface</span></a>.</p>
-<p>User space programs, such as ACRN-DM, communicate with AcrnGT through
+<p>User-space programs, such as ACRN-DM, communicate with AcrnGT through
 the <a class="reference internal" href="../api/GVT-g_api.html#sysfs-interface"><span class="std std-ref">AcrnGT sysfs Interface</span></a> by writing to sysfs node
 <code class="docutils literal notranslate"><span class="pre">/sys/kernel/gvt/control/create_gvt_instance</span></code>.</p>
-<p>This is the only module that needs to be rewritten when porting to
-another embedded device hypervisor.</p>
+<p>This is the only module that must be rewritten when porting to another
+embedded device hypervisor.</p>
 </dd>
-<dt>GVT module</dt><dd><p>This Device Model service is the central part of all
-GVT-g components. It receives workloads from each vGPU, shadows the
-workloads, and dispatches the workloads to Dom0’s i915 module to deliver
-workloads to real hardware. It also emulates the virtual display to each
-VM.</p>
+<dt>GVT module</dt><dd><p>This Device Model service is the central part of all the GVT-g components.
+It receives workloads from each vGPU, shadows the workloads, and
+dispatches the workloads to the Service VM’s i915 module to deliver
+workloads to real hardware. It also emulates the virtual display to each VM.</p>
 </dd>
-<dt>VHM module</dt><dd><p>This is a kernel module that requires an interrupt (vIRQ) number,
-and exposes APIs to external kernel modules such as GVT-g, and the
+<dt>VHM module</dt><dd><p>This is a kernel module that requires an interrupt (vIRQ) number and
+exposes APIs to external kernel modules such as GVT-g and the
 virtIO BE service running in kernel space. It exposes a char device node
-in user space, and only interacts with the DM. The DM routes I/O
-requests and responses between other modules to and from the VHM module
-via the char device. DM may use the VHM for hypervisor service
-(including remote memory map), and VHM may directly service the request
-such as for the remote memory map, or invoking hypercall. It also sends
-I/O responses to user space modules, notified by vIRQ injections.</p>
+in user space, and interacts only with the DM. The DM routes I/O requests
+and responses between other modules to and from the VHM module via the
+char device. DM may use the VHM for hypervisor service (including remote
+memory map), and VHM may directly service the request such as for the
+remote memory map or invoking hypercall. It also sends I/O responses to
+user-space modules, notified by vIRQ injections.</p>
 </dd>
 </dl>
 <div class="figure align-center" id="gvt-g-components">
@@ -1171,20 +1170,20 @@ I/O responses to user space modules, notified by vIRQ injections.</p>
 <h2>Core Scenario Interaction Sequences<a class="headerlink" href="#core-scenario-interaction-sequences" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="vgpu-creation-scenario">
 <h3>vGPU Creation Scenario<a class="headerlink" href="#vgpu-creation-scenario" title="Permalink to this headline">¶</a></h3>
-<p>In this scenario, AcrnGT receives a create request from ACRN-DM. It
-calls GVT’s <a class="reference internal" href="../api/GVT-g_api.html#intel-gvt-ops-interface"><span class="std std-ref">GVT-g intel_gvt_ops Interface</span></a> to inform GVT of vGPU
-creation. This interface sets up all vGPU resources such as MMIO, GMA,
-PVINFO, GTT, DISPLAY, and Execlists, and calls back to the AcrnGT
-module through the <a class="reference internal" href="../api/GVT-g_api.html#mpt-interface"><span class="std std-ref">AcrnGT Mediated Passthrough (MPT) Interface</span></a> <code class="docutils literal notranslate"><span class="pre">attach_vgpu</span></code>. Then, the
-AcrnGT module sets up an I/O request server and asks to trap the PCI
-configure space of the vGPU (virtual device 0:2:0) via VHM’s APIs.
-Finally, the AcrnGT module launches an AcrnGT emulation thread to
-listen to I/O trap notifications from HVM and ACRN hypervisor.</p>
+<p>In this scenario, AcrnGT receives a create request from ACRN-DM. It calls
+GVT’s <a class="reference internal" href="../api/GVT-g_api.html#intel-gvt-ops-interface"><span class="std std-ref">GVT-g intel_gvt_ops Interface</span></a> to inform GVT of vGPU creation. This
+interface sets up all vGPU resources such as MMIO, GMA, PVINFO, GTT,
+DISPLAY, and Execlists, and calls back to the AcrnGT module through the
+<a class="reference internal" href="../api/GVT-g_api.html#mpt-interface"><span class="std std-ref">AcrnGT Mediated Passthrough (MPT) Interface</span></a> <code class="docutils literal notranslate"><span class="pre">attach_vgpu</span></code>. Then, the AcrnGT module sets up an
+I/O request server and asks to trap the PCI configure space of the vGPU
+(virtual device 0:2:0) via VHM’s APIs. Finally, the AcrnGT module launches
+an AcrnGT emulation thread to listen to I/O trap notifications from HVM and
+ACRN hypervisor.</p>
 </div>
 <div class="section" id="vgpu-destroy-scenario">
 <h3>vGPU Destroy Scenario<a class="headerlink" href="#vgpu-destroy-scenario" title="Permalink to this headline">¶</a></h3>
-<p>In this scenario, AcrnGT receives a destroy request from ACRN-DM. It
-calls GVT’s <a class="reference internal" href="../api/GVT-g_api.html#intel-gvt-ops-interface"><span class="std std-ref">GVT-g intel_gvt_ops Interface</span></a> to inform GVT of the vGPU destroy
+<p>In this scenario, AcrnGT receives a destroy request from ACRN-DM. It calls
+GVT’s <a class="reference internal" href="../api/GVT-g_api.html#intel-gvt-ops-interface"><span class="std std-ref">GVT-g intel_gvt_ops Interface</span></a> to inform GVT of the vGPU destroy
 request, and cleans up all vGPU resources.</p>
 </div>
 <div class="section" id="vgpu-pci-configure-space-write-scenario">
@@ -1204,25 +1203,23 @@ corresponding part in the host’s aperture.</p></li>
 </div>
 <div class="section" id="pci-configure-space-read-scenario">
 <h3>PCI Configure Space Read Scenario<a class="headerlink" href="#pci-configure-space-read-scenario" title="Permalink to this headline">¶</a></h3>
-<p>Call sequence is almost the same as the write scenario above,
-but instead it calls the GVT’s <a class="reference internal" href="../api/GVT-g_api.html#intel-gvt-ops-interface"><span class="std std-ref">GVT-g intel_gvt_ops Interface</span></a>
+<p>The call sequence is almost the same as in the write scenario above, but
+instead it calls the GVT’s <a class="reference internal" href="../api/GVT-g_api.html#intel-gvt-ops-interface"><span class="std std-ref">GVT-g intel_gvt_ops Interface</span></a>
 <code class="docutils literal notranslate"><span class="pre">emulate_cfg_read</span></code> to emulate the vGPU PCI config space read.</p>
 </div>
 <div class="section" id="ggtt-read-write-scenario">
 <h3>GGTT Read/Write Scenario<a class="headerlink" href="#ggtt-read-write-scenario" title="Permalink to this headline">¶</a></h3>
-<p>GGTT’s trap is set up in the PCI configure space write
-scenario above.</p>
+<p>GGTT’s trap is set up in the PCI configure space write scenario above.</p>
 </div>
 <div class="section" id="mmio-read-write-scenario">
 <h3>MMIO Read/Write Scenario<a class="headerlink" href="#mmio-read-write-scenario" title="Permalink to this headline">¶</a></h3>
-<p>MMIO’s trap is set up in the PCI configure space write
-scenario above.</p>
+<p>MMIO’s trap is set up in the PCI configure space write scenario above.</p>
 </div>
 <div class="section" id="ppgtt-write-protection-page-set-unset-scenario">
 <h3>PPGTT Write-Protection Page Set/Unset Scenario<a class="headerlink" href="#ppgtt-write-protection-page-set-unset-scenario" title="Permalink to this headline">¶</a></h3>
-<p>PPGTT write-protection page is set by calling <code class="docutils literal notranslate"><span class="pre">acrn_ioreq_add_iorange</span></code>
-with range type as <code class="docutils literal notranslate"><span class="pre">REQ_WP</span></code>, and trap its write to device model while
-allowing read without trap.</p>
+<p>The PPGTT write-protection page is set by calling <code class="docutils literal notranslate"><span class="pre">acrn_ioreq_add_iorange</span></code>
+with range type as <code class="docutils literal notranslate"><span class="pre">REQ_WP</span></code> and trapping its write to the device model
+while allowing read without trap.</p>
 <p>PPGTT write-protection page is unset by calling <code class="docutils literal notranslate"><span class="pre">acrn_ioreq_del_range</span></code>.</p>
 </div>
 <div class="section" id="ppgtt-write-protection-page-write">
@@ -1261,7 +1258,7 @@ documentation.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 06, 2021.
+        Last updated on May 10, 2021.
       </span>
 
     </p>
