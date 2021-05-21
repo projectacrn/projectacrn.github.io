@@ -374,7 +374,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#validated-versions">Validated Versions</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#install-acrn-on-the-debian-vm">Install ACRN on the Debian VM</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#enable-the-network-sharing-to-give-network-access-to-user-vm">Enable the Network Sharing to Give Network Access to User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#enable-network-sharing-to-give-network-access-to-the-user-vm">Enable Network Sharing to Give Network Access to the User VM</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_yp.html">Using Yocto Project With ACRN</a><ul>
@@ -564,7 +564,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Using the Serial Port on KBL Intel NUC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Enable Serial Port on NUC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-1-using-the-serial-port-on-tgl-intel-nuc">Option 1: Using the Serial Port on TGL Intel NUC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-2-enabling-pcie-serial-port-on-tgl-intel-nuc">Option 2: Enabling PCIe Serial Port on TGL Intel NUC</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/debug.html">ACRN Debugging Tools</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-console-command">ACRN Console Command</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#an-example">An Example</a></li>
@@ -1099,9 +1103,9 @@ responsible for creating a User VM and then performing devices emulation
 based on command line configurations.</p>
 <div class="figure align-center" id="dm-framework">
 <img alt="../../_images/dm-image75.png" src="../../_images/dm-image75.png" />
-<p class="caption"><span class="caption-number">Figure 210 </span><span class="caption-text">Device Model Framework</span><a class="headerlink" href="#dm-framework" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 214 </span><span class="caption-text">Device Model Framework</span><a class="headerlink" href="#dm-framework" title="Permalink to this image">¶</a></p>
 </div>
-<p><a class="reference internal" href="#dm-framework"><span class="std std-numref">Figure 210</span></a> above gives a big picture overview of DM
+<p><a class="reference internal" href="#dm-framework"><span class="std std-numref">Figure 214</span></a> above gives a big picture overview of DM
 framework. There are 3 major subsystems in Service VM:</p>
 <ul class="simple">
 <li><p><strong>Device Emulation</strong>: DM provides backend device emulation routines for
@@ -1142,8 +1146,8 @@ options:</p>
              [--acpidev_pt HID] [--mmiodev_pt MMIO_regions]
              [--vtpm2 sock_path] [--virtio_poll interval] [--mac_seed seed_string]
              [--cpu_affinity pCPUs] [--lapic_pt] [--rtvm] [--windows]
-             [--debugexit] [--logger-setting param_setting] [--pm_notify_channel]
-             [--pm_by_vuart vuart_node] [--psram] &lt;vm&gt;
+             [--debugexit] [--logger-setting param_setting] [--pm_notify_channel channel]
+             [--pm_by_vuart vuart_node] [--ssram] &lt;vm&gt;
      -A: create ACPI tables
      -B: bootargs for kernel
      -E: elf image path
@@ -1162,7 +1166,7 @@ options:</p>
      --mac_seed: set a platform unique string as a seed for generate mac address
      --vsbl: vsbl file path
      --ovmf: ovmf file path
-     --psram: Enable Pseudo (Software) SRAM passthrough
+     --ssram: Enable Software SRAM
      --cpu_affinity: list of pCPUs assigned to this VM
      --part_info: guest partition info file path
      --enable_trusty: enable trusty for guest
@@ -1212,10 +1216,10 @@ configuration options.</p>
 </div>
 <div class="section" id="dm-initialization">
 <h2>DM Initialization<a class="headerlink" href="#dm-initialization" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference internal" href="#dm-boot-flow"><span class="std std-numref">Figure 211</span></a> shows the overall flow for the DM boot:</p>
+<p><a class="reference internal" href="#dm-boot-flow"><span class="std std-numref">Figure 215</span></a> shows the overall flow for the DM boot:</p>
 <div class="figure align-center" id="dm-boot-flow">
 <img alt="../../_images/dm-image80.png" src="../../_images/dm-image80.png" />
-<p class="caption"><span class="caption-number">Figure 211 </span><span class="caption-text">Device Model Boot Flow</span><a class="headerlink" href="#dm-boot-flow" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 215 </span><span class="caption-text">Device Model Boot Flow</span><a class="headerlink" href="#dm-boot-flow" title="Permalink to this image">¶</a></p>
 </div>
 <ul>
 <li><p><strong>DM Start</strong>: DM application starts to run.</p></li>
@@ -1362,7 +1366,7 @@ needs this information.</p></li>
 </ul>
 <div class="figure align-center" id="vhm-arch">
 <img alt="../../_images/dm-image108.png" src="../../_images/dm-image108.png" />
-<p class="caption"><span class="caption-number">Figure 212 </span><span class="caption-text">Architecture of ACRN VHM</span><a class="headerlink" href="#vhm-arch" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 216 </span><span class="caption-text">Architecture of ACRN VHM</span><a class="headerlink" href="#vhm-arch" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="vhm-ioctl-interfaces">
@@ -1407,12 +1411,12 @@ the range of any other client. In the current design, the device model
 acts as the fallback client for any VM.</p>
 <p>Each I/O client can be configured to handle the I/O requests in the
 client thread context or in a separate kernel thread context.
-<a class="reference internal" href="#vhm-interaction"><span class="std std-numref">Figure 213</span></a> shows how an I/O client talks to VHM to register
+<a class="reference internal" href="#vhm-interaction"><span class="std std-numref">Figure 217</span></a> shows how an I/O client talks to VHM to register
 a handler and process the incoming I/O requests in a kernel thread
 specifically created for this purpose.</p>
 <div class="figure align-center" id="vhm-interaction">
 <img alt="../../_images/dm-image94.png" src="../../_images/dm-image94.png" />
-<p class="caption"><span class="caption-number">Figure 213 </span><span class="caption-text">Interaction of in-kernel I/O clients and VHM</span><a class="headerlink" href="#vhm-interaction" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 217 </span><span class="caption-text">Interaction of in-kernel I/O clients and VHM</span><a class="headerlink" href="#vhm-interaction" title="Permalink to this image">¶</a></p>
 </div>
 <ul class="simple">
 <li><p>On registration, the client requests a fresh ID, registers a
@@ -1427,7 +1431,7 @@ to process the request.</p></li>
 thread exits.</p></li>
 </ul>
 <p>An I/O client can also handle I/O requests in its own thread context.
-<a class="reference internal" href="#dm-vhm-interaction"><span class="std std-numref">Figure 214</span></a> shows the interactions in such a case, using the
+<a class="reference internal" href="#dm-vhm-interaction"><span class="std std-numref">Figure 218</span></a> shows the interactions in such a case, using the
 device model as an example. No callback is registered on
 registration and the I/O client (device model in the example) attaches
 itself to VHM every time it is ready to process additional I/O requests.
@@ -1435,7 +1439,7 @@ Note also that the DM runs in userland and talks to VHM via the ioctl
 interface in <a class="reference internal" href="#vhm-ioctl-interfaces">VHM ioctl interfaces</a>.</p>
 <div class="figure align-center" id="dm-vhm-interaction">
 <img alt="../../_images/dm-image99.png" src="../../_images/dm-image99.png" />
-<p class="caption"><span class="caption-number">Figure 214 </span><span class="caption-text">Interaction of DM and VHM</span><a class="headerlink" href="#dm-vhm-interaction" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 218 </span><span class="caption-text">Interaction of DM and VHM</span><a class="headerlink" href="#dm-vhm-interaction" title="Permalink to this image">¶</a></p>
 </div>
 <p>Refer to <a class="reference internal" href="#i-o-client-interfaces">I/O client interfaces</a> for a list of interfaces for developing
 I/O clients.</p>
@@ -1444,9 +1448,9 @@ I/O clients.</p>
 <h3>Processing I/O Requests<a class="headerlink" href="#processing-i-o-requests" title="Permalink to this headline">¶</a></h3>
 <div class="figure align-center" id="io-sequence-sos">
 <img alt="../../_images/dm-image96.png" src="../../_images/dm-image96.png" />
-<p class="caption"><span class="caption-number">Figure 215 </span><span class="caption-text">I/O request handling sequence in Service VM</span><a class="headerlink" href="#io-sequence-sos" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 219 </span><span class="caption-text">I/O request handling sequence in Service VM</span><a class="headerlink" href="#io-sequence-sos" title="Permalink to this image">¶</a></p>
 </div>
-<p><a class="reference internal" href="#io-sequence-sos"><span class="std std-numref">Figure 215</span></a> above illustrates the interactions among the
+<p><a class="reference internal" href="#io-sequence-sos"><span class="std std-numref">Figure 219</span></a> above illustrates the interactions among the
 hypervisor, VHM,
 and the device model for handling I/O requests. The main interactions
 are as follows:</p>
@@ -1460,21 +1464,21 @@ of execution is scheduled.</p></li>
 state, assigns them to registered clients based on the address of
 the I/O access, updates their state to PROCESSING, and wakes up
 all clients that have I/O requests to be processed. The flow is
-illustrated in more detail in <a class="reference internal" href="#io-dispatcher-flow"><span class="std std-numref">Figure 216</span></a>.</p></li>
-<li><p>The woken client (the DM in <a class="reference internal" href="#io-sequence-sos"><span class="std std-numref">Figure 215</span></a> above) handles the
+illustrated in more detail in <a class="reference internal" href="#io-dispatcher-flow"><span class="std std-numref">Figure 220</span></a>.</p></li>
+<li><p>The woken client (the DM in <a class="reference internal" href="#io-sequence-sos"><span class="std std-numref">Figure 219</span></a> above) handles the
 assigned I/O requests, updates their state to COMPLETE, and notifies
-the VHM of the completion via ioctl. <a class="reference internal" href="#dm-io-flow"><span class="std std-numref">Figure 217</span></a> shows this
+the VHM of the completion via ioctl. <a class="reference internal" href="#dm-io-flow"><span class="std std-numref">Figure 221</span></a> shows this
 flow.</p></li>
 <li><p>The VHM device notifies the hypervisor of the completion via
 hypercall.</p></li>
 </ol>
 <div class="figure align-center" id="io-dispatcher-flow">
 <img alt="../../_images/dm-image97.png" src="../../_images/dm-image97.png" />
-<p class="caption"><span class="caption-number">Figure 216 </span><span class="caption-text">I/O dispatcher control flow</span><a class="headerlink" href="#io-dispatcher-flow" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 220 </span><span class="caption-text">I/O dispatcher control flow</span><a class="headerlink" href="#io-dispatcher-flow" title="Permalink to this image">¶</a></p>
 </div>
 <div class="figure align-center" id="dm-io-flow">
 <img alt="../../_images/dm-image74.png" src="../../_images/dm-image74.png" />
-<p class="caption"><span class="caption-number">Figure 217 </span><span class="caption-text">Device model control flow on handling I/O requests</span><a class="headerlink" href="#dm-io-flow" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 221 </span><span class="caption-text">Device model control flow on handling I/O requests</span><a class="headerlink" href="#dm-io-flow" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="emulation-of-accesses-to-pci-configuration-space">
@@ -1680,13 +1684,13 @@ to destination emulated devices:</p>
 </div>
 <div class="section" id="pirq-routing">
 <h3>PIRQ Routing<a class="headerlink" href="#pirq-routing" title="Permalink to this headline">¶</a></h3>
-<p><a class="reference internal" href="#id1"><span class="std std-numref">Figure 218</span></a> shows a PCI device PIRQ routing example. On a platform,
+<p><a class="reference internal" href="#id1"><span class="std std-numref">Figure 222</span></a> shows a PCI device PIRQ routing example. On a platform,
 there could be more PCI devices than available IRQ pin resources on its
 PIC or IOAPIC interrupt controller. ICH HW provides a PIRQ Routing
 mechanism to share IRQ pin resources between different PCI devices.</p>
 <div class="figure align-center" id="id1">
 <img alt="../../_images/dm-image33.png" src="../../_images/dm-image33.png" />
-<p class="caption"><span class="caption-number">Figure 218 </span><span class="caption-text">PIRQ Routing</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 222 </span><span class="caption-text">PIRQ Routing</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 <p>DM calls pci_lintr_route() to emulate this PIRQ routing:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span>
@@ -1756,7 +1760,7 @@ Interfaces</a>) in its routine.</p>
 <h3>PCI Emulation<a class="headerlink" href="#pci-emulation" title="Permalink to this headline">¶</a></h3>
 <div class="figure align-center" id="id3">
 <img alt="../../_images/dm-image83.png" src="../../_images/dm-image83.png" />
-<p class="caption"><span class="caption-number">Figure 219 </span><span class="caption-text">PCI Emulation Structure</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 223 </span><span class="caption-text">PCI Emulation Structure</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 <p>PCI emulation takes care of three interfaces:</p>
 <ul class="simple">
@@ -1902,7 +1906,7 @@ to  an XSDT (Extended System Description Table). The following picture
 shows a typical ACPI table layout in an Intel APL platform:</p>
 <div class="figure align-center" id="id4">
 <img alt="../../_images/dm-image36.png" src="../../_images/dm-image36.png" />
-<p class="caption"><span class="caption-number">Figure 220 </span><span class="caption-text">Typical ACPI table layout on Intel APL platform</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 224 </span><span class="caption-text">Typical ACPI table layout on Intel APL platform</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="id2">
@@ -2003,7 +2007,7 @@ as shown in the picture below. ACRN currently
 uses device emulation plus some device passthrough for User VM.</p>
 <div class="figure align-center" id="id5">
 <img alt="../../_images/dm-image52.png" src="../../_images/dm-image52.png" />
-<p class="caption"><span class="caption-number">Figure 221 </span><span class="caption-text">ACPI Emulation Model</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 225 </span><span class="caption-text">ACPI Emulation Model</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </div>
 <p>For ACPI virtualization in ACRN, different policies are used for
 different components:</p>
@@ -2218,7 +2222,7 @@ in device model and ACRN Hypervisor.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 10, 2021.
+        Last updated on May 21, 2021.
       </span>
 
     </p>

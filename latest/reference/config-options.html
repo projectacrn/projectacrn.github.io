@@ -374,7 +374,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/running_deb_as_serv_vm.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/running_deb_as_serv_vm.html#validated-versions">Validated Versions</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/running_deb_as_serv_vm.html#install-acrn-on-the-debian-vm">Install ACRN on the Debian VM</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/running_deb_as_serv_vm.html#enable-the-network-sharing-to-give-network-access-to-user-vm">Enable the Network Sharing to Give Network Access to User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/running_deb_as_serv_vm.html#enable-network-sharing-to-give-network-access-to-the-user-vm">Enable Network Sharing to Give Network Access to the User VM</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_yp.html">Using Yocto Project With ACRN</a><ul>
@@ -564,7 +564,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../develop.html#debug">Debug</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_serial_port.html">Using the Serial Port on KBL Intel NUC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_serial_port.html">Enable Serial Port on NUC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_serial_port.html#option-1-using-the-serial-port-on-tgl-intel-nuc">Option 1: Using the Serial Port on TGL Intel NUC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_serial_port.html#option-2-enabling-pcie-serial-port-on-tgl-intel-nuc">Option 2: Enabling PCIe Serial Port on TGL Intel NUC</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/debug.html">ACRN Debugging Tools</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/debug.html#acrn-console-command">ACRN Console Command</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/debug.html#an-example">An Example</a></li>
@@ -1387,6 +1391,15 @@ are allowed. The value will be ignored when hardware does not support RDT. <em>(
 </dd></dl>
 
 <dl class="std option">
+<dt id="cmdoption-arg-hv.FEATURES.NVMX_ENABLED">
+<span id="cmdoption-arg-hv-features-nvmx-enabled"></span><code class="sig-name descname">hv.FEATURES.NVMX_ENABLED</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-arg-hv.FEATURES.NVMX_ENABLED" title="Permalink to this definition">¶</a></dt>
+<dd><ul class="simple">
+<li><p>Enable nested virtualization. (Default value is <code class="docutils literal notranslate"><span class="pre">n</span></code>)</p></li>
+<li><p>A Boolean value, written as <code class="docutils literal notranslate"><span class="pre">y</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="std option">
 <dt id="cmdoption-arg-hv.FEATURES.IOMMU_ENFORCE_SNP">
 <span id="cmdoption-arg-hv-features-iommu-enforce-snp"></span><code class="sig-name descname">hv.FEATURES.IOMMU_ENFORCE_SNP</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-arg-hv.FEATURES.IOMMU_ENFORCE_SNP" title="Permalink to this definition">¶</a></dt>
 <dd><ul class="simple">
@@ -1462,12 +1475,12 @@ See <a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem
 </dd></dl>
 
 </div>
-<div class="section" id="hv-features-psram">
-<span id="id6"></span><h4>hv.FEATURES.PSRAM<a class="headerlink" href="#hv-features-psram" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="hv-features-ssram">
+<span id="id6"></span><h4>hv.FEATURES.SSRAM<a class="headerlink" href="#hv-features-ssram" title="Permalink to this headline">¶</a></h4>
 <p>Pseudo SRAM configuration. <em>(Optional)</em></p>
 <dl class="std option">
-<dt id="cmdoption-arg-hv.FEATURES.PSRAM.PSRAM_ENABLED">
-<span id="cmdoption-arg-hv-features-psram-psram-enabled"></span><code class="sig-name descname">hv.FEATURES.PSRAM.PSRAM_ENABLED</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-arg-hv.FEATURES.PSRAM.PSRAM_ENABLED" title="Permalink to this definition">¶</a></dt>
+<dt id="cmdoption-arg-hv.FEATURES.SSRAM.SSRAM_ENABLED">
+<span id="cmdoption-arg-hv-features-ssram-ssram-enabled"></span><code class="sig-name descname">hv.FEATURES.SSRAM.SSRAM_ENABLED</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-arg-hv.FEATURES.SSRAM.SSRAM_ENABLED" title="Permalink to this definition">¶</a></dt>
 <dd><ul class="simple">
 <li><p>Enable PTCM (Platform Tuning Configuration
 Manager). (Default value is <code class="docutils literal notranslate"><span class="pre">n</span></code>)</p></li>
@@ -1691,6 +1704,7 @@ enabled</p></li>
 IO polling to completion</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_HIDE_MTRR</span></code> specify that MTRR is hidden from the VM</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_RT</span></code> specify that the VM is an RT-VM (real-time)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_NVMX_ENABLED</span></code> specify that the VM supports nested virtualization</p></li>
 </ul>
 </li>
 </ul>
@@ -2078,7 +2092,7 @@ to the pre-launched VM. <em>(Optional)</em> (Default value is <code class="docut
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 10, 2021.
+        Last updated on May 21, 2021.
       </span>
 
     </p>

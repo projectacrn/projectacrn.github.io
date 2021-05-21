@@ -374,7 +374,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#validated-versions">Validated Versions</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#install-acrn-on-the-debian-vm">Install ACRN on the Debian VM</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#enable-the-network-sharing-to-give-network-access-to-user-vm">Enable the Network Sharing to Give Network Access to User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#enable-network-sharing-to-give-network-access-to-the-user-vm">Enable Network Sharing to Give Network Access to the User VM</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_yp.html">Using Yocto Project With ACRN</a><ul>
@@ -564,7 +564,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Using the Serial Port on KBL Intel NUC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Enable Serial Port on NUC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-1-using-the-serial-port-on-tgl-intel-nuc">Option 1: Using the Serial Port on TGL Intel NUC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-2-enabling-pcie-serial-port-on-tgl-intel-nuc">Option 2: Enabling PCIe Serial Port on TGL Intel NUC</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/debug.html">ACRN Debugging Tools</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-console-command">ACRN Console Command</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#an-example">An Example</a></li>
@@ -1103,10 +1107,16 @@ distribution, interrupt injection, PCI assignment, guest memory mapping,
 power management, and secure world switch.</p>
 <p>There are some restrictions for hypercall and upcall:</p>
 <ol class="arabic simple">
+<li><p>Only specific VMs (currently the Service VM and the VM with trusty enabled)
+can invoke hypercalls. A VM that cannot invoke hypercalls will get <code class="docutils literal notranslate"><span class="pre">#UD</span></code>
+(i.e. invalid opcode exception).</p></li>
 <li><p>Only ring 0 hypercalls from the guest VM are handled by the hypervisor;
-otherwise, the hypervisor will inject GP to the Guest VM.</p></li>
-<li><p>All the hypercalls (except secure world hypercalls) must be called from the Service VM;
-otherwise, the hypervisor will inject UD to the Guest VM.
+otherwise, the hypervisor will inject <code class="docutils literal notranslate"><span class="pre">#GP(0)</span></code> (i.e. generation protection
+exception with error code <code class="docutils literal notranslate"><span class="pre">0</span></code>) to the Guest VM.</p></li>
+<li><p>Each VM is permitted to invoke a certain subset of hypercalls. Currently a VM
+with trusty enabled is allowed to invoke trusty hypercalls, and the Service
+VM is allowed to invoke the other hypercalls. A VM that invokes an
+unpermitted hypercall will get the return value <code class="docutils literal notranslate"><span class="pre">-EINVAL</span></code>.
 see <a class="reference internal" href="hld-security.html#secure-hypervisor-interface"><span class="std std-ref">Secure Hypervisor Interface</span></a> for a detailed description.</p></li>
 <li><p>The hypervisor needs to protect the critical resources such as global VM and VCPU structures
 for VM and VCPU management hypercalls.</p></li>
@@ -1148,7 +1158,7 @@ View the detailed upcall process at <a class="reference internal" href="hv-inter
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 10, 2021.
+        Last updated on May 21, 2021.
       </span>
 
     </p>
