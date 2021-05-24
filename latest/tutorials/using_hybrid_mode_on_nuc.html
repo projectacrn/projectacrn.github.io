@@ -262,7 +262,9 @@
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Getting Started Guide for ACRN Hybrid Mode</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-up-base-installation">Set-up base installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prepare-the-zephyr-image">Prepare the Zephyr image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-up-acrn-on-your-device">Set-up ACRN on your device</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hybrid-scenario-startup-check">Hybrid Scenario Startup Check</a></li>
 </ul>
@@ -1100,21 +1102,28 @@
 or Ubuntu) runs in a pre-launched VM or in a post-launched VM that is
 launched by a Device model in the Service VM.</p>
 <div class="figure align-center" id="hybrid-scenario-on-nuc">
-<a class="reference internal image-reference" href="../_images/hybrid_scenario_on_nuc.png"><img alt="../_images/hybrid_scenario_on_nuc.png" src="../_images/hybrid_scenario_on_nuc.png" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="../_images/ACRN-Hybrid1.png"><img alt="../_images/ACRN-Hybrid1.png" src="../_images/ACRN-Hybrid1.png" style="width: 600px;" /></a>
 <p class="caption"><span class="caption-number">Figure 18 </span><span class="caption-text">The Hybrid scenario on the Intel NUC</span><a class="headerlink" href="#hybrid-scenario-on-nuc" title="Permalink to this image">¶</a></p>
 </div>
 <p>The following guidelines
 describe how to set up the ACRN hypervisor hybrid scenario on the Intel NUC,
 as shown in <a class="reference internal" href="#hybrid-scenario-on-nuc"><span class="std std-numref">Figure 18</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All build operations are done directly on the target. Building the artifacts (ACRN hypervisor, kernel, tools and Zephyr)
+on a separate development machine can be done but is not described in this document.</p>
+</div>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#prerequisites" id="id1">Prerequisites</a></p></li>
-<li><p><a class="reference internal" href="#update-ubuntu-grub" id="id2">Update Ubuntu GRUB</a></p></li>
-<li><p><a class="reference internal" href="#hybrid-scenario-startup-check" id="id3">Hybrid Scenario Startup Check</a></p></li>
+<li><p><a class="reference internal" href="#set-up-base-installation" id="id2">Set-up base installation</a></p></li>
+<li><p><a class="reference internal" href="#prepare-the-zephyr-image" id="id3">Prepare the Zephyr image</a></p></li>
+<li><p><a class="reference internal" href="#set-up-acrn-on-your-device" id="id4">Set-up ACRN on your device</a></p></li>
+<li><p><a class="reference internal" href="#update-ubuntu-grub" id="id5">Update Ubuntu GRUB</a></p></li>
+<li><p><a class="reference internal" href="#hybrid-scenario-startup-check" id="id6">Hybrid Scenario Startup Check</a></p></li>
 </ul>
 </div>
-<div class="section" id="prerequisites">
-<h2><a class="toc-backref" href="#id1">Prerequisites</a><a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<div class="numbered-step section" id="set-up-base-installation">
+<h2><a class="toc-backref" href="#id2">Set-up base installation</a><a class="headerlink" href="#set-up-base-installation" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Use the <a class="reference external" href="https://www.intel.com/content/www/us/en/products/boards-kits/nuc/kits/nuc7i7dnhe.html">Intel NUC Kit NUC7i7DNHE</a>.</p></li>
 <li><p>Connect to the serial port as described in <a class="reference internal" href="using_serial_port.html#connect-serial-port"><span class="std std-ref">Connecting to the serial port</span></a>.</p></li>
@@ -1122,8 +1131,54 @@ as shown in <a class="reference internal" href="#hybrid-scenario-on-nuc"><span c
 Intel NUC.</p></li>
 </ul>
 </div>
+<div class="numbered-step section" id="prepare-the-zephyr-image">
+<h2><a class="toc-backref" href="#id3">Prepare the Zephyr image</a><a class="headerlink" href="#prepare-the-zephyr-image" title="Permalink to this headline">¶</a></h2>
+<p>Prepare the Zephyr kernel that you will run in VM0 later.</p>
+<ul>
+<li><p>Follow step 1 from the <a class="reference internal" href="using_zephyr_as_uos.html#using-zephyr-as-uos"><span class="std std-ref">Run Zephyr as the User VM</span></a> instructions</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We only need the binary Zephyr kernel, not the entire <code class="docutils literal notranslate"><span class="pre">zephyr.img</span></code></p>
+</div>
+</li>
+<li><p>Copy the <code class="file docutils literal notranslate"><span class="pre">zephyr/zephyr.bin</span></code> to the <code class="docutils literal notranslate"><span class="pre">/boot</span></code> folder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">cp</span> <span class="n">zephyr</span><span class="o">/</span><span class="n">zephyr</span><span class="o">.</span><span class="n">bin</span> <span class="o">/</span><span class="n">boot</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="numbered-step section" id="set-up-acrn-on-your-device">
+<h2><a class="toc-backref" href="#id4">Set-up ACRN on your device</a><a class="headerlink" href="#set-up-acrn-on-your-device" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p>Follow the instructions in <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN From Source</span></a> to build ACRN using the
+<code class="docutils literal notranslate"><span class="pre">hybrid</span></code> scenario. Here is the build command-line for the <a class="reference external" href="https://www.intel.com/content/www/us/en/products/boards-kits/nuc/kits/nuc7i7dnhe.html">Intel NUC Kit NUC7i7DNHE</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">BOARD</span><span class="o">=</span><span class="n">nuc7i7dnb</span> <span class="n">SCENARIO</span><span class="o">=</span><span class="n">hybrid</span>
+</pre></div>
+</div>
+</li>
+<li><p>Install the ACRN hypervisor and tools</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~/acrn-hypervisor # Or wherever your sources are
+sudo make install
+sudo cp build/hypervisor/acrn.bin /boot
+sudo cp build/hypervisor/acpi/ACPI_VM0.bin /boot
+</pre></div>
+</div>
+</li>
+<li><p>Build and install the ACRN kernel</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~/acrn-kernel # Or where your ACRN kernel sources are
+cp kernel_config_uefi_sos .config
+make olddefconfig
+make
+sudo make modules_install
+sudo cp arch/x86/boot/bzImage /boot/bzImage
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
 <div class="numbered-step section" id="update-ubuntu-grub">
-<h2><a class="toc-backref" href="#id2">Update Ubuntu GRUB</a><a class="headerlink" href="#update-ubuntu-grub" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Update Ubuntu GRUB</a><a class="headerlink" href="#update-ubuntu-grub" title="Permalink to this headline">¶</a></h2>
 <p>Perform the following to update Ubuntu GRUB so it can boot the hypervisor and load the kernel image:</p>
 <ol class="arabic">
 <li><p>Append the following configuration in the <code class="docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code> file:</p>
@@ -1177,7 +1232,7 @@ hypervisor, and the hypervisor will start the VMs automatically.</p></li>
 </ol>
 </div>
 <div class="numbered-step section" id="hybrid-scenario-startup-check">
-<h2><a class="toc-backref" href="#id3">Hybrid Scenario Startup Check</a><a class="headerlink" href="#hybrid-scenario-startup-check" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id6">Hybrid Scenario Startup Check</a><a class="headerlink" href="#hybrid-scenario-startup-check" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Use these steps to verify that the hypervisor is properly running:</p>
 <ol class="loweralpha simple">
@@ -1225,7 +1280,7 @@ hypervisor, and the hypervisor will start the VMs automatically.</p></li>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 21, 2021.
+        Last updated on May 24, 2021.
       </span>
 
     </p>
