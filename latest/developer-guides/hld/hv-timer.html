@@ -535,7 +535,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#service-vm-networking-updates-for-user-vm">Service VM Networking Updates for User VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
@@ -561,6 +560,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
 </ul>
 </li>
 </ul>
@@ -1163,6 +1166,23 @@ tsc-deadline timer mode by writing the local APIC LVT register.</p>
 </dd></dl>
 
 <dl class="c function">
+<dt id="c.timer_is_started">
+<span class="target" id="group__timer_gae1077a92445185960c0dad8088dd466f_1gae1077a92445185960c0dad8088dd466f"></span>bool <code class="sig-name descname">timer_is_started</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> hv_timer *<em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#c.timer_is_started" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Check if a timer is active (in the timer list) or not. </p>
+<p><dl class="simple">
+<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">timer</span></code>: Pointer to timer.</p></li>
+</ul>
+</dd>
+<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">true</span></code>: if the timer is in timer list, false otherwise. </p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
 <dt id="c.add_timer">
 <span class="target" id="group__timer_ga7f698f26b1e7194ec8c1e00707ba9d83_1ga7f698f26b1e7194ec8c1e00707ba9d83"></span>int32_t <code class="sig-name descname">add_timer</code><span class="sig-paren">(</span><em class="property">struct</em> hv_timer *<em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#c.add_timer" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Add a timer. </p>
@@ -1215,7 +1235,35 @@ tsc-deadline timer mode by writing the local APIC LVT register.</p>
 <span class="target" id="tsc_8h_acae8d43dd141466cb0b762d9d6b06627_1acae8d43dd141466cb0b762d9d6b06627"></span>void <code class="sig-name descname">calibrate_tsc</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.calibrate_tsc" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Calibrate Time Stamp Counter (TSC) frequency. </p>
 <p><dl class="simple">
+<dt><strong>Remark</strong></dt><dd><p>Generic time related routines, e.g., <a class="reference internal" href="#ticks_8h_aa7f912bf3e7efdcfadad466efeec4c6a_1aa7f912bf3e7efdcfadad466efeec4c6a"><span class="std std-ref">cpu_tickrate()</span></a>, <a class="reference internal" href="#ticks_8h_a7faa930ecf85567df5cd50a6630bfa70_1a7faa930ecf85567df5cd50a6630bfa70"><span class="std std-ref">us_to_ticks()</span></a>, <a class="reference internal" href="#delay_8h_ac5afb79f4789218ad58b4cee765596e3_1ac5afb79f4789218ad58b4cee765596e3"><span class="std std-ref">udelay()</span></a>, etc., relies on this function being called earlier during system initialization.</p>
+</dd>
 <dt><strong>Return</strong></dt><dd><p>None </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.cpu_ticks">
+<span class="target" id="ticks_8h_a84f8ba54d3764cb348678edce7d8fabb_1a84f8ba54d3764cb348678edce7d8fabb"></span>uint64_t <code class="sig-name descname">cpu_ticks</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.cpu_ticks" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Read current CPU tick count. </p>
+<p><dl class="simple">
+<dt><strong>Remark</strong></dt><dd><p>On x86, this is the Time Stamp Counter (TSC) value of the current logical CPU.</p>
+</dd>
+<dt><strong>Return</strong></dt><dd><p>CPU ticks </p>
+</dd>
+</dl>
+</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.cpu_tickrate">
+<span class="target" id="ticks_8h_aa7f912bf3e7efdcfadad466efeec4c6a_1aa7f912bf3e7efdcfadad466efeec4c6a"></span>uint32_t <code class="sig-name descname">cpu_tickrate</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.cpu_tickrate" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get CPU tick frequency in KHz. </p>
+<p><dl class="simple">
+<dt><strong>Remark</strong></dt><dd><p>On x86, this is the Time Stamp Counter (TSC) frequency of the current logical CPU.</p>
+</dd>
+<dt><strong>Return</strong></dt><dd><p>CPU frequency (KHz) </p>
 </dd>
 </dl>
 </p>
@@ -1267,45 +1315,6 @@ tsc-deadline timer mode by writing the local APIC LVT register.</p>
 </dd></dl>
 
 <dl class="c function">
-<dt id="c.rdtsc">
-<span class="target" id="tsc_8h_a64eba85413970674e0e6e03af9e9d0f4_1a64eba85413970674e0e6e03af9e9d0f4"></span>uint64_t <code class="sig-name descname">rdtsc</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.rdtsc" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Read Time Stamp Counter (TSC). </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>TSC value </p>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="c function">
-<dt id="c.get_tsc_khz">
-<span class="target" id="tsc_8h_aca855a50ff36ea72715a0d897d5f06bc_1aca855a50ff36ea72715a0d897d5f06bc"></span>uint32_t <code class="sig-name descname">get_tsc_khz</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.get_tsc_khz" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Get Time Stamp Counter (TSC) frequency in KHz. </p>
-<p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>TSC frequency in KHz </p>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="c function">
-<dt id="c.timer_is_started">
-<span class="target" id="group__timer_gae1077a92445185960c0dad8088dd466f_1gae1077a92445185960c0dad8088dd466f"></span>bool <code class="sig-name descname">timer_is_started</code><span class="sig-paren">(</span><em class="property">const</em> <em class="property">struct</em> hv_timer *<em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#c.timer_is_started" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Check if a timer is active (in the timer list) or not. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">timer</span></code>: Pointer to timer.</p></li>
-</ul>
-</dd>
-<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">true</span></code>: if the timer is in timer list, false otherwise. </p></li>
-</ul>
-</dd>
-</dl>
-</p>
-</dd></dl>
-
-<dl class="c function">
 <dt id="c.udelay">
 <span class="target" id="delay_8h_ac5afb79f4789218ad58b4cee765596e3_1ac5afb79f4789218ad58b4cee765596e3"></span>void <code class="sig-name descname">udelay</code><span class="sig-paren">(</span>uint32_t <em>us</em><span class="sig-paren">)</span><a class="headerlink" href="#c.udelay" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Busy wait a few micro seconds. </p>
@@ -1349,7 +1358,7 @@ tsc-deadline timer mode by writing the local APIC LVT register.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 24, 2021.
+        Last updated on Jun 09, 2021.
       </span>
 
     </p>

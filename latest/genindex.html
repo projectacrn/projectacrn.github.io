@@ -535,7 +535,6 @@
 <li class="toctree-l4"><a class="reference internal" href="tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="tutorials/acrn_on_qemu.html#service-vm-networking-updates-for-user-vm">Service VM Networking Updates for User VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
@@ -561,6 +560,10 @@
 <li class="toctree-l4"><a class="reference internal" href="tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
 <li class="toctree-l4"><a class="reference internal" href="tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tutorials/enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tutorials/enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
 </ul>
 </li>
 </ul>
@@ -1427,6 +1430,8 @@
 </li>
         <li><a href="reference/config-options.html#cmdoption-arg-vm.pt_intx">vm.pt_intx</a>
 </li>
+        <li><a href="reference/config-options.html#cmdoption-arg-vm.PTM">vm.PTM</a>
+</li>
         <li><a href="reference/config-options.html#cmdoption-arg-vm.vm_type">vm.vm_type</a>
 </li>
       </ul></li>
@@ -1443,6 +1448,10 @@
       <li><a href="api/hypercall_api.html#c.cpu_cx_data">cpu_cx_data (C struct)</a>
 </li>
       <li><a href="api/hypercall_api.html#c.cpu_px_data">cpu_px_data (C struct)</a>
+</li>
+      <li><a href="developer-guides/hld/hv-timer.html#c.cpu_tickrate">cpu_tickrate (C function)</a>
+</li>
+      <li><a href="developer-guides/hld/hv-timer.html#c.cpu_ticks">cpu_ticks (C function)</a>
 </li>
       <li><a href="developer-guides/hld/hv-vt-d.html#c.create_iommu_domain">create_iommu_domain (C function)</a>
 </li>
@@ -1544,9 +1553,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developer-guides/hld/hv-interrupt.html#c.get_cur_lapic_id">get_cur_lapic_id (C function)</a>
 </li>
-      <li><a href="developer-guides/hld/hv-memmgt.html#c.get_ept_entry">get_ept_entry (C function)</a>
-</li>
-      <li><a href="developer-guides/hld/hv-timer.html#c.get_tsc_khz">get_tsc_khz (C function)</a>
+      <li><a href="developer-guides/hld/hv-memmgt.html#c.get_eptp">get_eptp (C function)</a>
 </li>
       <li><a href="glossary.html#term-GGTT"><strong>GGTT</strong></a>
 </li>
@@ -2244,8 +2251,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="glossary.html#term-RDT"><strong>RDT</strong></a>
 </li>
-      <li><a href="developer-guides/hld/hv-timer.html#c.rdtsc">rdtsc (C function)</a>
-</li>
       <li><a href="developer-guides/hld/hv-memmgt.html#c.read_vmtrr">read_vmtrr (C function)</a>
 </li>
       <li><a href="developer-guides/hld/hv-io-emulation.html#c.register_mmio_emulation_handler">register_mmio_emulation_handler (C function)</a>
@@ -2256,10 +2261,10 @@
 </li>
       <li><a href="developer-guides/hld/hv-interrupt.html#c.reserve_irq_num">reserve_irq_num (C function)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developer-guides/hld/hv-cpu-virt.html#c.reset_vcpu">reset_vcpu (C function)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developer-guides/trusty.html#c.restore_sworld_context">restore_sworld_context (C function)</a>
 </li>
       <li><a href="developer-guides/hld/hv-interrupt.html#c.resume_ioapic">resume_ioapic (C function)</a>
@@ -2622,10 +2627,10 @@
 </li>
       <li><a href="api/devicemodel_api.html#c.VIRTIO_TYPE_AUDIO">VIRTIO_TYPE_AUDIO (C macro)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/devicemodel_api.html#c.VIRTIO_TYPE_BALLOON">VIRTIO_TYPE_BALLOON (C macro)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/devicemodel_api.html#c.VIRTIO_TYPE_BLOCK">VIRTIO_TYPE_BLOCK (C macro)</a>
 </li>
       <li><a href="api/devicemodel_api.html#c.VIRTIO_TYPE_CONSOLE">VIRTIO_TYPE_CONSOLE (C macro)</a>
@@ -2912,6 +2917,13 @@
 </li>
       </ul></li>
       <li>
+    vm.PTM
+
+      <ul>
+        <li><a href="reference/config-options.html#cmdoption-arg-vm.PTM">command line option</a>
+</li>
+      </ul></li>
+      <li>
     vm.vm_type
 
       <ul>
@@ -3008,7 +3020,7 @@
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 24, 2021.
+        Last updated on Jun 09, 2021.
       </span>
 
     </p>

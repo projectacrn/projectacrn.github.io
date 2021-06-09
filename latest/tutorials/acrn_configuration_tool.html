@@ -535,7 +535,6 @@
 <li class="toctree-l4"><a class="reference internal" href="acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="acrn_on_qemu.html#service-vm-networking-updates-for-user-vm">Service VM Networking Updates for User VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
@@ -561,6 +560,10 @@
 <li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
 <li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
 </ul>
 </li>
 </ul>
@@ -1208,14 +1211,14 @@ command line options.</p>
 <div class="line-block">
 <div class="line"><strong>Native Linux requirement:</strong></div>
 <div class="line"><strong>Release:</strong> Ubuntu 18.04+</div>
-<div class="line"><strong>Tools:</strong> cpuid, rdmsr, lspci, dmidecode (optional)</div>
+<div class="line"><strong>Tools:</strong> cpuid, rdmsr, lspci, lxml, dmidecode (optional)</div>
 <div class="line"><strong>Kernel cmdline:</strong> “idle=nomwait intel_idle.max_cstate=0 intel_pstate=disable”</div>
 </div>
 </li>
-<li><p>Copy the <code class="docutils literal notranslate"><span class="pre">target</span></code> directory into the target file system and then run the
-<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">python3</span> <span class="pre">board_parser.py</span> <span class="pre">$(BOARD)</span></code> command.</p></li>
+<li><p>Copy the <code class="docutils literal notranslate"><span class="pre">board_inspector</span></code> directory into the target file system and then run the
+<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">python3</span> <span class="pre">cli.py</span> <span class="pre">$(BOARD)</span></code> command.</p></li>
 <li><p>A <code class="docutils literal notranslate"><span class="pre">$(BOARD).xml</span></code> that includes all needed hardware-specific information
-is generated in the <code class="docutils literal notranslate"><span class="pre">./out/</span></code> directory. Here, <code class="docutils literal notranslate"><span class="pre">$(BOARD)</span></code> is the
+is generated under the current working directory. Here, <code class="docutils literal notranslate"><span class="pre">$(BOARD)</span></code> is the
 specified board name.</p></li>
 </ol>
 </li>
@@ -1395,6 +1398,11 @@ emulated by the hypervisor if it is configured in the scenario XML.</p>
 <dt><code class="docutils literal notranslate"><span class="pre">poweroff_channel</span></code>:</dt><dd><p>Specify whether the User VM power off channel is through the IOC,
 power button, or vUART.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">allow_trigger_s5</span></code>:</dt><dd><p>Allow VM to trigger s5 shutdown flow, this flag works with <code class="docutils literal notranslate"><span class="pre">poweroff_channel</span></code>
+<code class="docutils literal notranslate"><span class="pre">vuart1(pty)</span></code> and <code class="docutils literal notranslate"><span class="pre">vuart1(tty)</span></code> only.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">enable_ptm</span></code>:</dt><dd><p>Enable the Precision Timing Measurement (PTM) feature.</p>
+</dd>
 <dt><code class="docutils literal notranslate"><span class="pre">usb_xhci</span></code>:</dt><dd><p>USB xHCI mediator configuration. Input format:
 <code class="docutils literal notranslate"><span class="pre">bus#-port#[:bus#-port#:</span> <span class="pre">...]</span></code>, e.g.: <code class="docutils literal notranslate"><span class="pre">1-2:2-4</span></code>.
 Refer to <a class="reference internal" href="../developer-guides/hld/usb-virt-hld.html#usb-virtualization"><span class="std std-ref">USB Virtualization</span></a> for details.</p>
@@ -1403,6 +1411,12 @@ Refer to <a class="reference internal" href="../developer-guides/hld/usb-virt-hl
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">shm_region</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">shm_regions</span></code>):</dt><dd><p>configure the shared memory regions for current VM, input format:
 <code class="docutils literal notranslate"><span class="pre">hv:/&lt;;shm</span> <span class="pre">name&gt;;,</span> <span class="pre">&lt;;shm</span> <span class="pre">size</span> <span class="pre">in</span> <span class="pre">MB&gt;;</span></code>. Refer to <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> for details.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">console_vuart</span></code>:</dt><dd><p>Enable a PCI-based console vUART. Refer to <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">Enable vUART Configurations</span></a> for details.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">communication_vuarts</span></code>:</dt><dd><p>List of PCI-based communication vUARTs. Refer to <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">Enable vUART Configurations</span></a> for details.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">communication_vuart</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">communication_vuarts</span></code>):</dt><dd><p>Enable a PCI-based communication vUART with its ID. Refer to <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">Enable vUART Configurations</span></a> for details.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">passthrough_devices</span></code>:</dt><dd><p>Select the passthrough device from the lspci list. Currently we support:
 <code class="docutils literal notranslate"><span class="pre">usb_xdci</span></code>, <code class="docutils literal notranslate"><span class="pre">audio</span></code>, <code class="docutils literal notranslate"><span class="pre">audio_codec</span></code>, <code class="docutils literal notranslate"><span class="pre">ipu</span></code>, <code class="docutils literal notranslate"><span class="pre">ipu_i2c</span></code>,
@@ -1620,7 +1634,7 @@ then generate the launch script.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 24, 2021.
+        Last updated on Jun 09, 2021.
       </span>
 
     </p>

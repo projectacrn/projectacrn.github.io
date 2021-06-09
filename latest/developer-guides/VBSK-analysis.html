@@ -535,7 +535,6 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn_on_qemu.html#service-vm-networking-updates-for-user-vm">Service VM Networking Updates for User VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
@@ -561,6 +560,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
 </ul>
 </li>
 </ul>
@@ -1149,10 +1152,10 @@ notifies the frontend driver that the data in the TXQ has been successfully
 received. In virtio-echo, the backend driver doesn’t process or use the
 received data.</p></li>
 </ul>
-<p><a class="reference internal" href="#vbsk-virtio-echo-arch"><span class="std std-numref">Figure 313</span></a> shows the whole architecture of virtio-echo.</p>
+<p><a class="reference internal" href="#vbsk-virtio-echo-arch"><span class="std std-numref">Figure 315</span></a> shows the whole architecture of virtio-echo.</p>
 <div class="figure align-center" id="vbsk-virtio-echo-arch">
 <a class="reference internal image-reference" href="../_images/vbsk-image2.png"><img alt="../_images/vbsk-image2.png" src="../_images/vbsk-image2.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 313 </span><span class="caption-text">virtio-echo Architecture</span><a class="headerlink" href="#vbsk-virtio-echo-arch" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 315 </span><span class="caption-text">virtio-echo Architecture</span><a class="headerlink" href="#vbsk-virtio-echo-arch" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="virtualization-overhead-analysis">
@@ -1192,7 +1195,7 @@ refers to kick overhead and notify overhead.</p></li>
 frontend driver and backend driver. The application-specific overhead
 depends on its own design.</p></li>
 </ul>
-<p><a class="reference internal" href="#vbsk-virtio-echo-e2e"><span class="std std-numref">Figure 314</span></a> shows the overhead of one end-to-end
+<p><a class="reference internal" href="#vbsk-virtio-echo-e2e"><span class="std std-numref">Figure 316</span></a> shows the overhead of one end-to-end
 operation in virtio-echo.  Overhead of steps marked as red are caused by
 the virtualization scheme based on VBS-K framework. Costs of one “kick”
 operation and one “notify” operation are both on a microsecond level.
@@ -1203,16 +1206,16 @@ because virtio-echo performs small operations in its frontend and backend
 driver that are just for testing, and there is very little process overhead.</p>
 <div class="figure align-center" id="vbsk-virtio-echo-e2e">
 <a class="reference internal image-reference" href="../_images/vbsk-image1.png"><img alt="../_images/vbsk-image1.png" src="../_images/vbsk-image1.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 314 </span><span class="caption-text">End to End Overhead of virtio-echo</span><a class="headerlink" href="#vbsk-virtio-echo-e2e" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 316 </span><span class="caption-text">End to End Overhead of virtio-echo</span><a class="headerlink" href="#vbsk-virtio-echo-e2e" title="Permalink to this image">¶</a></p>
 </div>
-<p><a class="reference internal" href="#vbsk-virtio-echo-path"><span class="std std-numref">Figure 315</span></a> details the path of kick and notify
-operation shown in <a class="reference internal" href="#vbsk-virtio-echo-e2e"><span class="std std-numref">Figure 314</span></a>. The VBS-K framework
+<p><a class="reference internal" href="#vbsk-virtio-echo-path"><span class="std std-numref">Figure 317</span></a> details the path of kick and notify
+operation shown in <a class="reference internal" href="#vbsk-virtio-echo-e2e"><span class="std std-numref">Figure 316</span></a>. The VBS-K framework
 overhead is caused by operations through these paths. As we can see, all
 these operations are processed in kernel mode, which avoids the extra
 overhead of passing IOREQ to userspace processing.</p>
 <div class="figure align-center" id="vbsk-virtio-echo-path">
 <a class="reference internal image-reference" href="../_images/vbsk-image3.png"><img alt="../_images/vbsk-image3.png" src="../_images/vbsk-image3.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 315 </span><span class="caption-text">Path of VBS-K Framework Overhead</span><a class="headerlink" href="#vbsk-virtio-echo-path" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 317 </span><span class="caption-text">Path of VBS-K Framework Overhead</span><a class="headerlink" href="#vbsk-virtio-echo-path" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="conclusion">
@@ -1249,7 +1252,7 @@ most applications.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on May 24, 2021.
+        Last updated on Jun 09, 2021.
       </span>
 
     </p>
