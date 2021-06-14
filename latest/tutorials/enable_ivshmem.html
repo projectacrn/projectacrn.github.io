@@ -556,6 +556,7 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Enable Inter-VM Communication Based on Ivshmem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#enable-ivshmem-support">Enable Ivshmem Support</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
@@ -693,6 +694,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/doc_guidelines.html#instruction-steps">Instruction Steps</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/doc_guidelines.html#first-instruction-step">First Instruction Step</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/doc_guidelines.html#second-instruction-step">Second Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../developer-guides/doc_guidelines.html#configuration-option-documentation">Configuration Option Documentation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../developer-guides/doc_guidelines.html#documentation-generation">Documentation Generation</a></li>
 </ul>
 </li>
@@ -1106,46 +1108,23 @@ solution or hv-land solution, according to the usage scenario needs.
 (See <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> for a high-level description of these solutions.)
 While both solutions can be used at the same time, VMs using different
 solutions cannot communicate with each other.</p>
-<div class="section" id="ivshmem-dm-land-usage">
-<h2>Ivshmem DM-Land Usage<a class="headerlink" href="#ivshmem-dm-land-usage" title="Permalink to this headline">¶</a></h2>
-<p>Add this line as an <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> boot parameter:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">slot</span><span class="p">,</span><span class="n">ivshmem</span><span class="p">,</span><span class="n">shm_name</span><span class="p">,</span><span class="n">shm_size</span>
-</pre></div>
-</div>
-<p>where</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">slot</span></code>  - Specify the virtual PCI slot number</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code>  - Virtual PCI device name</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">shm_name</span></code> - Specify a shared memory name. Post-launched VMs with the same
-<code class="docutils literal notranslate"><span class="pre">shm_name</span></code> share a shared memory region. The <code class="docutils literal notranslate"><span class="pre">shm_name</span></code> needs to start
-with <code class="docutils literal notranslate"><span class="pre">dm:/</span></code> prefix. For example, <code class="docutils literal notranslate"><span class="pre">dm:/test</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">shm_size</span></code> - Specify a shared memory size. The unit is megabyte. The size
-ranges from 2 megabytes to 512 megabytes and must be a power of 2 megabytes.
-For example, to set up a shared memory of 2 megabytes, use <code class="docutils literal notranslate"><span class="pre">2</span></code>
-instead of <code class="docutils literal notranslate"><span class="pre">shm_size</span></code>. The two communicating VMs must define the same size.</p></li>
-</ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This device can be used with real-time VM (RTVM) as well.</p>
-</div>
-</div>
-<div class="section" id="ivshmem-hv-land-usage">
-<span id="ivshmem-hv"></span><h2>Ivshmem HV-Land Usage<a class="headerlink" href="#ivshmem-hv-land-usage" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> hv-land solution is disabled by default in ACRN. You can enable
+<div class="section" id="enable-ivshmem-support">
+<h2>Enable Ivshmem Support<a class="headerlink" href="#enable-ivshmem-support" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> solution is disabled by default in ACRN. You can enable
 it using the <a class="reference internal" href="acrn_configuration_tool.html#acrn-config-workflow"><span class="std std-ref">ACRN configuration toolset</span></a> with these
 steps:</p>
 <ul>
-<li><p>Enable <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> hv-land in ACRN XML configuration file.</p>
+<li><p>Enable <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> via ACRN configuration tool GUI.</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>Edit <code class="docutils literal notranslate"><span class="pre">IVSHMEM_ENABLED</span></code> to <code class="docutils literal notranslate"><span class="pre">y</span></code> in ACRN scenario XML configuration
-to enable <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> hv-land</p></li>
-<li><p>Edit <code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code> to specify the shared memory name, size and
-communication VMs in ACRN scenario XML configuration. The <code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code>
-format is <code class="docutils literal notranslate"><span class="pre">shm_name,shm_size,VM</span> <span class="pre">IDs</span></code>:</p>
+<li><p>Set <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-hv.FEATURES.IVSHMEM.IVSHMEM_ENABLED"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_ENABLED</span></code></a> to <code class="docutils literal notranslate"><span class="pre">y</span></code></p></li>
+<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-hv.FEATURES.IVSHMEM.IVSHMEM_REGION"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_REGION</span></code></a> to specify the shared memory name, size and
+communication VMs. The <code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code> format is <code class="docutils literal notranslate"><span class="pre">shm_name,shm_size,VM</span> <span class="pre">IDs</span></code>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">shm_name</span></code> - Specify a shared memory name. The name needs to start
-with the <code class="docutils literal notranslate"><span class="pre">hv:/</span></code> prefix. For example, <code class="docutils literal notranslate"><span class="pre">hv:/shm_region_0</span></code></p></li>
+with the <code class="docutils literal notranslate"><span class="pre">hv:/</span></code> prefix for hv-land, or <code class="docutils literal notranslate"><span class="pre">dm:/</span></code> for dm-land.
+For example, <code class="docutils literal notranslate"><span class="pre">hv:/shm_region_0</span></code> for hv-land and <code class="docutils literal notranslate"><span class="pre">dm:/shm_region_0</span></code>
+for dm-land.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">shm_size</span></code> - Specify a shared memory size. The unit is megabyte. The
 size ranges from 2 megabytes to 512 megabytes and must be a power of 2 megabytes.
 For example, to set up a shared memory of 2 megabytes, use <code class="docutils literal notranslate"><span class="pre">2</span></code>
@@ -1156,14 +1135,56 @@ communication between VM0 and VM2, it can be written as <code class="docutils li
 </ul>
 </li>
 </ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>You can define up to eight <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> hv-land shared regions.</p>
-</div>
 </div></blockquote>
 </li>
 <li><p>Build with the XML configuration, refer to <a class="reference internal" href="../getting-started/building-from-source.html#getting-started-building"><span class="std std-ref">Build ACRN From Source</span></a>.</p></li>
 </ul>
+</div>
+<div class="section" id="ivshmem-dm-land-usage">
+<h2>Ivshmem DM-Land Usage<a class="headerlink" href="#ivshmem-dm-land-usage" title="Permalink to this headline">¶</a></h2>
+<p>Follow <a class="reference internal" href="#enable-ivshmem-support">Enable Ivshmem Support</a> and
+add below line as an <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> boot parameter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">slot</span><span class="p">,</span><span class="n">ivshmem</span><span class="p">,</span><span class="n">shm_name</span><span class="p">,</span><span class="n">shm_size</span>
+</pre></div>
+</div>
+<p>where</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">slot</span></code>  - Specify the virtual PCI slot number</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code>  - Virtual PCI device emulating the Shared Memory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shm_name</span></code> - Specify a shared memory name. This <code class="docutils literal notranslate"><span class="pre">shm_name</span></code> must be listed
+in <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-hv.FEATURES.IVSHMEM.IVSHMEM_REGION"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_REGION</span></code></a> in <a class="reference internal" href="#enable-ivshmem-support">Enable Ivshmem Support</a> section and needs to start
+with <code class="docutils literal notranslate"><span class="pre">dm:/</span></code> prefix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shm_size</span></code> - Shared memory size of selected <code class="docutils literal notranslate"><span class="pre">shm_name</span></code>.</p></li>
+</ul>
+<p>There are two ways to insert above boot parameter for <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code></p>
+<ul>
+<li><p>Manually edit launch script file, in this case, user shall ensure that both
+<code class="docutils literal notranslate"><span class="pre">shm_name</span></code> and <code class="docutils literal notranslate"><span class="pre">shm_size</span></code> match with that are defined via configuration tool GUI.</p></li>
+<li><dl>
+<dt>Use the command following below format to create a launch script, when IVSHMEM is enabled</dt><dd><p>and <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-hv.FEATURES.IVSHMEM.IVSHMEM_REGION"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_REGION</span></code></a> is properly configured via configuration tool GUI.</p>
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>python3 misc/config_tools/launch_config/launch_cfg_gen.py \
+--board &lt;path_to_your_boardxml&gt; \
+--scenario &lt;path_to_your_scenarioxml&gt; \
+--launch &lt;path_to_your_launched_script_xml&gt;  \
+<span class="hll">--uosid &lt;desired_single_vmid_or_0_for_all_vmids&gt;
+</span></pre></div>
+</div>
+</div></blockquote>
+</dd>
+</dl>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This device can be used with real-time VM (RTVM) as well.</p>
+</div>
+</div>
+<div class="section" id="ivshmem-hv-land-usage">
+<span id="ivshmem-hv"></span><h2>Ivshmem HV-Land Usage<a class="headerlink" href="#ivshmem-hv-land-usage" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>Follow <a class="reference internal" href="#enable-ivshmem-support">Enable Ivshmem Support</a> to setup HV-Land Ivshmem support.</p>
+</div></blockquote>
 </div>
 <div class="section" id="ivshmem-notification-mechanism">
 <h2>Ivshmem Notification Mechanism<a class="headerlink" href="#ivshmem-notification-mechanism" title="Permalink to this headline">¶</a></h2>
@@ -1337,7 +1358,7 @@ depending on the configuration.</p></li>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jun 09, 2021.
+        Last updated on Jun 14, 2021.
       </span>
 
     </p>
