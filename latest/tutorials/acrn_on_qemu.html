@@ -436,6 +436,14 @@
 <li class="toctree-l4"><a class="reference internal" href="sgx_virtualization.html#future-development">Future Development</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#service-os-vm-configuration">Service OS VM configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="vuart_configuration.html">Enable vUART Configurations</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="vuart_configuration.html#introduction">Introduction</a></li>
 <li class="toctree-l4"><a class="reference internal" href="vuart_configuration.html#console-enable-list">Console Enable List</a></li>
@@ -730,6 +738,23 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_2.5.html">ACRN v2.5 (Jun 2021) DRAFT</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#what-s-new-in-v2-5">What’s New in v2.5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#acrn-configuration-and-build">ACRN Configuration and Build</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#upgrading-to-v2-5-from-previous-releases">Upgrading to v2.5 From Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#additional-dependencies">Additional Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#configuration-file-format">Configuration File Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#build-commands">Build Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#patches-on-generated-sources">Patches on Generated Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_2.4.html">ACRN v2.4 (Apr 2021)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.4.html#what-s-new-in-v2-4">What’s New in v2.4</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.4.html#acrn-configuration-and-build">ACRN Configuration and Build</a></li>
@@ -1213,6 +1238,14 @@ Make sure to use the domain name you used while creating the VM in case it is di
 <div class="section" id="install-acrn-hypervisor">
 <span id="id1"></span><h2>Install ACRN Hypervisor<a class="headerlink" href="#install-acrn-hypervisor" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
+<li><p>Launch the <code class="docutils literal notranslate"><span class="pre">ACRNSOS</span></code> Service VM guest and log onto it (SSH is recommended but the console is
+available too).</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>All the steps below are performed <strong>inside</strong> the Service VM guest that we built in the
+previous section.</p>
+</div>
+</li>
 <li><p>Install the ACRN build tools and dependencies following the <a class="reference internal" href="../getting-started/building-from-source.html#install-build-tools-dependencies"><span class="std std-ref">Install Build Tools and Dependencies</span></a></p></li>
 <li><p>Clone ACRN repo and check out the <code class="docutils literal notranslate"><span class="pre">v2.5</span></code> tag.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
@@ -1238,35 +1271,10 @@ git checkout v2.5
 </pre></div>
 </div>
 </li>
-<li><p>Clone and configure the Service VM kernel repository. The User VM (L2 guest) uses the
-<code class="docutils literal notranslate"><span class="pre">virtio-blk</span></code> driver to mount the rootfs. We will modify the default kernel
-configuration to enable it (built-in).</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
-sudo apt install libncurses-dev bc libelf-dev
-git clone --shallow-since=2021-01-01 https://github.com/projectacrn/acrn-kernel
-cd acrn-kernel
-git checkout v2.5
-cp kernel_config_uefi_sos .config
-make olddefconfig
-make menuconfig
-</pre></div>
-</div>
-<p>The figure below shows the additional drivers to be enabled.</p>
-<div class="figure align-center">
-<img alt="../_images/acrn_qemu_4.png" src="../_images/acrn_qemu_4.png" />
-</div>
-</li>
-<li><p>Build the Service VM (L1 Guest) kernel.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make
-</pre></div>
-</div>
-</li>
-<li><p>Install the kernel and modules.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo make modules_install
-sudo cp arch/x86/boot/bzImage /boot
-</pre></div>
-</div>
-</li>
+<li><p>Clone and configure the Service VM kernel repository following the instructions at
+<a class="reference internal" href="../getting-started/rt_industry_ubuntu.html#build-and-install-acrn-kernel"><span class="std std-ref">Build and Install the ACRN Kernel</span></a> and using the <code class="docutils literal notranslate"><span class="pre">v2.5</span></code> tag. The User VM (L2 guest)
+uses the <code class="docutils literal notranslate"><span class="pre">virtio-blk</span></code> driver to mount the rootfs. This driver is included in the default
+kernel configuration as of the <code class="docutils literal notranslate"><span class="pre">v2.5</span></code> tag.</p></li>
 <li><p>Update Grub to boot the ACRN hypervisor and load the Service VM kernel. Append the following
 configuration to the <code class="file docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code>.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>menuentry &#39;ACRN hypervisor&#39; --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {
@@ -1407,7 +1415,7 @@ $vm_name
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jun 15, 2021.
+        Last updated on Jun 16, 2021.
       </span>
 
     </p>
