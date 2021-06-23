@@ -745,10 +745,8 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="release_notes/release_notes_2.5.html#upgrading-to-v2-5-from-previous-releases">Upgrading to v2.5 From Previous Releases</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="release_notes/release_notes_2.5.html#additional-dependencies">Additional Dependencies</a></li>
-<li class="toctree-l4"><a class="reference internal" href="release_notes/release_notes_2.5.html#configuration-file-format">Configuration File Format</a></li>
-<li class="toctree-l4"><a class="reference internal" href="release_notes/release_notes_2.5.html#build-commands">Build Commands</a></li>
-<li class="toctree-l4"><a class="reference internal" href="release_notes/release_notes_2.5.html#patches-on-generated-sources">Patches on Generated Sources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release_notes/release_notes_2.5.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="release_notes/release_notes_2.5.html#add-new-configuration-options">Add New Configuration Options</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="release_notes/release_notes_2.5.html#document-updates">Document Updates</a></li>
@@ -1042,6 +1040,7 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#addressed-in-acrn-v2-5">Addressed in ACRN v2.5</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#addressed-in-acrn-v2-3">Addressed in ACRN v2.3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#addressed-in-acrn-v2-1">Addressed in ACRN v2.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
@@ -1127,6 +1126,59 @@
             
   <div class="section" id="security-advisory">
 <span id="asa"></span><h1>Security Advisory<a class="headerlink" href="#security-advisory" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="addressed-in-acrn-v2-5">
+<h2>Addressed in ACRN v2.5<a class="headerlink" href="#addressed-in-acrn-v2-5" title="Permalink to this headline">¶</a></h2>
+<p>We recommend that all developers upgrade to this v2.5 release (or later), which
+addresses the following security issues that were discovered in previous releases:</p>
+<hr class="docutils" />
+<ul>
+<li><dl>
+<dt>NULL Pointer Dereference in <code class="docutils literal notranslate"><span class="pre">devicemodel/hw/pci/virtio/virtio_net.c</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">virtio_net_ping_rxq()</span></code> function tries to set <code class="docutils literal notranslate"><span class="pre">vq-&gt;used-&gt;flags</span></code> without
+validating pointer <code class="docutils literal notranslate"><span class="pre">vq-&gt;used</span></code>, which may be NULL and cause a NULL pointer dereference.</p>
+<p><strong>Affected Release:</strong> v2.4 and earlier.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>NULL Pointer Dereference in <code class="docutils literal notranslate"><span class="pre">hw/pci/virtio/virtio.c</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">vq_endchains</span></code> function tries to read <code class="docutils literal notranslate"><span class="pre">vq-&gt;used-&gt;idx</span></code> without
+validating pointer <code class="docutils literal notranslate"><span class="pre">vq-&gt;used</span></code>, which may be NULL and cause a NULL pointer dereference.</p>
+<p><strong>Affected Release:</strong> v2.4 and earlier.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>NULL Pointer Dereference in <code class="docutils literal notranslate"><span class="pre">devicemodel/hw/pci/xhci.c</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">trb</span></code> pointer in <code class="docutils literal notranslate"><span class="pre">pci_xhci_complete_commands</span></code> function may be from user space and may be NULL.
+Accessing it without validating may cause a NULL pointer dereference.</p>
+<p><strong>Affected Release:</strong> v2.4 and earlier.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Buffer overflow in <code class="docutils literal notranslate"><span class="pre">hypervisor/arch/x86/vtd.c</span></code></dt><dd><p>Malicious input <code class="docutils literal notranslate"><span class="pre">index</span></code> for function <code class="docutils literal notranslate"><span class="pre">dmar_free_irte</span></code> may trigger buffer
+overflow on array <code class="docutils literal notranslate"><span class="pre">irte_alloc_bitmap[]</span></code>.</p>
+<p><strong>Affected Release:</strong> v2.4 and earlier.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Page Fault in <code class="docutils literal notranslate"><span class="pre">devicemodel/core/mem.c</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">unregister_mem_int()</span></code> function frees any entry when it is valid, which is not expected.
+(only entries to be removed from RB tree can be freed). This will cause a page fault
+when next RB tree iteration happens.</p>
+<p><strong>Affected Release:</strong> v2.4 and earlier</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>Heap-use-after-free happens in VIRTIO timer_handler</dt><dd><p>With virtio polling mode enabled, a timer is running in the virtio
+backend service. The timer will also be triggered if its frontend
+driver didn’t do the device reset on shutdown. A freed virtio device
+could be accessed in the polling timer handler.</p>
+<p><strong>Affected Release:</strong> v2.4 and earlier</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
 <div class="section" id="addressed-in-acrn-v2-3">
 <h2>Addressed in ACRN v2.3<a class="headerlink" href="#addressed-in-acrn-v2-3" title="Permalink to this headline">¶</a></h2>
 <p>We recommend that all developers upgrade to this v2.3 release (or later), which
@@ -1310,7 +1362,7 @@ scenario.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jun 21, 2021.
+        Last updated on Jun 22, 2021.
       </span>
 
     </p>
