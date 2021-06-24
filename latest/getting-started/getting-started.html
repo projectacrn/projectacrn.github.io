@@ -558,6 +558,14 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-efi-stub.html">Enable ACRN Secure Boot With EFI-Stub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-efi-stub.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-efi-stub.html#verified-configurations">Verified Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-efi-stub.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-efi-stub.html#installing-without-sb-for-testing">Installing (without SB for testing)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/pre-launched-rt.html">Pre-Launched Preempt-Rt Linux Mode in ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/pre-launched-rt.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/pre-launched-rt.html#example-of-pre-launched-rt">Example of Pre-Launched RT</a></li>
@@ -740,10 +748,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_2.5.html">ACRN v2.5 (Jun 2021) DRAFT</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#what-s-new-in-v2-5">What’s New in v2.5</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#acrn-configuration-and-build">ACRN Configuration and Build</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#what-s-new-in-v2-5">What’s New in v2.5</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#upgrading-to-v2-5-from-previous-releases">Upgrading to v2.5 From Previous Releases</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#generate-new-board-xml">Generate New Board XML</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#add-new-configuration-options">Add New Configuration Options</a></li>
@@ -1289,7 +1294,7 @@ bootloader installation. Note that the label depends on the NVMe disk used.</p><
 <h3>Build the ACRN Hypervisor on Ubuntu<a class="headerlink" href="#build-the-acrn-hypervisor-on-ubuntu" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p>Install the necessary libraries:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo -E apt install gcc \
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo apt install gcc \
   git \
   make \
   libssl-dev \
@@ -1298,6 +1303,7 @@ bootloader installation. Note that the label depends on the NVMe disk used.</p><
   libsystemd-dev \
   libevent-dev \
   libxml2-dev \
+  libxml2-utils \
   libusb-1.0-0-dev \
   python3 \
   python3-pip \
@@ -1308,7 +1314,8 @@ bootloader installation. Note that the label depends on the NVMe disk used.</p><
   liblz4-tool \
   flex \
   bison \
-  xsltproc
+  xsltproc \
+  clang-format
 
 $ sudo pip3 install lxml xmlschema
 </pre></div>
@@ -1680,22 +1687,8 @@ below that discusses how to enable the network connection for RTVM.</p></li>
 </div>
 <div class="numbered-step section" id="launch-the-windows-vm">
 <h2><a class="toc-backref" href="#id12">Launch the Windows VM</a><a class="headerlink" href="#launch-the-windows-vm" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic">
-<li><p>Follow this <a class="reference internal" href="../tutorials/using_windows_as_uos.html#using-windows-as-uos"><span class="std std-ref">guide</span></a> to prepare the Windows
-image file and then reboot with a new <code class="docutils literal notranslate"><span class="pre">acrngt.conf</span></code>.</p></li>
-<li><p>Modify the <code class="docutils literal notranslate"><span class="pre">launch_uos_id1.sh</span></code> script as follows and then launch
-the Windows VM as one of the post-launched standard VMs:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge -s 1:0,lpc -l com1,stdio \
-<span class="hll">   -s 2,passthru,0/2/0,gpu \
-</span>   -s 3,virtio-blk,./win10-ltsc.img \
-   -s 4,virtio-net,tap0 \
-   --ovmf /usr/share/acrn/bios/OVMF.fd \
-   --windows \
-   $vm_name
-</pre></div>
-</div>
-</li>
-</ol>
+<p>Follow this <a class="reference internal" href="../tutorials/using_windows_as_uos.html#using-windows-as-uos"><span class="std std-ref">guide</span></a> to prepare the Windows
+image file and then reboot.</p>
 </div>
 <div class="section" id="troubleshooting">
 <h2><a class="toc-backref" href="#id13">Troubleshooting</a><a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
@@ -1796,7 +1789,7 @@ echo ${passthru_bdf[&quot;sata&quot;]} &gt; /sys/bus/pci/drivers/pci-stub/bind
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jun 22, 2021.
+        Last updated on Jun 23, 2021.
       </span>
 
     </p>

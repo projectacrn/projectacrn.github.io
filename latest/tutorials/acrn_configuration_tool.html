@@ -558,6 +558,14 @@
 <li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html">Enable ACRN Secure Boot With EFI-Stub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html#verified-configurations">Verified Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html#installing-without-sb-for-testing">Installing (without SB for testing)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="pre-launched-rt.html">Pre-Launched Preempt-Rt Linux Mode in ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="pre-launched-rt.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pre-launched-rt.html#example-of-pre-launched-rt">Example of Pre-Launched RT</a></li>
@@ -740,10 +748,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_2.5.html">ACRN v2.5 (Jun 2021) DRAFT</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#what-s-new-in-v2-5">What’s New in v2.5</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#acrn-configuration-and-build">ACRN Configuration and Build</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#what-s-new-in-v2-5">What’s New in v2.5</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.html#upgrading-to-v2-5-from-previous-releases">Upgrading to v2.5 From Previous Releases</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#generate-new-board-xml">Generate New Board XML</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_2.5.html#add-new-configuration-options">Add New Configuration Options</a></li>
@@ -1437,7 +1442,7 @@ Refer to <a class="reference internal" href="../developer-guides/hld/usb-virt-hl
 <dt><code class="docutils literal notranslate"><span class="pre">shm_regions</span></code>:</dt><dd><p>List of shared memory regions for inter-VM communication.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">shm_region</span></code> (a child node of <code class="docutils literal notranslate"><span class="pre">shm_regions</span></code>):</dt><dd><p>configure the shared memory regions for current VM, input format:
-<code class="docutils literal notranslate"><span class="pre">hv:/&lt;;shm</span> <span class="pre">name&gt;;,</span> <span class="pre">&lt;;shm</span> <span class="pre">size</span> <span class="pre">in</span> <span class="pre">MB&gt;;</span></code>. Refer to <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> for details.</p>
+<code class="docutils literal notranslate"><span class="pre">hv:/&lt;;shm</span> <span class="pre">name&gt;;</span> <span class="pre">(or</span> <span class="pre">dm:/&lt;shm_name&gt;;),</span> <span class="pre">&lt;;shm</span> <span class="pre">size</span> <span class="pre">in</span> <span class="pre">MB&gt;;</span></code>. Refer to <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> for details.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">console_vuart</span></code>:</dt><dd><p>Enable a PCI-based console vUART. Refer to <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">Enable vUART Configurations</span></a> for details.</p>
 </dd>
@@ -1460,13 +1465,15 @@ Input format: <code class="docutils literal notranslate"><span class="pre">[blk<
 Input format:
 <code class="docutils literal notranslate"><span class="pre">[&#64;]stdio|tty|pty|sock:portname[=portpath][,[&#64;]stdio|tty|pty:portname[=portpath]]</span></code>.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code>:</dt><dd><p>List of pCPU that this VM’s vCPUs are pinned to.</p>
+</dd>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">configurable</span></code> and <code class="docutils literal notranslate"><span class="pre">readonly</span></code> attributes are used to mark
-whether the item is configurable for users. When <code class="docutils literal notranslate"><span class="pre">configurable=&quot;0&quot;</span></code>
-and <code class="docutils literal notranslate"><span class="pre">readonly=&quot;true&quot;</span></code>, the item is not configurable from the web
-interface. When <code class="docutils literal notranslate"><span class="pre">configurable=&quot;0&quot;</span></code>, the item does not appear on the
+whether the item is configurable for users. When <code class="docutils literal notranslate"><span class="pre">configurable=&quot;n&quot;</span></code>
+and <code class="docutils literal notranslate"><span class="pre">readonly=&quot;y&quot;</span></code>, the item is not configurable from the web
+interface. When <code class="docutils literal notranslate"><span class="pre">configurable=&quot;n&quot;</span></code>, the item does not appear on the
 interface.</p>
 </div>
 </div>
@@ -1661,7 +1668,7 @@ then generate the launch script.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jun 22, 2021.
+        Last updated on Jun 23, 2021.
       </span>
 
     </p>
