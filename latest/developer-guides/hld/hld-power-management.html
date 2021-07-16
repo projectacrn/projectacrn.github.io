@@ -581,6 +581,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
@@ -1139,7 +1143,7 @@ C-state management. All these ACPI data must be consistent with the
 native data because the control method is a kind of passthrough.</p>
 <p>These ACPI objects data are parsed by an offline tool and hard-coded in a
 Hypervisor module named CPU state table:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">cpu_px_data</span> <span class="p">{</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="n">cpu_pstate_data</span> <span class="p">{</span>
     <span class="kt">uint64_t</span> <span class="n">core_frequency</span><span class="p">;</span>        <span class="cm">/* megahertz */</span>
     <span class="kt">uint64_t</span> <span class="n">power</span><span class="p">;</span>                 <span class="cm">/* milliWatts */</span>
     <span class="kt">uint64_t</span> <span class="n">transition_latency</span><span class="p">;</span>    <span class="cm">/* microseconds */</span>
@@ -1148,7 +1152,7 @@ Hypervisor module named CPU state table:</p>
     <span class="kt">uint64_t</span> <span class="n">status</span><span class="p">;</span>                <span class="cm">/* success indicator */</span>
 <span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
 
-<span class="k">struct</span> <span class="n">acpi_generic_address</span> <span class="p">{</span>
+<span class="k">struct</span> <span class="n">acrn_acpi_generic_address</span> <span class="p">{</span>
     <span class="kt">uint8_t</span>     <span class="n">space_id</span><span class="p">;</span>
     <span class="kt">uint8_t</span>     <span class="n">bit_width</span><span class="p">;</span>
     <span class="kt">uint8_t</span>     <span class="n">bit_offset</span><span class="p">;</span>
@@ -1156,8 +1160,8 @@ Hypervisor module named CPU state table:</p>
     <span class="kt">uint64_t</span>    <span class="n">address</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
 
-<span class="k">struct</span> <span class="n">cpu_cx_data</span> <span class="p">{</span>
-    <span class="k">struct</span> <span class="n">acpi_generic_address</span> <span class="n">cx_reg</span><span class="p">;</span>
+<span class="k">struct</span> <span class="n">cpu_cstate_data</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">acrn_acpi_generic_address</span> <span class="n">cx_reg</span><span class="p">;</span>
     <span class="kt">uint8_t</span>     <span class="n">type</span><span class="p">;</span>
     <span class="kt">uint32_t</span>    <span class="n">latency</span><span class="p">;</span>
     <span class="kt">uint64_t</span>    <span class="n">power</span><span class="p">;</span>
@@ -1176,16 +1180,16 @@ Px/Cx data for User VM P/C-state management:</p>
 <p class="caption"><span class="caption-number">Figure 291 </span><span class="caption-text">System block for building vACPI table with Px/Cx data</span><a class="headerlink" href="#vacpitable" title="Permalink to this image">¶</a></p>
 </div>
 <p>Some ioctl APIs are defined for the Device model to query Px/Cx data from
-the Service VM VHM. The Hypervisor needs to provide hypercall APIs to transit
-Px/Cx data from the CPU state table to the Service VM VHM.</p>
+the Service VM HSM. The Hypervisor needs to provide hypercall APIs to transit
+Px/Cx data from the CPU state table to the Service VM HSM.</p>
 <p>The build flow is:</p>
 <ol class="arabic simple">
 <li><p>Use an offline tool (e.g. <strong>iasl</strong>) to parse the Px/Cx data and hard-code to
 a CPU state table in the Hypervisor. The Hypervisor loads the data after
 the system boots.</p></li>
 <li><p>Before User VM launching, the Device mode queries the Px/Cx data from the Service
-VM VHM via ioctl interface.</p></li>
-<li><p>VHM transmits the query request to the Hypervisor by hypercall.</p></li>
+VM HSM via ioctl interface.</p></li>
+<li><p>HSM transmits the query request to the Hypervisor by hypercall.</p></li>
 <li><p>The Hypervisor returns the Px/Cx data.</p></li>
 <li><p>The Device model builds the virtual ACPI table with these Px/Cx data</p></li>
 </ol>
@@ -1312,7 +1316,7 @@ mapped to shutdown. So the S5 process is a little different:</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jul 14, 2021.
+        Last updated on Jul 16, 2021.
       </span>
 
     </p>

@@ -581,6 +581,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
@@ -1327,10 +1331,10 @@ driver when something happens. For “data plane”, the communication
 between the FE and BE driver is through shared memory, in the form of
 virtqueues.</p>
 <p>On the service OS side where the BE driver is located, there are several
-key components in ACRN, including device model (DM), virtio and HV
-service module (VHM), VBS-U, and user-level vring service API helpers.</p>
+key components in ACRN, including device model (DM), Hypervisor
+service module (HSM), VBS-U, and user-level vring service API helpers.</p>
 <p>DM bridges the FE driver and BE driver since each VBS-U module emulates
-a PCIe virtio device. VHM bridges DM and the hypervisor by providing
+a PCIe virtio device. HSM bridges DM and the hypervisor by providing
 remote memory map APIs and notification APIs. VBS-U accesses the
 virtqueue through the user-level vring service API helpers.</p>
 <div class="figure align-center" id="virtio-userland">
@@ -1394,7 +1398,7 @@ can be described as:</p>
 <ol class="arabic simple">
 <li><p>vhost proxy creates two eventfds per virtqueue, one is for kick,
 (an ioeventfd), the other is for call, (an irqfd).</p></li>
-<li><p>vhost proxy registers the two eventfds to VHM through VHM character
+<li><p>vhost proxy registers the two eventfds to HSM through HSM character
 device:</p>
 <ol class="loweralpha simple">
 <li><p>Ioevenftd is bound with a PIO/MMIO range. If it is a PIO, it is
@@ -1406,14 +1410,14 @@ registered with <code class="docutils literal notranslate"><span class="pre">(fd
 <li><p>vhost proxy sets the two fds to vhost kernel through ioctl of vhost
 device.</p></li>
 <li><p>vhost starts polling the kick fd and wakes up when guest kicks a
-virtqueue, which results a event_signal on kick fd by VHM ioeventfd.</p></li>
+virtqueue, which results a event_signal on kick fd by HSM ioeventfd.</p></li>
 <li><p>vhost device in kernel signals on the irqfd to notify the guest.</p></li>
 </ol>
 </div>
 <div class="section" id="ioeventfd-implementation">
 <h5>Ioeventfd Implementation<a class="headerlink" href="#ioeventfd-implementation" title="Permalink to this headline">¶</a></h5>
-<p>Ioeventfd module is implemented in VHM, and can enhance a registered
-eventfd to listen to IO requests (PIO/MMIO) from vhm ioreq module and
+<p>Ioeventfd module is implemented in HSM, and can enhance a registered
+eventfd to listen to IO requests (PIO/MMIO) from HSM ioreq module and
 signal the eventfd when needed. <a class="reference internal" href="#ioeventfd-workflow"><span class="std std-numref">Figure 276</span></a>  shows the
 general workflow of ioeventfd.</p>
 <div class="figure align-center" id="ioeventfd-workflow">
@@ -1425,17 +1429,17 @@ general workflow of ioeventfd.</p>
 <li><p>vhost device init. Vhost proxy creates two eventfd for ioeventfd and
 irqfd.</p></li>
 <li><p>pass ioeventfd to vhost kernel driver.</p></li>
-<li><p>pass ioevent fd to vhm driver</p></li>
+<li><p>pass ioevent fd to HSM driver</p></li>
 <li><p>User VM FE driver triggers ioreq and forwarded to Service VM by hypervisor</p></li>
-<li><p>ioreq is dispatched by vhm driver to related vhm client.</p></li>
-<li><p>ioeventfd vhm client traverses the io_range list and find
+<li><p>ioreq is dispatched by HSM driver to related HSM client.</p></li>
+<li><p>ioeventfd HSM client traverses the io_range list and find
 corresponding eventfd.</p></li>
 <li><p>trigger the signal to related eventfd.</p></li>
 </ol>
 </div>
 <div class="section" id="irqfd-implementation">
 <h5>Irqfd Implementation<a class="headerlink" href="#irqfd-implementation" title="Permalink to this headline">¶</a></h5>
-<p>The irqfd module is implemented in VHM, and can enhance a registered
+<p>The irqfd module is implemented in HSM, and can enhance a registered
 eventfd to inject an interrupt to a guest OS when the eventfd gets
 signaled. <a class="reference internal" href="#irqfd-workflow"><span class="std std-numref">Figure 277</span></a> shows the general flow for irqfd.</p>
 <div class="figure align-center" id="irqfd-workflow">
@@ -1447,12 +1451,12 @@ signaled. <a class="reference internal" href="#irqfd-workflow"><span class="std 
 <li><p>vhost device init. Vhost proxy creates two eventfd for ioeventfd and
 irqfd.</p></li>
 <li><p>pass irqfd to vhost kernel driver.</p></li>
-<li><p>pass IRQ fd to vhm driver</p></li>
+<li><p>pass IRQ fd to HSM driver</p></li>
 <li><p>vhost device driver triggers IRQ eventfd signal once related native
 transfer is completed.</p></li>
 <li><p>irqfd related logic traverses the irqfd list to retrieve related irq
 information.</p></li>
-<li><p>irqfd related logic injects an interrupt through vhm interrupt API.</p></li>
+<li><p>irqfd related logic injects an interrupt through HSM interrupt API.</p></li>
 <li><p>Interrupt is delivered to User VM FE driver through hypervisor.</p></li>
 </ol>
 </div>
@@ -2059,8 +2063,8 @@ virtual interrupt.</p>
 </dd>
 </dl>
 </div>
-<div class="section" id="vhm-eventfd-ioctls">
-<h4>VHM Eventfd IOCTLs<a class="headerlink" href="#vhm-eventfd-ioctls" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="hsm-eventfd-ioctls">
+<h4>HSM Eventfd IOCTLs<a class="headerlink" href="#hsm-eventfd-ioctls" title="Permalink to this headline">¶</a></h4>
 <dl class="c struct">
 <dt id="c.acrn_ioeventfd">
 <span class="target" id="structacrn__ioeventfd"></span><em class="property">struct </em><code class="sig-name descname">acrn_ioeventfd</code><a class="headerlink" href="#c.acrn_ioeventfd" title="Permalink to this definition">¶</a><br /></dt>
@@ -2321,7 +2325,7 @@ supported in ACRN.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jul 14, 2021.
+        Last updated on Jul 16, 2021.
       </span>
 
     </p>

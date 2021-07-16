@@ -581,6 +581,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
@@ -1127,7 +1131,7 @@
   <div class="section" id="i-o-emulation-high-level-design">
 <span id="hld-io-emulation"></span><h1>I/O Emulation High-Level Design<a class="headerlink" href="#i-o-emulation-high-level-design" title="Permalink to this headline">¶</a></h1>
 <p>As discussed in <a class="reference internal" href="hld-overview.html#intro-io-emulation"><span class="std std-ref">Device Emulation</span></a>, there are multiple ways and
-places to handle I/O emulation, including HV, Service VM Kernel VHM, and Service VM
+places to handle I/O emulation, including HV, Service VM Kernel HSM, and Service VM
 user-land device model (acrn-dm).</p>
 <p>I/O emulation in the hypervisor provides these functionalities:</p>
 <ul class="simple">
@@ -1352,64 +1356,36 @@ complex and may impact the performance of the Service VM.</p>
 <span id="io-structs-interfaces"></span><h2>Data Structures and Interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="external-interfaces">
 <h3>External Interfaces<a class="headerlink" href="#external-interfaces" title="Permalink to this headline">¶</a></h3>
-<p>The following structures represent an I/O request. <em>struct vhm_request</em>
+<p>The following structures represent an I/O request. <em>struct acrn_io_request</em>
 is the main structure and the others are detailed representations of I/O
 requests of different kinds.</p>
 <dl class="c struct">
-<dt id="c.mmio_request">
-<span class="target" id="structmmio__request"></span><em class="property">struct </em><code class="sig-name descname">mmio_request</code><br /></dt>
+<dt id="c.acrn_mmio_request">
+<span class="target" id="structacrn__mmio__request"></span><em class="property">struct </em><code class="sig-name descname">acrn_mmio_request</code><br /></dt>
 <dd><p>Representation of a MMIO request. </p>
 </dd></dl>
 
 <dl class="c struct">
-<dt id="c.pio_request">
-<span class="target" id="structpio__request"></span><em class="property">struct </em><code class="sig-name descname">pio_request</code><br /></dt>
+<dt id="c.acrn_pio_request">
+<span class="target" id="structacrn__pio__request"></span><em class="property">struct </em><code class="sig-name descname">acrn_pio_request</code><br /></dt>
 <dd><p>Representation of a port I/O request. </p>
 </dd></dl>
 
 <dl class="c struct">
-<dt id="c.pci_request">
-<span class="target" id="structpci__request"></span><em class="property">struct </em><code class="sig-name descname">pci_request</code><br /></dt>
+<dt id="c.acrn_pci_request">
+<span class="target" id="structacrn__pci__request"></span><em class="property">struct </em><code class="sig-name descname">acrn_pci_request</code><br /></dt>
 <dd><p>Representation of a PCI configuration space access. </p>
 </dd></dl>
 
-<dl class="c union">
-<dt id="c.vhm_io_request">
-<span class="target" id="unionvhm__io__request"></span><em class="property">union </em><code class="sig-name descname">vhm_io_request</code><br /></dt>
-<dd><em>#include &lt;acrn_common.h&gt;</em><div class="breathe-sectiondef docutils container">
-<p class="breathe-sectiondef-title rubric">Public Members</p>
-<dl class="c var">
-<dt id="c.vhm_io_request.pio">
-<span class="target" id="unionvhm__io__request_1a867462f838e3cbdb67bd1f03eb4dd455"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#c.pio_request" title="pio_request">pio_request</a> <code class="sig-name descname">pio</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="c var">
-<dt id="c.vhm_io_request.pci">
-<span class="target" id="unionvhm__io__request_1a11da1da54394346fbee522fe7c8ff427"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#c.pci_request" title="pci_request">pci_request</a> <code class="sig-name descname">pci</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="c var">
-<dt id="c.vhm_io_request.mmio">
-<span class="target" id="unionvhm__io__request_1a622ed8ff764ec1ec6d486e85c84da09f"></span><em class="property">struct</em> <a class="reference internal" href="../../api/hypercall_api.html#c.mmio_request" title="mmio_request">mmio_request</a> <code class="sig-name descname">mmio</code><br /></dt>
-<dd></dd></dl>
-
-<dl class="c var">
-<dt id="c.vhm_io_request.reserved1">
-<span class="target" id="unionvhm__io__request_1a7fab3ba7831ece0ae4b9b530e30291c2"></span>int64_t <code class="sig-name descname">reserved1</code>[8]<br /></dt>
-<dd></dd></dl>
-
-</div>
-</dd></dl>
-
 <dl class="c struct">
-<dt id="c.vhm_request">
-<span class="target" id="structvhm__request"></span><em class="property">struct </em><code class="sig-name descname">vhm_request</code><br /></dt>
-<dd><p>256-byte VHM requests </p>
-<p>The state transitions of a VHM request are:</p>
+<dt id="c.acrn_io_request">
+<span class="target" id="structacrn__io__request"></span><em class="property">struct </em><code class="sig-name descname">acrn_io_request</code><br /></dt>
+<dd><p>256-byte I/O requests </p>
+<p>The state transitions of a I/O request are:</p>
 <p>FREE -&gt; PENDING -&gt; PROCESSING -&gt; COMPLETE -&gt; FREE -&gt; …</p>
-<p>When a request is in COMPLETE or FREE state, the request is owned by the hypervisor. SOS (VHM or DM) shall not read or write the internals of the request except the state.</p>
+<p>When a request is in COMPLETE or FREE state, the request is owned by the hypervisor. SOS (HSM or DM) shall not read or write the internals of the request except the state.</p>
 <p>When a request is in PENDING or PROCESSING state, the request is owned by SOS. The hypervisor shall not read or write the request other than the state.</p>
-<p>Based on the rules above, a typical VHM request lifecycle should looks like the following.</p>
+<p>Based on the rules above, a typical I/O request lifecycle should looks like the following.</p>
 <p><p><table class="docutils align-default">
 <colgroup>
 <col style="width: 33%" />
@@ -1493,10 +1469,10 @@ requests (d)</p></li>
 <li><p>One vCPU cannot trigger another I/O request before the previous one has completed (i.e. the state switched to FREE)</p></li>
 </ol>
 </p>
-<p>Accesses to the state of a <a class="reference internal" href="#structvhm__request"><span class="std std-ref">vhm_request</span></a> shall be atomic and proper barriers are needed to ensure that:</p>
+<p>Accesses to the state of a vhm_request shall be atomic and proper barriers are needed to ensure that:</p>
 <p><ol class="loweralpha simple">
 <li><p>Setting state to PENDING is the last operation when issuing a request in the hypervisor, as the hypervisor shall not access the request any more.</p></li>
-<li><p>Due to similar reasons, setting state to COMPLETE is the last operation of request handling in VHM or clients in SOS. </p></li>
+<li><p>Due to similar reasons, setting state to COMPLETE is the last operation of request handling in HSM or clients in SOS. </p></li>
 </ol>
 </p>
 </dd></dl>
@@ -1655,7 +1631,7 @@ I/O bitmaps and register or unregister I/O handlers:</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jul 14, 2021.
+        Last updated on Jul 16, 2021.
       </span>
 
     </p>

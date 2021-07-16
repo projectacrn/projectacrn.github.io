@@ -581,6 +581,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
@@ -1170,11 +1174,11 @@ each virtqueue is 1024, configurable in the virtio-net backend driver.</p>
 bare-metal hardware, and suitable for a variety of IoT and embedded
 device solutions. It fetches and analyzes the guest instructions, puts
 the decoded information into the shared page as an IOREQ, and notifies
-or interrupts the VHM module in the Service VM for processing.</p>
+or interrupts the HSM module in the Service VM for processing.</p>
 </dd>
-<dt>VHM Module:</dt><dd><p>The Virtio and Hypervisor Service Module (VHM) is a kernel module in the
+<dt>HSM Module:</dt><dd><p>The Hypervisor Service Module (HSM) is a kernel module in the
 Service VM acting as a middle layer to support the device model
-and hypervisor. The VHM forwards a IOREQ to the virtio-net backend
+and hypervisor. The HSM forwards a IOREQ to the virtio-net backend
 driver for processing.</p>
 </dd>
 <dt>ACRN Device Model and virtio-net Backend Driver:</dt><dd><p>The ACRN Device Model (DM) gets an IOREQ from a shared page and calls
@@ -1278,16 +1282,16 @@ example, showing the flow through each layer:</p>
 <p><strong>ACRN Hypervisor</strong></p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vmexit_handler</span> <span class="o">--&gt;</span>                      <span class="c1">// vmexit because VMX_EXIT_REASON_IO_INSTRUCTION</span>
     <span class="n">pio_instr_vmexit_handler</span> <span class="o">--&gt;</span>
-        <span class="n">emulate_io</span> <span class="o">--&gt;</span>                  <span class="c1">// ioreq cant be processed in HV, forward it to VHM</span>
+        <span class="n">emulate_io</span> <span class="o">--&gt;</span>                  <span class="c1">// ioreq cant be processed in HV, forward it to HSM</span>
             <span class="n">acrn_insert_request_wait</span> <span class="o">--&gt;</span>
-                <span class="n">fire_vhm_interrupt</span> <span class="o">--&gt;</span>  <span class="c1">// interrupt Service VM, VHM will get notified</span>
+                <span class="n">fire_hsm_interrupt</span> <span class="o">--&gt;</span>  <span class="c1">// interrupt Service VM, HSM will get notified</span>
 </pre></div>
 </div>
-<p><strong>VHM Module</strong></p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vhm_intr_handler</span> <span class="o">--&gt;</span>                          <span class="c1">// VHM interrupt handler</span>
+<p><strong>HSM Module</strong></p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vhm_intr_handler</span> <span class="o">--&gt;</span>                          <span class="c1">// HSM interrupt handler</span>
     <span class="n">tasklet_schedule</span> <span class="o">--&gt;</span>
         <span class="n">io_req_tasklet</span> <span class="o">--&gt;</span>
-            <span class="n">acrn_ioreq_distribute_request</span> <span class="o">--&gt;</span> <span class="c1">// ioreq can&#39;t be processed in VHM, forward it to device DM</span>
+            <span class="n">acrn_ioreq_distribute_request</span> <span class="o">--&gt;</span> <span class="c1">// ioreq can&#39;t be processed in HSM, forward it to device DM</span>
                 <span class="n">acrn_ioreq_notify_client</span> <span class="o">--&gt;</span>
                     <span class="n">wake_up_interruptible</span> <span class="o">--&gt;</span> <span class="c1">// wake up DM to handle ioreq</span>
 </pre></div>
@@ -1408,7 +1412,7 @@ cases.)</p>
                 <span class="n">pci_generate_msi</span> <span class="o">--&gt;</span>
 </pre></div>
 </div>
-<p><strong>VHM Module</strong></p>
+<p><strong>HSM Module</strong></p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vhm_dev_ioctl</span> <span class="o">--&gt;</span>                <span class="c1">// process the IOCTL and call hypercall to inject interrupt</span>
     <span class="n">hcall_inject_msi</span> <span class="o">--&gt;</span>
 </pre></div>
@@ -1609,7 +1613,7 @@ is simple and reasonable.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jul 14, 2021.
+        Last updated on Jul 16, 2021.
       </span>
 
     </p>

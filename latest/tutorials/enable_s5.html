@@ -581,6 +581,10 @@
 <li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../develop.html#debug">Debug</a><ul>
@@ -1243,26 +1247,28 @@ it can ignore the <code class="docutils literal notranslate"><span class="pre">s
 17
 18
 19
-20</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#for memsize setting</span>
-<span class="hll"><span class="nv">mem_size</span><span class="o">=</span>2048M
-</span><span class="hll">
-</span><span class="hll">acrn-dm -A -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,hostbridge <span class="se">\</span>
-</span>  -s <span class="m">2</span>,pci-gvt -G <span class="s2">&quot;</span><span class="nv">$2</span><span class="s2">&quot;</span> <span class="se">\</span>
-  -s <span class="m">5</span>,virtio-console,@stdio:stdio_port <span class="se">\</span>
-  -s <span class="m">6</span>,virtio-hyper_dmabuf <span class="se">\</span>
-  -s <span class="m">3</span>,virtio-blk,/home/clear/uos/uos.img <span class="se">\</span>
-  -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
-  -s <span class="m">7</span>,virtio-rnd <span class="se">\</span>
-  --ovmf /usr/share/acrn/bios/OVMF.fd <span class="se">\</span>
-  <span class="nv">$logger_setting</span> <span class="se">\</span>
+20
+21</pre></div></td><td class="code"><div class="highlight"><pre><span></span>  -s <span class="m">3</span>,virtio-blk,/home/clear/uos/uos.img <span class="se">\</span>
+<span class="hll">  -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
+</span><span class="hll">  -s <span class="m">7</span>,virtio-rnd <span class="se">\</span>
+</span><span class="hll">  --ovmf /usr/share/acrn/bios/OVMF.fd <span class="se">\</span>
+</span>  <span class="nv">$logger_setting</span> <span class="se">\</span>
   --mac_seed <span class="nv">$mac_seed</span> <span class="se">\</span>
   <span class="nv">$vm_name</span>
 <span class="o">}</span>
 
-<span class="hll"><span class="c1">#add following cmdline to grub.cfg and update kernel</span>
-</span><span class="c1">#when launching LaaG by OVMF</span>
+<span class="c1">#add following cmdline to grub.cfg and update kernel</span>
+<span class="c1">#when launching LaaG by OVMF</span>
 <span class="c1">#rw rootwait maxcpus=1 nohpet console=tty0 console=hvc0</span>
 <span class="c1">#console=ttyS0 no_timer_check ignore_loglevel</span>
+<span class="c1">#log_buf_len=16M consoleblank=0</span>
+<span class="c1">#tsc=reliable i915.avail_planes_per_pipe=&quot;64 448 8&quot;</span>
+<span class="c1">#i915.enable_hangcheck=0 i915.nuclear_pageflip=1</span>
+<span class="hll"><span class="c1">#i915.enable_guc_loading=0</span>
+</span><span class="c1">#i915.enable_guc_submission=0 i915.enable_guc=0</span>
+
+<span class="c1"># offline SOS CPUs except BSP before launch UOS</span>
+<span class="k">for</span> i in <span class="sb">`</span>ls -d /sys/devices/system/cpu/cpu<span class="o">[</span><span class="m">1</span>-99<span class="o">]</span><span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
 </pre></div>
 </td></tr></table></div>
 </div>
@@ -1508,7 +1514,7 @@ shuts down the Service VM</p></li>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jul 14, 2021.
+        Last updated on Jul 16, 2021.
       </span>
 
     </p>

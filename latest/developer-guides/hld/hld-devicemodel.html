@@ -581,6 +581,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ptm.html">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
@@ -1136,25 +1140,25 @@ framework. There are 3 major subsystems in Service VM:</p>
 <ul class="simple">
 <li><p><strong>Device Emulation</strong>: DM provides backend device emulation routines for
 frontend User VM device drivers. These routines register their I/O
-handlers to the I/O dispatcher inside the DM. When the VHM
+handlers to the I/O dispatcher inside the DM. When the HSM
 assigns any I/O request to the DM, the I/O dispatcher
 dispatches this request to the corresponding device emulation
 routine to do the emulation.</p></li>
 <li><p>I/O Path in Service VM:</p>
 <ul>
-<li><p>HV initializes an I/O request and notifies VHM driver in Service VM
+<li><p>HV initializes an I/O request and notifies HSM driver in Service VM
 through upcall.</p></li>
-<li><p>VHM driver dispatches I/O requests to I/O clients and notifies the
+<li><p>HSM driver dispatches I/O requests to I/O clients and notifies the
 clients (in this case the client is the DM, which is notified
 through char device)</p></li>
 <li><p>DM I/O dispatcher calls corresponding I/O handlers</p></li>
-<li><p>I/O dispatcher notifies VHM driver the I/O request is completed
+<li><p>I/O dispatcher notifies HSM driver the I/O request is completed
 through char device</p></li>
-<li><p>VHM driver notifies HV on the completion through hypercall</p></li>
+<li><p>HSM driver notifies HV on the completion through hypercall</p></li>
 <li><p>DM injects VIRQ to User VM frontend device through hypercall</p></li>
 </ul>
 </li>
-<li><p>VHM: Virtio and Hypervisor Service Module is a kernel module in Service VM as a
+<li><p>HSM: Hypervisor Service Module is a kernel module in Service VM as a
 middle layer to support DM. Refer to <a class="reference internal" href="hld-virtio-devices.html#virtio-apis"><span class="std std-ref">Virtio APIs</span></a> for details</p></li>
 </ul>
 <p>This section introduces how the acrn-dm application is configured and
@@ -1250,14 +1254,14 @@ configuration options.</p>
 <ul>
 <li><p><strong>DM Start</strong>: DM application starts to run.</p></li>
 <li><p><strong>Option Parsing</strong>: DM parse options from command line inputs.</p></li>
-<li><p><strong>VM Create</strong>: DM calls ioctl to Service VM VHM, then Service VM VHM makes
+<li><p><strong>VM Create</strong>: DM calls ioctl to Service VM HSM, then Service VM HSM makes
 hypercalls to HV to create a VM, it returns a vmid for a
 dedicated VM.</p></li>
 <li><p><strong>Set I/O Request Buffer</strong>: the I/O request buffer is a page buffer
 allocated by DM for a specific VM in user space. This buffer is
-shared between DM, VHM and HV. <strong>Set I/O Request buffer</strong> calls
+shared between DM, HSM and HV. <strong>Set I/O Request buffer</strong> calls
 an ioctl executing a hypercall to share this unique page buffer
-with VHM and HV.  Refer to <a class="reference internal" href="hv-io-emulation.html#hld-io-emulation"><span class="std std-ref">I/O Emulation High-Level Design</span></a> and
+with HSM and HV.  Refer to <a class="reference internal" href="hv-io-emulation.html#hld-io-emulation"><span class="std std-ref">I/O Emulation High-Level Design</span></a> and
 <a class="reference internal" href="#io-emulation-in-sos"><span class="std std-ref">I/O Emulation in Service VM</span></a> for more details.</p></li>
 <li><p><strong>Memory Setup</strong>: User VM memory is allocated from Service VM
 memory. This section of memory will use Service VM hugetlbfs to allocate
@@ -1331,32 +1335,38 @@ handling loop:</p>
     <span class="kt">int</span> <span class="n">error</span><span class="p">;</span>
 
     <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">ioreq_client</span> <span class="o">=</span> <span class="n">vm_create_ioreq_client</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
-    <span class="n">assert</span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">ioreq_client</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">ioreq_client</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;%s, failed to create IOREQ.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">__func__</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    <span class="n">error</span> <span class="o">=</span> <span class="n">vm_run</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
-    <span class="n">assert</span><span class="p">(</span><span class="n">error</span> <span class="o">==</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">vm_run</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;%s, failed to run VM.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">__func__</span><span class="p">);</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
 
     <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
         <span class="kt">int</span> <span class="n">vcpu_id</span><span class="p">;</span>
-        <span class="k">struct</span> <span class="n">vhm_request</span> <span class="o">*</span><span class="n">vhm_req</span><span class="p">;</span>
+        <span class="k">struct</span> <span class="n">acrn_io_request</span> <span class="o">*</span><span class="n">io_req</span><span class="p">;</span>
 
         <span class="n">error</span> <span class="o">=</span> <span class="n">vm_attach_ioreq_client</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span>
             <span class="k">break</span><span class="p">;</span>
 
-        <span class="k">for</span> <span class="p">(</span><span class="n">vcpu_id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">vcpu_id</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">;</span> <span class="n">vcpu_id</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">vhm_req</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vhm_req_buf</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">];</span>
-            <span class="k">if</span> <span class="p">((</span><span class="n">atomic_load</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vhm_req</span><span class="o">-&gt;</span><span class="n">processed</span><span class="p">)</span> <span class="o">==</span> <span class="n">REQ_STATE_PROCESSING</span><span class="p">)</span>
-                <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">vhm_req</span><span class="o">-&gt;</span><span class="n">client</span> <span class="o">==</span> <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">ioreq_client</span><span class="p">))</span>
-                <span class="n">handle_vmexit</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">vhm_req</span><span class="p">,</span> <span class="n">vcpu_id</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">vcpu_id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">vcpu_id</span> <span class="o">&lt;</span> <span class="n">guest_ncpus</span><span class="p">;</span> <span class="n">vcpu_id</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">io_req</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ioreq_buf</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">];</span>
+            <span class="k">if</span> <span class="p">((</span><span class="n">atomic_load</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io_req</span><span class="o">-&gt;</span><span class="n">processed</span><span class="p">)</span> <span class="o">==</span> <span class="n">ACRN_IOREQ_STATE_PROCESSING</span><span class="p">)</span>
+                <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">io_req</span><span class="o">-&gt;</span><span class="n">kernel_handled</span><span class="p">)</span>
+                <span class="n">handle_vmexit</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">io_req</span><span class="p">,</span> <span class="n">vcpu_id</span><span class="p">);</span>
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">VM_SUSPEND_FULL_RESET</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">()</span> <span class="o">||</span>
-          <span class="n">VM_SUSPEND_POWEROFF</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="p">{</span>
-          <span class="k">break</span><span class="p">;</span>
+            <span class="n">VM_SUSPEND_POWEROFF</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="p">{</span>
+            <span class="k">break</span><span class="p">;</span>
         <span class="p">}</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">VM_SUSPEND_SYSTEM_RESET</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="p">{</span>
+        <span class="cm">/* RTVM can&#39;t be reset */</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">VM_SUSPEND_SYSTEM_RESET</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="o">!</span><span class="n">is_rtvm</span><span class="p">))</span> <span class="p">{</span>
             <span class="n">vm_system_reset</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
         <span class="p">}</span>
 
@@ -1364,7 +1374,7 @@ handling loop:</p>
             <span class="n">vm_suspend_resume</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
         <span class="p">}</span>
     <span class="p">}</span>
-    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;VM loop exit</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+    <span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;VM loop exit</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1374,29 +1384,29 @@ thread. mevent dispatch will do polling for potential async
 event.</p></li>
 </ul>
 </div>
-<div class="section" id="vhm">
-<h2>VHM<a class="headerlink" href="#vhm" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="vhm-overview">
-<h3>VHM Overview<a class="headerlink" href="#vhm-overview" title="Permalink to this headline">¶</a></h3>
-<p>Device Model manages User VM by accessing interfaces exported from VHM
-module. VHM module is a Service VM kernel driver. The <code class="docutils literal notranslate"><span class="pre">/dev/acrn_vhm</span></code> node is
-created when VHM module is initialized. Device Model follows the standard
-Linux char device API (ioctl) to access the functionality of VHM.</p>
-<p>In most of ioctl, VHM converts the ioctl command to a corresponding
+<div class="section" id="hsm">
+<h2>HSM<a class="headerlink" href="#hsm" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="hsm-overview">
+<h3>HSM Overview<a class="headerlink" href="#hsm-overview" title="Permalink to this headline">¶</a></h3>
+<p>Device Model manages User VM by accessing interfaces exported from HSM
+module. HSM module is a Service VM kernel driver. The <code class="docutils literal notranslate"><span class="pre">/dev/acrn_hsm</span></code> node is
+created when HSM module is initialized. Device Model follows the standard
+Linux char device API (ioctl) to access the functionality of HSM.</p>
+<p>In most of ioctl, HSM converts the ioctl command to a corresponding
 hypercall to the hypervisor. There are two exceptions:</p>
 <ul class="simple">
-<li><p>I/O request client management is implemented in VHM.</p></li>
-<li><p>For memory range management of User VM, VHM needs to save all memory
+<li><p>I/O request client management is implemented in HSM.</p></li>
+<li><p>For memory range management of User VM, HSM needs to save all memory
 range info of User VM. The subsequent memory mapping update of User VM
 needs this information.</p></li>
 </ul>
-<div class="figure align-center" id="vhm-arch">
+<div class="figure align-center" id="hsm-arch">
 <img alt="../../_images/dm-image108.png" src="../../_images/dm-image108.png" />
-<p class="caption"><span class="caption-number">Figure 220 </span><span class="caption-text">Architecture of ACRN VHM</span><a class="headerlink" href="#vhm-arch" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 220 </span><span class="caption-text">Architecture of ACRN HSM</span><a class="headerlink" href="#hsm-arch" title="Permalink to this image">¶</a></p>
 </div>
 </div>
-<div class="section" id="vhm-ioctl-interfaces">
-<h3>VHM ioctl Interfaces<a class="headerlink" href="#vhm-ioctl-interfaces" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="hsm-ioctl-interfaces">
+<h3>HSM ioctl Interfaces<a class="headerlink" href="#hsm-ioctl-interfaces" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Reference API documents for General interface, VM Management,
@@ -1407,7 +1417,7 @@ PCI assignment, and Power management</p>
 </div>
 <div class="section" id="i-o-emulation-in-service-vm">
 <span id="io-emulation-in-sos"></span><h2>I/O Emulation in Service VM<a class="headerlink" href="#i-o-emulation-in-service-vm" title="Permalink to this headline">¶</a></h2>
-<p>I/O requests from the hypervisor are dispatched by VHM in the Service VM kernel
+<p>I/O requests from the hypervisor are dispatched by HSM in the Service VM kernel
 to a registered client, responsible for further processing the
 I/O access and notifying the hypervisor on its completion.</p>
 <div class="section" id="initialization-of-shared-i-o-request-buffer">
@@ -1437,35 +1447,35 @@ the range of any other client. In the current design, the device model
 acts as the fallback client for any VM.</p>
 <p>Each I/O client can be configured to handle the I/O requests in the
 client thread context or in a separate kernel thread context.
-<a class="reference internal" href="#vhm-interaction"><span class="std std-numref">Figure 221</span></a> shows how an I/O client talks to VHM to register
+<a class="reference internal" href="#hsm-interaction"><span class="std std-numref">Figure 221</span></a> shows how an I/O client talks to HSM to register
 a handler and process the incoming I/O requests in a kernel thread
 specifically created for this purpose.</p>
-<div class="figure align-center" id="vhm-interaction">
+<div class="figure align-center" id="hsm-interaction">
 <img alt="../../_images/dm-image94.png" src="../../_images/dm-image94.png" />
-<p class="caption"><span class="caption-number">Figure 221 </span><span class="caption-text">Interaction of in-kernel I/O clients and VHM</span><a class="headerlink" href="#vhm-interaction" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 221 </span><span class="caption-text">Interaction of in-kernel I/O clients and HSM</span><a class="headerlink" href="#hsm-interaction" title="Permalink to this image">¶</a></p>
 </div>
 <ul class="simple">
 <li><p>On registration, the client requests a fresh ID, registers a
 handler, adds the I/O range (or PCI BDF) to be emulated by this
-client, and finally attaches it to VHM that kicks off
+client, and finally attaches it to HSM that kicks off
 a new kernel thread.</p></li>
 <li><p>The kernel thread waits for any I/O request to be handled. When a
-pending I/O request is assigned to the client by VHM, the kernel
+pending I/O request is assigned to the client by HSM, the kernel
 thread wakes up and calls the registered callback function
 to process the request.</p></li>
-<li><p>Before the client is destroyed, VHM ensures that the kernel
+<li><p>Before the client is destroyed, HSM ensures that the kernel
 thread exits.</p></li>
 </ul>
 <p>An I/O client can also handle I/O requests in its own thread context.
-<a class="reference internal" href="#dm-vhm-interaction"><span class="std std-numref">Figure 222</span></a> shows the interactions in such a case, using the
+<a class="reference internal" href="#dm-hsm-interaction"><span class="std std-numref">Figure 222</span></a> shows the interactions in such a case, using the
 device model as an example. No callback is registered on
 registration and the I/O client (device model in the example) attaches
-itself to VHM every time it is ready to process additional I/O requests.
-Note also that the DM runs in userland and talks to VHM via the ioctl
-interface in <a class="reference internal" href="#vhm-ioctl-interfaces">VHM ioctl interfaces</a>.</p>
-<div class="figure align-center" id="dm-vhm-interaction">
+itself to HSM every time it is ready to process additional I/O requests.
+Note also that the DM runs in userland and talks to HSM via the ioctl
+interface in <a class="reference internal" href="#hsm-ioctl-interfaces">HSM ioctl interfaces</a>.</p>
+<div class="figure align-center" id="dm-hsm-interaction">
 <img alt="../../_images/dm-image99.png" src="../../_images/dm-image99.png" />
-<p class="caption"><span class="caption-number">Figure 222 </span><span class="caption-text">Interaction of DM and VHM</span><a class="headerlink" href="#dm-vhm-interaction" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 222 </span><span class="caption-text">Interaction of DM and HSM</span><a class="headerlink" href="#dm-hsm-interaction" title="Permalink to this image">¶</a></p>
 </div>
 <p>Refer to <a class="reference internal" href="#i-o-client-interfaces">I/O client interfaces</a> for a list of interfaces for developing
 I/O clients.</p>
@@ -1477,12 +1487,12 @@ I/O clients.</p>
 <p class="caption"><span class="caption-number">Figure 223 </span><span class="caption-text">I/O request handling sequence in Service VM</span><a class="headerlink" href="#io-sequence-sos" title="Permalink to this image">¶</a></p>
 </div>
 <p><a class="reference internal" href="#io-sequence-sos"><span class="std std-numref">Figure 223</span></a> above illustrates the interactions among the
-hypervisor, VHM,
+hypervisor, HSM,
 and the device model for handling I/O requests. The main interactions
 are as follows:</p>
 <ol class="arabic simple">
 <li><p>The hypervisor makes an upcall to Service VM as an interrupt
-handled by the upcall handler in VHM.</p></li>
+handled by the upcall handler in HSM.</p></li>
 <li><p>The upcall handler schedules the execution of the I/O request
 dispatcher. If the dispatcher is already running, another round
 of execution is scheduled.</p></li>
@@ -1493,9 +1503,9 @@ all clients that have I/O requests to be processed. The flow is
 illustrated in more detail in <a class="reference internal" href="#io-dispatcher-flow"><span class="std std-numref">Figure 224</span></a>.</p></li>
 <li><p>The woken client (the DM in <a class="reference internal" href="#io-sequence-sos"><span class="std std-numref">Figure 223</span></a> above) handles the
 assigned I/O requests, updates their state to COMPLETE, and notifies
-the VHM of the completion via ioctl. <a class="reference internal" href="#dm-io-flow"><span class="std std-numref">Figure 225</span></a> shows this
+the HSM of the completion via ioctl. <a class="reference internal" href="#dm-io-flow"><span class="std std-numref">Figure 225</span></a> shows this
 flow.</p></li>
-<li><p>The VHM device notifies the hypervisor of the completion via
+<li><p>The HSM device notifies the hypervisor of the completion via
 hypercall.</p></li>
 </ol>
 <div class="figure align-center" id="io-dispatcher-flow">
@@ -1511,7 +1521,7 @@ hypercall.</p></li>
 <h3>Emulation of Accesses to PCI Configuration Space<a class="headerlink" href="#emulation-of-accesses-to-pci-configuration-space" title="Permalink to this headline">¶</a></h3>
 <p>PCI configuration spaces are accessed by writing to an address to I/O
 port 0xcf8 and then reading the I/O port 0xcfc. As the PCI configuration
-space of different devices is emulated by different clients, VHM
+space of different devices is emulated by different clients, HSM
 handles the emulation of accesses to I/O port 0xcf8, caches the BDF of
 the device and the offset of the register, and delivers the request to
 the client with the same BDF when I/O port 0xcfc is accessed.</p>
@@ -1669,7 +1679,7 @@ device’s MMIO handler:</p>
 </div>
 <div class="section" id="cfg-space-handler-register">
 <h4>CFG SPACE Handler Register<a class="headerlink" href="#cfg-space-handler-register" title="Permalink to this headline">¶</a></h4>
-<p>As VHM intercepts the cf8/cfc PIO access for PCI CFG SPACE, the DM only
+<p>As HSM intercepts the cf8/cfc PIO access for PCI CFG SPACE, the DM only
 needs to provide CFG SPACE read/write handlers directly. Such handlers
 are defined as shown below. Normally, a device emulation developer
 has no need to update this function.</p>
@@ -2248,7 +2258,7 @@ in device model and ACRN Hypervisor.</p>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Jul 14, 2021.
+        Last updated on Jul 16, 2021.
       </span>
 
     </p>
