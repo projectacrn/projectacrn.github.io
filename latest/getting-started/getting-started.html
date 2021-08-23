@@ -1137,8 +1137,9 @@ memory or more will make the builds go faster.)</p></li>
 <li><p>Hardware specifications</p>
 <ul>
 <li><p>Target board (see <a class="reference internal" href="../reference/hardware.html#hardware-tested"><span class="std std-ref">Tested Platforms by ACRN Release</span></a>)</p></li>
-<li><p>Ubuntu 18.04 bootable USB disk (see <a class="reference external" href="https://ubuntu.com/tutorials/create-a-usb-stick-on-ubuntu#1-overview">Ubuntu documentation</a>
-for instructions)</p></li>
+<li><p>Ubuntu 18.04 Desktop bootable USB disk: download the <a class="reference external" href="https://releases.ubuntu.com/18.04.5/">Ubuntu 18.04.05 Desktop
+ISO image</a> and follow the <a class="reference external" href="https://ubuntu.com/tutorials/create-a-usb-stick-on-ubuntu#1-overview">Ubuntu documentation</a>
+for instructions for creating the USB disk.</p></li>
 <li><p>USB keyboard and mouse</p></li>
 <li><p>Monitor</p></li>
 <li><p>Ethernet cable and Internet access</p></li>
@@ -1175,13 +1176,17 @@ Desktop 18.04 or newer is running:</p>
 <p>If you have an older version, see <a class="reference external" href="https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview">Ubuntu documentation</a> to
 install a new OS on the development computer.</p>
 </li>
-<li><p>Update Ubuntu with any outstanding patches, and install the necessary ACRN
-build tools and dependencies:</p>
+<li><p>Update Ubuntu with any outstanding patches:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt update
-
-sudo apt upgrade -y
-
-sudo apt install gcc <span class="se">\</span>
+</pre></div>
+</div>
+<p>Followed by:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt upgrade -y
+</pre></div>
+</div>
+</li>
+<li><p>Install the necessary ACRN build tools:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install gcc <span class="se">\</span>
      git <span class="se">\</span>
      make <span class="se">\</span>
      libssl-dev <span class="se">\</span>
@@ -1203,8 +1208,11 @@ sudo apt install gcc <span class="se">\</span>
      bison <span class="se">\</span>
      xsltproc <span class="se">\</span>
      clang-format
-
-sudo pip3 install lxml xmlschema defusedxml
+</pre></div>
+</div>
+</li>
+<li><p>Install Python package dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo pip3 install lxml xmlschema defusedxml
 </pre></div>
 </div>
 </li>
@@ -1312,8 +1320,11 @@ of your application.</p></li>
 <ol class="arabic">
 <li><p>On the target system, install the board inspector dependencies:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install cpuid msr-tools pciutils dmidecode python3 python3-pip
-sudo modprobe msr
-sudo pip3 install lxml
+</pre></div>
+</div>
+</li>
+<li><p>Install the Python package dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo pip3 install lxml
 </pre></div>
 </div>
 </li>
@@ -1353,7 +1364,7 @@ target via USB disk as follows:</p>
 use to copy files.</p></li>
 <li><p>Ensure that there is only one USB disk inserted by running the
 following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ls /media/<span class="si">${</span><span class="nv">USER</span><span class="si">}</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ls /media/<span class="nv">$USER</span>
 </pre></div>
 </div>
 <p>Confirm that one disk name appears. You’ll use that disk name in
@@ -1377,9 +1388,14 @@ cp -r <span class="nv">$disk</span>/board_inspector ~/acrn-work
 </li>
 </ol>
 </li>
-<li><p>On the target, run <code class="docutils literal notranslate"><span class="pre">board_inspector.py</span></code> (the board inspector tool) to generate
-the board configuration file. This example uses the parameter <code class="docutils literal notranslate"><span class="pre">my_board</span></code>
-as the file name.</p>
+<li><p>On the target, load the <code class="docutils literal notranslate"><span class="pre">msr</span></code> driver, used by the board inspector:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo modprobe msr
+</pre></div>
+</div>
+</li>
+<li><p>Run the board inspector tool ( <code class="docutils literal notranslate"><span class="pre">board_inspector.py</span></code>)
+to generate the board configuration file. This
+example uses the parameter <code class="docutils literal notranslate"><span class="pre">my_board</span></code> as the file name.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work/board_inspector/
 sudo python3 board_inspector.py my_board
 </pre></div>
@@ -1531,23 +1547,36 @@ target system by USB disk as follows:</p>
 <ol class="loweralpha">
 <li><p>Insert the USB disk into the development computer and run these commands:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls /media/<span class="nv">$USER</span><span class="k">)</span>
-sudo cp linux-5.10.47-acrn-sos-x86.tar.gz <span class="nv">$disk</span>/
-sudo cp ~/acrn-work/acrn-hypervisor/build/hypervisor/acrn.bin <span class="nv">$disk</span>/
-sudo cp ~/acrn-work/my_board3/output/launch_uos_id3.sh <span class="nv">$disk</span>/
-sudo cp ~/acrn-work/acpica-unix-20210105/generate/unix/bin/iasl <span class="nv">$disk</span>/
-sudo cp ~/acrn-work/acrn-hypervisor/build/acrn-2.6-unstable.tar.gz <span class="nv">$disk</span>/
+cp linux-5.10.47-acrn-sos-x86.tar.gz <span class="nv">$disk</span>/
+cp ~/acrn-work/acrn-hypervisor/build/hypervisor/acrn.bin <span class="nv">$disk</span>/
+cp ~/acrn-work/my_board/output/launch_uos_id3.sh <span class="nv">$disk</span>/
+cp ~/acrn-work/acpica-unix-20210105/generate/unix/bin/iasl <span class="nv">$disk</span>/
+cp ~/acrn-work/acrn-hypervisor/build/acrn-2.6-unstable.tar.gz <span class="nv">$disk</span>/
 sync <span class="o">&amp;&amp;</span> sudo umount <span class="nv">$disk</span>/
 </pre></div>
 </div>
 </li>
-<li><p>Insert the USB disk you just used into the target system and run these commands:</p>
+<li><p>Insert the USB disk you just used into the target system and run these
+commands to copy the tar files locally:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls /media/<span class="nv">$USER</span><span class="k">)</span>
-sudo cp <span class="nv">$disk</span>/linux-5.10.47-acrn-sos-x86.tar.gz ~/acrn-work
-sudo cp <span class="nv">$disk</span>/acrn-2.6-unstable.tar.gz ~/acrn-work
-<span class="nb">cd</span> ~/acrn-work
-sudo tar -zxvf linux-5.10.47-acrn-sos-x86.tar.gz -C /
-sudo tar -zxvf acrn-2.6-unstable.tar.gz -C /
-sudo mkdir -p /boot/acrn/
+cp <span class="nv">$disk</span>/linux-5.10.47-acrn-sos-x86.tar.gz ~/acrn-work
+cp <span class="nv">$disk</span>/acrn-2.6-unstable.tar.gz ~/acrn-work
+</pre></div>
+</div>
+</li>
+<li><p>Extract the Service VM files onto the target system:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
+sudo tar -zxvf linux-5.10.47-acrn-sos-x86.tar.gz -C / --keep-directory-symlink
+</pre></div>
+</div>
+</li>
+<li><p>Extract the ACRN tools and images:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo tar -zxvf acrn-2.6-unstable.tar.gz -C / --keep-directory-symlink
+</pre></div>
+</div>
+</li>
+<li><p>Copy a few additional ACRN files to the expected locations:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo mkdir -p /boot/acrn/
 sudo cp <span class="nv">$disk</span>/acrn.bin /boot/acrn
 sudo cp <span class="nv">$disk</span>/launch_uos_id3.sh ~/acrn-work
 sudo cp <span class="nv">$disk</span>/iasl /usr/sbin/
@@ -1802,7 +1831,7 @@ there’s no password.</p></li>
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Aug 22, 2021.
+        Last updated on Aug 23, 2021.
       </span>
 
     </p>
