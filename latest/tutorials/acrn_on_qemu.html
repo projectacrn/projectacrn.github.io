@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <title>Enable ACRN Over QEMU/KVM &mdash; Project ACRN™ 2.6-unstable documentation</title>
   
@@ -14,17 +14,17 @@
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/menu.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_tabs/tabs.css" type="text/css" />
   <link rel="stylesheet" href="../_static/acrn-custom.css" type="text/css" />
 
   
   
     <link rel="shortcut icon" href="../_static/ACRN-favicon-32x32.png"/>
   
-
   
-  
-
   
 
   
@@ -61,7 +61,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> Project ACRN™
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Project ACRN™
           
 
           
@@ -1069,8 +1069,6 @@
 
 
 
-
-
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -1088,7 +1086,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-          
+            
         
       </li>
     
@@ -1110,8 +1108,8 @@ with basic functionality such as running Service VM (SOS) and User VM (UOS) for 
 </ol>
 <p>This setup was tested with the following configuration,</p>
 <ul class="simple">
-<li><p>ACRN Hypervisor: <code class="docutils literal notranslate"><span class="pre">v2.5</span></code> tag</p></li>
-<li><p>ACRN Kernel: <code class="docutils literal notranslate"><span class="pre">v2.5</span></code> tag</p></li>
+<li><p>ACRN Hypervisor: <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag</p></li>
+<li><p>ACRN Kernel: <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag</p></li>
 <li><p>QEMU emulator version 4.2.1</p></li>
 <li><p>Service VM/User VM is Ubuntu 20.04</p></li>
 <li><p>Platforms Tested: Kaby Lake, Skylake</p></li>
@@ -1149,7 +1147,6 @@ sudo apt install qemu-kvm virtinst libvirt-daemon-system -y
 --connect qemu:///system \
 --name ACRNSOS \
 --machine q35 \
---cpu host-passthrough,+invtsc \
 --ram 4096 \
 --disk path=/var/lib/libvirt/images/acrnsos.img,size=32 \
 --vcpus 4 \
@@ -1158,7 +1155,7 @@ sudo apt install qemu-kvm virtinst libvirt-daemon-system -y
 --os-variant ubuntu18.04 \
 --graphics none \
 --clock offset=utc,tsc_present=yes,kvmclock_present=no \
---qemu-commandline=&quot;-machine kernel-irqchip=split -device intel-iommu,intremap=on,caching-mode=on,aw-bits=48&quot; \
+--qemu-commandline=&quot;-machine kernel-irqchip=split -cpu Denverton,+invtsc,+lm,+nx,+smep,+smap,+mtrr,+clflushopt,+vmx,+x2apic,+popcnt,-xsave,+sse,+rdrand,+vmx-apicv-xapic,+vmx-apicv-x2apic,+vmx-flexpriority,+tsc-deadline,+pdpe1gb -device intel-iommu,intremap=on,caching-mode=on,aw-bits=48&quot; \
 --location &#39;http://archive.ubuntu.com/ubuntu/dists/bionic/main/installer-amd64/&#39; \
 --extra-args &quot;console=tty0 console=ttyS0,115200n8&quot;
 </pre></div>
@@ -1221,11 +1218,11 @@ previous section.</p>
 </div>
 </li>
 <li><p>Install the ACRN build tools and dependencies following the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a></p></li>
-<li><p>Clone ACRN repo and check out the <code class="docutils literal notranslate"><span class="pre">v2.5</span></code> tag.</p>
+<li><p>Clone ACRN repo and check out the <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
 git clone https://github.com/projectacrn/acrn-hypervisor.git
 cd acrn-hypervisor
-git checkout v2.5
+git checkout v2.6
 </pre></div>
 </div>
 </li>
@@ -1246,9 +1243,9 @@ git checkout v2.5
 </div>
 </li>
 <li><p>Clone and configure the Service VM kernel repository following the instructions at
-<a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> and using the <code class="docutils literal notranslate"><span class="pre">v2.5</span></code> tag. The User VM (L2 guest)
+<a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> and using the <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag. The User VM (L2 guest)
 uses the <code class="docutils literal notranslate"><span class="pre">virtio-blk</span></code> driver to mount the rootfs. This driver is included in the default
-kernel configuration as of the <code class="docutils literal notranslate"><span class="pre">v2.5</span></code> tag.</p></li>
+kernel configuration as of the <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag.</p></li>
 <li><p>Update Grub to boot the ACRN hypervisor and load the Service VM kernel. Append the following
 configuration to the <code class="file docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code>.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>menuentry &#39;ACRN hypervisor&#39; --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {
@@ -1371,24 +1368,32 @@ $vm_name
            
           </div>
           <footer>
+  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="using_grub.html" class="btn btn-neutral float-right" title="Using GRUB to Boot ACRN" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="setup_openstack_libvirt.html" class="btn btn-neutral float-left" title="Configure ACRN Using OpenStack and Libvirt" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+      
+        <a href="using_grub.html" class="btn btn-neutral float-right" title="Using GRUB to Boot ACRN" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="setup_openstack_libvirt.html" class="btn btn-neutral float-left" title="Configure ACRN Using OpenStack and Libvirt" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
     </div>
+  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &#169; Copyright 2018-2021, Project ACRN™.
+        
+        &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Aug 30, 2021.
+        Last updated on Sep 08, 2021.
       </span>
 
     </p>
   </div> 
 
 </footer>
+
         </div>
       </div>
 
