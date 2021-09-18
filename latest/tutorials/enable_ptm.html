@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Enable PCIe Precision Time Management &mdash; Project ACRN™ 2.6-unstable documentation</title>
+  <title>Enable PCIe Precision Time Management in a User VM &mdash; Project ACRN™ 2.6-unstable documentation</title>
   
 
   
@@ -551,7 +551,7 @@
 <li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Enable PCIe Precision Time Management</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Enable PCIe Precision Time Management in a User VM</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#ptm-implementation-notes">PTM Implementation Notes</a></li>
 </ul>
 </li>
@@ -709,6 +709,14 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_2.6.html">ACRN v2.6 (Sep 2021) - Draft</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.6.html#what-s-new-in-v2-6">What’s New in v2.6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.6.html#upgrading-to-v2-6-from-previous-releases">Upgrading to v2.6 From Previous Releases</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.6.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.6.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.6.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_2.5.1.html">ACRN v2.5.1 (Aug 2021)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.1.html#what-s-new-in-v2-5-1">What’s New in v2.5.1</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_2.5.1.html#fixed-issues-details">Fixed Issues Details</a></li>
@@ -1081,7 +1089,7 @@
   
      <li><a href="../develop.html">Advanced Guides</a> &raquo;</li>
   
-  <li>Enable PCIe Precision Time Management</li>
+  <li>Enable PCIe Precision Time Management in a User VM</li>
 
     
       <li class="wy-breadcrumbs-aside">
@@ -1098,17 +1106,30 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="enable-pcie-precision-time-management">
-<span id="enable-ptm"></span><h1>Enable PCIe Precision Time Management<a class="headerlink" href="#enable-pcie-precision-time-management" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="enable-pcie-precision-time-management-in-a-user-vm">
+<span id="enable-ptm"></span><h1>Enable PCIe Precision Time Management in a User VM<a class="headerlink" href="#enable-pcie-precision-time-management-in-a-user-vm" title="Permalink to this headline">¶</a></h1>
 <p>The PCI Express (PCIe) specification defines a Precision Time Measurement (PTM)
 mechanism that lets you coordinate and synchronize events across multiple PCI
 components within the same system with very fine time precision.</p>
 <p>ACRN adds PCIe root port emulation in the hypervisor to support the PTM feature
-and emulates a simple PTM hierarchy.  ACRN enables PTM in a Guest VM if the user
+and emulates a simple PTM hierarchy.  ACRN enables PTM in a User VM if the user
 sets the <code class="docutils literal notranslate"><span class="pre">enable_ptm</span></code> option when passing through a device to a post-launched
 VM and <a class="reference internal" href="../reference/config-options.html#vm-ptm"><span class="std std-ref">vm.PTM</span></a> is enabled in the scenario configuration. When you enable
 PTM, the passthrough device is connected to a virtual root port instead of the host
 bridge as it normally would.</p>
+<p>Before you can enable PTM in a User VM, PTM must be enabled in the Service VM.
+You should verify this by using <code class="docutils literal notranslate"><span class="pre">dmesg</span></code> in a Service VM terminal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dmesg</span> <span class="o">|</span> <span class="n">grep</span> <span class="o">-</span><span class="n">i</span> <span class="n">ptm</span>
+<span class="p">[</span>    <span class="mf">3.072144</span><span class="p">]</span> <span class="n">pci</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mf">06.0</span><span class="p">:</span> <span class="n">PTM</span> <span class="n">enabled</span> <span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="mi">4</span><span class="n">ns</span> <span class="n">granularity</span>
+<span class="p">[</span>    <span class="mf">3.101591</span><span class="p">]</span> <span class="n">pci</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">1</span><span class="n">a</span><span class="o">.</span><span class="mi">0</span><span class="p">:</span> <span class="n">PTM</span> <span class="n">enabled</span> <span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="mi">4</span><span class="n">ns</span> <span class="n">granularity</span>
+<span class="p">[</span>    <span class="mf">3.103434</span><span class="p">]</span> <span class="n">pci</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">1</span><span class="n">c</span><span class="o">.</span><span class="mi">0</span><span class="p">:</span> <span class="n">PTM</span> <span class="n">enabled</span> <span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="mi">4</span><span class="n">ns</span> <span class="n">granularity</span>
+<span class="p">[</span>    <span class="mf">5.089042</span><span class="p">]</span> <span class="n">igc</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">04</span><span class="p">:</span><span class="mf">00.0</span><span class="p">:</span> <span class="n">PTM</span> <span class="n">enabled</span><span class="p">,</span> <span class="mi">4</span><span class="n">ns</span> <span class="n">granularity</span>
+<span class="p">[</span>   <span class="mf">88.103910</span><span class="p">]</span> <span class="n">acrn_dm</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">PTM</span><span class="o">&gt;</span><span class="p">:</span> <span class="n">opt</span><span class="o">=</span><span class="n">enable_ptm</span><span class="o">.</span>
+<span class="p">[</span>   <span class="mf">88.217266</span><span class="p">]</span> <span class="n">acrn_dm</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">PTM</span><span class="o">&gt;-</span><span class="n">get_ptm_reg_value</span><span class="p">:</span> <span class="n">device</span> <span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mf">0.0</span><span class="p">]:</span> <span class="n">ptm</span> <span class="n">pos</span><span class="o">=</span><span class="mh">0x1f0</span><span class="p">,</span> <span class="n">ptm</span> <span class="n">reg</span> <span class="n">val</span><span class="o">=</span><span class="mh">0x401</span><span class="o">.</span>
+<span class="p">[</span>   <span class="mf">88.217566</span><span class="p">]</span> <span class="n">acrn_dm</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">PTM</span><span class="o">&gt;-</span><span class="n">get_ptm_reg_value</span><span class="p">:</span> <span class="n">device</span> <span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="n">c</span><span class="o">.</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ptm</span> <span class="n">pos</span><span class="o">=</span><span class="mh">0x150</span><span class="p">,</span> <span class="n">ptm</span> <span class="n">reg</span> <span class="n">val</span><span class="o">=</span><span class="mh">0x416</span><span class="o">.</span>
+<span class="p">[</span>   <span class="mf">88.217743</span><span class="p">]</span> <span class="n">acrn_dm</span><span class="p">:</span> <span class="o">&lt;</span><span class="n">PTM</span><span class="o">&gt;-</span><span class="n">get_ptm_reg_value</span><span class="p">:</span> <span class="n">device</span> <span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="n">c</span><span class="o">.</span><span class="mi">0</span><span class="p">]:</span> <span class="n">ptm</span> <span class="n">pos</span><span class="o">=</span><span class="mh">0x150</span><span class="p">,</span> <span class="n">ptm</span> <span class="n">reg</span> <span class="n">val</span><span class="o">=</span><span class="mh">0x3</span><span class="o">.</span>
+</pre></div>
+</div>
 <p>Here is an example launch script that configures a supported Ethernet card for
 passthrough and enables PTM on it:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">declare</span> -A passthru_vpid
@@ -1117,7 +1138,7 @@ passthrough and enables PTM on it:</p>
  <span class="o">[</span><span class="s2">&quot;ethptm&quot;</span><span class="o">]=</span><span class="s2">&quot;8086 15f2&quot;</span>
  <span class="o">)</span>
 <span class="nv">passthru_bdf</span><span class="o">=(</span>
- <span class="o">[</span><span class="s2">&quot;ethptm&quot;</span><span class="o">]=</span><span class="s2">&quot;0000:aa:00.0&quot;</span>
+ <span class="o">[</span><span class="s2">&quot;ethptm&quot;</span><span class="o">]=</span><span class="s2">&quot;0000:a9:00.0&quot;</span>
  <span class="o">)</span>
 <span class="hll"><span class="nb">echo</span> <span class="si">${</span><span class="nv">passthru_vpid</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span> &gt; /sys/bus/pci/drivers/pci-stub/new_id
 </span><span class="hll"><span class="nb">echo</span> <span class="si">${</span><span class="nv">passthru_bdf</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span> &gt; /sys/bus/pci/devices/<span class="si">${</span><span class="nv">passthru_bdf</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span>/driver/unbind
@@ -1137,7 +1158,7 @@ acrn-dm -A -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,ho
 <a class="reference internal" href="acrn_configuration_tool.html#acrn-configuration-tool"><span class="std std-ref">ACRN configuration tool</span></a> to enable PTM
 in the scenario XML file that configures the Guest VM.</p>
 </div>
-<p>Here is the bus hierarchy in the Guest VM (as shown by the <code class="docutils literal notranslate"><span class="pre">lspci</span></code> command):</p>
+<p>Here is the bus hierarchy in the User VM (as shown by the <code class="docutils literal notranslate"><span class="pre">lspci</span></code> command):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lspci</span> <span class="o">-</span><span class="n">tv</span>
 <span class="o">-</span><span class="p">[</span><span class="mi">0000</span><span class="p">:</span><span class="mi">00</span><span class="p">]</span><span class="o">-+-</span><span class="mf">00.0</span>  <span class="n">Network</span> <span class="n">Appliance</span> <span class="n">Corporation</span> <span class="n">Device</span> <span class="mi">1275</span>
            <span class="o">+-</span><span class="mf">03.0</span>  <span class="n">Red</span> <span class="n">Hat</span><span class="p">,</span> <span class="n">Inc</span><span class="o">.</span> <span class="n">Virtio</span> <span class="n">block</span> <span class="n">device</span>
@@ -1147,22 +1168,10 @@ in the scenario XML file that configures the Guest VM.</p>
 </pre></div>
 </div>
 <p>(Instead of <code class="docutils literal notranslate"><span class="pre">Device</span> <span class="pre">15f2</span></code> you might see <code class="docutils literal notranslate"><span class="pre">Ethernet</span> <span class="pre">Controller</span> <span class="pre">I225LM</span></code>.)</p>
-<p>You can also verify that PTM was enabled by using <code class="docutils literal notranslate"><span class="pre">dmesg</span></code> in the guest VM:</p>
+<p>You can verify that PTM was enabled by using <code class="docutils literal notranslate"><span class="pre">dmesg</span></code> in the User VM:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dmesg</span> <span class="o">|</span> <span class="n">grep</span> <span class="o">-</span><span class="n">i</span> <span class="n">ptm</span>
-<span class="p">[</span> <span class="mf">1.555284</span><span class="p">]</span> <span class="n">pci_ptm_init</span><span class="p">:</span> <span class="mi">00</span><span class="p">:</span><span class="mf">00.00</span><span class="p">,</span> <span class="n">ispcie</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mh">0x4</span>
-<span class="p">[</span> <span class="mf">1.555356</span><span class="p">]</span> <span class="n">Cannot</span> <span class="n">find</span> <span class="n">PTM</span> <span class="n">ext</span> <span class="n">cap</span><span class="o">.</span>
-<span class="p">[</span> <span class="mf">1.561311</span><span class="p">]</span> <span class="n">pci_ptm_init</span><span class="p">:</span> <span class="mi">00</span><span class="p">:</span><span class="mf">03.00</span><span class="p">,</span> <span class="n">ispcie</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mh">0x0</span>
-<span class="p">[</span> <span class="mf">1.567146</span><span class="p">]</span> <span class="n">pci_ptm_init</span><span class="p">:</span> <span class="mi">00</span><span class="p">:</span><span class="mf">04.00</span><span class="p">,</span> <span class="n">ispcie</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mh">0x0</span>
-<span class="p">[</span> <span class="mf">1.572983</span><span class="p">]</span> <span class="n">pci_ptm_init</span><span class="p">:</span> <span class="mi">00</span><span class="p">:</span><span class="mf">05.00</span><span class="p">,</span> <span class="n">ispcie</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mh">0x0</span>
-<span class="p">[</span> <span class="mf">1.718038</span><span class="p">]</span> <span class="n">pci_ptm_init</span><span class="p">:</span> <span class="mi">00</span><span class="p">:</span><span class="mf">06.00</span><span class="p">,</span> <span class="n">ispcie</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mh">0x4</span>
-<span class="p">[</span> <span class="mf">1.722034</span><span class="p">]</span> <span class="n">ptm</span> <span class="ow">is</span> <span class="n">ptm_root</span><span class="o">.</span>
-<span class="p">[</span> <span class="mf">1.723033</span><span class="p">]</span> <span class="n">Condition</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="n">ptm</span> <span class="ow">is</span> <span class="n">enabled</span><span class="o">.</span>
-<span class="p">[</span> <span class="mf">1.723052</span><span class="p">]</span> <span class="n">pci</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mf">06.0</span><span class="p">:</span> <span class="n">PTM</span> <span class="n">enabled</span> <span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="mi">4</span><span class="n">ns</span> <span class="n">granularity</span>
-<span class="p">[</span> <span class="mf">1.766438</span><span class="p">]</span> <span class="n">pci_ptm_init</span><span class="p">:</span> <span class="n">a9</span><span class="p">:</span><span class="mf">00.00</span><span class="p">,</span> <span class="n">ispcie</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mh">0x0</span>
-<span class="p">[</span> <span class="mf">5.715000</span><span class="p">]</span> <span class="n">igc_probe</span> <span class="n">enable</span> <span class="n">ptm</span><span class="o">.</span>
-<span class="p">[</span> <span class="mf">5.715068</span><span class="p">]</span> <span class="n">pci_enable_ptm</span><span class="p">:</span> <span class="n">a9</span><span class="p">:</span><span class="mf">00.00</span><span class="p">,</span> <span class="n">ispcie</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mh">0x0</span>
-<span class="p">[</span> <span class="mf">5.715294</span><span class="p">]</span> <span class="n">ptm</span> <span class="ow">is</span> <span class="n">enabled</span> <span class="n">on</span> <span class="n">endpoint</span> <span class="n">device</span><span class="o">.</span>
-<span class="p">[</span> <span class="mf">5.715371</span><span class="p">]</span> <span class="n">igc</span> <span class="mi">0000</span><span class="p">:</span><span class="n">a9</span><span class="p">:</span><span class="mf">00.0</span><span class="p">:</span> <span class="n">PTM</span> <span class="n">enabled</span><span class="p">,</span> <span class="mi">4</span><span class="n">ns</span> <span class="n">granularity</span>
+<span class="p">[</span>    <span class="mf">0.774547</span><span class="p">]</span> <span class="n">pci</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mf">05.0</span><span class="p">:</span> <span class="n">PTM</span> <span class="n">enabled</span> <span class="p">(</span><span class="n">root</span><span class="p">),</span> <span class="mi">4</span><span class="n">ns</span> <span class="n">granularity</span>
+<span class="p">[</span>    <span class="mf">2.478440</span><span class="p">]</span> <span class="n">igc</span> <span class="mi">0000</span><span class="p">:</span><span class="mi">01</span><span class="p">:</span><span class="mf">00.0</span><span class="p">:</span> <span class="n">PTM</span> <span class="n">enabled</span><span class="p">,</span> <span class="mi">4</span><span class="n">ns</span> <span class="n">granularity</span>
 </pre></div>
 </div>
 <div class="section" id="ptm-implementation-notes">
@@ -1200,7 +1209,7 @@ Guest VM kernel (e.g., <code class="docutils literal notranslate"><span class="p
         
         &copy; Copyright 2018-2021, Project ACRN™
       <span class="lastupdated">
-        Last updated on Sep 08, 2021.
+        Last updated on Sep 17, 2021.
       </span>
 
     </p>
