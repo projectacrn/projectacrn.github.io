@@ -541,10 +541,6 @@
 <li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="enable_ptm.html">Enable PCIe Precision Time Management in a User VM</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../develop.html#debug">Debug</a><ul>
@@ -1307,57 +1303,22 @@ to prevent crashes in subsequent boots.</p>
 <div class="section" id="bring-up-user-vm-l2-guest">
 <h2>Bring-Up User VM (L2 Guest)<a class="headerlink" href="#bring-up-user-vm-l2-guest" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p>Build the ACRN User VM kernel.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~/acrn-kernel
-cp kernel_config_uos .config
-make olddefconfig
-make
-</pre></div>
-</div>
-</li>
-<li><p>Copy the User VM kernel to your home folder, we will use it to launch the User VM (L2 guest)</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cp arch/x86/boot/bzImage ~/bzImage_uos
-</pre></div>
-</div>
-</li>
-<li><p>Build the User VM disk image (<code class="docutils literal notranslate"><span class="pre">UOS.img</span></code>) following <a class="reference internal" href="running_ubun_as_user_vm.html#build-the-ubuntu-kvm-image"><span class="std std-ref">Build the Ubuntu KVM Image</span></a> and copy it to the ACRNSOS (L1 Guest).
-Alternatively you can also use <code class="docutils literal notranslate"><span class="pre">virt-install</span></code> <strong>in the host environment</strong> to create a User VM image similarly to how we built ACRNSOS previously.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>virt-install \
---name UOS \
---ram 1024 \
---disk path=/var/lib/libvirt/images/UOS.img,size=8,format=raw \
---vcpus 2 \
---virt-type kvm \
---os-type linux \
---os-variant ubuntu18.04 \
---graphics none \
---location &#39;http://archive.ubuntu.com/ubuntu/dists/bionic/main/installer-amd64/&#39; \
---extra-args &quot;console=tty0 console=ttyS0,115200n8&quot;
-</pre></div>
-</div>
-</li>
-<li><p>Transfer the <code class="docutils literal notranslate"><span class="pre">UOS.img</span></code> User VM disk image to the Service VM (L1 guest).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">scp</span> <span class="o">/</span><span class="n">var</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libvirt</span><span class="o">/</span><span class="n">images</span><span class="o">/</span><span class="n">UOS</span><span class="o">.</span><span class="n">img</span> <span class="o">&lt;</span><span class="n">username</span><span class="o">&gt;@&lt;</span><span class="n">IP</span> <span class="n">address</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-</li>
-</ol>
-<blockquote>
-<div><p>Where <code class="docutils literal notranslate"><span class="pre">&lt;username&gt;</span></code> is your username in the Service VM and <code class="docutils literal notranslate"><span class="pre">&lt;IP</span> <span class="pre">address&gt;</span></code> its IP address.</p>
-</div></blockquote>
-<ol class="arabic">
+<li><p>Build the User VM disk image (<code class="docutils literal notranslate"><span class="pre">UserVM.img</span></code>) following <a class="reference internal" href="running_ubun_as_user_vm.html#build-the-ubuntu-kvm-image"><span class="std std-ref">Build the Ubuntu KVM Image</span></a> and copy it to the ACRNSOS (L1 Guest).
+Alternatively you can also use an <a class="reference external" href="https://ubuntu.com/#download">Ubuntu Desktop ISO image</a>.
+Rename the downloaded ISO image to <code class="docutils literal notranslate"><span class="pre">UserVM.iso</span></code>.</p></li>
+<li><p>Transfer the <code class="docutils literal notranslate"><span class="pre">UserVM.img</span></code>  or <code class="docutils literal notranslate"><span class="pre">UserVM.iso</span></code> User VM disk image to the Service VM (L1 guest).</p></li>
 <li><p>Launch User VM using the <code class="docutils literal notranslate"><span class="pre">launch_ubuntu.sh</span></code> script.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cp ~/acrn-hypervisor/misc/config_tools/data/samples_launch_scripts/launch_ubuntu.sh ~/
+cp ~/acrn-hypervisor/devicemodel/bios/OVMF.fd ~/
 </pre></div>
 </div>
 </li>
-<li><p>Update the script to use your disk image and kernel</p>
+<li><p>Update the script to use your disk image (<code class="docutils literal notranslate"><span class="pre">UserVM.img</span> <span class="pre">or</span> <span class="pre">``UserVM.iso</span></code>).</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge \
--s 3,virtio-blk,~/UOS.img \
+-s 3,virtio-blk,~/UserVM.img \
 -s 4,virtio-net,tap0 \
 -s 5,virtio-console,@stdio:stdio_port \
--k ~/bzImage_uos \
--B &quot;earlyprintk=serial,ttyS0,115200n8 consoleblank=0 root=/dev/vda1 rw rootwait maxcpus=1 nohpet console=tty0 console=hvc0 console=ttyS0 no_timer_check ignore_loglevel log_buf_len=16M tsc=reliable&quot; \
+--ovmf ~/OVMF.fd \
 $logger_setting \
 $vm_name
 </pre></div>
@@ -1383,7 +1344,7 @@ $vm_name
     <p>
         &#169; Copyright 2018-2021, Project ACRN™.
       <span class="lastupdated">
-        Last updated on Sep 22, 2021.
+        Last updated on Sep 24, 2021.
       </span>
 
     </p>

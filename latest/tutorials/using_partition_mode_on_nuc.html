@@ -541,10 +541,6 @@
 <li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="enable_ptm.html">Enable PCIe Precision Time Management in a User VM</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="enable_ptm.html#ptm-implementation-notes">PTM Implementation Notes</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../develop.html#debug">Debug</a><ul>
@@ -1124,8 +1120,7 @@ pre-launched VMs.</p>
 <h2><a class="toc-backref" href="#id1">Validated Versions</a><a class="headerlink" href="#validated-versions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Ubuntu version: <strong>18.04</strong></p></li>
-<li><p>ACRN hypervisor tag: <strong>v2.4</strong></p></li>
-<li><p>ACRN kernel tag: <strong>v2.4</strong></p></li>
+<li><p>ACRN hypervisor tag: <strong>v2.6</strong></p></li>
 </ul>
 </div>
 <div class="section" id="prerequisites">
@@ -1149,26 +1144,13 @@ the USB controller respectively.</p></li>
 <div class="numbered-step section" id="update-kernel-image-and-modules-of-pre-launched-vm">
 <h2><a class="toc-backref" href="#id3">Update Kernel Image and Modules of Pre-Launched VM</a><a class="headerlink" href="#update-kernel-image-and-modules-of-pre-launched-vm" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p>On your development workstation, clone the ACRN kernel source tree, and
-build the Linux kernel image that will be used to boot the pre-launched VMs:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-kernel.git
-Cloning into &#39;acrn-kernel&#39;...
-...
-$ cd acrn-kernel
-$ cp kernel_config_uos .config
-$ make olddefconfig
-scripts/kconfig/conf  --olddefconfig Kconfig
-#
-# configuration written to .config
-#
-$ make
-$ make modules_install INSTALL_MOD_PATH=out/
+<li><p>On the local Ubuntu target machine, find the kernel file,
+copy to your (<code class="docutils literal notranslate"><span class="pre">/boot</span></code> directory) and name the file <code class="docutils literal notranslate"><span class="pre">bzImage</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">uname</span> <span class="pre">-r</span></code> command returns the kernel release, for example,
+<code class="docutils literal notranslate"><span class="pre">5.11.0-34-generic</span></code>):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo cp /boot/vmlinuz-$(uname -r)  /boot/bzImage
 </pre></div>
 </div>
-<p>The last two commands build the bootable kernel image as
-<code class="docutils literal notranslate"><span class="pre">arch/x86/boot/bzImage</span></code>, and loadable kernel modules under the <code class="docutils literal notranslate"><span class="pre">./out/</span></code>
-folder. Copy these files to a removable disk for installing on the
-Intel NUC later.</p>
 </li>
 <li><p>The current ACRN logical partition scenario implementation requires a
 multi-boot capable bootloader to boot both the ACRN hypervisor and the
@@ -1190,23 +1172,18 @@ commands set up the partition mode loadable kernel modules onto the root
 file systems to be loaded by the pre-launched VMs:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Mount the Ubuntu OS root filesystem on the SATA disk
 $ sudo mount /dev/sda3 /mnt
-$ sudo cp -r &lt;kernel-modules-folder-built-in-step1&gt;/lib/modules/* /mnt/lib/modules
+$ sudo cp -r /lib/modules/* /mnt/lib/modules
 $ sudo umount /mnt
 # Mount the Ubuntu OS root filesystem on the USB flash disk
 $ sudo mount /dev/sdb3 /mnt
-$ sudo cp -r &lt;path-to-kernel-module-folder-built-in-step1&gt;/lib/modules/* /mnt/lib/modules
+$ sudo cp -r /lib/modules/* /mnt/lib/modules
 $ sudo umount /mnt
-</pre></div>
-</div>
-</li>
-<li><p>Copy the bootable kernel image to the /boot directory:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo cp &lt;path-to-kernel-image-built-in-step1&gt;/bzImage /boot/
 </pre></div>
 </div>
 </li>
 </ol>
 </div>
-<div class="numbered-step section" id="update-acrn-hypervisor-image">
+<div class="section" id="update-acrn-hypervisor-image">
 <h2><a class="toc-backref" href="#id4">Update ACRN Hypervisor Image</a><a class="headerlink" href="#update-acrn-hypervisor-image" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>Before building the ACRN hypervisor, find the I/O address of the serial
@@ -1240,19 +1217,19 @@ devices in the system:</p>
 <li><p>Clone the ACRN source code and configure the build options.</p>
 <p>Refer to <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> to set up the ACRN build
 environment on your development workstation.</p>
-<p>Clone the ACRN source code and check out to the tag v2.4:</p>
+<p>Clone the ACRN source code and check out to the tag v2.6:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor.git
 $ cd acrn-hypervisor
-$ git checkout v2.4
+$ git checkout v2.6
 </pre></div>
 </div>
 </li>
-<li><p>Check the <code class="docutils literal notranslate"><span class="pre">pci_devs</span></code> sections in <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/whl-ipc-i7/logical_partition.xml</span></code>
+<li><p>Check the <code class="docutils literal notranslate"><span class="pre">pci_devs</span></code> sections in <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc7i7dnb/logical_partition.xml</span></code>
 for each pre-launched VM to ensure you are using the right PCI device BDF information (as
 reported by <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">-vv</span></code>). If you need to make changes to this file, create a copy of it and
 use it subsequently when building ACRN (<code class="docutils literal notranslate"><span class="pre">SCENARIO=/path/to/newfile.xml</span></code>).</p></li>
 <li><p>Build the ACRN hypervisor and ACPI binaries for pre-launched VMs with default xmls:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make hypervisor BOARD=whl-ipc-i7 SCENARIO=logical_partition RELEASE=0
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make hypervisor BOARD=nuc7i7dnb  SCENARIO=logical_partition RELEASE=0
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1306,13 +1283,31 @@ directory.</p></li>
 <p>Update the UUID (<code class="docutils literal notranslate"><span class="pre">--set</span></code>) and PARTUUID (<code class="docutils literal notranslate"><span class="pre">root=</span></code> parameter)
 (or use the device node directly) of the root partition (e.g.``/dev/nvme0n1p2). Hint: use <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">blkid</span></code>.
 The kernel command-line arguments used to boot the pre-launched VMs is <code class="docutils literal notranslate"><span class="pre">bootargs</span></code>
-in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/whl-ipc-i7/logical_partition.xml</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc7i7dnb/logical_partition.xml</span></code>
 The <code class="docutils literal notranslate"><span class="pre">module2</span> <span class="pre">/boot/bzImage</span></code> param <code class="docutils literal notranslate"><span class="pre">XXXXXX</span></code> is the bzImage tag and must exactly match the <code class="docutils literal notranslate"><span class="pre">kern_mod</span></code>
-in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/whl-ipc-i7/logical_partition.xml</span></code> file.
+in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc7i7dnb/logical_partition.xml</span></code> file.
 The module <code class="docutils literal notranslate"><span class="pre">/boot/ACPI_VM0.bin</span></code> is the binary of ACPI tables for pre-launched VM0, the parameter <code class="docutils literal notranslate"><span class="pre">ACPI_VM0</span></code> is
 VM0’s ACPI tag and should not be modified.
 The module <code class="docutils literal notranslate"><span class="pre">/boot/ACPI_VM1.bin</span></code> is the binary of ACPI tables for pre-launched VM1 the parameter <code class="docutils literal notranslate"><span class="pre">ACPI_VM1</span></code> is
 VM1’s ACPI tag and should not be modified.</p>
+</div>
+</li>
+<li><p>Correct example Grub configuration (with <code class="docutils literal notranslate"><span class="pre">module2</span></code> image paths set):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">menuentry &#39;ACRN hypervisor Logical Partition Scenario&#39; --id ACRN_Logical_Partition --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {</span>
+<span class="go">     recordfail</span>
+<span class="go">     load_video</span>
+<span class="go">     gfxmode $linux_gfx_mode</span>
+<span class="go">     insmod gzio</span>
+<span class="go">     insmod part_gpt</span>
+<span class="go">     insmod ext2</span>
+<span class="go">     search --no-floppy --fs-uuid --set 9bd58889-add7-410c-bdb7-1fbc2af9b0e1</span>
+<span class="go">     echo &#39;Loading hypervisor logical partition scenario ...&#39;</span>
+<span class="go">     multiboot2  /boot/acrn.bin root=PARTUUID=&quot;e515916d-aac4-4439-aaa0-33231a9f4d83&quot;</span>
+<span class="go">     module2 /boot/bzImage Linux_bzImage</span>
+<span class="go">     module2 /boot/ACPI_VM0.bin ACPI_VM0</span>
+<span class="go">     module2 /boot/ACPI_VM1.bin ACPI_VM1</span>
+<span class="go">}</span>
+</pre></div>
 </div>
 </li>
 <li><p>Modify the <code class="docutils literal notranslate"><span class="pre">/etc/default/grub</span></code> file as follows to make the GRUB menu
@@ -1341,6 +1336,8 @@ hypervisor will automatically start the two pre-launched VMs.</p></li>
 <div class="numbered-step section" id="logical-partition-scenario-startup-check">
 <h2><a class="toc-backref" href="#id6">Logical Partition Scenario Startup Check</a><a class="headerlink" href="#logical-partition-scenario-startup-check" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
+<li><p>Connect to the serial port as described in this <a class="reference internal" href="using_serial_port.html#connect-serial-port"><span class="std std-ref">Connecting to the
+serial port</span></a> tutorial.</p></li>
 <li><p>Use these steps to verify that the hypervisor is properly running:</p>
 <ol class="arabic simple">
 <li><p>Log in to the ACRN hypervisor shell from the serial console.</p></li>
@@ -1379,7 +1376,7 @@ for more information about available commands.</p>
     <p>
         &#169; Copyright 2018-2021, Project ACRN™.
       <span class="lastupdated">
-        Last updated on Sep 22, 2021.
+        Last updated on Sep 24, 2021.
       </span>
 
     </p>
