@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Getting Started Guide for ACRN Industry Scenario With ROScube-I &mdash; Project ACRN™ 2.5 documentation</title>
   
@@ -24,7 +24,10 @@
   
     <link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
   
+
   
+  
+
   
 
   
@@ -61,7 +64,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> Project ACRN™
+            <a href="../../index.html" class="icon icon-home"> Project ACRN™
           
 
           
@@ -1098,6 +1101,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -1115,7 +1120,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
         
       </li>
     
@@ -1146,8 +1151,8 @@
 <ul>
 <li><p>Ubuntu version: <strong>18.04</strong></p></li>
 <li><p>GCC version: <strong>7.5.0</strong></p></li>
-<li><p>ACRN-hypervisor branch: <strong>v2.1</strong></p></li>
-<li><p>ACRN-Kernel (Service VM kernel): <strong>v2.1</strong></p></li>
+<li><p>ACRN-hypervisor branch: <strong>v2.5</strong></p></li>
+<li><p>ACRN-Kernel (Service VM kernel): <strong>v2.5</strong></p></li>
 <li><p>RT kernel for Ubuntu User VM OS: <strong>Linux kernel 4.19.59 with Xenomai 3.1</strong></p></li>
 <li><p>HW: <a class="reference external" href="https://www.adlinktech.com/Products/ROS2_Solution/ROS2_Controller/ROScube-I?lang=en">ROScube-I</a></p>
 <p>ADLINK <a class="reference external" href="https://www.adlinktech.com/Products/ROS2_Solution/ROS2_Controller/ROScube-I?lang=en">ROScube-I</a> is a real-time <a class="reference external" href="https://index.ros.org/doc/ros2/">ROS 2</a>-enabled robotic controller based
@@ -1248,17 +1253,48 @@ sudo reboot
 </li>
 <li><p>Install the necessary libraries:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt update
-sudo apt install -y gcc git make gnu-efi libssl-dev libpciaccess-dev <span class="se">\</span>
-  uuid-dev libsystemd-dev libevent-dev libxml2-dev libxml2-utils <span class="se">\</span>
-  libusb-1.0-0-dev python3 python3-pip libblkid-dev <span class="se">\</span>
-  e2fslibs-dev pkg-config libnuma-dev liblz4-tool flex bison
-sudo pip3 install kconfiglib
+sudo apt install -y gcc <span class="se">\</span>
+    git <span class="se">\</span>
+    make <span class="se">\</span>
+    vim <span class="se">\</span>
+    libssl-dev <span class="se">\</span>
+    libpciaccess-dev <span class="se">\</span>
+    uuid-dev <span class="se">\</span>
+    libsystemd-dev <span class="se">\</span>
+    libevent-dev <span class="se">\</span>
+    libxml2-dev <span class="se">\</span>
+    libxml2-utils <span class="se">\</span>
+    libusb-1.0-0-dev <span class="se">\</span>
+    python3 <span class="se">\</span>
+    python3-pip <span class="se">\</span>
+    libblkid-dev <span class="se">\</span>
+    e2fslibs-dev <span class="se">\</span>
+    pkg-config <span class="se">\</span>
+    libnuma-dev <span class="se">\</span>
+    liblz4-tool <span class="se">\</span>
+    flex <span class="se">\</span>
+    bison <span class="se">\</span>
+    xsltproc <span class="se">\</span>
+    clang-format <span class="se">\</span>
+    bc
+sudo pip3 install lxml xmlschema defusedxml
+</pre></div>
+</div>
+</li>
+<li><p>Install the iASL compiler/disassembler used for advanced power management,
+device discovery, and configuration (ACPI) within the host OS:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> /tmp
+wget https://acpica.org/sites/acpica/files/acpica-unix-20210105.tar.gz
+tar zxvf acpica-unix-20210105.tar.gz
+<span class="nb">cd</span> acpica-unix-20210105
+make clean <span class="o">&amp;&amp;</span> make iasl
+sudo cp ./generate/unix/bin/iasl /usr/sbin/
 </pre></div>
 </div>
 </li>
 <li><p>Get code from GitHub.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir ~/acrn <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ~/acrn
-git clone https://github.com/projectacrn/acrn-hypervisor -b release_2.1
+git clone https://github.com/projectacrn/acrn-hypervisor -b release_2.5
 <span class="nb">cd</span> acrn-hypervisor
 </pre></div>
 </div>
@@ -1270,15 +1306,15 @@ git clone https://github.com/projectacrn/acrn-hypervisor -b release_2.1
 <ol class="arabic">
 <li><p>Parse system information.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install -y cpuid msr-tools
-<span class="nb">cd</span> ~/acrn/acrn-hypervisor/misc/acrn-config/target/
-sudo python3 board_parser.py ros-cube-cfl
-cp ~/acrn/acrn-hypervisor/misc/acrn-config/target/out/ros-cube-cfl.xml <span class="se">\</span>
-  ~/acrn/acrn-hypervisor/misc/acrn-config/xmls/board-xmls/
+<span class="nb">cd</span> ~/acrn/acrn-hypervisor/misc/config_tools/board_inspector/
+sudo python3 cli.py ros-cube-cfl
+cp ~/acrn/acrn-hypervisor/misc/config_tools/board_inspector/ros-cube-cfl.xml <span class="se">\</span>
+  ~/acrn/acrn-hypervisor/misc/config_tools/data/
 </pre></div>
 </div>
 </li>
 <li><p>Run ACRN configuration app and it will open a browser page.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn/acrn-hypervisor/misc/acrn-config/config_app
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn/acrn-hypervisor/misc/config_tools/config_app
 sudo pip3 install -r requirements
 python3 app.py
 </pre></div>
@@ -1302,12 +1338,19 @@ python3 app.py
 <img alt="../../_images/rqi-acrn-config-scenario-settings.png" src="../../_images/rqi-acrn-config-scenario-settings.png" />
 </div>
 </li>
+<li><p>Settings “Features”: “RDT_ENABLED” option must be “n”.</p>
+<div class="figure align-default">
+<img alt="../../_images/rqi-acrn-config-features-settings.png" src="../../_images/rqi-acrn-config-features-settings.png" />
+</div>
+</li>
 <li><p>Settings “HV”: You can ignore this if your RAM is &lt;= 16GB.</p>
 <div class="figure align-default">
 <img alt="../../_images/rqi-acrn-config-hv-settings.png" src="../../_images/rqi-acrn-config-hv-settings.png" />
 </div>
 </li>
-<li><p>Settings “VM0”: Select the hard disk currently used.</p>
+<li><p>Settings “VM0”: Select the hard disk currently used.
+If you system need some special bootargs (like <code class="docutils literal notranslate"><span class="pre">video=eDP-1:d</span></code>),
+you can add it below.</p>
 <div class="figure align-default">
 <img alt="../../_images/rqi-acrn-config-vm0-settings.png" src="../../_images/rqi-acrn-config-vm0-settings.png" />
 </div>
@@ -1336,14 +1379,6 @@ adjusted later.</p>
 <img alt="../../_images/rqi-acrn-config-export-xml-submit.png" src="../../_images/rqi-acrn-config-export-xml-submit.png" />
 </div>
 </li>
-<li><p>Generate configuration files.</p>
-<div class="figure align-default">
-<img alt="../../_images/rqi-acrn-config-generate-config.png" src="../../_images/rqi-acrn-config-generate-config.png" />
-</div>
-<div class="figure align-default">
-<img alt="../../_images/rqi-acrn-config-generate-config-submit.png" src="../../_images/rqi-acrn-config-generate-config-submit.png" />
-</div>
-</li>
 <li><p>Close the browser and stop the process (Ctrl+C).</p></li>
 <li><p>Optional: Patch the hypervisor if you want to passthrough GPIO to VM.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn/acrn-hypervisor
@@ -1354,9 +1389,11 @@ git apply <span class="m">0001</span>-Fix-ROScube-I-gpio-pin-assignment-table.pa
 </li>
 <li><p>Build hypervisor</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn/acrn-hypervisor
+cp misc/config_tools/data/ros-cube-cfl.xml <span class="se">\</span>
+   misc/config_tools/data/ros-cube-cfl/ros-cube-cfl.xml
 make all <span class="se">\</span>
-   <span class="nv">BOARD_FILE</span><span class="o">=</span>misc/acrn-config/xmls/board-xmls/ros-cube-cfl.xml <span class="se">\</span>
-   <span class="nv">SCENARIO_FILE</span><span class="o">=</span>misc/acrn-config/xmls/config-xmls/ros-cube-cfl/user_defined/industry_ROS2SystemOS.xml <span class="se">\</span>
+   <span class="nv">BOARD_FILE</span><span class="o">=</span>misc/config_tools/data/ros-cube-cfl/ros-cube-cfl.xml <span class="se">\</span>
+   <span class="nv">SCENARIO_FILE</span><span class="o">=</span>misc/config_tools/data/ros-cube-cfl/user_defined/industry_ROS2SystemOS.xml <span class="se">\</span>
    <span class="nv">RELEASE</span><span class="o">=</span><span class="m">0</span>
 </pre></div>
 </div>
@@ -1378,7 +1415,7 @@ sudo cp ~/acrn/acrn-hypervisor/build/hypervisor/acrn.bin /boot/acrn/
 <ol class="arabic">
 <li><p>Get code from GitHub</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn
-git clone https://github.com/projectacrn/acrn-kernel -b release_2.1
+git clone https://github.com/projectacrn/acrn-kernel -b release_2.5
 <span class="nb">cd</span> acrn-kernel
 </pre></div>
 </div>
@@ -1534,7 +1571,7 @@ We’ll clone the image for real-time VM to save time.</p></li>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install git build-essential bison flex libelf-dev libssl-dev liblz4-tool
 
 <span class="c1"># Clone code</span>
-git clone -b release_2.1 https://github.com/projectacrn/acrn-kernel
+git clone -b release_2.5 https://github.com/projectacrn/acrn-kernel
 <span class="nb">cd</span> acrn-kernel
 
 <span class="c1"># Set up kernel config</span>
@@ -1570,18 +1607,6 @@ sudo update-grub
 <p>Now back to the native machine to set up the environment for launching
 the User VM.</p>
 <ol class="arabic">
-<li><p>Manually fetch and install the <code class="docutils literal notranslate"><span class="pre">iasl</span></code> binary to <code class="docutils literal notranslate"><span class="pre">/usr/bin</span></code> (where
-ACRN expects it) with a newer version of the
-than what’s included with Ubuntu 18.04:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> /tmp
-wget https://acpica.org/sites/acpica/files/acpica-unix-20210105.tar.gz
-tar zxvf acpica-unix-20210105.tar.gz
-<span class="nb">cd</span> acpica-unix-20210105
-make clean <span class="o">&amp;&amp;</span> make iasl
-sudo cp ./generate/unix/bin/iasl /usr/sbin/
-</pre></div>
-</div>
-</li>
 <li><p>Convert KVM image file format.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p ~/acrn/uosVM
 <span class="nb">cd</span> ~/acrn/uosVM
@@ -1594,9 +1619,16 @@ sudo qemu-img convert -f qcow2 -O raw /var/lib/libvirt/images/ROS2SystemUOS.qcow
 chmod +x ./launch_ubuntu_uos.sh
 </pre></div>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In different models of machines, you may need to modify this
+script to set which device you want to passthrough and the
+memory size of the virtual machine.</p>
+</div>
 </li>
 <li><p>Set up network and reboot to take effect.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p ~/acrn/tools/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install net-tools wget
+mkdir -p ~/acrn/tools/
 <span class="nb">cd</span> ~/acrn/tools
 wget https://raw.githubusercontent.com/Adlink-ROS/ROScube_ACRN_guide/v2.1/scripts/acrn_bridge.sh
 chmod +x ./acrn_bridge.sh
@@ -1728,6 +1760,12 @@ sudo qemu-img convert -f qcow2 <span class="se">\</span>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget https://raw.githubusercontent.com/Adlink-ROS/ROScube_ACRN_guide/v2.1/scripts/launch_ubuntu_rtos.sh
 chmod +x ./launch_ubuntu_rtos.sh
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In different models of machines, you may need to modify this
+script to set which device you want to passthrough and the
+memory size of the virtual machine.</p>
 </div>
 </li>
 <li><p><strong>Reboot to ACRN kernel</strong> and now you can launch the VM.</p>
@@ -1949,32 +1987,24 @@ For example, if you want to passthrough USB 1-2 and 1-4.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../../tutorials/using_hybrid_mode_on_nuc.html" class="btn btn-neutral float-right" title="Getting Started Guide for ACRN Hybrid Mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="../building-from-source.html" class="btn btn-neutral float-left" title="Build ACRN From Source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="../../tutorials/using_hybrid_mode_on_nuc.html" class="btn btn-neutral float-right" title="Getting Started Guide for ACRN Hybrid Mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../building-from-source.html" class="btn btn-neutral float-left" title="Build ACRN From Source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2018-2021, Project ACRN™
+        &#169; Copyright 2018-2021, Project ACRN™.
       <span class="lastupdated">
-        Last updated on Jun 28, 2021.
+        Last updated on Sep 24, 2021.
       </span>
 
     </p>
   </div> 
 
 </footer>
-
         </div>
       </div>
 
