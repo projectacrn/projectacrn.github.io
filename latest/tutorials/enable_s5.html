@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Enable S5 in ACRN &mdash; Project ACRN™ 2.6-unstable documentation</title>
+  <title>Enable S5 in ACRN &mdash; Project ACRN™ 2.7-unstable documentation</title>
   
 
   
@@ -1179,17 +1179,17 @@ the channel from the Service OS to the User VM:</p>
 </ul>
 <div class="section" id="initiate-a-system-s5-from-within-a-user-vm-e-g-hmi">
 <h3>Initiate a system S5 from within a User VM (e.g. HMI)<a class="headerlink" href="#initiate-a-system-s5-from-within-a-user-vm-e-g-hmi" title="Permalink to this headline">¶</a></h3>
-<p>As in Figure 56, a request to Service VM initiates the shutdown flow.
-This could come from a User VM, most likely the HMI (Windows or user-friendly Linux).
-When a human operator click to initiate the flow, the lifecycle_mgr in it will send
-the request via vUART to the lifecycle manager in the Service VM which in turn acknowledge
-the request and trigger the following flow.</p>
+<p>As shown in the <a class="reference internal" href="#id1"><span class="std std-numref">Figure 28</span></a>, a request to Service VM initiates the shutdown flow.
+This could come from a User VM, most likely the HMI (running Windows or Linux).
+When a human operator initiates the flow, the Lifecycle Manager (<code class="docutils literal notranslate"><span class="pre">life_mngr</span></code>) running in that
+User VM will send the request via the vUART to the Lifecycle Manager in the Service VM which in
+turn acknowledges the request and triggers the following flow.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The User VM need to be authorized to be able to request a Shutdown, this is achieved by adding
-“<code class="docutils literal notranslate"><span class="pre">--pm_notify_channel</span> <span class="pre">uart,allow_trigger_s5</span></code>” in the launch script of that VM.
+<code class="docutils literal notranslate"><span class="pre">--pm_notify_channel</span> <span class="pre">uart,allow_trigger_s5</span></code> in the launch script of that VM.
 And, there is only one VM in the system can be configured to request a shutdown. If there is a second User
-VM launched with “<code class="docutils literal notranslate"><span class="pre">--pm_notify_channel</span> <span class="pre">uart,allow_trigger_s5</span></code>”, ACRN will stop launching it and throw
+VM launched with <code class="docutils literal notranslate"><span class="pre">--pm_notify_channel</span> <span class="pre">uart,allow_trigger_s5</span></code>, ACRN will stop launching it and throw
 out below error message:
 <code class="docutils literal notranslate"><span class="pre">initiate</span> <span class="pre">a</span> <span class="pre">connection</span> <span class="pre">on</span> <span class="pre">a</span> <span class="pre">socket</span> <span class="pre">error</span></code>
 <code class="docutils literal notranslate"><span class="pre">create</span> <span class="pre">socket</span> <span class="pre">to</span> <span class="pre">connect</span> <span class="pre">life-cycle</span> <span class="pre">manager</span> <span class="pre">failed</span></code></p>
@@ -1199,17 +1199,17 @@ out below error message:
 <h3>Trigger the User VM’s S5<a class="headerlink" href="#trigger-the-user-vm-s-s5" title="Permalink to this headline">¶</a></h3>
 <p>On the Service VM side, it uses the <code class="docutils literal notranslate"><span class="pre">acrnctl</span></code> tool to trigger the User VM’s S5 flow:
 <code class="docutils literal notranslate"><span class="pre">acrnctl</span> <span class="pre">stop</span> <span class="pre">user-vm-name</span></code>. Then, the Device Model sends a <code class="docutils literal notranslate"><span class="pre">shutdown</span></code> command
-to the User VM through a channel. If the User VM receives the command, it will send an “ACK”
-to the Device Model. It is the Service VM’s responsibility to check if the User VMs
-shut down successfully or not, and decides when to power off itself.</p>
+to the User VM through a channel. If the User VM receives the command, it will send an <code class="docutils literal notranslate"><span class="pre">ACKED</span></code>
+to the Device Model. It is the Service VM’s responsibility to check whether the User VMs
+shut down successfully or not, and to decide when to shut the Service VM itself down.</p>
 </div>
 <div class="section" id="user-vm-lifecycle-manager">
 <h3>User VM “Lifecycle Manager”<a class="headerlink" href="#user-vm-lifecycle-manager" title="Permalink to this headline">¶</a></h3>
-<p>As part of the current S5 reference design, a lifecycle manager daemon (life_mngr) runs in the
-User VM to implement S5. It waits for the command from the Service VM on the
-paired serial port. The simple protocol between the Service VM and User VM is as follows:
-When the daemon receives <code class="docutils literal notranslate"><span class="pre">shutdown</span></code>, it sends “ACKed” to the Service VM;
-then it can power off the User VM. If the User VM is not ready to power off,
+<p>As part of the S5 reference design, a Lifecycle Manager daemon (<code class="docutils literal notranslate"><span class="pre">life_mngr</span></code> in Linux,
+<code class="docutils literal notranslate"><span class="pre">life_mngr_win.exe</span></code> in Windows) runs in the User VM to implement S5. It waits for the shutdown
+request from the Service VM on the serial port. The simple protocol between the Service VM and
+User VM is as follows: when the daemon receives <code class="docutils literal notranslate"><span class="pre">shutdown</span></code>, it sends <code class="docutils literal notranslate"><span class="pre">ACKED</span></code> to the Service VM;
+then it shuts down the User VM. If the User VM is not ready to shut down,
 it can ignore the <code class="docutils literal notranslate"><span class="pre">shutdown</span></code> command.</p>
 </div>
 </div>
@@ -1217,91 +1217,32 @@ it can ignore the <code class="docutils literal notranslate"><span class="pre">s
 <span id="id3"></span><h2>Enable S5<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>The procedure for enabling S5 is specific to the particular OS:</p>
 <ul>
-<li><p>For Linux (LaaG) or Windows (WaaG), refer to the following configurations in the
-<code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/sample_launch_scripts/nuc/launch_uos.sh</span></code> launch script for <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>.</p>
-<div class="literal-block-wrapper docutils container" id="laag-waag-script">
-<div class="code-block-caption"><span class="caption-number">Code Block 1 </span><span class="caption-text">LaaG/WaaG launch script</span><a class="headerlink" href="#laag-waag-script" title="Permalink to this code">¶</a></div>
-<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21</pre></div></td><td class="code"><div class="highlight"><pre><span></span>  -s <span class="m">3</span>,virtio-blk,/home/clear/uos/uos.img <span class="se">\</span>
-<span class="hll">  -s <span class="m">4</span>,virtio-net,tap0 <span class="se">\</span>
-</span><span class="hll">  -s <span class="m">7</span>,virtio-rnd <span class="se">\</span>
-</span><span class="hll">  --ovmf /usr/share/acrn/bios/OVMF.fd <span class="se">\</span>
-</span>  <span class="nv">$logger_setting</span> <span class="se">\</span>
-  --mac_seed <span class="nv">$mac_seed</span> <span class="se">\</span>
-  <span class="nv">$vm_name</span>
-<span class="o">}</span>
+<li><p>For Linux (LaaG) or Windows (WaaG), include these lines in the launch script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Power Management (PM) configuration using vUART channel</span>
+<span class="nv">pm_channel</span><span class="o">=</span><span class="s2">&quot;--pm_notify_channel uart&quot;</span>
+<span class="nv">pm_by_vuart</span><span class="o">=</span><span class="s2">&quot;--pm_by_vuart pty,/run/acrn/life_mngr_&quot;</span><span class="nv">$vm_name</span>
+<span class="nv">pm_vuart_node</span><span class="o">=</span><span class="s2">&quot;-s 1:0,lpc -l com2,/run/acrn/life_mngr_&quot;</span><span class="nv">$vm_name</span>
 
-<span class="c1">#add following cmdline to grub.cfg and update kernel</span>
-<span class="c1">#when launching LaaG by OVMF</span>
-<span class="c1">#rw rootwait maxcpus=1 nohpet console=tty0 console=hvc0</span>
-<span class="c1">#console=ttyS0 no_timer_check ignore_loglevel</span>
-<span class="c1">#log_buf_len=16M consoleblank=0</span>
-<span class="c1">#tsc=reliable i915.avail_planes_per_pipe=&quot;64 448 8&quot;</span>
-<span class="c1">#i915.enable_hangcheck=0 i915.nuclear_pageflip=1</span>
-<span class="hll"><span class="c1">#i915.enable_guc_loading=0</span>
-</span><span class="c1">#i915.enable_guc_submission=0 i915.enable_guc=0</span>
-
-<span class="c1"># offline SOS CPUs except BSP before launch UOS</span>
-<span class="k">for</span> i in <span class="sb">`</span>ls -d /sys/devices/system/cpu/cpu<span class="o">[</span><span class="m">1</span>-99<span class="o">]</span><span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
+acrn-dm -A -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,hostbridge <span class="se">\</span>
+  ...
+  <span class="nv">$pm_channel</span> <span class="se">\</span>
+  <span class="nv">$pm_by_vuart</span> <span class="se">\</span>
+  <span class="nv">$pm_vuart_node</span> <span class="se">\</span>
+  ...
 </pre></div>
-</td></tr></table></div>
 </div>
 </li>
-<li><p>For RT-Linux, refer to the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/sample_launch_scripts/nuc/launch_hard_rt_vm.sh</span></code> script:</p>
-<div class="literal-block-wrapper docutils container" id="rt-script">
-<div class="code-block-caption"><span class="caption-number">Code Block 2 </span><span class="caption-text">RT-Linux launch script</span><a class="headerlink" href="#rt-script" title="Permalink to this code">¶</a></div>
-<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16</pre></div></td><td class="code"><div class="highlight"><pre><span></span>/usr/bin/acrn-dm -A -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,hostbridge <span class="se">\</span>
-<span class="hll">   --lapic_pt <span class="se">\</span>
-</span><span class="hll">   --rtvm <span class="se">\</span>
-</span>   --virtio_poll <span class="m">1000000</span> <span class="se">\</span>
-   -U 495ae2e5-2603-4d64-af76-d4bc5a8ec0e5 <span class="se">\</span>
-   -s <span class="m">2</span>,passthru,02/0/0 <span class="se">\</span>
-   -s <span class="m">3</span>,virtio-console,@stdio:stdio_port <span class="se">\</span>
-   --ovmf /usr/share/acrn/bios/OVMF.fd <span class="se">\</span>
-   hard_rtvm
+<li><p>For RT-Linux, include these lines in the launch script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Power Management (PM) configuration</span>
+<span class="nv">pm_channel</span><span class="o">=</span><span class="s2">&quot;--pm_notify_channel uart&quot;</span>
+<span class="nv">pm_by_vuart</span><span class="o">=</span><span class="s2">&quot;--pm_by_vuart tty,/dev/ttyS1&quot;</span>
 
-<span class="o">}</span>
-
-<span class="hll"><span class="c1"># -s 2,passthru,0/17/0 \ #please using &quot;lspci -nn&quot; check the bdf info</span>
-</span>
-<span class="c1"># Depends on which partation RT_LaaG is installed in;maybe need to change</span>
-<span class="c1"># /dev/nvme0n1p3 to /dev/sda3 on NUC and uncomment SATA pass-through</span>
+/usr/bin/acrn-dm -A -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,hostbridge <span class="se">\</span>
+   ...
+   <span class="nv">$pm_channel</span> <span class="se">\</span>
+   <span class="nv">$pm_by_vuart</span> <span class="se">\</span>
+   ...
 </pre></div>
-</td></tr></table></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -1313,14 +1254,14 @@ it can ignore the <code class="docutils literal notranslate"><span class="pre">s
 <li><p>For LaaG and RT-Linux VMs, run the lifecycle manager daemon:</p>
 <ol class="loweralpha">
 <li><p>Use these commands to build the lifecycle manager daemon, <code class="docutils literal notranslate"><span class="pre">life_mngr</span></code>.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd acrn-hypervisor/misc/life_mngr
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd acrn-hypervisor
 $ make life_mngr
 </pre></div>
 </div>
 </li>
 <li><p>Copy <code class="docutils literal notranslate"><span class="pre">life_mngr</span></code> and <code class="docutils literal notranslate"><span class="pre">life_mngr.service</span></code> into the User VM:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ scp life_mngr root@&lt;test board address&gt;:/usr/bin/life_mngr
-$ scp life_mngr.service root@&lt;test board address&gt;:/lib/systemd/system/life_mngr.service
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ scp build/misc/services/life_mngr root@&lt;test board address&gt;:/usr/bin/life_mngr
+$ scp build/misc/services/life_mngr.service root@&lt;test board address&gt;:/lib/systemd/system/life_mngr.service
 </pre></div>
 </div>
 </li>
@@ -1336,7 +1277,7 @@ $ scp life_mngr.service root@&lt;test board address&gt;:/lib/systemd/system/life
 <li><p>For the WaaG VM, run the lifecycle manager daemon:</p>
 <ol class="loweralpha">
 <li><p>Build the <code class="docutils literal notranslate"><span class="pre">life_mngr_win.exe</span></code> application:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd acrn-hypervisor/misc
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd acrn-hypervisor
 $ make life_mngr
 </pre></div>
 </div>
@@ -1500,7 +1441,7 @@ shuts down the Service VM</p></li>
     <p>
         &#169; Copyright 2018-2021, Project ACRN™.
       <span class="lastupdated">
-        Last updated on Sep 28, 2021.
+        Last updated on Sep 30, 2021.
       </span>
 
     </p>
