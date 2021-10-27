@@ -18,7 +18,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
         <script src="../_static/acrn-custom.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -1113,8 +1112,8 @@ This option impacts the content of <code class="docutils literal notranslate"><s
 which specifies the PIO base for Service VM legacy vUART 0 (used for the console).
 The PIO base for the Service VM’s legacy vUART 0 is determined using these rules:</p>
 <ul class="simple">
-<li><p>If <a class="reference internal" href="#cmdoption-arg-hv.DEBUG_OPTIONS.SERIAL_CONSOLE"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.DEBUG_OPTIONS.SERIAL_CONSOLE</span></code></a> is <code class="docutils literal notranslate"><span class="pre">ttys0</span></code>, <code class="docutils literal notranslate"><span class="pre">ttys1</span></code>, <code class="docutils literal notranslate"><span class="pre">ttys2</span></code>, or <code class="docutils literal notranslate"><span class="pre">ttys3</span></code> and it is a PIO in the
-native environment, the PIO base of the Service VM legacy vUART 0 would be the same as the PIO base
+<li><p>If <a class="reference internal" href="#cmdoption-arg-hv.DEBUG_OPTIONS.SERIAL_CONSOLE"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.DEBUG_OPTIONS.SERIAL_CONSOLE</span></code></a> is any available ttyS# in the native environment,
+the PIO base of the Service VM legacy vUART 0 would be the same as the PIO base
 corresponding to <a class="reference internal" href="#cmdoption-arg-hv.DEBUG_OPTIONS.SERIAL_CONSOLE"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.DEBUG_OPTIONS.SERIAL_CONSOLE</span></code></a> in the native environment.</p></li>
 <li><p>Otherwise, a PIO base would be assigned to the Service VM legacy vUART 0 from the available PIO list.</p></li>
 </ul>
@@ -1322,8 +1321,18 @@ RDT, setting this option to <code class="docutils literal notranslate"><span cla
 <dd><ul class="simple">
 <li><p>Specify whether to enable Code and Data Prioritization (CDP).
 CDP is an extension of CAT. Set to ‘y’ to enable the feature or ‘n’ to disable it.
-The ‘y’ will be ignored when hardware does not support CDP. Default
-value <code class="docutils literal notranslate"><span class="pre">n</span></code>. (Default value is <code class="docutils literal notranslate"><span class="pre">n</span></code>)</p></li>
+The ‘y’ will be ignored when hardware does not support CDP. (Default value is <code class="docutils literal notranslate"><span class="pre">n</span></code>)</p></li>
+<li><p>A Boolean value, written as <code class="docutils literal notranslate"><span class="pre">y</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="std option">
+<dt id="cmdoption-arg-hv.FEATURES.RDT.VCAT_ENABLED">
+<span id="cmdoption-arg-hv-features-rdt-vcat-enabled"></span><code class="sig-name descname"><span class="pre">hv.FEATURES.RDT.VCAT_ENABLED</span></code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-arg-hv.FEATURES.RDT.VCAT_ENABLED" title="Permalink to this definition">¶</a></dt>
+<dd><ul class="simple">
+<li><p>Specify whether to enable CAT virtualization (vCAT).
+Set to ‘y’ to enable the feature or ‘n’ to disable it.
+The ‘y’ will be ignored when hardware does not support CAT. (Default value is <code class="docutils literal notranslate"><span class="pre">n</span></code>)</p></li>
 <li><p>A Boolean value, written as <code class="docutils literal notranslate"><span class="pre">y</span></code> or <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p></li>
 </ul>
 </dd></dl>
@@ -1473,21 +1482,12 @@ three for specific exceptions. (Default value is <code class="docutils literal n
 </dd></dl>
 
 <dl class="std option">
-<dt id="cmdoption-arg-hv.MEMORY.HV_RAM_SIZE">
-<span id="cmdoption-arg-hv-memory-hv-ram-size"></span><code class="sig-name descname"><span class="pre">hv.MEMORY.HV_RAM_SIZE</span></code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-arg-hv.MEMORY.HV_RAM_SIZE" title="Permalink to this definition">¶</a></dt>
-<dd><ul class="simple">
-<li><p>Size of the RAM region used by the hypervisor.</p></li>
-<li><p>Either empty, or an Integer value in hexadecimal format.</p></li>
-</ul>
-</dd></dl>
-
-<dl class="std option">
 <dt id="cmdoption-arg-hv.MEMORY.HV_RAM_START">
 <span id="cmdoption-arg-hv-memory-hv-ram-start"></span><code class="sig-name descname"><span class="pre">hv.MEMORY.HV_RAM_START</span></code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-arg-hv.MEMORY.HV_RAM_START" title="Permalink to this definition">¶</a></dt>
 <dd><ul class="simple">
 <li><p>The 2MB-aligned starting physical address of
-the RAM region used by the hypervisor.</p></li>
-<li><p>Either empty, or an Integer value in hexadecimal format.</p></li>
+the RAM region used by the hypervisor. (Default value is <code class="docutils literal notranslate"><span class="pre">0x00200000</span></code>)</p></li>
+<li><p>An Integer value in hexadecimal format.</p></li>
 </ul>
 </dd></dl>
 
@@ -1689,7 +1689,8 @@ IO polling to completion</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_HIDE_MTRR</span></code> specify that MTRR is hidden from the VM</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_RT</span></code> specify that the VM is an RT-VM (real-time)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_NVMX_ENABLED</span></code> specify that the VM supports nested virtualization</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_SECURITY_VM</span></code> specify that the VM needs to do security-vm related
+<li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_SECURITY_VM</span></code> specify that the VM needs to do security-vm related</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_VCAT_ENABLED</span></code> specify that the VM supports CAT virtualization
 fixup (TPM2 passthrough and SMBIOS passthrough)</p></li>
 </ul>
 </li>
@@ -1718,10 +1719,15 @@ Refer SDM 17.19.2 for details, and use with caution.</p>
 <dl class="std option">
 <dt id="cmdoption-arg-vm.clos.vcpu_clos">
 <span id="cmdoption-arg-vm-clos-vcpu-clos"></span><code class="sig-name descname"><span class="pre">vm.clos.vcpu_clos</span></code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-arg-vm.clos.vcpu_clos" title="Permalink to this definition">¶</a></dt>
-<dd><ul class="simple">
-<li><p>Configure each CPU in VMs to a desired CLOS ID in the <code class="docutils literal notranslate"><span class="pre">VM</span></code> section of the
-scenario file. Follow <a class="reference internal" href="../tutorials/rdt_configuration.html#rdt-detection-capabilities"><span class="std std-ref">RDT Detection and Resource Capabilities</span></a>
-to identify the maximum supported CLOS ID that can be used. (Default value is <code class="docutils literal notranslate"><span class="pre">0</span></code>)</p></li>
+<dd><ul>
+<li><p>By default (<code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_VCAT_ENABLED</span></code> is not specified):
+vcpu_clos is per-CPU and it configures each CPU in VMs to a desired CLOS ID in the <code class="docutils literal notranslate"><span class="pre">VM</span></code> section of the
+scenario file. Follow <a class="reference internal" href="../tutorials/rdt_configuration.html#rdt-detection-capabilities"><span class="std std-ref">RDT Detection and Resource Capabilities</span></a> to identify the maximum supported CLOS ID that can be used.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_VCAT_ENABLED</span></code> is specified:
+vcpu_clos is not per-CPU anymore, just a list of physical CLOSIDs (minimum 2) that are assigned to VMs
+for vCAT use. Each vcpu_clos will be mapped to a virtual CLOSID, the first vcpu_clos is mapped to virtual
+CLOSID 0 and the second is mapped to virtual CLOSID 1, etc. (Default value is <code class="docutils literal notranslate"><span class="pre">0</span></code>)</p>
+</li>
 <li><p>Integer</p></li>
 </ul>
 </dd></dl>
@@ -2103,7 +2109,7 @@ to the pre-launched VM. <em>(Optional)</em> (Default value is <code class="docut
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last updated on Oct 21, 2021.
+      <span class="lastupdated">Last updated on Oct 27, 2021.
       </span></p>
   </div>
 
@@ -2120,13 +2126,13 @@ to the pre-launched VM. <em>(Optional)</em> (Default value is <code class="docut
       });
   </script>
     <!-- Theme Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-831873-64"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GTM-K4WWJZD"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', 'UA-831873-64', {
+      gtag('config', 'GTM-K4WWJZD', {
           'anonymize_ip': false,
       });
     </script> 
