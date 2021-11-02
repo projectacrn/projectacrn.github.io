@@ -414,7 +414,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="using_grub.html">Using GRUB to Boot ACRN</a><ul>
@@ -1024,31 +1024,30 @@
              
   <div class="section" id="enable-acrn-over-qemu-kvm">
 <span id="acrn-on-qemu"></span><h1>Enable ACRN Over QEMU/KVM<a class="headerlink" href="#enable-acrn-over-qemu-kvm" title="Permalink to this headline">¶</a></h1>
-<p>Goal of this document is to bring-up ACRN as a nested Hypervisor on top of QEMU/KVM
-with basic functionality such as running Service VM (SOS) and User VM (UOS) for primarily 2 reasons,</p>
-<ol class="arabic simple">
-<li><p>Allow users to evaluate ACRN.</p></li>
-<li><p>Make ACRN platform agnostic and remove hardware-specific platform configurations setup overhead.</p></li>
-</ol>
-<p>This setup was tested with the following configuration,</p>
+<p>This document shows how to bring up ACRN as a nested hypervisor on top of
+QEMU/KVM with basic functionality such as running a Service VM and User VM.
+Running ACRN as a nested hypervisor gives you an easy way to evaluate ACRN in an
+emulated environment instead of setting up a separate hardware platform
+configuration.</p>
+<p>This setup was tested with the following configuration:</p>
 <ul class="simple">
-<li><p>ACRN Hypervisor: <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag</p></li>
-<li><p>ACRN Kernel: <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag</p></li>
-<li><p>QEMU emulator version 4.2.1</p></li>
-<li><p>Service VM/User VM is Ubuntu 20.04</p></li>
-<li><p>Platforms Tested: Kaby Lake, Skylake</p></li>
+<li><p>ACRN hypervisor: <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag</p></li>
+<li><p>ACRN kernel: <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag</p></li>
+<li><p>QEMU emulator version: 4.2.1</p></li>
+<li><p>Service VM/User VM OS: Ubuntu 20.04</p></li>
+<li><p>Platforms tested: Kaby Lake, Skylake</p></li>
 </ul>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>Make sure the platform supports Intel VMX as well as VT-d
 technologies. On Ubuntu 20.04, this
-can be checked by installing <code class="docutils literal notranslate"><span class="pre">cpu-checker</span></code> tool. If the
-output displays <strong>KVM acceleration can be used</strong>
+can be checked by installing the <code class="docutils literal notranslate"><span class="pre">cpu-checker</span></code> tool. If the
+output displays <strong>KVM acceleration can be used</strong>,
 the platform supports it.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>kvm-ok
-INFO: /dev/kvm exists
-KVM acceleration can be used
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">kvm-ok</span>
+<span class="go">INFO: /dev/kvm exists</span>
+<span class="go">KVM acceleration can be used</span>
 </pre></div>
 </div>
 </li>
@@ -1066,13 +1065,13 @@ sudo apt install qemu-kvm virtinst libvirt-daemon-system -y
 <div class="section" id="prepare-service-vm-l1-guest">
 <h2>Prepare Service VM (L1 Guest)<a class="headerlink" href="#prepare-service-vm-l1-guest" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p>Use <code class="docutils literal notranslate"><span class="pre">virt-install</span></code> command to create Service VM.</p>
+<li><p>Use the <code class="docutils literal notranslate"><span class="pre">virt-install</span></code> command to create the Service VM.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>virt-install \
 --connect qemu:///system \
---name ACRNSOS \
+--name ServiceVM \
 --machine q35 \
 --ram 4096 \
---disk path=/var/lib/libvirt/images/acrnsos.img,size=32 \
+--disk path=/var/lib/libvirt/images/servicevm.img,size=32 \
 --vcpus 4 \
 --virt-type kvm \
 --os-type linux \
@@ -1087,22 +1086,24 @@ sudo apt install qemu-kvm virtinst libvirt-daemon-system -y
 </li>
 <li><p>Walk through the installation steps as prompted. Here are a few things to note:</p>
 <ol class="loweralpha">
-<li><p>Make sure to install an OpenSSH server so that once the installation is complete, we can SSH into the system.</p>
+<li><p>Make sure to install an OpenSSH server so that once the installation is
+complete, you can SSH into the system.</p>
 <div class="figure align-center">
 <img alt="../_images/acrn_qemu_1.png" src="../_images/acrn_qemu_1.png" />
 </div>
 </li>
-<li><p>We use Grub to boot ACRN, so make sure you install it when prompted.</p>
+<li><p>We use GRUB to boot ACRN, so make sure you install it when prompted.</p>
 <div class="figure align-center">
 <img alt="../_images/acrn_qemu_2.png" src="../_images/acrn_qemu_2.png" />
 </div>
 </li>
-<li><p>The Service VM (guest) will be restarted once the installation is complete.</p></li>
+<li><p>After the installation is complete, the Service VM (guest) will restart.</p></li>
 </ol>
 </li>
-<li><p>Login to the Service VM guest. Find the IP address of the guest and use it to connect
-via SSH. The IP address can be retrieved using the <code class="docutils literal notranslate"><span class="pre">virsh</span></code> command as shown below.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">virsh domifaddr ACRNSOS</span>
+<li><p>Log in to the Service VM guest. Find the IP address of the guest and use it
+to connect via SSH. The IP address can be retrieved using the <code class="docutils literal notranslate"><span class="pre">virsh</span></code>
+command as shown below.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">virsh domifaddr ServiceVM</span>
 <span class="go"> Name       MAC address          Protocol     Address</span>
 <span class="go">-------------------------------------------------------------------------------</span>
 <span class="go"> vnet0      52:54:00:72:4e:71    ipv4         192.168.122.31/24</span>
@@ -1116,8 +1117,8 @@ sudo systemctl start serial-getty@ttyS0.service
 </pre></div>
 </div>
 </li>
-<li><p>Enable the Grub menu to choose between Ubuntu and the ACRN hypervisor.
-Modify <code class="file docutils literal notranslate"><span class="pre">/etc/default/grub</span></code> and edit below entries,</p>
+<li><p>Enable the GRUB menu to choose between Ubuntu and the ACRN hypervisor.
+Modify <code class="file docutils literal notranslate"><span class="pre">/etc/default/grub</span></code> and edit these entries:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>GRUB_TIMEOUT_STYLE=menu
 GRUB_TIMEOUT=5
 GRUB_CMDLINE_LINUX_DEFAULT=&quot;&quot;
@@ -1125,24 +1126,26 @@ GRUB_GFXMODE=text
 </pre></div>
 </div>
 </li>
-<li><p>The Service VM guest can also be launched again later using <code class="docutils literal notranslate"><span class="pre">virsh</span> <span class="pre">start</span> <span class="pre">ACRNSOS</span> <span class="pre">--console</span></code>.
-Make sure to use the domain name you used while creating the VM in case it is different than <code class="docutils literal notranslate"><span class="pre">ACRNSOS</span></code>.</p></li>
+<li><p>The Service VM guest can also be launched again later using
+<code class="docutils literal notranslate"><span class="pre">virsh</span> <span class="pre">start</span> <span class="pre">ServiceVM</span> <span class="pre">--console</span></code>. Make sure to use the domain name you
+used while creating the VM in case it is different than <code class="docutils literal notranslate"><span class="pre">ServiceVM</span></code>.</p></li>
 </ol>
-<p>This concludes the initial configuration of the Service VM, the next steps will install ACRN in it.</p>
+<p>This concludes the initial configuration of the Service VM. The next steps will
+install ACRN in it.</p>
 </div>
 <div class="section" id="install-acrn-hypervisor">
 <span id="id1"></span><h2>Install ACRN Hypervisor<a class="headerlink" href="#install-acrn-hypervisor" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p>Launch the <code class="docutils literal notranslate"><span class="pre">ACRNSOS</span></code> Service VM guest and log onto it (SSH is recommended but the console is
-available too).</p>
+<li><p>Launch the <code class="docutils literal notranslate"><span class="pre">ServiceVM</span></code> Service VM guest and log into it (SSH is recommended
+but the console is available too).</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
-<p>All the steps below are performed <strong>inside</strong> the Service VM guest that we built in the
-previous section.</p>
+<p>All the steps below are performed <strong>inside</strong> the Service VM
+guest that we built in the previous section.</p>
 </div>
 </li>
-<li><p>Install the ACRN build tools and dependencies following the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a></p></li>
-<li><p>Clone ACRN repo and check out the <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag.</p>
+<li><p>Install the ACRN build tools and dependencies following the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>.</p></li>
+<li><p>Switch to the ACRN hypervisor <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ~
 git clone https://github.com/projectacrn/acrn-hypervisor.git
 cd acrn-hypervisor
@@ -1150,13 +1153,13 @@ git checkout v2.6
 </pre></div>
 </div>
 </li>
-<li><p>Build ACRN for QEMU,</p>
+<li><p>Build ACRN for QEMU:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make BOARD=qemu SCENARIO=sdc
 </pre></div>
 </div>
-<p>For more details, refer to <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>.</p>
+<p>For more details, refer to the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>.</p>
 </li>
-<li><p>Install the ACRN Device Model and tools</p>
+<li><p>Install the ACRN Device Model and tools:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">make</span> <span class="n">install</span>
 </pre></div>
 </div>
@@ -1166,12 +1169,12 @@ git checkout v2.6
 </pre></div>
 </div>
 </li>
-<li><p>Clone and configure the Service VM kernel repository following the instructions at
-<a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> and using the <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag. The User VM (L2 guest)
-uses the <code class="docutils literal notranslate"><span class="pre">virtio-blk</span></code> driver to mount the rootfs. This driver is included in the default
-kernel configuration as of the <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag.</p></li>
-<li><p>Update Grub to boot the ACRN hypervisor and load the Service VM kernel. Append the following
-configuration to the <code class="file docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code>.</p>
+<li><p>Clone and configure the Service VM kernel repository following the
+instructions in the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> and using the <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag. The User VM (L2
+guest) uses the <code class="docutils literal notranslate"><span class="pre">virtio-blk</span></code> driver to mount the rootfs. This driver is
+included in the default kernel configuration as of the <code class="docutils literal notranslate"><span class="pre">v2.6</span></code> tag.</p></li>
+<li><p>Update GRUB to boot the ACRN hypervisor and load the Service VM kernel.
+Append the following configuration to the <code class="file docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code>.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>menuentry &#39;ACRN hypervisor&#39; --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {
    recordfail
    load_video
@@ -1187,37 +1190,43 @@ configuration to the <code class="file docutils literal notranslate"><span class
 </pre></div>
 </div>
 </li>
-<li><p>Update Grub: <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">update-grub</span></code>.</p></li>
-<li><p>Enable networking for the User VMs</p>
+<li><p>Update GRUB:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo update-grub
+</pre></div>
+</div>
+</li>
+<li><p>Enable networking for the User VMs:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo systemctl enable systemd-networkd
 sudo systemctl start systemd-networkd
 </pre></div>
 </div>
 </li>
-<li><p>Shut down the guest and relaunch it using <code class="docutils literal notranslate"><span class="pre">virsh</span> <span class="pre">start</span> <span class="pre">ACRNSOS</span> <span class="pre">--console</span></code>.
-Select the <code class="docutils literal notranslate"><span class="pre">ACRN</span> <span class="pre">hypervisor</span></code> entry from the Grub menu.</p>
+<li><p>Shut down the guest and relaunch it using
+<code class="docutils literal notranslate"><span class="pre">virsh</span> <span class="pre">start</span> <span class="pre">ServiceVM</span> <span class="pre">--console</span></code>.
+Select the <code class="docutils literal notranslate"><span class="pre">ACRN</span> <span class="pre">hypervisor</span></code> entry from the GRUB menu.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>You may occasionnally run into the following error: <code class="docutils literal notranslate"><span class="pre">Assertion</span> <span class="pre">failed</span> <span class="pre">in</span> <span class="pre">file</span>
-<span class="pre">arch/x86/vtd.c,line</span> <span class="pre">256</span> <span class="pre">:</span> <span class="pre">fatal</span> <span class="pre">error</span></code> occasionally. This is a transient issue,
-try to restart the VM when that happens. If you need a more stable setup, you
-can work around the problem by switching your native host to a non-graphical
-environment (<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">systemctl</span> <span class="pre">set-default</span> <span class="pre">multi-user.target</span></code>).</p>
+<p>You may occasionally run into the following error: <code class="docutils literal notranslate"><span class="pre">Assertion</span> <span class="pre">failed</span> <span class="pre">in</span>
+<span class="pre">file</span> <span class="pre">arch/x86/vtd.c,line</span> <span class="pre">256</span> <span class="pre">:</span> <span class="pre">fatal</span> <span class="pre">error</span></code>. This is a transient issue;
+try to restart the VM when that happens. If you need a more stable setup,
+you can work around the problem by switching your native host to a
+non-graphical environment (<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">systemctl</span> <span class="pre">set-default</span>
+<span class="pre">multi-user.target</span></code>).</p>
 </div>
 </li>
-<li><p>Verify that you are now running ACRN using <code class="docutils literal notranslate"><span class="pre">dmesg</span></code>.</p>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">dmesg</span></code> to verify that you are now running ACRN.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">dmesg | grep ACRN</span>
 <span class="go">[    0.000000] Hypervisor detected: ACRN</span>
 <span class="go">[    2.337176] ACRNTrace: Initialized acrn trace module with 4 cpu</span>
 <span class="go">[    2.368358] ACRN HVLog: Initialized hvlog module with 4 cpu</span>
-<span class="go">[    2.727905] systemd[1]: Set hostname to &lt;ACRNSOS&gt;.</span>
+<span class="go">[    2.727905] systemd[1]: Set hostname to &lt;ServiceVM&gt;.</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When shutting down the Service VM, make sure to cleanly destroy it with these commands,
-to prevent crashes in subsequent boots.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>virsh destroy ACRNSOS # where ACRNSOS is the virsh domain name.
+<p>When shutting down the Service VM, make sure to cleanly destroy it with
+these commands, to prevent crashes in subsequent boots.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>virsh destroy ServiceVM # where ServiceVM is the virsh domain name.
 </pre></div>
 </div>
 </div>
@@ -1225,19 +1234,22 @@ to prevent crashes in subsequent boots.</p>
 </ol>
 </div>
 <div class="section" id="bring-up-user-vm-l2-guest">
-<h2>Bring-Up User VM (L2 Guest)<a class="headerlink" href="#bring-up-user-vm-l2-guest" title="Permalink to this headline">¶</a></h2>
+<h2>Bring Up User VM (L2 Guest)<a class="headerlink" href="#bring-up-user-vm-l2-guest" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p>Build the User VM disk image (<code class="docutils literal notranslate"><span class="pre">UserVM.img</span></code>) following <a class="reference internal" href="running_ubun_as_user_vm.html#build-the-ubuntu-kvm-image"><span class="std std-ref">Build the Ubuntu KVM Image</span></a> and copy it to the ACRNSOS (L1 Guest).
-Alternatively you can also use an <a class="reference external" href="https://ubuntu.com/#download">Ubuntu Desktop ISO image</a>.
+<li><p>Build the User VM disk image (<code class="docutils literal notranslate"><span class="pre">UserVM.img</span></code>) following
+<a class="reference internal" href="running_ubun_as_user_vm.html#build-the-ubuntu-kvm-image"><span class="std std-ref">Build the Ubuntu KVM Image</span></a> and copy it to the Service VM (L1 guest).
+Alternatively you can use an
+<a class="reference external" href="https://ubuntu.com/#download">Ubuntu Desktop ISO image</a>.
 Rename the downloaded ISO image to <code class="docutils literal notranslate"><span class="pre">UserVM.iso</span></code>.</p></li>
-<li><p>Transfer the <code class="docutils literal notranslate"><span class="pre">UserVM.img</span></code>  or <code class="docutils literal notranslate"><span class="pre">UserVM.iso</span></code> User VM disk image to the Service VM (L1 guest).</p></li>
-<li><p>Launch User VM using the <code class="docutils literal notranslate"><span class="pre">launch_ubuntu.sh</span></code> script.</p>
+<li><p>Transfer the <code class="docutils literal notranslate"><span class="pre">UserVM.img</span></code>  or <code class="docutils literal notranslate"><span class="pre">UserVM.iso</span></code> User VM disk image to the
+Service VM (L1 guest).</p></li>
+<li><p>Launch the User VM using the <code class="docutils literal notranslate"><span class="pre">launch_ubuntu.sh</span></code> script.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cp ~/acrn-hypervisor/misc/config_tools/data/samples_launch_scripts/launch_ubuntu.sh ~/
 cp ~/acrn-hypervisor/devicemodel/bios/OVMF.fd ~/
 </pre></div>
 </div>
 </li>
-<li><p>Update the script to use your disk image (<code class="docutils literal notranslate"><span class="pre">UserVM.img</span> <span class="pre">or</span> <span class="pre">``UserVM.iso</span></code>).</p>
+<li><p>Update the script to use your disk image (<code class="docutils literal notranslate"><span class="pre">UserVM.img</span></code> or <code class="docutils literal notranslate"><span class="pre">UserVM.iso</span></code>).</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge \
 -s 3,virtio-blk,~/UserVM.img \
 -s 4,virtio-net,tap0 \
@@ -1264,7 +1276,7 @@ $vm_name
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last updated on Oct 28, 2021.
+      <span class="lastupdated">Last updated on Nov 01, 2021.
       </span></p>
   </div>
 

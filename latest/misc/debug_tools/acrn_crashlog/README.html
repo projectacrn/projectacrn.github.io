@@ -414,7 +414,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
@@ -1027,10 +1027,10 @@
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">ACRN-Crashlog</span></code> is a collective name for various tools (<code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code>,
-<code class="docutils literal notranslate"><span class="pre">usercrash_s</span></code>, <code class="docutils literal notranslate"><span class="pre">usercrash_c</span></code>, <code class="docutils literal notranslate"><span class="pre">debugger</span></code>, and more) and a overall
+<code class="docutils literal notranslate"><span class="pre">usercrash_s</span></code>, <code class="docutils literal notranslate"><span class="pre">usercrash_c</span></code>, <code class="docutils literal notranslate"><span class="pre">debugger</span></code>, and more) and an overall
 control utility called <code class="docutils literal notranslate"><span class="pre">crashlogctl</span></code>. Together these tools collect logs
 and information after each crash or event on an ACRN platform, including
-the hypervisor, Service OS (SOS), and Android as a Guest (AaaG).
+the hypervisor, Service VM, and Android as a Guest (AaaG).
 <code class="docutils literal notranslate"><span class="pre">ACRN-Crashlog</span></code> provides a flexible way to configure which events are
 of interest, by using an XML configuration file.</p>
 </div>
@@ -1055,14 +1055,14 @@ build environment, and follow the instructions below to build and configure the
 <div class="section" id="build">
 <h3>Build<a class="headerlink" href="#build" title="Permalink to this headline">¶</a></h3>
 <p>To build the <code class="docutils literal notranslate"><span class="pre">ACRN-Crashlog</span></code>, run:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd acrn-crashlog
-$ make
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd misc/debug_tools/acrn_crashlog
+make
 </pre></div>
 </div>
 <p>To remove all generated files and return the folder to its clean state,
 use:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd acrn-crashlog
-$ make clean
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd misc/debug_tools/acrn_crashlog
+make clean
 </pre></div>
 </div>
 </div>
@@ -1070,15 +1070,15 @@ $ make clean
 <div class="section" id="installing">
 <h2>Installing<a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h2>
 <p>To install the build:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ cd acrn-crashlog
-$ sudo make install
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd misc/debug_tools/acrn_crashlog
+sudo make install
 </pre></div>
 </div>
 </div>
 <div class="section" id="enabling-disabling">
 <h2>Enabling/Disabling<a class="headerlink" href="#enabling-disabling" title="Permalink to this headline">¶</a></h2>
 <p>To enable this tool:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo crashlogctl enable
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo crashlogctl enable
 </pre></div>
 </div>
 <p>Then it will show:</p>
@@ -1093,11 +1093,11 @@ $ sudo make install
 </pre></div>
 </div>
 <p>Follow the hints to reboot the system:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo reboot
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo reboot
 </pre></div>
 </div>
 <p>To disable this tool:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo crashlogctl disable
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo crashlogctl disable
 </pre></div>
 </div>
 <p>Then it will show:</p>
@@ -1109,14 +1109,14 @@ $ sudo make install
 </pre></div>
 </div>
 <p>Follow the hints to reboot the system:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo reboot
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo reboot
 </pre></div>
 </div>
 <p>To check the status of this tool:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo crashlogctl is-active
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo crashlogctl is-active
 </pre></div>
 </div>
-<p>It will show the status of the related services like:</p>
+<p>It will show the status of the related services. Example:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">acrnprobe  : inactive</span>
 <span class="go">usercrash  : inactive</span>
 </pre></div>
@@ -1129,9 +1129,10 @@ $ sudo make install
 crash information.</p>
 <p><code class="docutils literal notranslate"><span class="pre">ACRN-Crashlog</span></code> also provides a tool called <code class="docutils literal notranslate"><span class="pre">debugger</span></code> to dump specific
 process information:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ debugger &lt;pid&gt;
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo debugger 12
 </pre></div>
 </div>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">12</span></code> with the process ID you want to dump.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You need to be <code class="docutils literal notranslate"><span class="pre">root</span></code> to use the <code class="docutils literal notranslate"><span class="pre">debugger</span></code>.</p>
@@ -1151,35 +1152,34 @@ process information:</p>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code>: to gather all the crash and event logs on the platform, and
-probe on telemetrics-client. For the logs on hypervisor, it’s collected with
-acrnlog. For the log on SOS, the userspace crash log is collected with
-usercrash, and the kernel crash log is collected with the inherent mechanism
-like <code class="docutils literal notranslate"><span class="pre">ipanic</span></code>, <code class="docutils literal notranslate"><span class="pre">pstore</span></code> and etc. For the log on AaaG, it’s collected with
-monitoring the change of related folders on the sos image, like
-<code class="docutils literal notranslate"><span class="pre">/data/logs/</span></code>. <code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code> also provides a flexible way to allow users to
-configure which crash or event they want to collect through the XML file
-easily.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code>: tool that gathers all the crash and event logs on the
+platform. For the hypervisor, the log is collected with <code class="docutils literal notranslate"><span class="pre">acrnlog</span></code>. For the
+Service VM, the userspace crash log is collected with <code class="docutils literal notranslate"><span class="pre">usercrash</span></code>, and the
+kernel crash log is collected with the inherent mechanism, such as <code class="docutils literal notranslate"><span class="pre">ipanic</span></code>
+or <code class="docutils literal notranslate"><span class="pre">pstore</span></code>. For an AaaG VM, the log is collected by monitoring the change
+of related folders on the Service VM image, such as <code class="docutils literal notranslate"><span class="pre">/data/logs/</span></code>.
+<code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code> also provides a flexible way to configure which crash or event
+to collect, by using an XML configuration file.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">common</span></code>: some utils for logs, command and string.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>: configuration file, service files and shell script.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">usercrash</span></code>: to implement the tool which get the crash information for the
+<li><p><code class="docutils literal notranslate"><span class="pre">usercrash</span></code>: tool that gets the crash information for the
 crashing process in userspace.</p></li>
 </ul>
 <div class="section" id="acrnprobe">
 <h3>Acrnprobe<a class="headerlink" href="#acrnprobe" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code> detects all critical events on the platform and collects
-specific information for debug purpose. These information would be saved as
-logs, and the log path would be delivered to telemetrics-client as a record if
-the telemetrics-client existed on the system.
-For more detail on acrnprobe, please refer <a class="reference internal" href="acrnprobe/README.html#acrnprobe-doc"><span class="std std-ref">Acrnprobe</span></a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code> tool detects all critical events on the platform and collects
+specific information for debug purposes. The information is saved as
+logs.
+For more details on <code class="docutils literal notranslate"><span class="pre">acrnprobe</span></code>, see <a class="reference internal" href="acrnprobe/README.html#acrnprobe-doc"><span class="std std-ref">Acrnprobe</span></a>.</p>
 </div>
 <div class="section" id="usercrash">
 <h3>Usercrash<a class="headerlink" href="#usercrash" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">usercrash</span></code> is a tool to get the crash info of the crashing process in
-userspace. It works in Client/Server model. Server is autostarted, and client is
+<p>The <code class="docutils literal notranslate"><span class="pre">usercrash</span></code> tool gets the crash information of the crashing process in
+userspace. It works in a client/server model. The server is autostarted, and
+the client is
 configured in <code class="docutils literal notranslate"><span class="pre">core_pattern</span></code> or <code class="docutils literal notranslate"><span class="pre">coredump-wrapper</span></code>, which will be
-triggered once crash occurs in userspace.
-For more detail on <code class="docutils literal notranslate"><span class="pre">usercrash</span></code>, please refer <a class="reference internal" href="usercrash/README.html#usercrash-doc"><span class="std std-ref">Usercrash</span></a>.</p>
+triggered once a crash occurs in userspace.
+For more details on <code class="docutils literal notranslate"><span class="pre">usercrash</span></code>, see <a class="reference internal" href="usercrash/README.html#usercrash-doc"><span class="std std-ref">Usercrash</span></a>.</p>
 </div>
 </div>
 </div>
@@ -1196,7 +1196,7 @@ For more detail on <code class="docutils literal notranslate"><span class="pre">
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last updated on Oct 28, 2021.
+      <span class="lastupdated">Last updated on Nov 01, 2021.
       </span></p>
   </div>
 

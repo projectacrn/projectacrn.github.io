@@ -414,7 +414,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
@@ -1026,15 +1026,15 @@
 <span id="id1"></span><h1>Acrntrace<a class="headerlink" href="#acrntrace" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> is a tool running on the Service OS (SOS) to capture trace data.
+<p><code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> is a tool running on the Service VM to capture trace data.
 A <code class="docutils literal notranslate"><span class="pre">scripts</span></code> directory includes scripts to analyze the trace data.</p>
 </div>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id2">
 <h3>Acrntrace<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> tool runs on the Service OS (SOS) to capture trace data and
-output to trace file under <code class="docutils literal notranslate"><span class="pre">./acrntrace</span></code> with raw (binary) data format.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> tool runs on the Service VM to capture trace data and output
+the data to a trace file under <code class="docutils literal notranslate"><span class="pre">./acrntrace</span></code> in raw (binary) data format.</p>
 <p>Options:</p>
 <dl class="option-list">
 <dt><kbd><span class="option">-h</span></kbd></dt>
@@ -1044,7 +1044,7 @@ output to trace file under <code class="docutils literal notranslate"><span clas
 <dd><p>specify polling interval in milliseconds [1-999]</p>
 </dd>
 <dt><kbd><span class="option">-t <var>max_time</var></span></kbd></dt>
-<dd><p>max time to capture trace data (in second)</p>
+<dd><p>max time to capture trace data (in seconds)</p>
 </dd>
 <dt><kbd><span class="option">-c</span></kbd></dt>
 <dd><p>clear the buffered old data (deprecated)</p>
@@ -1060,7 +1060,7 @@ output to trace file under <code class="docutils literal notranslate"><span clas
 <div class="section" id="acrntrace-format-py">
 <h3>acrntrace_format.py<a class="headerlink" href="#acrntrace-format-py" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">acrntrace_format.py</span></code> is an offline tool for parsing trace data (as output
-by acrntrace) to human-readable formats based on a given format.</p>
+by <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code>) to human-readable formats based on a given format.</p>
 <p>Here’s an explanation of the tool’s parameters:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrntrace_format.py [options] [formats] [trace_data]
 </pre></div>
@@ -1077,101 +1077,92 @@ this form:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">event_id</span>  <span class="n">text_format_string</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">text_format_string</span></code> may include format specifiers, such as
-<code class="docutils literal notranslate"><span class="pre">%(cpu)d</span></code>, <code class="docutils literal notranslate"><span class="pre">%(tsc)d</span></code>, <code class="docutils literal notranslate"><span class="pre">%(event)d</span></code>, <code class="docutils literal notranslate"><span class="pre">%(1)d</span></code>, and <code class="docutils literal notranslate"><span class="pre">%(2)d</span></code>.
-The ‘d’ format specifier outputs decimals. Alternatively ‘x’ will
-output in hexadecimals and ‘o’ will output in octals.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">text_format_string</span></code> may include format specifiers, such as <code class="docutils literal notranslate"><span class="pre">%(cpu)d</span></code>,
+<code class="docutils literal notranslate"><span class="pre">%(tsc)d</span></code>, <code class="docutils literal notranslate"><span class="pre">%(event)d</span></code>, <code class="docutils literal notranslate"><span class="pre">%(1)d</span></code>, and <code class="docutils literal notranslate"><span class="pre">%(2)d</span></code>. The ‘d’ format specifier
+outputs the data in decimal format. Alternatively, ‘x’ outputs the data in
+hexadecimal format, and ‘o’ outputs the data in octal format.</p>
 <p>These respectively correspond to the CPU number (cpu), timestamp
 counter (tsc), event ID (event), and the data logged in the trace file.
 There can be only one such rule for each type of event.</p>
-<p>An example <em>formats_file</em> is available in the acrn_hypervisor repo in
-<code class="docutils literal notranslate"><span class="pre">hypervisor/tools/acrntrace/scripts/formats</span></code>.</p>
+<p>An example <em>formats</em> file is available in the <code class="docutils literal notranslate"><span class="pre">acrn_hypervisor</span></code> repo in
+<code class="docutils literal notranslate"><span class="pre">misc/debug_tools/acrn_trace/scripts</span></code>.</p>
 </div>
 <div class="section" id="acrnalyze-py">
 <h3>acrnalyze.py<a class="headerlink" href="#acrnalyze-py" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">acrnalyze.py</span></code> is a offline tool to analyze trace data (as output by
-acrntrace) based on a given analyzer, such as <code class="docutils literal notranslate"><span class="pre">vm_exit</span></code> or <code class="docutils literal notranslate"><span class="pre">irq</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">acrnalyze.py</span></code> is an offline tool to analyze trace data (as output by
+<code class="docutils literal notranslate"><span class="pre">acrntrace</span></code>) based on a given analyzer, such as <code class="docutils literal notranslate"><span class="pre">vm_exit</span></code> or <code class="docutils literal notranslate"><span class="pre">irq</span></code>.</p>
 <p>Options:</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><kbd class="kbd docutils literal notranslate">-h</kbd></p></td>
-<td><p>print this message</p></td>
-</tr>
-<tr class="row-even"><td><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">-i,</kbd> <kbd class="kbd docutils literal notranslate"></kbd>-<kbd class="kbd docutils literal notranslate"></kbd>-<kbd class="kbd docutils literal notranslate">ifile=string</kbd></kbd></p></td>
-<td><p>input file name</p></td>
-</tr>
-<tr class="row-odd"><td><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">-o,</kbd> <kbd class="kbd docutils literal notranslate"></kbd>-<kbd class="kbd docutils literal notranslate"></kbd>-<kbd class="kbd docutils literal notranslate">ofile=string</kbd></kbd></p></td>
-<td><p>output file name</p></td>
-</tr>
-<tr class="row-even"><td><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">-f,</kbd> <kbd class="kbd docutils literal notranslate"></kbd>-<kbd class="kbd docutils literal notranslate"></kbd>-<kbd class="kbd docutils literal notranslate">frequency=unsigned_int</kbd></kbd></p></td>
-<td><p>TSC frequency in MHz</p></td>
-</tr>
-<tr class="row-odd"><td><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">-</kbd>-<kbd class="kbd docutils literal notranslate">vm_exit</kbd></kbd></p></td>
-<td><p>generate a vm_exit report</p></td>
-</tr>
-<tr class="row-even"><td><p><kbd class="kbd compound docutils literal notranslate"><kbd class="kbd docutils literal notranslate">-</kbd>-<kbd class="kbd docutils literal notranslate">irq</kbd></kbd></p></td>
-<td><p>generate an IRQ-related report</p></td>
-</tr>
-</tbody>
-</table>
+<dl class="option-list">
+<dt><kbd><span class="option">-h</span></kbd></dt>
+<dd><p>print this message</p>
+</dd>
+<dt><kbd><span class="option">-i</span>, <span class="option">--ifile=<var>string</var></span></kbd></dt>
+<dd><p>input file name</p>
+</dd>
+<dt><kbd><span class="option">-o</span>, <span class="option">--ofile=<var>string</var></span></kbd></dt>
+<dd><p>output file name</p>
+</dd>
+<dt><kbd><span class="option">-f</span>, <span class="option">--frequency=<var>unsigned_int</var></span></kbd></dt>
+<dd><p>TSC frequency in MHz</p>
+</dd>
+<dt><kbd><span class="option">--vm_exit</span></kbd></dt>
+<dd><p>generate a vm_exit report</p>
+</dd>
+<dt><kbd><span class="option">--irq</span></kbd></dt>
+<dd><p>generate an IRQ-related report</p>
+</dd>
+</dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>We depend on TSC frequency to do time-based analysis. Be sure to configure
-the right TSC frequency that acrn runs on. TSC frequency can be obtained
-from the ACRN console log (calibrate_tsc, tsc_hz=xxx) when the hypervisor boots.</p>
+<p>The tool depends on TSC frequency to do time-based analysis. Be sure
+to configure the right TSC frequency that ACRN runs on. TSC frequency can be
+obtained from the ACRN console log (<code class="docutils literal notranslate"><span class="pre">calibrate_tsc,</span> <span class="pre">tsc_hz=xxx</span></code>) when the
+hypervisor boots.</p>
 <p>The tool does not take into account CPU frequency variation that can
-occur during normal operation (aka CPU throttling) on the processor which
-doesn’t support for an invariant TSC. The results may therefore not be
+occur during normal operation (aka CPU throttling) on a processor that
+doesn’t support an invariant TSC. The results may therefore not be
 completely accurate in that regard.</p>
 </div>
 </div>
 <div class="section" id="typical-use-example">
 <h3>Typical Use Example<a class="headerlink" href="#typical-use-example" title="Permalink to this headline">¶</a></h3>
-<p>Here’s a typical use of <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> to capture trace data from the SOS,
+<p>Here’s a typical use of <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> to capture trace data from the Service VM,
 convert the binary data to human-readable form, copy the processed trace
-data to your Linux system, and run the analysis tool.</p>
+data to your development computer (Linux system), and run the analysis tool.</p>
 <ol class="arabic">
-<li><p>On the SOS, clear buffers before starting a trace using:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># acrntrace -c
+<li><p>On the Service VM, start capturing buffered trace data:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo acrntrace
 </pre></div>
 </div>
+<p>Trace files are created under the current directory where you launched
+<code class="docutils literal notranslate"><span class="pre">acrntrace</span></code>, with a date-time-based directory name such as
+<code class="docutils literal notranslate"><span class="pre">./acrntrace/20211027-101605</span></code>.</p>
 </li>
-<li><p>Start capturing buffered trace data using:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># acrntrace
-</pre></div>
-</div>
-<p>Trace files are created under the current directory where we launch acrntrace,
-with a date-time-based directory name such as <code class="docutils literal notranslate"><span class="pre">./acrntrace/20171115-101605</span></code></p>
-</li>
-<li><p>When done, stop a running <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> using:</p>
+<li><p>When done, stop a running <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code>:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>q &lt;enter&gt;
 </pre></div>
 </div>
 </li>
-<li><p>Convert trace data to human-readable format using:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># acrntrace_format.py formats trace_data
+<li><p>Convert trace data to human-readable format:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo acrntrace_format.py formats trace_data
 </pre></div>
 </div>
 <p>Trace data will be converted to human-readable format based on a given format
 and printed to stdout.</p>
 </li>
-<li><p>Analysis of the collected data is done on a Linux PC so you’ll need
-to copy the collected trace data to your Linux system (using <code class="docutils literal notranslate"><span class="pre">scp</span></code> is
-recommended):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># scp -r ./acrntrace/20171115-101605/ \
+<li><p>Analysis of the collected trace data is done on your development computer.
+Copy the collected trace data to your development computer via USB disk or
+<code class="docutils literal notranslate"><span class="pre">scp</span></code> as shown in this example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo scp -r ./acrntrace/20211027-101605/ \
     username@hostname:/home/username/trace_data
 </pre></div>
 </div>
 <p>Replace username and hostname with appropriate values.</p>
 </li>
-<li><p>On the Linux system, run the provided Python3 script to analyze the
-<code class="docutils literal notranslate"><span class="pre">vm_exits</span></code>, <code class="docutils literal notranslate"><span class="pre">irq</span></code>:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># acrnalyze.py -i /home/xxxx/trace_data/20171115-101605/0 \
-     -o /home/xxxx/trace_data/20171115-101605/cpu0 --vm_exit --irq
+<li><p>On the development computer, run the provided Python3 script to analyze, for
+example, the <code class="docutils literal notranslate"><span class="pre">vm_exits</span></code>, <code class="docutils literal notranslate"><span class="pre">irq</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo acrnalyze.py -i /home/xxxx/trace_data/20211027-101605/0 \
+     -o /home/xxxx/trace_data/20211027-101605/cpu0 --vm_exit --irq
 </pre></div>
 </div>
 <ul class="simple">
@@ -1185,14 +1176,15 @@ a file name is specified using <code class="docutils literal notranslate"><span 
 </div>
 <div class="section" id="build-and-install">
 <h2>Build and Install<a class="headerlink" href="#build-and-install" title="Permalink to this headline">¶</a></h2>
-<p>The source files for <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> are in the <code class="docutils literal notranslate"><span class="pre">tools/acrntrace</span></code> folder,
-and can be built and installed using:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># make
-# make install
+<p>The source files for <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code> are in the <code class="docutils literal notranslate"><span class="pre">misc/debug_tools/acrn_trace</span></code>
+directory. To build and install <code class="docutils literal notranslate"><span class="pre">acrntrace</span></code>, run these commands:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make
+sudo make install
 </pre></div>
 </div>
-<p>The processing scripts are in <code class="docutils literal notranslate"><span class="pre">tools/acrntrace/scripts</span></code> and need to be
-copied to and run on your Linux system.</p>
+<p>The processing scripts are in <code class="docutils literal notranslate"><span class="pre">misc/debug_tools/acrn_trace/scripts</span></code>. The
+<code class="docutils literal notranslate"><span class="pre">acrnalyze.py</span></code> tool needs to be copied to and run on your development
+computer.</p>
 </div>
 </div>
 
@@ -1208,7 +1200,7 @@ copied to and run on your Linux system.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last updated on Oct 28, 2021.
+      <span class="lastupdated">Last updated on Nov 01, 2021.
       </span></p>
   </div>
 

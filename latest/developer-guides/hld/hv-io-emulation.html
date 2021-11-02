@@ -414,7 +414,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
@@ -1281,8 +1281,8 @@ requests of different kinds.</p>
 <dd><p>256-byte I/O requests </p>
 <p>The state transitions of a I/O request are:</p>
 <p>FREE -&gt; PENDING -&gt; PROCESSING -&gt; COMPLETE -&gt; FREE -&gt; …</p>
-<p>When a request is in COMPLETE or FREE state, the request is owned by the hypervisor. SOS (HSM or DM) shall not read or write the internals of the request except the state.</p>
-<p>When a request is in PENDING or PROCESSING state, the request is owned by SOS. The hypervisor shall not read or write the request other than the state.</p>
+<p>When a request is in COMPLETE or FREE state, the request is owned by the hypervisor. Service VM (HSM or DM) shall not read or write the internals of the request except the state.</p>
+<p>When a request is in PENDING or PROCESSING state, the request is owned by Service VM. The hypervisor shall not read or write the request other than the state.</p>
 <p>Based on the rules above, a typical I/O request lifecycle should looks like the following.</p>
 <p><p><table class="docutils align-default">
 <colgroup>
@@ -1291,9 +1291,9 @@ requests of different kinds.</p>
 <col style="width: 31%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>SOS vCPU 0</p></th>
-<th class="head"><p>SOS vCPU x</p></th>
-<th class="head"><p>UOS vCPU y</p></th>
+<tr class="row-odd"><th class="head"><p>Service VM vCPU 0</p></th>
+<th class="head"><p>Service VM vCPU x</p></th>
+<th class="head"><p>User VM vCPU y</p></th>
 </tr>
 </thead>
 <tbody>
@@ -1303,11 +1303,11 @@ requests of different kinds.</p>
 <ul class="simple">
 <li><p>Fill in type,
 addr, etc.</p></li>
-<li><p>Pause UOS vCPU y</p></li>
+<li><p>Pause User VM vCPU</p></li>
 <li><p>Set state to
 PENDING (a)</p></li>
 <li><p>Fire upcall to
-SOS vCPU 0</p></li>
+Service VM vCPU 0</p></li>
 </ul>
 </td>
 </tr>
@@ -1340,7 +1340,7 @@ requests (d)</p></li>
 <tr class="row-odd"><td></td>
 <td><p>Hypervisor:</p>
 <ul class="simple">
-<li><p>resume UOS vCPU y
+<li><p>resume User VM vCPU y
 (e)</p></li>
 </ul>
 </td>
@@ -1370,7 +1370,7 @@ requests (d)</p></li>
 <p>Accesses to the state of a <a class="reference internal" href="#structacrn__io__request"><span class="std std-ref">acrn_io_request</span></a> shall be atomic and proper barriers are needed to ensure that:</p>
 <p><ol class="loweralpha simple">
 <li><p>Setting state to PENDING is the last operation when issuing a request in the hypervisor, as the hypervisor shall not access the request any more.</p></li>
-<li><p>Due to similar reasons, setting state to COMPLETE is the last operation of request handling in HSM or clients in SOS. </p></li>
+<li><p>Due to similar reasons, setting state to COMPLETE is the last operation of request handling in HSM or clients in Service VM. </p></li>
 </ol>
 </p>
 </dd></dl>
@@ -1462,7 +1462,7 @@ I/O bitmaps and register or unregister I/O handlers:</p>
 <dl class="c function">
 <dt id="c.acrn_insert_request">
 <span class="target" id="group__ioemul_ga9850eec8b257fac3c2ceb0c9c6c4cb26_1ga9850eec8b257fac3c2ceb0c9c6c4cb26"></span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">acrn_insert_request</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">struct</span></em> <span class="pre">io_request</span> <span class="pre">*</span><em><span class="pre">io_req</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.acrn_insert_request" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Deliver <code class="docutils literal notranslate"><span class="pre">io_req</span></code> to SOS and suspend <code class="docutils literal notranslate"><span class="pre">vcpu</span></code> till its completion. </p>
+<dd><p>Deliver <code class="docutils literal notranslate"><span class="pre">io_req</span></code> to Service VM and suspend <code class="docutils literal notranslate"><span class="pre">vcpu</span></code> till its completion. </p>
 <p><dl class="simple">
 <dt><strong>Preconditions</strong></dt><dd><p>vcpu != NULL &amp;&amp; io_req != NULL </p>
 </dd>
@@ -1527,7 +1527,7 @@ I/O bitmaps and register or unregister I/O handlers:</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last updated on Oct 28, 2021.
+      <span class="lastupdated">Last updated on Nov 01, 2021.
       </span></p>
   </div>
 

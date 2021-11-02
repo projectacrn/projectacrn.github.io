@@ -414,7 +414,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring-Up User VM (L2 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
@@ -1028,7 +1028,7 @@
              
   <div class="section" id="vt-d">
 <span id="vt-d-hld"></span><h1>VT-d<a class="headerlink" href="#vt-d" title="Permalink to this headline">¶</a></h1>
-<p>Intel Virtual Technology for Directed I/O, or VT-d, provides
+<p>Intel Virtualization Technology for Directed I/O, or VT-d, provides
 hardware support for I/O device virtualization. It extends the
 protection and isolation properties of VMs for I/O operations.</p>
 <p>VT-d provides the following main functions:</p>
@@ -1079,12 +1079,12 @@ The memory resource of a domain is specified by the address translation
 tables.</p>
 </div>
 <div class="section" id="device-to-domain-mapping-structure">
-<h3>Device to Domain Mapping Structure<a class="headerlink" href="#device-to-domain-mapping-structure" title="Permalink to this headline">¶</a></h3>
+<h3>Device-to-Domain Mapping Structure<a class="headerlink" href="#device-to-domain-mapping-structure" title="Permalink to this headline">¶</a></h3>
 <p>VT-d hardware uses root-table and context-tables to build the mapping
 between devices and domains as shown in <a class="reference internal" href="#vt-d-mapping"><span class="std std-numref">Figure 145</span></a>.</p>
 <div class="figure align-center" id="vt-d-mapping">
 <img alt="../../_images/vt-d-image44.png" src="../../_images/vt-d-image44.png" />
-<p class="caption"><span class="caption-number">Figure 145 </span><span class="caption-text">Device to Domain Mapping structures</span><a class="headerlink" href="#vt-d-mapping" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 145 </span><span class="caption-text">Device-to-Domain Mapping Structures</span><a class="headerlink" href="#vt-d-mapping" title="Permalink to this image">¶</a></p>
 </div>
 <p>The root-table is 4-KByte in size and contains 256 root-entries to cover
 the PCI bus number space (0-255). Each root-entry contains a
@@ -1105,7 +1105,7 @@ address translation structures for a domain.</p>
 <img alt="../../_images/vt-d-image19.png" src="../../_images/vt-d-image19.png" />
 <p class="caption"><span class="caption-number">Figure 146 </span><span class="caption-text">BDF Format of Passthrough Device</span><a class="headerlink" href="#bdf-passthru" title="Permalink to this image">¶</a></p>
 </div>
-<p>Refer to the <a class="reference external" href="https://software.intel.com/sites/default/files/managed/c5/15/vt-directed-io-spec.pdf">VT-d spec</a> for more details on device-to-domain
+<p>Refer to the <a class="reference external" href="https://software.intel.com/content/www/us/en/develop/download/intel-virtualization-technology-for-directed-io-architecture-specification.html">VT-d spec</a> for more details on device-to-domain
 mapping structures.</p>
 </div>
 <div class="section" id="address-translation-structures">
@@ -1133,20 +1133,19 @@ an EPT table exists for Normal world; an EPT table for Secure world might
 also exist. Secure world can access Normal world’s memory, but Normal
 world cannot access Secure world’s memory.</p>
 <dl>
-<dt>SOS_VM domain</dt><dd><p>The SOS_VM domain is created when the hypervisor creates the VM for the
-Service OS.</p>
-<p>IOMMU uses the EPT table of Normal world of SOS_VM as the address
-translation structures for the devices in the SOS_VM domain. The Normal
-world’s EPT table of SOS_VM doesn’t include the memory resource of the
-hypervisor and Secure worlds (if any exists). So the devices in SOS_VM
-domain can’t access the memory belonging to the hypervisor or secure
-worlds.</p>
+<dt>Service VM domain</dt><dd><p>The Service VM domain is created when the hypervisor creates the Service VM.</p>
+<p>IOMMU uses the Normal world’s EPT table of the Service VM as the address
+translation structures for the devices in the Service VM domain. The Normal
+world’s EPT table of the Service VM doesn’t include the memory resource of
+the hypervisor and Secure worlds (if any exists). The devices in the
+Service VM domain can’t access the memory belonging to the hypervisor or
+Secure worlds.</p>
 </dd>
-<dt>Other domains</dt><dd><p>Other VM domains will be created when the hypervisor creates the User OS.
-One domain for each User OS.</p>
-<p>IOMMU uses the EPT table of the Normal world of a VM as the address
+<dt>Other domains</dt><dd><p>Other VM domains are created when the hypervisor creates User VMs,
+one domain for each User VM.</p>
+<p>IOMMU uses the Normal world’s EPT table of a VM as the address
 translation structures for the devices in the domain. The Normal world’s
-EPT table of the VM only allows devices to access the memory
+EPT table of the VM allows devices to access only the memory
 allocated for the Normal world of the VM.</p>
 </dd>
 </dl>
@@ -1157,7 +1156,7 @@ allocated for the Normal world of the VM.</p>
 hypervisor needs to make sure the updates of VT-d tables are synced in
 memory:</p>
 <ul class="simple">
-<li><p>Device to Domain Mapping Structures, including Root-entries and
+<li><p>Device-to-Domain Mapping Structures, including Root-entries and
 Context-entries.</p></li>
 <li><p>The EPT table of a VM.</p></li>
 </ul>
@@ -1172,14 +1171,14 @@ EPT table.</p>
 </div>
 <div class="section" id="snoop-control">
 <h3>Snoop Control<a class="headerlink" href="#snoop-control" title="Permalink to this headline">¶</a></h3>
-<p>If VT-d hardware supports snoop control, iVT-d can control the
-ability to ignore the “no-snoop attribute” in PCI-E transactions.</p>
+<p>If VT-d hardware supports Snoop Control, VT-d can control the
+ability to ignore the “no-snoop attribute” in PCIe transactions.</p>
 <p>The following table shows the snoop behavior of a DMA operation controlled by
 the following:</p>
 <ul class="simple">
 <li><p>Snoop Control capability of VT-d DMAR unit</p></li>
 <li><p>The setting of SNP filed in leaf PTE</p></li>
-<li><p>No-snoop attribute in PCI-e request</p></li>
+<li><p>No-snoop attribute in PCIe request</p></li>
 </ul>
 <table class="colwidths-given docutils align-default">
 <colgroup>
@@ -1189,7 +1188,7 @@ the following:</p>
 <col style="width: 25%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>SC cap of VT-d</p></th>
+<tr class="row-odd"><th class="head"><p>Snoop Control capability of VT-d</p></th>
 <th class="head"><p>SNP filed in leaf PTE</p></th>
 <th class="head"><p>No-snoop attribute in request</p></th>
 <th class="head"><p>Snoop behavior</p></th>
@@ -1224,20 +1223,20 @@ the following:</p>
 </tbody>
 </table>
 <p>If VT-d DMAR units do not support Snoop Control, then the SNP Bit (bit 11)
-of leaf PETs of the EPT is not set since the field is treated as reserved (0)
+of leaf PTEs of the EPT is not set since the field is treated as reserved (0)
 by the VT-d hardware implementations of not supporting Snoop Control.</p>
 <p>The VT-d DMAR unit of the Intel integrated graphics device doesn’t support
 Snoop Control. The ACRN hypervisor uses the same copy of EPT as the
 secondary address translation table for a VM. When the DMAR unit for the
 Intel integrated graphics device is enabled, the SNP Bit cannot be set in
-the lead PTEs of the EPT.</p>
+the leaf PTEs of the EPT.</p>
 <p>No matter if ACRN enables or disables Snoop Control, the DMA operations of
 passthrough devices behave correctly from the guest’s point of view. ACRN
 disables Snoop Control in VT-d DMAR engines that simplify the implementation.
-Also, since the snoop behavior of PCIE transactions can be controlled by
+Also, since the snoop behavior of PCIe transactions can be controlled by
 guest drivers, some devices may take advantage of the NO_SNOOP_ATTRIBUTE
-of PCIE transactions for better performance when snoop is not needed.</p>
-<p>The driver is responsible for configuring correct attribute in PCIE
+of PCIe transactions for better performance when snoop is not needed.</p>
+<p>The driver is responsible for configuring the correct attribute in PCIe
 transactions. Otherwise, the corresponding device may not work properly.</p>
 </div>
 </div>
@@ -1245,25 +1244,25 @@ transactions. Otherwise, the corresponding device may not work properly.</p>
 <h2>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h2>
 <p>During hypervisor initialization, it registers DMAR units on the
 platform according to the reparsed information or DMAR table. There may
-be multiple DMAR units on the platform, ACRN allows some of the DMAR
-units to be ignored. If some DMAR unit(s) are marked as ignored, they
+be multiple DMAR units on the platform; ACRN allows some of the DMAR
+units to be ignored. If some DMAR units are marked as ignored, they
 would not be enabled.</p>
-<p>Hypervisor creates SOS_VM domain using the Normal World’s EPT table of SOS_VM
-as address translation table when creating SOS_VM as Service OS. And all
-PCI devices on the platform are added to SOS_VM domain. Then enable DMAR
-translation for DMAR unit(s) if they are not marked as ignored.</p>
+<p>The hypervisor creates the Service VM domain using the Normal World’s EPT table
+of the Service VM as the address translation table when creating the Service VM.
+All PCI devices on the platform are added to the Service VM domain. Then enable
+DMAR translation for DMAR units if they are not marked as ignored.</p>
 </div>
 <div class="section" id="device-assignment">
 <span id="id1"></span><h2>Device Assignment<a class="headerlink" href="#device-assignment" title="Permalink to this headline">¶</a></h2>
-<p>All devices are initially added to the SOS_VM domain. To assign a device
+<p>All devices are initially added to the Service VM domain. To assign a device
 means to assign the device to a User VM. The device is removed from the
-SOS_VM domain and is added to the VM domain related to the User VM, which
-changes the address translation table from the EPT of SOS_VM to the EPT
-of the User OS for the device.</p>
-<p>To unassign a device means to unassign the device from a User OS. The
-device is removed from the VM domain related to the User OS and then added
-back to the SOS_VM domain; this changes the address translation table from
-the EPT of the User OS to the EPT of the SOS_VM for the device.</p>
+Service VM domain and is added to the VM domain related to the User VM, which
+changes the address translation table from the EPT of the Service VM to the EPT
+of the User VM for the device.</p>
+<p>To unassign a device means to unassign the device from a User VM. The
+device is removed from the VM domain related to the User VM and then added
+back to the Service VM domain; this changes the address translation table from
+the EPT of the User VM to the EPT of the Service VM for the device.</p>
 </div>
 <div class="section" id="power-management-support-for-s3">
 <h2>Power Management Support for S3<a class="headerlink" href="#power-management-support-for-s3" title="Permalink to this headline">¶</a></h2>
@@ -1278,11 +1277,11 @@ units on the platform, except for the DMAR units marked ignored.</p>
 </div>
 <div class="section" id="error-handling">
 <h2>Error Handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h2>
-<p>ACRN VT-d supports DMA remapping error reporting. ACRN VT-d requests a
+<p>ACRN VT-d supports DMA remapping error reporting. ACRN VT-d requests an
 IRQ / vector for DMAR error reporting. A DMAR fault handler is
-registered for the IRQ. DMAR unit supports report fault event via MSI.
-When a fault event occurs, a MSI is generated, so that the DMAR fault
-handler will be called to report the error event.</p>
+registered for the IRQ. DMAR units support reporting fault events via an MSI.
+When a fault event occurs, an MSI is generated, and the DMAR fault
+handler reports the error event.</p>
 </div>
 <div class="section" id="data-structures-and-interfaces">
 <h2>Data Structures and Interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
@@ -1421,7 +1420,7 @@ deinitialization:</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last updated on Oct 28, 2021.
+      <span class="lastupdated">Last updated on Nov 01, 2021.
       </span></p>
   </div>
 
