@@ -1044,8 +1044,9 @@
 The ACRN hypervisor
 compiles to a 32-bit multiboot-compliant ELF file.
 The bootloader (ABL/SBL or GRUB) loads the hypervisor according to the
-addresses specified in the ELF header. The BSP starts the hypervisor
-with an initial state compliant to multiboot 1 specification, after the
+addresses specified in the ELF header. The bootstrap processor (BSP) starts the
+hypervisor
+with an initial state compliant to the multiboot 1 specification, after the
 bootloader prepares full configurations including ACPI, E820, etc.</p>
 <p>The HV startup has two parts: the native startup followed by
 VM startup.</p>
@@ -1053,9 +1054,9 @@ VM startup.</p>
 <h2>Multiboot Header<a class="headerlink" href="#multiboot-header" title="Permalink to this headline">¶</a></h2>
 <p>The ACRN hypervisor is built with a multiboot header, which presents
 <code class="docutils literal notranslate"><span class="pre">MULTIBOOT_HEADER_MAGIC</span></code> and <code class="docutils literal notranslate"><span class="pre">MULTIBOOT_HEADER_FLAGS</span></code> at the beginning
-of the image, and it sets bit 6 in <code class="docutils literal notranslate"><span class="pre">MULTIBOOT_HEADER_FLAGS</span></code> which requests
-bootloader passing memory mmap information(like e820 entries) through
-Multiboot Information(MBI) structure.</p>
+of the image. It sets bit 6 in <code class="docutils literal notranslate"><span class="pre">MULTIBOOT_HEADER_FLAGS</span></code>, which requests the
+bootloader pass memory map information (such as E820 entries) through the
+Multiboot Information (MBI) structure.</p>
 </div>
 <div class="section" id="native-startup">
 <h2>Native Startup<a class="headerlink" href="#native-startup" title="Permalink to this headline">¶</a></h2>
@@ -1068,25 +1069,25 @@ memory and interrupt initialization as shown in
 <a class="reference internal" href="#hvstart-nativeflow"><span class="std std-numref">Figure 92</span></a>. Here is a short
 description for the flow:</p>
 <ul class="simple">
-<li><p><strong>BSP Startup:</strong> The starting point for bootstrap processor.</p></li>
+<li><p><strong>BSP Startup:</strong> The starting point for the bootstrap processor.</p></li>
 <li><p><strong>Relocation</strong>: Relocate the hypervisor image if the hypervisor image
 is not placed at the assumed base address.</p></li>
 <li><p><strong>UART Init:</strong> Initialize a pre-configured UART device used
-as the base physical console for HV and Service OS.</p></li>
-<li><p><strong>Memory Init:</strong> Initialize memory type and cache policy, and creates
+as the base physical console for HV and Service VM.</p></li>
+<li><p><strong>Memory Init:</strong> Initialize memory type and cache policy, and create
 MMU page table mapping for HV.</p></li>
-<li><p><strong>Scheduler Init:</strong> Initialize scheduler framework, which provide the
-capability to switch different threads(like vcpu vs. idle thread) on a
+<li><p><strong>Scheduler Init:</strong> Initialize the scheduler framework, which provides the
+capability to switch different threads (such as vcpu vs. idle thread) on a
 physical CPU, and to support CPU sharing.</p></li>
-<li><p><strong>Interrupt Init:</strong> Initialize interrupt and exception for native HV
+<li><p><strong>Interrupt Init:</strong> Initialize interrupts and exceptions for native HV
 including IDT and <code class="docutils literal notranslate"><span class="pre">do_IRQ</span></code> infrastructure; a timer interrupt
 framework is then built. The native/physical interrupts will go
 through this <code class="docutils literal notranslate"><span class="pre">do_IRQ</span></code> infrastructure then distribute to special
 targets (HV or VMs).</p></li>
-<li><p><strong>Start AP:</strong> BSP kicks <code class="docutils literal notranslate"><span class="pre">INIT-SIPI-SIPI</span></code> IPI sequence to start other
-native APs (application processor). Each AP will initialize its
-own memory and interrupts, notifies the BSP on completion and
-enter the default idle loop.</p></li>
+<li><p><strong>Start AP:</strong> BSP triggers the <code class="docutils literal notranslate"><span class="pre">INIT-SIPI-SIPI</span></code> IPI sequence to start other
+native APs (application processor). Each AP initializes its
+own memory and interrupts, notifies the BSP on completion, and
+enters the default idle loop.</p></li>
 <li><p><strong>Shell Init:</strong> Start a command shell for HV accessible via the UART.</p></li>
 </ul>
 <p>Symbols in the hypervisor are placed with an assumed base address, but
@@ -1102,18 +1103,18 @@ segmentation and paging sets an identical mapping of the first 4G
 addresses without permission restrictions. The control registers and
 some MSRs are set as follows:</p>
 <ul class="simple">
-<li><p>cr0: The following features are enabled: paging, write protection,
+<li><p><code class="docutils literal notranslate"><span class="pre">cr0</span></code>: The following features are enabled: paging, write protection,
 protection mode, numeric error and co-processor monitoring.</p></li>
-<li><p>cr3: refer to the initial state of memory.</p></li>
-<li><p>cr4: The following features are enabled: physical address extension,
+<li><p><code class="docutils literal notranslate"><span class="pre">cr3</span></code>: Refer to the initial state of memory.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cr4</span></code>: The following features are enabled: physical address extension,
 machine-check, FXSAVE/FXRSTOR, SMEP, VMX operation and unmask
 SIMD FP exception. The other features are disabled.</p></li>
-<li><p>MSR_IA32_EFER: only IA32e mode is enabled.</p></li>
-<li><p>MSR_IA32_FS_BASE: the address of stack canary, used for detecting
+<li><p><code class="docutils literal notranslate"><span class="pre">MSR_IA32_EFER</span></code>: Only IA32e mode is enabled.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MSR_IA32_FS_BASE</span></code>: The address of stack canary, used for detecting
 stack smashing.</p></li>
-<li><p>MSR_IA32_TSC_AUX: a unique logical ID is set for each physical
+<li><p><code class="docutils literal notranslate"><span class="pre">MSR_IA32_TSC_AUX</span></code>: A unique logical ID is set for each physical
 processor.</p></li>
-<li><p>stack: each physical processor has a separate stack.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stack</span></code>: Each physical processor has a separate stack.</p></li>
 </ul>
 </dd>
 <dt>Memory</dt><dd><p>All physical processors are in 64-bit IA32e mode after
@@ -1125,113 +1126,115 @@ interrupt stack table (IST) which are different across physical
 processors. LDT is disabled.</p>
 </dd>
 </dl>
-<p>Refer to <a class="reference internal" href="hv-interrupt.html#physical-interrupt-initialization"><span class="std std-ref">Physical Interrupt Initialization</span></a> for a detailed description of interrupt-related
-initial states, including IDT and physical PICs.</p>
-<p>After the BSP detects that all APs are up, it will continue to enter guest mode; similar, after one AP
-complete its initialization, it will start entering guest mode as well.
-When BSP &amp; APs enter guest mode, they will try to launch predefined VMs whose vBSP associated with
-this physical core; these predefined VMs are static configured in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> and they could be
-pre-launched Safety VM or Service VM; the VM startup will be explained in next section.</p>
+<p>Refer to <a class="reference internal" href="hv-interrupt.html#physical-interrupt-initialization"><span class="std std-ref">Physical Interrupt Initialization</span></a> for a detailed description of
+interrupt-related initial states, including IDT and physical PICs.</p>
+<p>After the BSP detects that all APs are up, it continues to enter guest mode.
+Likewise, after one AP completes its initialization, it starts entering guest
+mode as well. When the BSP and APs enter guest mode, they try to launch
+predefined VMs whose vBSP is associated with this physical core. These
+predefined VMs are configured in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> and may be a
+pre-launched Safety VM or Service VM.</p>
 </div>
 <div class="section" id="vm-startup">
 <span id="id1"></span><h2>VM Startup<a class="headerlink" href="#vm-startup" title="Permalink to this headline">¶</a></h2>
 <p>The Service VM or a pre-launched VM is created and launched on the physical
-CPU which configured as its vBSP. Meanwhile, for the physical CPUs which
-configured as vAPs for dedicated VMs, they will enter the default idle loop
+CPU that is configured as its vBSP. Meanwhile, for the physical CPUs that
+are configured as vAPs for dedicated VMs, they enter the default idle loop
 (refer to <a class="reference internal" href="hv-cpu-virt.html#vcpu-lifecycle"><span class="std std-ref">vCPU Lifecycle</span></a> for details), waiting for any vCPU to be
 scheduled to them.</p>
-<p><a class="reference internal" href="#hvstart-vmflow"><span class="std std-numref">Figure 93</span></a> illustrates a high-level execution flow of
-creating and launching a VM, applicable to pre-launched VM, Service VM
-and User VM. One major difference in the creation of User VM and pre-launched
-/Service VM is that pre-launched/Service VM is created by the hypervisor,
-while the creation of User VMs is triggered by the DM in Service OS.
-The main steps include:</p>
+<p><a class="reference internal" href="#hvstart-vmflow"><span class="std std-numref">Figure 93</span></a> illustrates a high-level execution flow of creating and
+launching a VM, applicable to pre-launched User VMs, Service VM, and
+post-launched User VMs. One major difference in the creation of post-launched
+User VMs vs. pre-launched User VMs or Service VM is that the pre-launched User
+VMs and Service VM are created by the hypervisor, while post-launched User VMs
+are created by the Device Model (DM) in the Service VM. The main steps include:</p>
 <ul class="simple">
 <li><p><strong>Create VM</strong>: A VM structure is allocated and initialized. A unique
-VM ID is picked, EPT is initialized, e820 table for this VM is prepared,
+VM ID is picked, EPT is initialized, E820 table for this VM is prepared,
 I/O bitmap is set up, virtual PIC/IOAPIC/PCI/UART is initialized, EPC for
 virtual SGX is prepared, guest PM IO is set up, IOMMU for PT dev support
 is enabled, virtual CPUID entries are filled, and vCPUs configured in this VM’s
-<code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> are prepared. For post-launched User VM, the EPT page table and
-e820 table is actually prepared by DM instead of hypervisor.</p></li>
-<li><p><strong>Prepare vCPUs:</strong> Create the vCPUs, assign the physical processor it
-is pinned to, a unique-per-VM vCPU ID and a globally unique VPID,
-and initializes its virtual lapic and MTRR, and its vCPU thread object got setup
-for vcpu scheduling. The vCPU number and affinity are defined in corresponding
-<code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> for this VM.</p></li>
-<li><p><strong>Build vACPI:</strong> For the Service VM, the hypervisor will customize a virtual ACPI
-table based on the native ACPI table (this is in the TODO).
-For a pre-launched VM, the hypervisor will build a simple ACPI table with necessary
-information like MADT.
-For a post-launched User VM, the DM will build its ACPI table dynamically.</p></li>
-<li><p><strong>SW Load:</strong> Prepares for each VM’s SW configuration according to guest OS
-requirement, which may include kernel entry address, ramdisk address,
-bootargs, or zero page for launching bzImage etc.
-This is done by the hypervisor for pre-launched or Service VM, and the VM will
-start from the standard real or protected mode which is not related to the
-native environment. For post-launched VMs, the VM’s SW configuration is done
-by DM.</p></li>
-<li><p><strong>Start VM:</strong> The vBSP of vCPUs in this VM is kick to do schedule.</p></li>
+<code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> are prepared. For a post-launched User VM, the EPT page table
+and E820 table are prepared by the DM instead of the hypervisor.</p></li>
+<li><p><strong>Prepare vCPUs:</strong> Create the vCPUs, assign the physical processor that the
+vCPU is pinned to (a unique-per-VM vCPU ID and a globally unique VPID),
+initialize its virtual LAPIC and MTRR, and set up its vCPU thread object for
+vCPU scheduling. The vCPU number and affinity are defined in the
+corresponding <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> for this VM.</p></li>
+<li><p><strong>Build vACPI:</strong> For the Service VM, the hypervisor customizes a virtual ACPI
+table based on the native ACPI table (this is in the TODO). For a
+pre-launched User VM, the hypervisor builds a simple ACPI table with
+necessary information such as MADT. For a post-launched User VM, the DM
+builds its ACPI table dynamically.</p></li>
+<li><p><strong>Software Load:</strong> Prepare for each VM’s software configuration according to
+guest OS requirements, which may include kernel entry address, ramdisk
+address, bootargs, or zero page for launching bzImage. This is done by the
+hypervisor for pre-launched User VMs or Service VM. The VM will start from
+the standard real mode or protected mode, which is not related to the native
+environment. For post-launched User VMs, the VM’s software configuration is
+done by DM.</p></li>
+<li><p><strong>Start VM:</strong> The vBSP of vCPUs in this VM is triggered to start scheduling.</p></li>
 <li><p><strong>Schedule vCPUs:</strong> The vCPUs are scheduled to the corresponding
 physical processors for execution.</p></li>
 <li><p><strong>Init VMCS:</strong> Initialize vCPU’s VMCS for its host state, guest
-state, execution control, entry control and exit control. It’s
+state, execution control, entry control, and exit control. It’s
 the last configuration before vCPU runs.</p></li>
-<li><p><strong>vCPU thread:</strong> vCPU kicks out to run. For vBSP of vCPUs, it will
-start running into kernel image which SW Load is configured; for
-any vAP of vCPUs, it will wait for INIT-SIPI-SIPI IPI sequence
-trigger from its vBSP.</p></li>
+<li><p><strong>vCPU thread:</strong> vCPU starts to run. For the vBSP of vCPUs, it will
+start running the configured kernel image. For any vAP of vCPUs, it will wait
+for the <code class="docutils literal notranslate"><span class="pre">INIT-SIPI-SIPI</span></code> IPI sequence trigger from its vBSP.</p></li>
 </ul>
 <div class="figure align-center" id="hvstart-vmflow">
 <img alt="../../_images/hld-image104.png" src="../../_images/hld-image104.png" />
 <p class="caption"><span class="caption-number">Figure 93 </span><span class="caption-text">Hypervisor VM Startup Flow</span><a class="headerlink" href="#hvstart-vmflow" title="Permalink to this image">¶</a></p>
 </div>
-<p>SW configuration for Service VM (bzimage SW load as example):</p>
+<p>Software configuration for Service VM (bzimage software load as example):</p>
 <ul class="simple">
-<li><p><strong>ACPI</strong>: HV passes the entire ACPI table from bootloader to Service
+<li><p><strong>ACPI</strong>: HV passes the entire ACPI table from the bootloader to the Service
 VM directly. Legacy mode is currently supported as the ACPI table
 is loaded at F-Segment.</p></li>
-<li><p><strong>E820</strong>: HV passes e820 table from bootloader through zero-page
-after the HV reserved (32M for example) and pre-launched VM owned
-memory is filtered out.</p></li>
+<li><p><strong>E820</strong>: HV passes the E820 table from the bootloader through the zero page
+after the HV reserved memory (32M, for example) and pre-launched User VM
+owned memory are filtered out.</p></li>
 <li><p><strong>Zero Page</strong>: HV prepares the zero page at the high end of Service
-VM memory which is determined by SOS_VM guest FIT binary build. The
-zero page includes configuration for ramdisk, bootargs and e820
-entries. The zero page address will be set to vBSP RSI register
-before VCPU gets run.</p></li>
-<li><p><strong>Entry address</strong>: HV will copy Service OS kernel image to
-kernel_load_addr, which could be got from “pref_addr” field in bzimage
-header; the entry address will be calculated based on kernel_load_addr,
-and will be set to vBSP RIP register before VCPU gets run.</p></li>
+VM memory, which is determined by the Service VM guest FIT binary build. The
+zero page includes the configuration for ramdisk, bootargs, and E820
+entries. The zero page address will be set to the vBSP RSI register
+before the vCPU runs.</p></li>
+<li><p><strong>Entry address</strong>: HV copies the Service VM OS kernel image to
+<code class="docutils literal notranslate"><span class="pre">kernel_load_addr</span></code>, which it can get from the <code class="docutils literal notranslate"><span class="pre">pref_addr</span></code> field in the
+bzimage header. The entry address will be calculated based on
+<code class="docutils literal notranslate"><span class="pre">kernel_load_addr</span></code>, and will be set to the vBSP RIP register before the
+vCPU runs.</p></li>
 </ul>
-<p>SW configuration for post-launched User VMs (OVMF SW load as example):</p>
+<p>Software configuration for post-launched User VMs (OVMF software load as
+example):</p>
 <ul class="simple">
-<li><p><strong>ACPI</strong>: the virtual ACPI table is built by DM and put at User VM’s
+<li><p><strong>ACPI</strong>: the DM builds the virtual ACPI table and puts it at the User VM’s
 F-Segment. Refer to <a class="reference internal" href="hv-io-emulation.html#hld-io-emulation"><span class="std std-ref">I/O Emulation High-Level Design</span></a> for details.</p></li>
-<li><p><strong>E820</strong>: the virtual E820 table is built by the DM then passed to
+<li><p><strong>E820</strong>: the DM builds the virtual E820 table and passes it to
 the virtual bootloader. Refer to <a class="reference internal" href="hv-io-emulation.html#hld-io-emulation"><span class="std std-ref">I/O Emulation High-Level Design</span></a> for details.</p></li>
-<li><p><strong>Entry address</strong>: the DM will copy User OS kernel(OVMF) image to
-OVMF_NVSTORAGE_OFFSET - normally is &#64;(4G - 2M), and set the entry
-address to 0xFFFFFFF0. As the vBSP will kick to run virtual bootloader
-(OVMF) from real-mode, so its CS base will be set as 0xFFFF0000, and
-RIP register will be set as 0xFFF0.</p></li>
+<li><p><strong>Entry address</strong>: the DM copies the User VM OS kernel (OVMF) image to
+<code class="docutils literal notranslate"><span class="pre">OVMF_NVSTORAGE_OFFSET</span></code> - normally is &#64;(4G - 2M), and sets the entry
+address to 0xFFFFFFF0. As the vBSP will trigger the virtual bootloader
+(OVMF) to run from real mode, its CS base will be set to 0xFFFF0000, and
+RIP register will be set to 0xFFF0.</p></li>
 </ul>
-<p>SW configuration for pre-launched VMs (raw SW load as example):</p>
+<p>Software configuration for pre-launched User VMs (raw software load as example):</p>
 <ul class="simple">
-<li><p><strong>ACPI</strong>: the virtual ACPI table is built by the hypervisor and put at
+<li><p><strong>ACPI</strong>: the hypervisor builds the virtual ACPI table and puts it at
 this VM’s F-Segment.</p></li>
-<li><p><strong>E820</strong>: the virtual E820 table is built by the hypervisor then passed to
-the VM according to different SW loaders. For raw SW load here, it’s not
-used.</p></li>
-<li><p><strong>Entry address</strong>: the hypervisor will copy User OS kernel image to
-kernel_load_addr which set by <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code>, and set the entry
-address to kernel_entry_addr which set by <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> as well.</p></li>
+<li><p><strong>E820</strong>: the hypervisor builds the virtual E820 table and passes it to
+the VM according to different software loaders. For a raw software load, it’s
+not used.</p></li>
+<li><p><strong>Entry address</strong>: the hypervisor copies the User VM OS kernel image to
+<code class="docutils literal notranslate"><span class="pre">kernel_load_addr</span></code> which is set by <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code>, and sets the entry
+address to <code class="docutils literal notranslate"><span class="pre">kernel_entry_addr</span></code> which is set by <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> as well.</p></li>
 </ul>
-<p>Here is initial mode of vCPUs:</p>
+<p>Here is the initial mode of vCPUs:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 19%" />
-<col style="width: 18%" />
+<col style="width: 25%" />
+<col style="width: 11%" />
 <col style="width: 64%" />
 </colgroup>
 <thead>
@@ -1242,20 +1245,20 @@ address to kernel_entry_addr which set by <code class="docutils literal notransl
 <tbody>
 <tr class="row-even"><td rowspan="2"><p>Service VM</p></td>
 <td><p>BSP</p></td>
-<td><p>Same as physical BSP, or Real Mode if Service VM boot
-w/ OVMF</p></td>
+<td><p>Same as physical BSP, or Real Mode if
+Service VM boots with OVMF</p></td>
 </tr>
 <tr class="row-odd"><td><p>AP</p></td>
 <td><p>Real Mode</p></td>
 </tr>
-<tr class="row-even"><td rowspan="2"><p>User VM</p></td>
+<tr class="row-even"><td rowspan="2"><p>Post-launched User VM</p></td>
 <td><p>BSP</p></td>
 <td><p>Real Mode</p></td>
 </tr>
 <tr class="row-odd"><td><p>AP</p></td>
 <td><p>Real Mode</p></td>
 </tr>
-<tr class="row-even"><td rowspan="2"><p>Pre-launched VM</p></td>
+<tr class="row-even"><td rowspan="2"><p>Pre-launched User VM</p></td>
 <td><p>BSP</p></td>
 <td><p>Real Mode or Protected Mode</p></td>
 </tr>
@@ -1279,7 +1282,7 @@ w/ OVMF</p></td>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Sep 20, 2021. Published: Nov 03, 2021.
+      <span class="lastupdated">Last modified: Nov 04, 2021. Published: Nov 08, 2021.
       </span></p>
   </div>
 

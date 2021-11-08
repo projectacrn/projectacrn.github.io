@@ -1038,12 +1038,12 @@
              
   <div class="section" id="virtio-devices-high-level-design">
 <span id="virtio-hld"></span><span id="hld-virtio-devices"></span><h1>Virtio Devices High-Level Design<a class="headerlink" href="#virtio-devices-high-level-design" title="Permalink to this headline">¶</a></h1>
-<p>The ACRN Hypervisor follows the <a class="reference external" href="http://docs.oasis-open.org/virtio/virtio/v1.0/virtio-v1.0.html">Virtual I/O Device (virtio)
+<p>The ACRN hypervisor follows the <a class="reference external" href="http://docs.oasis-open.org/virtio/virtio/v1.0/virtio-v1.0.html">Virtual I/O Device (virtio)
 specification</a> to
 realize I/O virtualization for many performance-critical devices
 supported in the ACRN project. Adopting the virtio specification lets us
 reuse many frontend virtio drivers already available in a Linux-based
-User OS, drastically reducing potential development effort for frontend
+User VM, drastically reducing potential development effort for frontend
 virtio drivers.  To further reduce the development effort of backend
 virtio drivers, the hypervisor  provides the virtio backend service
 (VBS) APIs, that make  it very straightforward to implement a virtio
@@ -1072,7 +1072,7 @@ follows to implement I/O virtualization of performance-critical
 devices such as audio, eAVB/TSN, IPU, and CSMU devices. This section gives
 an overview about virtio history, motivation, and advantages, and then
 highlights virtio key concepts. Second, this section will describe
-ACRN’s virtio architectures, and elaborates on ACRN virtio APIs. Finally
+ACRN’s virtio architectures and elaborate on ACRN virtio APIs. Finally
 this section will introduce all the virtio devices currently supported
 by ACRN.</p>
 <div class="section" id="virtio-introduction">
@@ -1098,33 +1098,33 @@ highlight several key virtio concepts important to ACRN:</p>
 <dl>
 <dt>Frontend virtio driver (FE)</dt><dd><p>Virtio adopts a frontend-backend architecture that enables a simple but
 flexible framework for both frontend and backend virtio drivers. The FE
-driver merely needs to offer services configure the interface, pass messages,
-produce requests, and kick backend virtio driver. As a result, the FE
+driver merely needs to offer services that configure the interface, pass messages,
+produce requests, and kick the backend virtio driver. As a result, the FE
 driver is easy to implement and the performance overhead of emulating
 a device is eliminated.</p>
 </dd>
-<dt>Backend virtio driver (BE)</dt><dd><p>Similar to FE driver, the BE driver, running either in user-land or
+<dt>Backend virtio driver (BE)</dt><dd><p>Similar to the FE driver, the BE driver, running either in userland or
 kernel-land of the host OS, consumes requests from the FE driver and sends them
 to the host native device driver. Once the requests are done by the host
 native device driver, the BE driver notifies the FE driver that the
 request is complete.</p>
-<p>Note: to distinguish BE driver from host native device driver, the host
-native device driver is called “native driver” in this document.</p>
+<p>Note: To distinguish the BE driver from the host native device driver, the
+host native device driver is called “native driver” in this document.</p>
 </dd>
 <dt>Straightforward: virtio devices as standard devices on existing buses</dt><dd><p>Instead of creating new device buses from scratch, virtio devices are
 built on existing buses. This gives a straightforward way for both FE
-and BE drivers to interact with each other. For example, FE driver could
+and BE drivers to interact with each other. For example, the FE driver could
 read/write registers of the device, and the virtual device could
-interrupt FE driver, on behalf of the BE driver, in case something of
+interrupt the FE driver, on behalf of the BE driver, in case something of
 interest is happening.</p>
 <p>Currently virtio supports PCI/PCIe bus and MMIO bus. In ACRN, only
 PCI/PCIe bus is supported, and all the virtio devices share the same
 vendor ID 0x1AF4.</p>
-<p>Note: For MMIO, the “bus” is a little bit an overstatement since
+<p>Note: For MMIO, the “bus” is an overstatement since
 basically it is a few descriptors describing the devices.</p>
 </dd>
 <dt>Efficient: batching operation is encouraged</dt><dd><p>Batching operation and deferred notification are important to achieve
-high-performance I/O, since notification between FE and BE driver
+high-performance I/O, since notification between the FE driver and BE driver
 usually involves an expensive exit of the guest. Therefore batching
 operating and notification suppression are highly encouraged if
 possible. This will give an efficient implementation for
@@ -1168,11 +1168,11 @@ version 0.95, a transitional mode device is compliant to both
 0.95 and 1.0 spec versions, and a modern mode
 device is only compatible to the version 1.0 specification.</p>
 <p>In ACRN, all the virtio devices are transitional devices, meaning that
-they should be compatible with both 0.95 and 1.0 versions of virtio
+they should be compatible with both the 0.95 and 1.0 versions of the virtio
 specification.</p>
 </dd>
 <dt>Virtio Device Discovery</dt><dd><p>Virtio devices are commonly implemented as PCI/PCIe devices. A
-virtio device using virtio over PCI/PCIe bus must expose an interface to
+virtio device using virtio over a PCI/PCIe bus must expose an interface to
 the Guest OS that meets the PCI/PCIe specifications.</p>
 <p>Conventionally, any PCI device with Vendor ID 0x1AF4,
 PCI_VENDOR_ID_REDHAT_QUMRANET, and Device ID 0x1000 through 0x107F
@@ -1192,7 +1192,8 @@ introduces the ACRN-specific implementations of the virtio framework.</p>
 <div class="section" id="architecture">
 <h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
 <p>Virtio adopts a frontend-backend
-architecture, as shown in <a class="reference internal" href="#virtio-arch"><span class="std std-numref">Figure 194</span></a>. Basically the FE and BE driver
+architecture, as shown in <a class="reference internal" href="#virtio-arch"><span class="std std-numref">Figure 194</span></a>. Basically the FE driver and BE
+driver
 communicate with each other through shared memory, via the
 virtqueues. The FE driver talks to the BE driver in the same way it
 would talk to a real PCIe device. The BE driver handles requests
@@ -1215,9 +1216,9 @@ virtqueues, feature mechanisms, configuration space, and buses.</p>
 </div>
 <div class="section" id="virtio-framework-considerations">
 <h3>Virtio Framework Considerations<a class="headerlink" href="#virtio-framework-considerations" title="Permalink to this headline">¶</a></h3>
-<p>How to realize the virtio framework is specific to a
+<p>How to implement the virtio framework is specific to a
 hypervisor implementation. In ACRN, the virtio framework implementations
-can be classified into two types, virtio backend service in user-land
+can be classified into two types, virtio backend service in userland
 (VBS-U) and virtio backend service in kernel-land (VBS-K), according to
 where the virtio backend service (VBS) is located. Although different in BE
 drivers, both VBS-U and VBS-K share the same FE drivers. The reason
@@ -1230,18 +1231,18 @@ debugging. VBS-K targets performance critical devices.</p>
 <p>The next two sections introduce ACRN’s two implementations of the virtio
 framework.</p>
 </div>
-<div class="section" id="user-land-virtio-framework">
-<h3>User-Land Virtio Framework<a class="headerlink" href="#user-land-virtio-framework" title="Permalink to this headline">¶</a></h3>
-<p>The architecture of ACRN user-land virtio framework (VBS-U) is shown in
+<div class="section" id="userland-virtio-framework">
+<h3>Userland Virtio Framework<a class="headerlink" href="#userland-virtio-framework" title="Permalink to this headline">¶</a></h3>
+<p>The architecture of ACRN userland virtio framework (VBS-U) is shown in
 <a class="reference internal" href="#virtio-userland"><span class="std std-numref">Figure 196</span></a>.</p>
 <p>The FE driver talks to the BE driver as if it were talking with a PCIe
 device. This means for “control plane”, the FE driver could poke device
 registers through PIO or MMIO, and the device will interrupt the FE
 driver when something happens. For “data plane”, the communication
-between the FE and BE driver is through shared memory, in the form of
+between the FE driver and BE driver is through shared memory, in the form of
 virtqueues.</p>
-<p>On the service OS side where the BE driver is located, there are several
-key components in ACRN, including device model (DM), Hypervisor
+<p>On the Service VM side where the BE driver is located, there are several
+key components in ACRN, including Device Model (DM), Hypervisor
 service module (HSM), VBS-U, and user-level vring service API helpers.</p>
 <p>DM bridges the FE driver and BE driver since each VBS-U module emulates
 a PCIe virtio device. HSM bridges DM and the hypervisor by providing
@@ -1249,13 +1250,16 @@ remote memory map APIs and notification APIs. VBS-U accesses the
 virtqueue through the user-level vring service API helpers.</p>
 <div class="figure align-center" id="virtio-userland">
 <a class="reference internal image-reference" href="../../_images/virtio-hld-image3.png"><img alt="../../_images/virtio-hld-image3.png" src="../../_images/virtio-hld-image3.png" style="width: 900px;" /></a>
-<p class="caption"><span class="caption-number">Figure 196 </span><span class="caption-text">ACRN User-Land Virtio Framework</span><a class="headerlink" href="#virtio-userland" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 196 </span><span class="caption-text">ACRN Userland Virtio Framework</span><a class="headerlink" href="#virtio-userland" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="kernel-land-virtio-framework">
 <h3>Kernel-Land Virtio Framework<a class="headerlink" href="#kernel-land-virtio-framework" title="Permalink to this headline">¶</a></h3>
-<p>ACRN supports two kernel-land virtio frameworks: VBS-K, designed from
-scratch for ACRN, the other called Vhost, compatible with Linux Vhost.</p>
+<p>ACRN supports two kernel-land virtio frameworks:</p>
+<ul class="simple">
+<li><p>VBS-K, designed from scratch for ACRN</p></li>
+<li><p>Vhost, compatible with Linux Vhost</p></li>
+</ul>
 <div class="section" id="vbs-k-framework">
 <h4>VBS-K Framework<a class="headerlink" href="#vbs-k-framework" title="Permalink to this headline">¶</a></h4>
 <p>The architecture of ACRN VBS-K is shown in
@@ -1264,23 +1268,23 @@ scratch for ACRN, the other called Vhost, compatible with Linux Vhost.</p>
 devices emulated by VBS-U modules by handling the “data plane” of the
 devices directly in the kernel. When VBS-K is enabled for certain
 devices, the kernel-land vring service API helpers, instead of the
-user-land helpers, are used to access the virtqueues shared by the FE
+userland helpers, are used to access the virtqueues shared by the FE
 driver.  Compared to VBS-U, this eliminates the overhead of copying data
-back-and-forth between user-land and kernel-land within service OS, but
-pays with the extra implementation complexity of the BE drivers.</p>
+back-and-forth between userland and kernel-land within the Service VM, but
+requires the extra implementation complexity of the BE drivers.</p>
 <p>Except for the differences mentioned above, VBS-K still relies on VBS-U
 for feature negotiations between FE and BE drivers. This means the
 “control plane” of the virtio device still remains in VBS-U. When
-feature negotiation is done, which is determined by FE driver setting up
-an indicative flag, VBS-K module will be initialized by VBS-U.
-Afterward, all request handling will be offloaded to the VBS-K in
+feature negotiation is done, which is determined by the FE driver setting up
+an indicative flag, the VBS-K module will be initialized by VBS-U.
+Afterward, all request handling will be offloaded to the VBS-K in the
 kernel.</p>
 <p>Finally the FE driver is not aware of how the BE driver is implemented,
 either in VBS-U or VBS-K. This saves engineering effort regarding FE
 driver development.</p>
 <div class="figure align-center" id="kernel-virtio-framework">
 <img alt="../../_images/virtio-hld-image54.png" src="../../_images/virtio-hld-image54.png" />
-<p class="caption"><span class="caption-number">Figure 197 </span><span class="caption-text">ACRN Kernel Land Virtio Framework</span><a class="headerlink" href="#kernel-virtio-framework" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 197 </span><span class="caption-text">ACRN Kernel-Land Virtio Framework</span><a class="headerlink" href="#kernel-virtio-framework" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="vhost-framework">
@@ -1293,10 +1297,10 @@ Linux kernel, with several kernel mediators based on it.</p>
 specification that has been widely applied in various virtualization
 solutions. Vhost is a specific kind of virtio where the data plane is
 put into host kernel space to reduce the context switch while processing
-the IO request. It is usually called “virtio” when used as a front-end
-driver in a guest operating system or “vhost” when used as a back-end
+the IO request. It is usually called “virtio” when used as a frontend
+driver in a guest operating system or “vhost” when used as a backend
 driver in a host. Compared with a pure virtio solution on a host, vhost
-uses the same frontend driver as virtio solution and can achieve better
+uses the same frontend driver as the virtio solution and can achieve better
 performance. <a class="reference internal" href="#vhost-arch"><span class="std std-numref">Figure 198</span></a> shows the vhost architecture on ACRN.</p>
 <div class="figure align-center" id="vhost-arch">
 <img alt="../../_images/virtio-hld-image71.png" src="../../_images/virtio-hld-image71.png" />
@@ -1306,28 +1310,29 @@ performance. <a class="reference internal" href="#vhost-arch"><span class="std s
 from user space to kernel space. The vhost general data plane workflow
 can be described as:</p>
 <ol class="arabic simple">
-<li><p>vhost proxy creates two eventfds per virtqueue, one is for kick,
-(an ioeventfd), the other is for call, (an irqfd).</p></li>
-<li><p>vhost proxy registers the two eventfds to HSM through HSM character
+<li><p>The vhost proxy creates two eventfds per virtqueue, one is for kick
+(an ioeventfd), the other is for call (an irqfd).</p></li>
+<li><p>The vhost proxy registers the two eventfds to HSM through HSM character
 device:</p>
 <ol class="loweralpha simple">
-<li><p>Ioevenftd is bound with a PIO/MMIO range. If it is a PIO, it is
+<li><p>Ioeventfd is bound with a PIO/MMIO range. If it is a PIO, it is
 registered with <code class="docutils literal notranslate"><span class="pre">(fd,</span> <span class="pre">port,</span> <span class="pre">len,</span> <span class="pre">value)</span></code>. If it is an MMIO, it is
 registered with <code class="docutils literal notranslate"><span class="pre">(fd,</span> <span class="pre">addr,</span> <span class="pre">len)</span></code>.</p></li>
 <li><p>Irqfd is registered with MSI vector.</p></li>
 </ol>
 </li>
-<li><p>vhost proxy sets the two fds to vhost kernel through ioctl of vhost
+<li><p>The vhost proxy sets the two fds to vhost kernel through ioctl of vhost
 device.</p></li>
-<li><p>vhost starts polling the kick fd and wakes up when guest kicks a
-virtqueue, which results a event_signal on kick fd by HSM ioeventfd.</p></li>
-<li><p>vhost device in kernel signals on the irqfd to notify the guest.</p></li>
+<li><p>The vhost starts polling the kick fd and wakes up when the guest kicks a
+virtqueue, which results in an event_signal on the kick fd by the HSM
+ioeventfd.</p></li>
+<li><p>The vhost device in the kernel signals on the irqfd to notify the guest.</p></li>
 </ol>
 </div>
 <div class="section" id="ioeventfd-implementation">
 <h5>Ioeventfd Implementation<a class="headerlink" href="#ioeventfd-implementation" title="Permalink to this headline">¶</a></h5>
 <p>Ioeventfd module is implemented in HSM, and can enhance a registered
-eventfd to listen to IO requests (PIO/MMIO) from HSM ioreq module and
+eventfd to listen to IO requests (PIO/MMIO) from the HSM ioreq module and
 signal the eventfd when needed. <a class="reference internal" href="#ioeventfd-workflow"><span class="std std-numref">Figure 199</span></a>  shows the
 general workflow of ioeventfd.</p>
 <div class="figure align-center" id="ioeventfd-workflow">
@@ -1336,15 +1341,16 @@ general workflow of ioeventfd.</p>
 </div>
 <p>The workflow can be summarized as:</p>
 <ol class="arabic simple">
-<li><p>vhost device init. Vhost proxy creates two eventfd for ioeventfd and
-irqfd.</p></li>
-<li><p>pass ioeventfd to vhost kernel driver.</p></li>
-<li><p>pass ioevent fd to HSM driver</p></li>
-<li><p>User VM FE driver triggers ioreq and forwarded to Service VM by hypervisor</p></li>
-<li><p>ioreq is dispatched by HSM driver to related HSM client.</p></li>
-<li><p>ioeventfd HSM client traverses the io_range list and find
+<li><p>The vhost device initializes. The vhost proxy creates two eventfds for
+ioeventfd and irqfd.</p></li>
+<li><p>The vhost proxy passes the ioeventfd to the vhost kernel driver.</p></li>
+<li><p>The vhost proxy passes the ioeventfd to the HSM driver.</p></li>
+<li><p>The User VM FE driver triggers an ioreq, which is forwarded through the
+hypervisor to the Service VM.</p></li>
+<li><p>The HSM driver dispatches the ioreq to the related HSM client.</p></li>
+<li><p>The ioeventfd HSM client traverses the io_range list and finds the
 corresponding eventfd.</p></li>
-<li><p>trigger the signal to related eventfd.</p></li>
+<li><p>The ioeventfd HSM client triggers the signal to the related eventfd.</p></li>
 </ol>
 </div>
 <div class="section" id="irqfd-implementation">
@@ -1358,16 +1364,16 @@ signaled. <a class="reference internal" href="#irqfd-workflow"><span class="std 
 </div>
 <p>The workflow can be summarized as:</p>
 <ol class="arabic simple">
-<li><p>vhost device init. Vhost proxy creates two eventfd for ioeventfd and
-irqfd.</p></li>
-<li><p>pass irqfd to vhost kernel driver.</p></li>
-<li><p>pass IRQ fd to HSM driver</p></li>
-<li><p>vhost device driver triggers IRQ eventfd signal once related native
-transfer is completed.</p></li>
-<li><p>irqfd related logic traverses the irqfd list to retrieve related irq
+<li><p>The vhost device initializes. The vhost proxy creates two eventfds for
+ioeventfd and irqfd.</p></li>
+<li><p>The vhost proxy passes the irqfd to the vhost kernel driver.</p></li>
+<li><p>The vhost proxy passes the irqfd to the HSM driver.</p></li>
+<li><p>The vhost device driver triggers an IRQ eventfd signal once the related
+native transfer is completed.</p></li>
+<li><p>The irqfd related logic traverses the irqfd list to retrieve related irq
 information.</p></li>
-<li><p>irqfd related logic injects an interrupt through HSM interrupt API.</p></li>
-<li><p>Interrupt is delivered to User VM FE driver through hypervisor.</p></li>
+<li><p>The irqfd related logic injects an interrupt through the HSM interrupt API.</p></li>
+<li><p>The interrupt is delivered to the User VM FE driver through the hypervisor.</p></li>
 </ol>
 </div>
 </div>
@@ -1381,7 +1387,7 @@ VBS_APIs, and VQ_APIs. The following sections will elaborate on
 these APIs.</p>
 <div class="section" id="vbs-u-key-data-structures">
 <h3>VBS-U Key Data Structures<a class="headerlink" href="#vbs-u-key-data-structures" title="Permalink to this headline">¶</a></h3>
-<p>The key data structures for VBS-U are listed as following, and their
+<p>The key data structures for VBS-U are listed as follows, and their
 relationships are shown in <a class="reference internal" href="#vbs-u-data"><span class="std std-numref">Figure 201</span></a>.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">pci_virtio_blk</span></code></dt><dd><p>An example virtio device, such as virtio-blk.</p>
@@ -1407,7 +1413,7 @@ of device.</p>
 could have none or multiple virtqueues, depending on the device type.
 The <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_common</span></code> is a key data structure to be manipulated by
 DM, and DM finds other key data structures through it. The <code class="docutils literal notranslate"><span class="pre">struct</span>
-<span class="pre">virtio_ops</span></code> abstracts a series of virtio callbacks to be provided by
+<span class="pre">virtio_ops</span></code> abstracts a series of virtio callbacks to be provided by the
 device owner.</p>
 </div>
 <div class="section" id="vbs-k-key-data-structures">
@@ -1416,11 +1422,11 @@ device owner.</p>
 relationships are shown in <a class="reference internal" href="#vbs-k-data"><span class="std std-numref">Figure 202</span></a>.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">vbs_k_rng</span></code></dt><dd><p>In-kernel VBS-K component handling data plane of a
-VBS-U virtio device, for example virtio random_num_generator.</p>
+VBS-U virtio device, for example, virtio random_num_generator.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">vbs_k_dev</span></code></dt><dd><p>In-kernel VBS-K component common to all VBS-K.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">vbs_k_vq</span></code></dt><dd><p>In-kernel VBS-K component to be working with kernel
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">vbs_k_vq</span></code></dt><dd><p>In-kernel VBS-K component for working with kernel
 vring service API helpers.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">vbs_k_dev_inf</span></code></dt><dd><p>Virtio device information to be synchronized
@@ -1466,7 +1472,7 @@ vring service API helpers.</p>
 </div>
 <div class="section" id="dm-apis">
 <h3>DM APIs<a class="headerlink" href="#dm-apis" title="Permalink to this headline">¶</a></h3>
-<p>The DM APIs are exported by DM, and they should be used when realizing
+<p>The DM APIs are exported by DM, and they should be used when implementing
 BE device drivers on ACRN.</p>
 <dl class="c function">
 <dt id="c.paddr_guest2host">
@@ -1830,7 +1836,7 @@ the virtio framework within DM will invoke them appropriately.</p>
 </div>
 <div class="section" id="vbs-k-apis">
 <h4>VBS-K APIs<a class="headerlink" href="#vbs-k-apis" title="Permalink to this headline">¶</a></h4>
-<p>The VBS-K APIs are exported by VBS-K related modules. Users could use
+<p>The VBS-K APIs are exported by VBS-K related modules. Users can use
 the following APIs to implement their VBS-K modules.</p>
 <div class="section" id="apis-provided-by-dm">
 <h5>APIs Provided by DM<a class="headerlink" href="#apis-provided-by-dm" title="Permalink to this headline">¶</a></h5>
@@ -1973,15 +1979,15 @@ the following APIs to implement their VBS-K modules.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_FEATURES</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x00,</span> <span class="pre">__u64)</span></code></dt><dd><p>This IOCTL is used to set the supported feature flags to vhost kernel driver.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_OWNER</span> <span class="pre">_IO(VHOST_VIRTIO,</span> <span class="pre">0x01)</span></code></dt><dd><p>This IOCTL is used to set current process as the exclusive owner of the vhost
-char device. It must be called before any other vhost commands.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_OWNER</span> <span class="pre">_IO(VHOST_VIRTIO,</span> <span class="pre">0x01)</span></code></dt><dd><p>This IOCTL is used to set the current process as the exclusive owner of the
+vhost char device. It must be called before any other vhost commands.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_RESET_OWNER</span> <span class="pre">_IO(VHOST_VIRTIO,</span> <span class="pre">0x02)</span></code></dt><dd><p>This IOCTL is used to give up the ownership of the vhost char device.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_MEM_TABLE</span>&#160;&#160;&#160;&#160; <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x03,</span> <span class="pre">struct</span> <span class="pre">vhost_memory)</span></code></dt><dd><p>This IOCTL is used to convey the guest OS memory layout to vhost kernel driver.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_MEM_TABLE</span>&#160;&#160;&#160;&#160; <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x03,</span> <span class="pre">struct</span> <span class="pre">vhost_memory)</span></code></dt><dd><p>This IOCTL is used to convey the guest OS memory layout to the vhost kernel driver.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_NUM</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x10,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_state)</span></code></dt><dd><p>This IOCTL is used to set the number of descriptors in virtio ring. It cannot
-be modified while the virtio ring is running.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_NUM</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x10,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_state)</span></code></dt><dd><p>This IOCTL is used to set the number of descriptors in the virtio ring. It
+cannot be modified while the virtio ring is running.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_ADDR</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x11,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_addr)</span></code></dt><dd><p>This IOCTL is used to set the address of the virtio ring.</p>
 </dd>
@@ -1994,8 +2000,8 @@ descriptors.</p>
 <dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_KICK</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x20,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_file)</span></code></dt><dd><p>This IOCTL is used to set the eventfd on which vhost can poll for guest
 virtqueue kicks.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_CALL</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x21,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_file)</span></code></dt><dd><p>This IOCTL is used to set the eventfd which is used by vhost do inject
-virtual interrupt.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_CALL</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x21,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_file)</span></code></dt><dd><p>This IOCTL is used to set the eventfd that is used by vhost to inject
+virtual interrupts.</p>
 </dd>
 </dl>
 </div>
@@ -2007,8 +2013,8 @@ virtual interrupt.</p>
 <dd></dd></dl>
 
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">IC_EVENT_IOEVENTFD</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">_IC_ID(IC_ID,</span> <span class="pre">IC_ID_EVENT_BASE</span> <span class="pre">+</span> <span class="pre">0x00)</span></code></dt><dd><p>This IOCTL is used to register/unregister ioeventfd with appropriate address,
-length and data value.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">IC_EVENT_IOEVENTFD</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">_IC_ID(IC_ID,</span> <span class="pre">IC_ID_EVENT_BASE</span> <span class="pre">+</span> <span class="pre">0x00)</span></code></dt><dd><p>This IOCTL is used to register or unregister an ioeventfd with the appropriate
+address, length, and data value.</p>
 </dd>
 </dl>
 <dl class="c struct">
@@ -2017,7 +2023,8 @@ length and data value.</p>
 <dd></dd></dl>
 
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">IC_EVENT_IRQFD</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">_IC_ID(IC_ID,</span> <span class="pre">IC_ID_EVENT_BASE</span> <span class="pre">+</span> <span class="pre">0x01)</span></code></dt><dd><p>This IOCTL is used to register/unregister irqfd with appropriate MSI information.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">IC_EVENT_IRQFD</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">_IC_ID(IC_ID,</span> <span class="pre">IC_ID_EVENT_BASE</span> <span class="pre">+</span> <span class="pre">0x01)</span></code></dt><dd><p>This IOCTL is used to register or unregister an irqfd with the appropriate MSI
+information.</p>
 </dd>
 </dl>
 </div>
@@ -2141,13 +2148,13 @@ requests from a FE driver.</p>
 <div class="section" id="supported-virtio-devices">
 <h2>Supported Virtio Devices<a class="headerlink" href="#supported-virtio-devices" title="Permalink to this headline">¶</a></h2>
 <p>All the BE virtio drivers are implemented using the
-ACRN virtio APIs, and the FE drivers are reusing the standard Linux FE
+ACRN virtio APIs, and the FE drivers reuse the standard Linux FE
 virtio drivers. For the devices with FE drivers available in the Linux
 kernel, they should use standard virtio Vendor ID/Device ID and
 Subsystem Vendor ID/Subsystem Device ID. For other devices within ACRN,
 their temporary IDs are listed in the following table.</p>
 <table class="docutils align-center" id="virtio-device-table">
-<caption><span class="caption-number">Table 5 </span><span class="caption-text">Virtio Devices without existing FE drivers in Linux</span><a class="headerlink" href="#virtio-device-table" title="Permalink to this table">¶</a></caption>
+<caption><span class="caption-number">Table 5 </span><span class="caption-text">Virtio Devices without Existing FE Drivers in Linux</span><a class="headerlink" href="#virtio-device-table" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col style="width: 21%" />
 <col style="width: 20%" />
@@ -2255,7 +2262,7 @@ supported in ACRN.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Jul 02, 2021. Published: Nov 03, 2021.
+      <span class="lastupdated">Last modified: Nov 08, 2021. Published: Nov 08, 2021.
       </span></p>
   </div>
 

@@ -1038,11 +1038,11 @@
 <span id="id1"></span><h1>Acrnlog<a class="headerlink" href="#acrnlog" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">acrnlog</span></code> is a userland tool used to capture a ACRN hypervisor log. It runs as an
-SOS service at boot, capturing two kinds of logs:</p>
+<p><code class="docutils literal notranslate"><span class="pre">acrnlog</span></code> is a userland tool used to capture an ACRN hypervisor log. It runs
+as a Service VM service at boot, capturing two kinds of logs:</p>
 <ul class="simple">
 <li><p>log of the currently running hypervisor</p></li>
-<li><p>log of last running hypervisor if it crashed and the logs remain.</p></li>
+<li><p>log of the last running hypervisor if it crashed and the logs remain</p></li>
 </ul>
 <p>Log files are saved in <code class="docutils literal notranslate"><span class="pre">/tmp/acrnlog/</span></code>, so the log files would be lost
 after a system reset.</p>
@@ -1078,19 +1078,25 @@ interval to get a complete log.</p>
 steps:</p>
 <ol class="arabic">
 <li><p>Stop the <code class="docutils literal notranslate"><span class="pre">acrnlog</span></code> service:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># systemctl disable acrnlog
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo systemctl disable acrnlog
 </pre></div>
 </div>
 </li>
 <li><p>Restart <code class="docutils literal notranslate"><span class="pre">acrnlog</span></code>, running in the background, and specify the new
 number of log files and their size (in MB).  For example:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># acrnlog -n 8 -s 4 &amp;
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo acrnlog -n 8 -s 4 &amp;
 </pre></div>
 </div>
 </li>
 </ol>
-<p>You can use <code class="docutils literal notranslate"><span class="pre">loglevel</span></code> command in the hypervisor shell (not the Service
-OS shell) to query and change the hypervisor log level.</p>
+<p>You can use the <code class="docutils literal notranslate"><span class="pre">loglevel</span></code> command in the hypervisor shell (not the Service
+VM shell) to query or dynamically override the hypervisor log level
+configuration settings made in the ACRN Configurator tool to the
+<a class="reference internal" href="../../../reference/config-options.html#cmdoption-arg-hv.DEBUG_OPTIONS.MEM_LOGLEVEL"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.DEBUG_OPTIONS.MEM_LOGLEVEL</span></code></a>,
+<a class="reference internal" href="../../../reference/config-options.html#cmdoption-arg-hv.DEBUG_OPTIONS.CONSOLE_LOGLEVEL"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.DEBUG_OPTIONS.CONSOLE_LOGLEVEL</span></code></a>, and
+<a class="reference internal" href="../../../reference/config-options.html#cmdoption-arg-hv.DEBUG_OPTIONS.NPK_LOGLEVEL"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.DEBUG_OPTIONS.NPK_LOGLEVEL</span></code></a> options.  If the
+system is rebooted, these log level settings will return to the
+values set by the ACRN Configurator.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">mem_loglevel</span></code> parameter controls the log to be saved using
 <code class="docutils literal notranslate"><span class="pre">acrnlog</span></code>, while the <code class="docutils literal notranslate"><span class="pre">console_loglevel</span></code> parameter controls the log
 output to the console. For example, in the hypervisor shell you
@@ -1105,7 +1111,7 @@ console_loglevel: 2, mem_loglevel: 5, npk_loglevel: 5
 </div>
 <div class="section" id="permanent-log-file-changes">
 <h3>Permanent Log File Changes<a class="headerlink" href="#permanent-log-file-changes" title="Permalink to this headline">¶</a></h3>
-<p>You can also permanently change the log file settings by
+<p>You can permanently change the log file settings by
 editing <code class="docutils literal notranslate"><span class="pre">/usr/lib/systemd/system/acrnlog.service</span></code> and use the <code class="docutils literal notranslate"><span class="pre">-n</span></code>
 and <code class="docutils literal notranslate"><span class="pre">-s</span></code> options on the <code class="docutils literal notranslate"><span class="pre">ExecStart</span></code> cmd, and restart the service.
 For example, <code class="docutils literal notranslate"><span class="pre">acrnlog.service</span></code> could have these parameters added:</p>
@@ -1113,22 +1119,22 @@ For example, <code class="docutils literal notranslate"><span class="pre">acrnlo
 </pre></div>
 </div>
 <p>and then restart the service with:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># systemctl daemon-reload
-# systemctl restart acrnlog
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo systemctl daemon-reload
+sudo systemctl restart acrnlog
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="build-and-install">
 <h2>Build and Install<a class="headerlink" href="#build-and-install" title="Permalink to this headline">¶</a></h2>
-<p>Source code for the <code class="docutils literal notranslate"><span class="pre">acrnlog</span></code> tools is in the <code class="docutils literal notranslate"><span class="pre">tools/acrnlog</span></code>
-folder.  Build and install the tools from source using:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># make
-# make install
+<p>Source code for the <code class="docutils literal notranslate"><span class="pre">acrnlog</span></code> tool is in the <code class="docutils literal notranslate"><span class="pre">misc/debug_tools/acrn_log</span></code>
+directory.  To build and install the tool from source, run these commands:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make
+sudo make install
 </pre></div>
 </div>
-<p>and if you changed the <code class="docutils literal notranslate"><span class="pre">acrnlog.service</span></code> file, install it using:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># cp acrnlog.service /usr/lib/systemd/system/
+<p>and if you changed the <code class="docutils literal notranslate"><span class="pre">acrnlog.service</span></code> file, install it:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo cp acrnlog.service /usr/lib/systemd/system/
 </pre></div>
 </div>
 </div>
@@ -1146,7 +1152,7 @@ folder.  Build and install the tools from source using:</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Feb 12, 2021. Published: Nov 03, 2021.
+      <span class="lastupdated">Last modified: Nov 02, 2021. Published: Nov 08, 2021.
       </span></p>
   </div>
 
