@@ -183,7 +183,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-kernel-image-and-modules-of-pre-launched-vm">Update Kernel Image and Modules of Pre-Launched VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-acrn-hypervisor-image">Update ACRN Hypervisor Image</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#logical-partition-scenario-startup-check">Logical Partition Scenario Startup Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#partitioned-scenario-startup-check">Partitioned Scenario Startup Check</a></li>
 </ul>
 </li>
 </ul>
@@ -308,9 +308,9 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#service-os-vm-configuration">Service OS VM configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#service-vm-configuration">Service VM Configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
 </ul>
@@ -1040,98 +1040,99 @@
              
   <div class="section" id="partition-mode">
 <span id="partition-mode-hld"></span><h1>Partition Mode<a class="headerlink" href="#partition-mode" title="Permalink to this headline">¶</a></h1>
-<p>ACRN is a type-1 hypervisor that supports running multiple guest operating
+<p>ACRN is a type 1 hypervisor that supports running multiple guest operating
 systems (OS). Typically, the platform BIOS/bootloader boots ACRN, and
 ACRN loads single or multiple guest OSes. Refer to <a class="reference internal" href="hv-startup.html#hv-startup"><span class="std std-ref">Hypervisor Startup</span></a> for
 details on the start-up flow of the ACRN hypervisor.</p>
-<p>ACRN supports two modes of operation: Sharing mode and Partition mode.
-This document describes ACRN’s high-level design for Partition mode
+<p>ACRN supports two modes of operation: sharing mode and partition mode.
+This document describes ACRN’s high-level design for partition mode
 support.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#introduction" id="id6">Introduction</a></p></li>
-<li><p><a class="reference internal" href="#guest-info" id="id7">Guest Info</a></p></li>
-<li><p><a class="reference internal" href="#acrn-setup-for-guests" id="id8">ACRN Setup for Guests</a></p>
+<li><p><a class="reference internal" href="#introduction" id="id12">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#guest-info" id="id13">Guest Info</a></p></li>
+<li><p><a class="reference internal" href="#acrn-setup-for-guests" id="id14">ACRN Setup for Guests</a></p>
 <ul>
-<li><p><a class="reference internal" href="#cores" id="id9">Cores</a></p></li>
-<li><p><a class="reference internal" href="#memory" id="id10">Memory</a></p></li>
-<li><p><a class="reference internal" href="#e820-and-zero-page-info" id="id11">E820 and Zero Page Info</a></p></li>
-<li><p><a class="reference internal" href="#platform-info-mptable" id="id12">Platform Info - mptable</a></p></li>
-<li><p><a class="reference internal" href="#i-o-virtual-devices" id="id13">I/O - Virtual Devices</a></p></li>
-<li><p><a class="reference internal" href="#i-o-passthrough-devices" id="id14">I/O - Passthrough Devices</a></p></li>
+<li><p><a class="reference internal" href="#cores" id="id15">Cores</a></p></li>
+<li><p><a class="reference internal" href="#memory" id="id16">Memory</a></p></li>
+<li><p><a class="reference internal" href="#e820-and-zero-page-info" id="id17">E820 and Zero Page Info</a></p></li>
+<li><p><a class="reference internal" href="#platform-info-mptable" id="id18">Platform Info - mptable</a></p></li>
+<li><p><a class="reference internal" href="#i-o-virtual-devices" id="id19">I/O - Virtual Devices</a></p></li>
+<li><p><a class="reference internal" href="#i-o-passthrough-devices" id="id20">I/O - Passthrough Devices</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#runtime-acrn-support-for-guests" id="id15">Runtime ACRN Support for Guests</a></p>
+<li><p><a class="reference internal" href="#runtime-acrn-support-for-guests" id="id21">Runtime ACRN Support for Guests</a></p>
 <ul>
-<li><p><a class="reference internal" href="#guest-smp-boot-flow" id="id16">Guest SMP Boot Flow</a></p></li>
-<li><p><a class="reference internal" href="#inter-processor-interrupt-ipi-handling" id="id17">Inter-Processor Interrupt (IPI) Handling</a></p></li>
-<li><p><a class="reference internal" href="#passthrough-device-support" id="id18">Passthrough Device Support</a></p></li>
-<li><p><a class="reference internal" href="#virtual-device-support" id="id19">Virtual Device Support</a></p></li>
-<li><p><a class="reference internal" href="#interrupt-delivery" id="id20">Interrupt Delivery</a></p></li>
-<li><p><a class="reference internal" href="#hypervisor-ipi-service" id="id21">Hypervisor IPI Service</a></p></li>
-<li><p><a class="reference internal" href="#debug-console" id="id22">Debug Console</a></p></li>
-<li><p><a class="reference internal" href="#hypervisor-console" id="id23">Hypervisor Console</a></p></li>
-<li><p><a class="reference internal" href="#guest-console" id="id24">Guest Console</a></p></li>
+<li><p><a class="reference internal" href="#guest-smp-boot-flow" id="id22">Guest SMP Boot Flow</a></p></li>
+<li><p><a class="reference internal" href="#inter-processor-interrupt-ipi-handling" id="id23">Inter-Processor Interrupt (IPI) Handling</a></p></li>
+<li><p><a class="reference internal" href="#passthrough-device-support" id="id24">Passthrough Device Support</a></p></li>
+<li><p><a class="reference internal" href="#virtual-device-support" id="id25">Virtual Device Support</a></p></li>
+<li><p><a class="reference internal" href="#interrupt-delivery" id="id26">Interrupt Delivery</a></p></li>
+<li><p><a class="reference internal" href="#hypervisor-ipi-service" id="id27">Hypervisor IPI Service</a></p></li>
+<li><p><a class="reference internal" href="#debug-console" id="id28">Debug Console</a></p></li>
+<li><p><a class="reference internal" href="#hypervisor-console" id="id29">Hypervisor Console</a></p></li>
+<li><p><a class="reference internal" href="#guest-console" id="id30">Guest Console</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="introduction">
-<h2><a class="toc-backref" href="#id6">Introduction</a><a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id12">Introduction</a><a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>In partition mode, ACRN provides guests with exclusive access to cores,
 memory, cache, and peripheral devices. Partition mode enables developers
 to dedicate resources exclusively among the guests. However, there is no
 support today in x86 hardware or in ACRN to partition resources such as
-peripheral buses (e.g. PCI). On x86 platforms that support Cache
-Allocation Technology (CAT) and Memory Bandwidth Allocation(MBA), resources
-such as Cache and memory bandwidth can be used by developers to partition
-L2, Last Level Cache (LLC), and memory bandwidth among the guests. Refer to
+peripheral buses (e.g., PCI). On x86 platforms that support Cache
+Allocation Technology (CAT) and Memory Bandwidth Allocation (MBA), developers
+can partition Level 2 (L2) cache, Last Level Cache (LLC), and memory bandwidth
+among the guests. Refer to
 <a class="reference internal" href="hv-rdt.html#hv-rdt"><span class="std std-ref">RDT Allocation Feature Supported by Hypervisor</span></a> for more details on ACRN RDT high-level design and
 <a class="reference internal" href="../../tutorials/rdt_configuration.html#rdt-configuration"><span class="std std-ref">Enable RDT Configuration</span></a> for RDT configuration.</p>
 <p>ACRN expects static partitioning of resources either by code
 modification for guest configuration or through compile-time config
 options. All the devices exposed to the guests are either physical
-resources or are emulated in the hypervisor. So, there is no need for a
-device-model and Service OS. <a class="reference internal" href="#pmode2vms"><span class="std std-numref">Figure 158</span></a> shows a partition mode
+resources or are emulated in the hypervisor. There is no need for a
+Device Model and Service VM. <a class="reference internal" href="#pmode2vms"><span class="std std-numref">Figure 158</span></a> shows a partition mode
 example of two VMs with exclusive access to physical resources.</p>
 <div class="figure align-center" id="pmode2vms">
 <img alt="../../_images/partition-image3.png" src="../../_images/partition-image3.png" />
-<p class="caption"><span class="caption-number">Figure 158 </span><span class="caption-text">Partition Mode example with two VMs</span><a class="headerlink" href="#pmode2vms" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 158 </span><span class="caption-text">Partition Mode Example with Two VMs</span><a class="headerlink" href="#pmode2vms" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="guest-info">
-<h2><a class="toc-backref" href="#id7">Guest Info</a><a class="headerlink" href="#guest-info" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id13">Guest Info</a><a class="headerlink" href="#guest-info" title="Permalink to this headline">¶</a></h2>
 <p>ACRN uses multi-boot info passed from the platform bootloader to know
 the location of each guest kernel in memory. ACRN creates a copy of each
 guest kernel into each of the guests’ memory. Current implementation of
 ACRN requires developers to specify kernel parameters for the guests as
-part of guest configuration. ACRN picks up kernel parameters from guest
+part of the guest configuration. ACRN picks up kernel parameters from the guest
 configuration and copies them to the corresponding guest memory.</p>
-<div class="figure align-center">
+<div class="figure align-center" id="id6">
 <img alt="../../_images/partition-image18.png" src="../../_images/partition-image18.png" />
+<p class="caption"><span class="caption-number">Figure 159 </span><span class="caption-text">Guest Info</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="acrn-setup-for-guests">
-<h2><a class="toc-backref" href="#id8">ACRN Setup for Guests</a><a class="headerlink" href="#acrn-setup-for-guests" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id14">ACRN Setup for Guests</a><a class="headerlink" href="#acrn-setup-for-guests" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="cores">
-<h3><a class="toc-backref" href="#id9">Cores</a><a class="headerlink" href="#cores" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id15">Cores</a><a class="headerlink" href="#cores" title="Permalink to this headline">¶</a></h3>
 <p>ACRN requires the developer to specify the number of guests and the
 cores dedicated for each guest. Also, the developer needs to specify
-the physical core used as the Boot Strap Processor (BSP) for each guest. As
+the physical core used as the bootstrap processor (BSP) for each guest. As
 the processors are brought to life in the hypervisor, it checks if they are
-configured as BSP for any of the guests. If a processor is BSP of any of
+configured as BSP for any of the guests. If a processor is the BSP of any of
 the guests, ACRN proceeds to build the memory mapping for the guest,
 mptable, E820 entries, and zero page for the guest. As described in
 <a class="reference internal" href="#guest-info">Guest info</a>, ACRN creates copies of guest kernel and kernel
-parameters into guest memory. <a class="reference internal" href="#partbspsetup"><span class="std std-numref">Figure 159</span></a> explains these
+parameters into guest memory. <a class="reference internal" href="#partbspsetup"><span class="std std-numref">Figure 160</span></a> explains these
 events in chronological order.</p>
 <div class="figure align-center" id="partbspsetup">
 <img alt="../../_images/partition-image7.png" src="../../_images/partition-image7.png" />
-<p class="caption"><span class="caption-number">Figure 159 </span><span class="caption-text">Event Order for Processor Set Up</span><a class="headerlink" href="#partbspsetup" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 160 </span><span class="caption-text">Event Order for Processor Setup</span><a class="headerlink" href="#partbspsetup" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="memory">
-<h3><a class="toc-backref" href="#id10">Memory</a><a class="headerlink" href="#memory" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id16">Memory</a><a class="headerlink" href="#memory" title="Permalink to this headline">¶</a></h3>
 <p>For each guest in partition mode, the ACRN developer specifies the size of
 memory for the guest and the starting address in the host physical
 address in the guest configuration. There is no support for HIGHMEM for
@@ -1147,10 +1148,10 @@ host E820.</p></li>
 HPA (starting address in guest configuration, memory size).</p>
 </div>
 <div class="section" id="e820-and-zero-page-info">
-<h3><a class="toc-backref" href="#id11">E820 and Zero Page Info</a><a class="headerlink" href="#e820-and-zero-page-info" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id17">E820 and Zero Page Info</a><a class="headerlink" href="#e820-and-zero-page-info" title="Permalink to this headline">¶</a></h3>
 <p>A default E820 is used for all the guests in partition mode. This table
 shows the reference E820 layout. Zero page is created with this
-e820 info for all the guests.</p>
+E820 info for all the guests.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 100%" />
@@ -1178,7 +1179,7 @@ e820 info for all the guests.</p>
 </table>
 </div>
 <div class="section" id="platform-info-mptable">
-<h3><a class="toc-backref" href="#id12">Platform Info - mptable</a><a class="headerlink" href="#platform-info-mptable" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id18">Platform Info - mptable</a><a class="headerlink" href="#platform-info-mptable" title="Permalink to this headline">¶</a></h3>
 <p>ACRN, in partition mode, uses mptable to convey platform info to each
 guest. Using this platform information, number of cores used for each
 guest, and whether the guest needs devices with INTX, ACRN builds
@@ -1186,7 +1187,7 @@ mptable and copies it to the guest memory. In partition mode, ACRN uses
 physical APIC IDs to pass to the guests.</p>
 </div>
 <div class="section" id="i-o-virtual-devices">
-<h3><a class="toc-backref" href="#id13">I/O - Virtual Devices</a><a class="headerlink" href="#i-o-virtual-devices" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id19">I/O - Virtual Devices</a><a class="headerlink" href="#i-o-virtual-devices" title="Permalink to this headline">¶</a></h3>
 <p>Port I/O is supported for PCI device config space 0xcfc and 0xcf8, vUART
 0x3f8, vRTC 0x70 and 0x71, and vPIC ranges 0x20/21, 0xa0/a1, and
 0x4d0/4d1. MMIO is supported for vIOAPIC. ACRN exposes a virtual
@@ -1194,10 +1195,10 @@ host-bridge at BDF (Bus Device Function) 0.0:0 to each guest. Access to
 256 bytes of config space for virtual host bridge is emulated.</p>
 </div>
 <div class="section" id="i-o-passthrough-devices">
-<h3><a class="toc-backref" href="#id14">I/O - Passthrough Devices</a><a class="headerlink" href="#i-o-passthrough-devices" title="Permalink to this headline">¶</a></h3>
-<p>ACRN, in partition mode, supports passing thru PCI devices on the
+<h3><a class="toc-backref" href="#id20">I/O - Passthrough Devices</a><a class="headerlink" href="#i-o-passthrough-devices" title="Permalink to this headline">¶</a></h3>
+<p>ACRN, in partition mode, supports passing through PCI devices on the
 platform. All the passthrough devices are exposed as child devices under
-the virtual host bridge. ACRN does not support either passing thru
+the virtual host bridge. ACRN does not support either passing through
 bridges or emulating virtual bridges. Passthrough devices should be
 statically allocated to each guest using the guest configuration. ACRN
 expects the developer to provide the virtual BDF to BDF of the
@@ -1206,28 +1207,29 @@ configuration.</p>
 </div>
 </div>
 <div class="section" id="runtime-acrn-support-for-guests">
-<h2><a class="toc-backref" href="#id15">Runtime ACRN Support for Guests</a><a class="headerlink" href="#runtime-acrn-support-for-guests" title="Permalink to this headline">¶</a></h2>
-<p>ACRN, in partition mode, supports an option to passthrough LAPIC of the
+<h2><a class="toc-backref" href="#id21">Runtime ACRN Support for Guests</a><a class="headerlink" href="#runtime-acrn-support-for-guests" title="Permalink to this headline">¶</a></h2>
+<p>ACRN, in partition mode, supports an option to pass through LAPIC of the
 physical CPUs to the guest. ACRN expects developers to specify if the
-guest needs LAPIC passthrough using guest configuration. When guest
+guest needs LAPIC passthrough using guest configuration. When the guest
 configures vLAPIC as x2APIC, and if the guest configuration has LAPIC
-passthrough enabled, ACRN passes the LAPIC to the guest. Guest can access
+passthrough enabled, ACRN passes the LAPIC to the guest. The guest can access
 the LAPIC hardware directly without hypervisor interception. During
 runtime of the guest, this option differentiates how ACRN supports
 inter-processor interrupt handling and device interrupt handling. This
 will be discussed in detail in the corresponding sections.</p>
-<div class="figure align-center">
+<div class="figure align-center" id="id7">
 <img alt="../../_images/partition-image16.png" src="../../_images/partition-image16.png" />
+<p class="caption"><span class="caption-number">Figure 161 </span><span class="caption-text">LAPIC Passthrough</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
 </div>
 <div class="section" id="guest-smp-boot-flow">
-<h3><a class="toc-backref" href="#id16">Guest SMP Boot Flow</a><a class="headerlink" href="#guest-smp-boot-flow" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id22">Guest SMP Boot Flow</a><a class="headerlink" href="#guest-smp-boot-flow" title="Permalink to this headline">¶</a></h3>
 <p>The core APIC IDs are reported to the guest using mptable info. SMP boot
 flow is similar to sharing mode. Refer to <a class="reference internal" href="hv-startup.html#vm-startup"><span class="std std-ref">VM Startup</span></a>
-for guest SMP boot flow in ACRN. Partition mode guests startup is same as
+for guest SMP boot flow in ACRN. Partition mode guests startup is the same as
 the Service VM startup in sharing mode.</p>
 </div>
 <div class="section" id="inter-processor-interrupt-ipi-handling">
-<h3><a class="toc-backref" href="#id17">Inter-Processor Interrupt (IPI) Handling</a><a class="headerlink" href="#inter-processor-interrupt-ipi-handling" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id23">Inter-Processor Interrupt (IPI) Handling</a><a class="headerlink" href="#inter-processor-interrupt-ipi-handling" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="guests-without-lapic-passthrough">
 <h4>Guests Without LAPIC Passthrough<a class="headerlink" href="#guests-without-lapic-passthrough" title="Permalink to this headline">¶</a></h4>
 <p>For guests without LAPIC passthrough, IPIs between guest CPUs are handled in
@@ -1238,19 +1240,20 @@ for more details.</p>
 <h4>Guests With LAPIC Passthrough<a class="headerlink" href="#guests-with-lapic-passthrough" title="Permalink to this headline">¶</a></h4>
 <p>ACRN supports passthrough if and only if the guest is using x2APIC mode
 for the vLAPIC. In LAPIC passthrough mode, writes to the Interrupt Command
-Register (ICR) x2APIC MSR is intercepted. Guest writes the IPI info,
+Register (ICR) x2APIC MSR are intercepted. The guest writes the IPI info,
 including vector, and destination APIC IDs to the ICR. Upon an IPI request
 from the guest, ACRN does a sanity check on the destination processors
 programmed into the ICR. If the destination is a valid target for the guest,
 ACRN sends an IPI with the same vector from the ICR to the physical CPUs
 corresponding to the destination processor info in the ICR.</p>
-<div class="figure align-center">
+<div class="figure align-center" id="id8">
 <img alt="../../_images/partition-image14.png" src="../../_images/partition-image14.png" />
+<p class="caption"><span class="caption-number">Figure 162 </span><span class="caption-text">IPI Handling for Guests With LAPIC Passthrough</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 </div>
 <div class="section" id="passthrough-device-support">
-<h3><a class="toc-backref" href="#id18">Passthrough Device Support</a><a class="headerlink" href="#passthrough-device-support" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id24">Passthrough Device Support</a><a class="headerlink" href="#passthrough-device-support" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="configuration-space-access">
 <h4>Configuration Space Access<a class="headerlink" href="#configuration-space-access" title="Permalink to this headline">¶</a></h4>
 <p>ACRN emulates Configuration Space Address (0xcf8) I/O port and
@@ -1261,8 +1264,9 @@ the information about the resources (I/O and MMIO) used by the PCI
 device. ACRN virtualizes the BAR registers and for the rest of the
 config space, forwards reads and writes to the physical config space of
 passthrough devices.  Refer to the <a class="reference internal" href="#i-o">I/O</a> section below for more details.</p>
-<div class="figure align-center">
+<div class="figure align-center" id="id9">
 <img alt="../../_images/partition-image1.png" src="../../_images/partition-image1.png" />
+<p class="caption"><span class="caption-number">Figure 163 </span><span class="caption-text">Configuration Space Access</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="dma">
@@ -1284,10 +1288,11 @@ not present in the guest configuration.</p></li>
 <p>As the guest PCI sub-system scans the PCI bus and assigns a Guest Physical
 Address (GPA) to the MMIO BAR, ACRN maps the GPA to the address in the
 physical BAR of the passthrough device using EPT. The following timeline chart
-explains how PCI devices are assigned to guest and BARs are mapped upon
+explains how PCI devices are assigned to the guest and how BARs are mapped upon
 guest initialization.</p>
-<div class="figure align-center">
+<div class="figure align-center" id="id10">
 <img alt="../../_images/partition-image13.png" src="../../_images/partition-image13.png" />
+<p class="caption"><span class="caption-number">Figure 164 </span><span class="caption-text">I/O for Passthrough Devices</span><a class="headerlink" href="#id10" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="interrupt-configuration">
@@ -1298,44 +1303,45 @@ devices.</p>
 <h5>INTx Support<a class="headerlink" href="#intx-support" title="Permalink to this headline">¶</a></h5>
 <p>ACRN expects developers to identify the interrupt line info (0x3CH) from
 the physical BAR of the passthrough device and build an interrupt entry in
-the mptable for the corresponding guest. As guest configures the vIOAPIC
+the mptable for the corresponding guest. As the guest configures the vIOAPIC
 for the interrupt RTE, ACRN writes the info from the guest RTE into the
 physical IOAPIC RTE. Upon the guest kernel request to mask the interrupt,
 ACRN writes to the physical RTE to mask the interrupt at the physical
-IOAPIC. When guest masks the RTE in vIOAPIC, ACRN masks the interrupt
+IOAPIC. When the guest masks the RTE in vIOAPIC, ACRN masks the interrupt
 RTE in the physical IOAPIC. Level triggered interrupts are not
 supported.</p>
 </div>
 <div class="section" id="msi-support">
 <h5>MSI Support<a class="headerlink" href="#msi-support" title="Permalink to this headline">¶</a></h5>
-<p>Guest reads/writes to PCI configuration space for configuring MSI
-interrupts using an address. Data and control registers are passthrough to
+<p>The guest reads/writes to the PCI configuration space to configure MSI
+interrupts using an address. Data and control registers are passed through to
 the physical BAR of the passthrough device. Refer to <a class="reference internal" href="#configuration-space-access">Configuration
-space access</a> for details on how the PCI configuration space is emulated.</p>
+Space Access</a> for details on how the PCI configuration space is emulated.</p>
 </div>
 </div>
 </div>
 <div class="section" id="virtual-device-support">
-<h3><a class="toc-backref" href="#id19">Virtual Device Support</a><a class="headerlink" href="#virtual-device-support" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id25">Virtual Device Support</a><a class="headerlink" href="#virtual-device-support" title="Permalink to this headline">¶</a></h3>
 <p>ACRN provides read-only vRTC support for partition mode guests. Writes
 to the data port are discarded.</p>
 <p>For port I/O to ports other than vPIC, vRTC, or vUART, reads return 0xFF and
 writes are discarded.</p>
 </div>
 <div class="section" id="interrupt-delivery">
-<h3><a class="toc-backref" href="#id20">Interrupt Delivery</a><a class="headerlink" href="#interrupt-delivery" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id26">Interrupt Delivery</a><a class="headerlink" href="#interrupt-delivery" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="id1">
 <h4>Guests Without LAPIC Passthrough<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
-<p>In partition mode of ACRN, interrupts stay disabled after a vmexit.  The
+<p>In ACRN partition mode, interrupts stay disabled after a vmexit.  The
 processor does not take interrupts when it is executing in VMX root
 mode. ACRN configures the processor to take vmexit upon external
 interrupt if the processor is executing in VMX non-root mode. Upon an
 external interrupt, after sending EOI to the physical LAPIC, ACRN
-injects the vector into the vLAPIC of vCPU currently running on the
-processor. Guests using Linux as kernel, uses vectors less than 0xECh
+injects the vector into the vLAPIC of the vCPU currently running on the
+processor. Guests using a Linux kernel use vectors less than 0xECh
 for device interrupts.</p>
-<div class="figure align-center">
+<div class="figure align-center" id="id11">
 <img alt="../../_images/partition-image20.png" src="../../_images/partition-image20.png" />
+<p class="caption"><span class="caption-number">Figure 165 </span><span class="caption-text">Interrupt Delivery for Guests Without LAPIC Passthrough</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="id2">
@@ -1346,16 +1352,16 @@ handled by the guest IDT.</p>
 </div>
 </div>
 <div class="section" id="hypervisor-ipi-service">
-<h3><a class="toc-backref" href="#id21">Hypervisor IPI Service</a><a class="headerlink" href="#hypervisor-ipi-service" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id27">Hypervisor IPI Service</a><a class="headerlink" href="#hypervisor-ipi-service" title="Permalink to this headline">¶</a></h3>
 <p>ACRN needs IPIs for events such as flushing TLBs across CPUs, sending virtual
-device interrupts (e.g. vUART to vCPUs), and others.</p>
+device interrupts (e.g., vUART to vCPUs), and others.</p>
 <div class="section" id="id3">
 <h4>Guests Without LAPIC Passthrough<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
 <p>Hypervisor IPIs work the same way as in sharing mode.</p>
 </div>
 <div class="section" id="id4">
 <h4>Guests With LAPIC Passthrough<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
-<p>Since external interrupts are passthrough to the guest IDT, IPIs do not
+<p>Since external interrupts are passed through to the guest IDT, IPIs do not
 trigger vmexit. ACRN uses NMI delivery mode and the NMI exiting is
 chosen for vCPUs. At the time of NMI interrupt on the target processor,
 if the processor is in non-root mode, vmexit happens on the processor
@@ -1363,8 +1369,8 @@ and the event mask is checked for servicing the events.</p>
 </div>
 </div>
 <div class="section" id="debug-console">
-<h3><a class="toc-backref" href="#id22">Debug Console</a><a class="headerlink" href="#debug-console" title="Permalink to this headline">¶</a></h3>
-<p>For details on how hypervisor console works, refer to
+<h3><a class="toc-backref" href="#id28">Debug Console</a><a class="headerlink" href="#debug-console" title="Permalink to this headline">¶</a></h3>
+<p>For details on how the hypervisor console works, refer to
 <a class="reference internal" href="hv-console.html#hv-console"><span class="std std-ref">Hypervisor Console</span></a>.</p>
 <p>For a guest console in partition mode, ACRN provides an option to pass
 <code class="docutils literal notranslate"><span class="pre">vmid</span></code> as an argument to <code class="docutils literal notranslate"><span class="pre">vm_console</span></code>. vmid is the same as the one
@@ -1375,20 +1381,20 @@ developers use in the guest configuration.</p>
 </div>
 </div>
 <div class="section" id="hypervisor-console">
-<h3><a class="toc-backref" href="#id23">Hypervisor Console</a><a class="headerlink" href="#hypervisor-console" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id29">Hypervisor Console</a><a class="headerlink" href="#hypervisor-console" title="Permalink to this headline">¶</a></h3>
 <p>ACRN uses the TSC deadline timer to provide a timer service. The hypervisor
 console uses a timer on CPU0 to poll characters on the serial device. To
-support LAPIC passthrough, the TSC deadline MSR is passthrough and the local
+support LAPIC passthrough, the TSC deadline MSR is passed through and the local
 timer interrupt is also delivered to the guest IDT. Instead of the TSC
 deadline timer, ACRN uses the VMX preemption timer to poll the serial device.</p>
 </div>
 <div class="section" id="guest-console">
-<h3><a class="toc-backref" href="#id24">Guest Console</a><a class="headerlink" href="#guest-console" title="Permalink to this headline">¶</a></h3>
-<p>ACRN exposes vUART to partition mode guests. vUART uses vPIC to inject
-interrupt to the guest BSP. In cases of the guest having more than one core,
+<h3><a class="toc-backref" href="#id30">Guest Console</a><a class="headerlink" href="#guest-console" title="Permalink to this headline">¶</a></h3>
+<p>ACRN exposes vUART to partition mode guests. vUART uses vPIC to inject an
+interrupt to the guest BSP. If the guest has more than one core,
 during runtime, vUART might need to inject an interrupt to the guest BSP from
-another core (other than BSP). As mentioned in section &lt;Hypervisor IPI
-service&gt;, ACRN uses NMI delivery mode for notifying the CPU running the BSP
+another core (other than BSP). As mentioned in section <a class="reference internal" href="#hypervisor-ipi-service">Hypervisor IPI
+Service</a>, ACRN uses NMI delivery mode for notifying the CPU running the BSP
 of the guest.</p>
 </div>
 </div>
@@ -1406,7 +1412,7 @@ of the guest.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Apr 21, 2021. Published: Nov 08, 2021.
+      <span class="lastupdated">Last modified: Nov 12, 2021. Published: Nov 19, 2021.
       </span></p>
   </div>
 

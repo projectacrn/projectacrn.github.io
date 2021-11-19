@@ -183,7 +183,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-kernel-image-and-modules-of-pre-launched-vm">Update Kernel Image and Modules of Pre-Launched VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-acrn-hypervisor-image">Update ACRN Hypervisor Image</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#logical-partition-scenario-startup-check">Logical Partition Scenario Startup Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#partitioned-scenario-startup-check">Partitioned Scenario Startup Check</a></li>
 </ul>
 </li>
 </ul>
@@ -308,9 +308,9 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#service-os-vm-configuration">Service OS VM configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#service-vm-configuration">Service VM Configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
 </ul>
@@ -1062,10 +1062,12 @@ small and lightweight.  LK has been chosen as the Trusty OS kernel.</p>
 <h2>Trusty Architecture<a class="headerlink" href="#trusty-architecture" title="Permalink to this headline">¶</a></h2>
 <div class="figure align-center" id="trusty-architectural-diagram">
 <a class="reference internal image-reference" href="../_images/trusty-arch.png"><img alt="../_images/trusty-arch.png" src="../_images/trusty-arch.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 242 </span><span class="caption-text">Trusty Architectural Diagram</span><a class="headerlink" href="#trusty-architectural-diagram" title="Permalink to this image">¶</a></p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Trusty OS is running in Secure World in the architecture drawing above.</p>
+<p>The Trusty OS is running in the Secure World in the architecture drawing
+above.</p>
 </div>
 </div>
 <div class="section" id="trusty-specific-hypercalls">
@@ -1143,33 +1145,71 @@ small and lightweight.  LK has been chosen as the Trusty OS kernel.</p>
 </dl>
 </dd></dl>
 
+<dl class="c function">
+<dt id="c.hcall_handle_tee_vcpu_boot_done">
+<span class="target" id="group__trusty__hypercall_1gab75b91ce67fcf76d0f04421012a7ec0d"></span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">hcall_handle_tee_vcpu_boot_done</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vm</span> <span class="pre">*</span><em><span class="pre">target_vm</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">param1</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">param2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.hcall_handle_tee_vcpu_boot_done" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Handle the TEE boot done signal. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – Pointer to VCPU data structure </p></li>
+<li><p><strong>target_vm</strong> – not used </p></li>
+<li><p><strong>param1</strong> – not used </p></li>
+<li><p><strong>param2</strong> – not used</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, non-zero on error. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.hcall_switch_ee">
+<span class="target" id="group__trusty__hypercall_1ga7d003896be93fbcda513b04b71db4b0d"></span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">hcall_switch_ee</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vm</span> <span class="pre">*</span><em><span class="pre">target_vm</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">param1</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">param2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.hcall_switch_ee" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Switch the execution environment. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – Pointer to VCPU data structure </p></li>
+<li><p><strong>target_vm</strong> – not used </p></li>
+<li><p><strong>param1</strong> – not used </p></li>
+<li><p><strong>param2</strong> – not used</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, non-zero on error. </p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="trusty-boot-flow">
 <h2>Trusty Boot Flow<a class="headerlink" href="#trusty-boot-flow" title="Permalink to this headline">¶</a></h2>
-<p>By design, the User OS bootloader (<code class="docutils literal notranslate"><span class="pre">UOS_Loader</span></code>) will trigger the Trusty
+<p>By design, the User VM OS bootloader will trigger the Trusty
 boot process. The complete boot flow is illustrated below.</p>
 <div class="figure align-center" id="id2">
-<div class="graphviz"><img src="../_images/graphviz-e6e2a1eec282a0115edca464cd66d9cc483da268.png" alt="digraph G {
+<div class="graphviz"><img src="../_images/graphviz-e475943a1b8c8088b456d8d7f22931f6cb5f658c.png" alt="digraph G {
    rankdir=LR;
    rank=same;
    bgcolor=&quot;transparent&quot;;
-   uosl1 [label=&quot;UOS_Loader&quot;]
+   uservml1 [label=&quot;User VM OS\nBootloader&quot;]
    acrn_init [shape=box style=&quot;rounded,filled&quot; label=&quot;ACRN&quot;]
    acrn_switch [shape=box style=&quot;rounded,filled&quot; label=&quot;ACRN&quot;]
-   uosl2 [label=&quot;UOS_Loader&quot;]
-   uosl1 -&gt; acrn_init -&gt; &quot;Trusty&quot; -&gt; acrn_switch -&gt; uosl2;
+   uservml2 [label=&quot;User VM OS\nBootloader&quot;]
+   uservml1 -&gt; acrn_init -&gt; &quot;Trusty&quot; -&gt; acrn_switch -&gt; uservml2;
 }" class="graphviz" /></div>
-<p class="caption"><span class="caption-number">Figure 236 </span><span class="caption-text">Trusty Boot Flow</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 243 </span><span class="caption-text">Trusty Boot Flow</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 <p>As shown in the above figure, here are some details about the Trusty
 boot flow processing:</p>
 <ol class="arabic simple">
-<li><p>UOS_Loader</p>
+<li><p>User VM OS bootloader</p>
 <ol class="loweralpha simple">
 <li><p>Load and verify Trusty image from virtual disk</p></li>
-<li><p>Allocate runtime memory for trusty</p></li>
-<li><p>Do ELF relocation of trusty image and get entry address</p></li>
-<li><p>Call <code class="docutils literal notranslate"><span class="pre">hcall_initialize_trusty</span></code> with trusty memory base and
+<li><p>Allocate runtime memory for Trusty</p></li>
+<li><p>Do ELF relocation of Trusty image and get entry address</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">hcall_initialize_trusty</span></code> with Trusty memory base and
 entry address</p></li>
 </ol>
 </li>
@@ -1191,11 +1231,11 @@ boot completed</p></li>
 <ol class="loweralpha simple">
 <li><p>Save World context for the World that caused this <code class="docutils literal notranslate"><span class="pre">vmexit</span></code>
 (Secure World)</p></li>
-<li><p>Restore World context for next World (Normal World (UOS_Loader))</p></li>
-<li><p>Resume to next World (UOS_Loader)</p></li>
+<li><p>Restore World context for next World (Normal World: User VM OS bootloader)</p></li>
+<li><p>Resume to next World (User VM OS bootloader)</p></li>
 </ol>
 </li>
-<li><p>UOS_Loader</p>
+<li><p>User VM OS bootloader</p>
 <ol class="loweralpha simple">
 <li><p>Continue to boot</p></li>
 </ol>
@@ -1204,26 +1244,28 @@ boot completed</p></li>
 </div>
 <div class="section" id="ept-hierarchy">
 <h2>EPT Hierarchy<a class="headerlink" href="#ept-hierarchy" title="Permalink to this headline">¶</a></h2>
-<p>As per the Trusty design, Trusty can access Normal World’s memory, but Normal
-World cannot access Secure World’s memory.  Hence it means Secure World EPTP
-page table hierarchy must contain normal world GPA address space, while Trusty
-world’s GPA address space must be removed from the Normal world EPTP page
-table hierarchy.</p>
+<p>As per the Trusty design, Trusty can access the Normal World’s memory, but the
+Normal World cannot access the Secure World’s memory.  Hence it means the Secure
+World EPTP page table hierarchy must contain the Normal World GPA address space,
+while the Trusty world’s GPA address space must be removed from the Normal World
+EPTP page table hierarchy.</p>
 <div class="section" id="design">
 <h3>Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h3>
-<p>Put Secure World’s GPA to very high position:  511 GB - 512 GB.  The PML4/PDPT
-for Trusty World are separated from Normal World.  PD/PT for low memory
-(&lt; 511 GB) are shared in both Trusty World’s EPT and Normal World’s EPT.
-PD/PT for high memory (&gt;= 511 GB) are valid for Trusty World’s EPT only.</p>
+<p>Put the Secure World’s GPA to a very high position:  511 GB - 512 GB.  The
+PML4/PDPT for the Trusty World are separated from the Normal World.  PD and PT
+for low memory
+(&lt; 511 GB) are shared in both the Trusty World’s EPT and the Normal World’s EPT.
+PD and PT for high memory (&gt;= 511 GB) are valid for the Trusty World’s EPT only.</p>
 </div>
 <div class="section" id="benefit">
 <h3>Benefit<a class="headerlink" href="#benefit" title="Permalink to this headline">¶</a></h3>
-<p>This design will benefit the EPT changes of Normal World. There are
-requirements to modify Normal World’s EPT during runtime such as increasing
-memory, changing attributes, etc. If such behavior happened, only PD and PT
-for Normal World need to be updated.</p>
-<div class="figure align-center" id="ept-hierarchy-pic">
+<p>This design will benefit the EPT changes of the Normal World. There are
+requirements to modify the Normal World’s EPT during runtime such as increasing
+memory and changing attributes. If such behavior happens, only PD and PT
+for the Normal World need to be updated.</p>
+<div class="figure align-center" id="id3">
 <a class="reference internal image-reference" href="../_images/ept-hierarchy.png"><img alt="../_images/ept-hierarchy.png" src="../_images/ept-hierarchy.png" style="width: 800px;" /></a>
+<p class="caption"><span class="caption-number">Figure 244 </span><span class="caption-text">EPT Hierarchy</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="api">
@@ -1311,7 +1353,7 @@ for Normal World need to be updated.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Sep 20, 2021. Published: Nov 08, 2021.
+      <span class="lastupdated">Last modified: Nov 09, 2021. Published: Nov 19, 2021.
       </span></p>
   </div>
 

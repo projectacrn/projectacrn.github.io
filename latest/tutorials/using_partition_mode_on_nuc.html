@@ -183,7 +183,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#update-kernel-image-and-modules-of-pre-launched-vm">Update Kernel Image and Modules of Pre-Launched VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#update-acrn-hypervisor-image">Update ACRN Hypervisor Image</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#logical-partition-scenario-startup-check">Logical Partition Scenario Startup Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#partitioned-scenario-startup-check">Partitioned Scenario Startup Check</a></li>
 </ul>
 </li>
 </ul>
@@ -308,9 +308,9 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
-<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#service-os-vm-configuration">Service OS VM configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#service-vm-configuration">Service VM Configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
 </ul>
@@ -1049,21 +1049,15 @@ pre-launched VMs.</p>
 <li><p><a class="reference internal" href="#update-kernel-image-and-modules-of-pre-launched-vm" id="id3">Update Kernel Image and Modules of Pre-Launched VM</a></p></li>
 <li><p><a class="reference internal" href="#update-acrn-hypervisor-image" id="id4">Update ACRN Hypervisor Image</a></p></li>
 <li><p><a class="reference internal" href="#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image" id="id5">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></p></li>
-<li><p><a class="reference internal" href="#logical-partition-scenario-startup-check" id="id6">Logical Partition Scenario Startup Check</a></p></li>
+<li><p><a class="reference internal" href="#partitioned-scenario-startup-check" id="id6">Partitioned Scenario Startup Check</a></p></li>
 </ul>
 </div>
 <div class="section" id="validated-versions">
 <h2><a class="toc-backref" href="#id1">Validated Versions</a><a class="headerlink" href="#validated-versions" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Ubuntu version: <strong>18.04</strong></p></li>
-<li><p>ACRN hypervisor tag: <strong>v2.6</strong></p></li>
+<li><p>ACRN hypervisor commit: <strong>9bae63b941</strong></p></li>
 </ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>After the v2.6 release, the <code class="docutils literal notranslate"><span class="pre">logical_partition</span></code> scenario
-was renamed to <code class="docutils literal notranslate"><span class="pre">partitioned</span></code>, affecting the file names used in this
-guide (validated with v2.6).</p>
-</div>
 </div>
 <div class="section" id="prerequisites">
 <h2><a class="toc-backref" href="#id2">Prerequisites</a><a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
@@ -1074,8 +1068,8 @@ guide (validated with v2.6).</p>
 <li><p>Storage device with USB interface (such as USB Flash
 or SATA disk connected with a USB 3.0 SATA converter).</p></li>
 <li><p>Disable <strong>Intel Hyper Threading Technology</strong> in the BIOS to avoid
-interference from logical cores for the logical partition scenario.</p></li>
-<li><p>In the logical partition scenario, two VMs (running Ubuntu OS)
+interference from logical cores for the partitioned scenario.</p></li>
+<li><p>In the partitioned scenario, two VMs (running Ubuntu OS)
 are started by the ACRN hypervisor. Each VM has its own root
 filesystem. Set up each VM by following the <a class="reference external" href="https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-desktop">Ubuntu desktop installation</a> instructions
 first on a SATA disk and then again on a storage device with a USB interface.
@@ -1089,12 +1083,13 @@ the USB controller respectively.</p></li>
 <li><p>On the local Ubuntu target machine, find the kernel file,
 copy to your (<code class="docutils literal notranslate"><span class="pre">/boot</span></code> directory) and name the file <code class="docutils literal notranslate"><span class="pre">bzImage</span></code>.
 The <code class="docutils literal notranslate"><span class="pre">uname</span> <span class="pre">-r</span></code> command returns the kernel release, for example,
-<code class="docutils literal notranslate"><span class="pre">4.15.0-55-generic</span></code>):</p>
+<code class="docutils literal notranslate"><span class="pre">5.4.0-89-generic</span></code>):</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo cp /boot/vmlinuz-$(uname -r)  /boot/bzImage
+$ sudo cp /boot/initrd.img-$(uname -r) /boot/initrd_Image
 </pre></div>
 </div>
 </li>
-<li><p>The current ACRN logical partition scenario implementation requires a
+<li><p>The current ACRN partitioned scenario implementation requires a
 multi-boot capable bootloader to boot both the ACRN hypervisor and the
 bootable kernel image built from the previous step. Install the Ubuntu OS
 on the onboard NVMe SSD by following the <a class="reference external" href="https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-desktop">Ubuntu desktop installation
@@ -1159,19 +1154,19 @@ devices in the system:</p>
 <li><p>Clone the ACRN source code and configure the build options.</p>
 <p>Refer to <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> to set up the ACRN build
 environment on your development workstation.</p>
-<p>Clone the ACRN source code and check out to the tag v2.6:</p>
+<p>Clone the ACRN source code and check out to the commit 9bae63b941:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor.git
 $ cd acrn-hypervisor
-$ git checkout v2.6
+$ git checkout 9bae63b941
 </pre></div>
 </div>
 </li>
-<li><p>Check the <code class="docutils literal notranslate"><span class="pre">pci_devs</span></code> sections in <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/logical_partition.xml</span></code>
+<li><p>Check the <code class="docutils literal notranslate"><span class="pre">pci_devs</span></code> sections in <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/partitioned.xml</span></code>
 for each pre-launched VM to ensure you are using the right PCI device BDF information (as
 reported by <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">-vv</span></code>). If you need to make changes to this file, create a copy of it and
 use it subsequently when building ACRN (<code class="docutils literal notranslate"><span class="pre">SCENARIO=/path/to/newfile.xml</span></code>).</p></li>
 <li><p>Build the ACRN hypervisor and ACPI binaries for pre-launched VMs with default xmls:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make hypervisor BOARD=nuc11tnbi5  SCENARIO=logical_partition RELEASE=0
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make hypervisor BOARD=nuc11tnbi5 SCENARIO=partitioned
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1181,7 +1176,7 @@ The <code class="docutils literal notranslate"><span class="pre">ACPI_VM0.bin</s
 </div>
 </li>
 <li><p>Check the Ubuntu bootloader name.</p>
-<p>In the current design, the logical partition depends on the GRUB boot
+<p>In the current design, the partitioned depends on the GRUB boot
 loader; otherwise, the hypervisor will fail to boot. Verify that the
 default bootloader is GRUB:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo update-grub -V
@@ -1203,7 +1198,7 @@ directory.</p></li>
 <h2><a class="toc-backref" href="#id5">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a><a class="headerlink" href="#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>Append the following configuration to the <code class="docutils literal notranslate"><span class="pre">/etc/grub.d/40_custom</span></code> file:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>menuentry &#39;ACRN hypervisor Logical Partition Scenario&#39; --id ACRN_Logical_Partition --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>menuentry &#39;ACRN hypervisor Partitioned Scenario&#39; --id ACRN_Partitioned --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {
         recordfail
         load_video
         gfxmode $linux_gfx_mode
@@ -1212,9 +1207,10 @@ directory.</p></li>
         insmod ext2
 
         search --no-floppy --fs-uuid --set 9bd58889-add7-410c-bdb7-1fbc2af9b0e1
-        echo &#39;Loading hypervisor logical partition scenario ...&#39;
+        echo &#39;Loading hypervisor partitioned scenario ...&#39;
         multiboot2  /boot/acrn.bin root=PARTUUID=&quot;e515916d-aac4-4439-aaa0-33231a9f4d83&quot;
         module2 /boot/bzImage XXXXXX
+        module2 /boot/initrd_Image XXXXXX
         module2 /boot/ACPI_VM0.bin ACPI_VM0
         module2 /boot/ACPI_VM1.bin ACPI_VM1
 }
@@ -1225,9 +1221,11 @@ directory.</p></li>
 <p>Update the UUID (<code class="docutils literal notranslate"><span class="pre">--set</span></code>) and PARTUUID (<code class="docutils literal notranslate"><span class="pre">root=</span></code> parameter)
 (or use the device node directly) of the root partition (e.g.``/dev/nvme0n1p2). Hint: use <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">blkid</span></code>.
 The kernel command-line arguments used to boot the pre-launched VMs is <code class="docutils literal notranslate"><span class="pre">bootargs</span></code>
-in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/logical_partition.xml</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/partitioned.xml</span></code>
 The <code class="docutils literal notranslate"><span class="pre">module2</span> <span class="pre">/boot/bzImage</span></code> param <code class="docutils literal notranslate"><span class="pre">XXXXXX</span></code> is the bzImage tag and must exactly match the <code class="docutils literal notranslate"><span class="pre">kern_mod</span></code>
-in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/logical_partition.xml</span></code> file.
+in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/partitioned.xml</span></code> file.
+The <code class="docutils literal notranslate"><span class="pre">module2</span> <span class="pre">/boot/initrd_Image</span></code> param <code class="docutils literal notranslate"><span class="pre">XXXXXX</span></code> is the initrd_Image tag and must exactly match the <code class="docutils literal notranslate"><span class="pre">ramdisk_mod</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/partitioned.xml</span></code> file.
 The module <code class="docutils literal notranslate"><span class="pre">/boot/ACPI_VM0.bin</span></code> is the binary of ACPI tables for pre-launched VM0, the parameter <code class="docutils literal notranslate"><span class="pre">ACPI_VM0</span></code> is
 VM0’s ACPI tag and should not be modified.
 The module <code class="docutils literal notranslate"><span class="pre">/boot/ACPI_VM1.bin</span></code> is the binary of ACPI tables for pre-launched VM1 the parameter <code class="docutils literal notranslate"><span class="pre">ACPI_VM1</span></code> is
@@ -1235,7 +1233,7 @@ VM1’s ACPI tag and should not be modified.</p>
 </div>
 </li>
 <li><p>Correct example Grub configuration (with <code class="docutils literal notranslate"><span class="pre">module2</span></code> image paths set):</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">menuentry &#39;ACRN hypervisor Logical Partition Scenario&#39; --id ACRN_Logical_Partition --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">menuentry &#39;ACRN hypervisor Partitioned Scenario&#39; --id ACRN_Partitioned --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &#39;gnulinux-simple-e23c76ae-b06d-4a6e-ad42-46b8eedfd7d3&#39; {</span>
 <span class="go">     recordfail</span>
 <span class="go">     load_video</span>
 <span class="go">     gfxmode $linux_gfx_mode</span>
@@ -1243,9 +1241,10 @@ VM1’s ACPI tag and should not be modified.</p>
 <span class="go">     insmod part_gpt</span>
 <span class="go">     insmod ext2</span>
 <span class="go">     search --no-floppy --fs-uuid --set 9bd58889-add7-410c-bdb7-1fbc2af9b0e1</span>
-<span class="go">     echo &#39;Loading hypervisor logical partition scenario ...&#39;</span>
+<span class="go">     echo &#39;Loading hypervisor partitioned scenario ...&#39;</span>
 <span class="go">     multiboot2  /boot/acrn.bin root=PARTUUID=&quot;e515916d-aac4-4439-aaa0-33231a9f4d83&quot;</span>
 <span class="go">     module2 /boot/bzImage Linux_bzImage</span>
+<span class="go">     module2 /boot/initrd_Image Ubuntu</span>
 <span class="go">     module2 /boot/ACPI_VM0.bin ACPI_VM0</span>
 <span class="go">     module2 /boot/ACPI_VM1.bin ACPI_VM1</span>
 <span class="go">}</span>
@@ -1254,7 +1253,7 @@ VM1’s ACPI tag and should not be modified.</p>
 </li>
 <li><p>Modify the <code class="docutils literal notranslate"><span class="pre">/etc/default/grub</span></code> file as follows to make the GRUB menu
 visible when booting:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>GRUB_DEFAULT=ACRN_Logical_Partition
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>GRUB_DEFAULT=ACRN_Partitioned
 #GRUB_HIDDEN_TIMEOUT=0
 #GRUB_HIDDEN_TIMEOUT_QUIET=true
 GRUB_TIMEOUT=10
@@ -1269,14 +1268,14 @@ GRUB_CMDLINE_LINUX=&quot;&quot;
 </pre></div>
 </div>
 </li>
-<li><p>Reboot the Intel NUC. Select the <strong>ACRN hypervisor Logical Partition
-Scenario</strong> entry to boot the logical partition of the ACRN hypervisor on
+<li><p>Reboot the Intel NUC. Select the <strong>ACRN hypervisor Partitioned
+Scenario</strong> entry to boot the partitioned of the ACRN hypervisor on
 the Intel NUC’s display. The GRUB loader will boot the hypervisor, and the
 hypervisor will automatically start the two pre-launched VMs.</p></li>
 </ol>
 </div>
-<div class="numbered-step section" id="logical-partition-scenario-startup-check">
-<h2><a class="toc-backref" href="#id6">Logical Partition Scenario Startup Check</a><a class="headerlink" href="#logical-partition-scenario-startup-check" title="Permalink to this headline">¶</a></h2>
+<div class="numbered-step section" id="partitioned-scenario-startup-check">
+<h2><a class="toc-backref" href="#id6">Partitioned Scenario Startup Check</a><a class="headerlink" href="#partitioned-scenario-startup-check" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Connect to the serial port as described in this <a class="reference internal" href="using_serial_port.html#connect-serial-port"><span class="std std-ref">Connecting to the
 serial port</span></a> tutorial.</p></li>
@@ -1314,7 +1313,7 @@ for more information about available commands.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Sep 30, 2021. Published: Nov 08, 2021.
+      <span class="lastupdated">Last modified: Nov 02, 2021. Published: Nov 19, 2021.
       </span></p>
   </div>
 

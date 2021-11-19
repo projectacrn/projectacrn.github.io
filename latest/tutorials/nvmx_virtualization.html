@@ -183,7 +183,7 @@
 <li class="toctree-l4"><a class="reference internal" href="using_partition_mode_on_nuc.html#update-kernel-image-and-modules-of-pre-launched-vm">Update Kernel Image and Modules of Pre-Launched VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_partition_mode_on_nuc.html#update-acrn-hypervisor-image">Update ACRN Hypervisor Image</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_partition_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></li>
-<li class="toctree-l4"><a class="reference internal" href="using_partition_mode_on_nuc.html#logical-partition-scenario-startup-check">Logical Partition Scenario Startup Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="using_partition_mode_on_nuc.html#partitioned-scenario-startup-check">Partitioned Scenario Startup Check</a></li>
 </ul>
 </li>
 </ul>
@@ -308,9 +308,9 @@
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Enable Nested Virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#high-level-acrn-nested-virtualization-design">High Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#restrictions-and-constraints">Restrictions and Constraints</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#service-os-vm-configuration">Service OS VM configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#service-vm-configuration">Service VM Configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
 </ul>
@@ -1037,7 +1037,7 @@
   <div class="section" id="enable-nested-virtualization">
 <span id="nested-virt"></span><h1>Enable Nested Virtualization<a class="headerlink" href="#enable-nested-virtualization" title="Permalink to this headline">¶</a></h1>
 <p>With nested virtualization enabled in ACRN, you can run virtual machine
-instances inside of a guest VM (also called a user VM) running on the ACRN hypervisor.
+instances inside of a guest VM (also called a User VM) running on the ACRN hypervisor.
 Although both “level 1” guest VMs and nested guest VMs can be launched
 from the Service VM, the following distinction is worth noting:</p>
 <ul class="simple">
@@ -1062,7 +1062,7 @@ third level:</p>
 <p class="caption"><span class="caption-number">Figure 22 </span><span class="caption-text">Generic Nested Virtualization</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 <div class="section" id="high-level-acrn-nested-virtualization-design">
-<h2>High Level ACRN Nested Virtualization Design<a class="headerlink" href="#high-level-acrn-nested-virtualization-design" title="Permalink to this headline">¶</a></h2>
+<h2>High-Level ACRN Nested Virtualization Design<a class="headerlink" href="#high-level-acrn-nested-virtualization-design" title="Permalink to this headline">¶</a></h2>
 <p>The high-level design of nested virtualization in ACRN is shown in <a class="reference internal" href="#nested-virt-hld"><span class="std std-numref">Figure 23</span></a>.
 Nested VMX is enabled by allowing a guest VM to use VMX instructions,
 and emulating them using the single level of VMX available in the hardware.</p>
@@ -1090,7 +1090,7 @@ hypervisor to actually run the L2 guest.</p>
 </li>
 <li><p>L2 guest runs until triggering VMExits to L0</p>
 <ol class="loweralpha simple">
-<li><p>L0 reflects most VMEXits to L1 hypervisor</p></li>
+<li><p>L0 reflects most VMExits to L1 hypervisor</p></li>
 <li><p>L0 runs L1 guest with VMCS01 and VMCS02 as the shadow VMCS</p></li>
 </ol>
 </li>
@@ -1099,7 +1099,7 @@ hypervisor to actually run the L2 guest.</p>
 <div class="section" id="restrictions-and-constraints">
 <h2>Restrictions and Constraints<a class="headerlink" href="#restrictions-and-constraints" title="Permalink to this headline">¶</a></h2>
 <p>Nested virtualization is considered an experimental feature, and only tested
-on Tiger Lake and Kaby Lake platforms (See <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a>.)</p>
+on Tiger Lake and Kaby Lake platforms (see <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a>).</p>
 <p>L1 VMs have the following restrictions:</p>
 <ul class="simple">
 <li><p>KVM is the only L1 hypervisor supported by ACRN</p></li>
@@ -1114,20 +1114,20 @@ on Tiger Lake and Kaby Lake platforms (See <a class="reference internal" href=".
 on LAPIC passthrough pCPUs</p></li>
 </ul>
 <div class="section" id="vpid-allocation">
-<h3>VPID allocation<a class="headerlink" href="#vpid-allocation" title="Permalink to this headline">¶</a></h3>
+<h3>VPID Allocation<a class="headerlink" href="#vpid-allocation" title="Permalink to this headline">¶</a></h3>
 <p>ACRN doesn’t emulate L2 VPIDs and allocates VPIDs for L1 VMs from the reserved top
 16-bit VPID range (<code class="docutils literal notranslate"><span class="pre">0x10000U</span> <span class="pre">-</span> <span class="pre">CONFIG_MAX_VM_NUM</span> <span class="pre">*</span> <span class="pre">MAX_VCPUS_PER_VM</span></code> and up).
 If the L1 hypervisor enables VPID for L2 VMs and allocates L2 VPIDs not in this
 range, ACRN doesn’t need to flush L2 VPID during L2 VMX transitions.</p>
-<p>This is the expected behavior in most of the time. But in special cases where a
+<p>This is the expected behavior most of the time. But in special cases where a
 L2 VPID allocated by L1 hypervisor is within this reserved range, it’s possible
 that this L2 VPID may conflict with a L1 VPID. In this case,  ACRN flushes VPID
 on L2 VMExit/VMEntry that are associated with this L2 VPID, which may significantly
 negatively impact performances of this L2 VM.</p>
 </div>
 </div>
-<div class="section" id="service-os-vm-configuration">
-<h2>Service OS VM configuration<a class="headerlink" href="#service-os-vm-configuration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="service-vm-configuration">
+<h2>Service VM Configuration<a class="headerlink" href="#service-vm-configuration" title="Permalink to this headline">¶</a></h2>
 <p>ACRN only supports enabling the nested virtualization feature on the Service VM, not on pre-launched
 VMs.</p>
 <p>The nested virtualization feature is disabled by default in ACRN. You can
@@ -1139,7 +1139,7 @@ with these settings:</p>
 The tool wasn’t updated in time for the v2.5 release, so you’ll need to manually edit
 the ACRN scenario XML configuration file to edit the <code class="docutils literal notranslate"><span class="pre">SCHEDULER</span></code>, <code class="docutils literal notranslate"><span class="pre">NVMX_ENABLED</span></code>,
 <code class="docutils literal notranslate"><span class="pre">pcpu_id</span></code> , <code class="docutils literal notranslate"><span class="pre">guest_flags</span></code>, <code class="docutils literal notranslate"><span class="pre">legacy_vuart</span></code>, and <code class="docutils literal notranslate"><span class="pre">console_vuart</span></code> settings for
-the Service VM (SOS), as shown below:</p>
+the Service VM, as shown below.</p>
 </div>
 <ol class="arabic">
 <li><p>Configure system level features:</p>
@@ -1172,7 +1172,7 @@ the Service VM (SOS), as shown below:</p>
 </li>
 <li><p>In each guest VM configuration:</p>
 <ul>
-<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.guest_flags.guest_flag"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.guest_flags.guest_flag</span></code></a> on the SOS VM section and add <code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_NVMX_ENABLED</span></code>
+<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.guest_flags.guest_flag"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.guest_flags.guest_flag</span></code></a> on the Service VM section and add <code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_NVMX_ENABLED</span></code>
 to enable the nested virtualization feature on the Service VM.</p></li>
 <li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.guest_flags.guest_flag"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.guest_flags.guest_flag</span></code></a> and add <code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_LAPIC_PASSTHROUGH</span></code> to enable local
 APIC passthrough on the Service VM.</p></li>
@@ -1180,8 +1180,8 @@ APIC passthrough on the Service VM.</p></li>
 using debug build and need the hypervisor console, don’t assign
 <code class="docutils literal notranslate"><span class="pre">pCPU0</span></code> to the Service VM.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;vm</span> <span class="na">id=</span><span class="s">&quot;1&quot;</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;vm_type&gt;</span>SOS_VM<span class="nt">&lt;/vm_type&gt;</span>
-  <span class="nt">&lt;name&gt;</span>ACRN SOS VM<span class="nt">&lt;/name&gt;</span>
+  <span class="nt">&lt;vm_type&gt;</span>SERVICE_VM<span class="nt">&lt;/vm_type&gt;</span>
+  <span class="nt">&lt;name&gt;</span>ACRN_Service_VM<span class="nt">&lt;/name&gt;</span>
   <span class="nt">&lt;cpu_affinity&gt;</span>
 <span class="hll">    <span class="nt">&lt;pcpu_id&gt;</span>1<span class="nt">&lt;/pcpu_id&gt;</span>
 </span><span class="hll">    <span class="nt">&lt;pcpu_id&gt;</span>2<span class="nt">&lt;/pcpu_id&gt;</span>
@@ -1221,15 +1221,16 @@ for more details about VUART configuration.</p>
 </ul>
 </li>
 <li><p>Remove CPU sharing VMs</p>
-<p>Since CPU sharing is disabled, you may need to delete all <code class="docutils literal notranslate"><span class="pre">POST_STD_VM</span></code> and <code class="docutils literal notranslate"><span class="pre">KATA_VM</span></code> VMs
-from the scenario configuration file, which may share pCPU with the Service OS VM.</p>
+<p>Since CPU sharing is disabled, you may need to delete all <code class="docutils literal notranslate"><span class="pre">POST_STD_VM</span></code> and
+<code class="docutils literal notranslate"><span class="pre">KATA_VM</span></code> VMs from the scenario configuration file, which may share a pCPU
+with the Service VM.</p>
 </li>
 <li><p>Follow instructions in <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> and build with this XML configuration.</p></li>
 </ol>
 </div>
 <div class="section" id="prepare-for-service-vm-kernel-and-rootfs">
 <h2>Prepare for Service VM Kernel and rootfs<a class="headerlink" href="#prepare-for-service-vm-kernel-and-rootfs" title="Permalink to this headline">¶</a></h2>
-<p>The service VM can run Ubuntu or other Linux distributions.
+<p>The Service VM can run Ubuntu or other Linux distributions.
 Instructions on how to boot Ubuntu as the Service VM can be found in
 <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>.</p>
 <p>The Service VM kernel needs to be built from the <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code> repo, and some changes
@@ -1250,7 +1251,7 @@ CONFIG_KVM_INTEL=y
 CONFIG_ACRN_GUEST=y
 </pre></div>
 </div>
-<p>After you made these configuration modifications, build and install the kernel
+<p>After you make these configuration modifications, build and install the kernel
 as described in <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>.</p>
 </div>
 <div class="section" id="launch-a-nested-guest-vm">
@@ -1321,7 +1322,7 @@ on the ACRN hypervisor console because these commands only show level 1 VMs.</p>
 
 <span class="go">VM_UUID                          VM_ID VM_NAME           VM_STATE</span>
 <span class="go">================================ ===== ==========================</span>
-<span class="go">dbbbd4347a574216a12c2201f1ab0240   0   ACRN SOS VM       Running</span>
+<span class="go">dbbbd4347a574216a12c2201f1ab0240   0   ACRN_Service_VM       Running</span>
 <span class="go">ACRN:\&gt;vcpu_list</span>
 
 <span class="go">VM ID    PCPU ID    VCPU ID    VCPU ROLE    VCPU STATE    THREAD STATE</span>
@@ -1373,7 +1374,7 @@ and you’ll see that this is a QEMU-managed virtual machine:</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Sep 22, 2021. Published: Nov 08, 2021.
+      <span class="lastupdated">Last modified: Nov 08, 2021. Published: Nov 19, 2021.
       </span></p>
   </div>
 

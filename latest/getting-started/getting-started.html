@@ -183,7 +183,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-kernel-image-and-modules-of-pre-launched-vm">Update Kernel Image and Modules of Pre-Launched VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-acrn-hypervisor-image">Update ACRN Hypervisor Image</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#logical-partition-scenario-startup-check">Logical Partition Scenario Startup Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#partitioned-scenario-startup-check">Partitioned Scenario Startup Check</a></li>
 </ul>
 </li>
 </ul>
@@ -308,9 +308,9 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#service-os-vm-configuration">Service OS VM configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#service-vm-configuration">Service VM Configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
 </ul>
@@ -1167,12 +1167,12 @@ sudo cp ./generate/unix/bin/iasl /usr/sbin
 has a lot of Linux kernel history, you can clone the relevant release branch
 with minimal history, as shown here.)</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
-git clone https://github.com/projectacrn/acrn-hypervisor
+git clone https://github.com/projectacrn/acrn-hypervisor.git
 <span class="nb">cd</span> acrn-hypervisor
 git checkout v2.6
 
 <span class="nb">cd</span> ..
-git clone --depth <span class="m">1</span> --branch release_2.6 https://github.com/projectacrn/acrn-kernel
+git clone --depth <span class="m">1</span> --branch release_2.6 https://github.com/projectacrn/acrn-kernel.git
 </pre></div>
 </div>
 </li>
@@ -1480,6 +1480,7 @@ target system by USB disk as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls /media/<span class="nv">$USER</span><span class="k">)</span>
 cp linux-5.10.52-acrn-sos-x86.tar.gz <span class="nv">$disk</span>/
 cp ~/acrn-work/acrn-hypervisor/build/hypervisor/acrn.bin <span class="nv">$disk</span>/
+cp ~/acrn-work/acrn-hypervisor/build/hypervisor/serial.conf <span class="nv">$disk</span>/
 cp ~/acrn-work/my_board/output/launch_uos_id3.sh <span class="nv">$disk</span>/
 cp ~/acrn-work/acpica-unix-20210105/generate/unix/bin/iasl <span class="nv">$disk</span>/
 cp ~/acrn-work/acrn-hypervisor/build/acrn-2.6-unstable.tar.gz <span class="nv">$disk</span>/
@@ -1488,6 +1489,11 @@ sync <span class="o">&amp;&amp;</span> sudo umount <span class="nv">$disk</span>
 </div>
 <p>Even though our sample default scenario defines six User VMs, we’re only
 going to launch one of them, so we’ll only need the one launch script.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="file docutils literal notranslate"><span class="pre">serial.conf</span></code> is only generated if non standard vUARTs (not COM1~COM4)
+are configured for Service VM in scenario XML file.</p>
+</div>
 </li>
 <li><p>Insert the USB disk you just used into the target system and run these
 commands to copy the tar files locally:</p>
@@ -1514,6 +1520,7 @@ based on the board and scenario configuration.</p>
 <li><p>Copy a few additional ACRN files to the expected locations:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo mkdir -p /boot/acrn/
 sudo cp <span class="nv">$disk</span>/acrn.bin /boot/acrn
+sudo cp <span class="nv">$disk</span>/serial.conf /etc
 sudo cp <span class="nv">$disk</span>/iasl /usr/sbin/
 cp <span class="nv">$disk</span>/launch_uos_id3.sh ~/acrn-work
 sudo umount <span class="nv">$disk</span>/
@@ -1526,8 +1533,13 @@ sudo umount <span class="nv">$disk</span>/
 </div>
 <div class="numbered-step section" id="install-acrn">
 <h2>Install ACRN<a class="headerlink" href="#install-acrn" title="Permalink to this headline">¶</a></h2>
-<p>In the following steps, you will configure GRUB on the target system.</p>
+<p>In the following steps, you will install serial configuration tool and configure GRUB on the target system.</p>
 <ol class="arabic">
+<li><p>Install serial configuration tool in the target system as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install setserial
+</pre></div>
+</div>
+</li>
 <li><p>On the target, find the root filesystem (rootfs) device name by using the
 <code class="docutils literal notranslate"><span class="pre">lsblk</span></code> command:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">~$ lsblk</span>
@@ -1775,7 +1787,7 @@ additional details.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Oct 12, 2021. Published: Nov 08, 2021.
+      <span class="lastupdated">Last modified: Nov 10, 2021. Published: Nov 19, 2021.
       </span></p>
   </div>
 

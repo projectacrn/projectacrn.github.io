@@ -183,7 +183,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-kernel-image-and-modules-of-pre-launched-vm">Update Kernel Image and Modules of Pre-Launched VM</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-acrn-hypervisor-image">Update ACRN Hypervisor Image</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#logical-partition-scenario-startup-check">Logical Partition Scenario Startup Check</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_partition_mode_on_nuc.html#partitioned-scenario-startup-check">Partitioned Scenario Startup Check</a></li>
 </ul>
 </li>
 </ul>
@@ -308,9 +308,9 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#service-os-vm-configuration">Service OS VM configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#service-vm-configuration">Service VM Configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
 </ul>
@@ -1096,10 +1096,10 @@ It routes Vehicle Bus signals, for example extracted from CAN messages,
 from IOC to the SoC and back, as well as controlling the onboard
 peripherals from SoC.  (The <code class="docutils literal notranslate"><span class="pre">-i</span></code> and <code class="docutils literal notranslate"><span class="pre">-l</span></code> parameters are only available
 on a platform with IOC.)</p>
-<p>IOC DM opens <code class="docutils literal notranslate"><span class="pre">/dev/ptmx</span></code> device to create a peer PTY devices, IOC DM uses
-these to communicate with UART DM since UART DM needs a TTY capable device
-as its backend.</p>
-<p>The device model configuration command syntax for IOC mediator is:</p>
+<p>IOC DM opens the <code class="docutils literal notranslate"><span class="pre">/dev/ptmx</span></code> device to create peer PTY devices. IOC DM uses
+these devices to communicate with UART DM since UART DM needs a TTY capable
+device as its backend.</p>
+<p>The Device Model configuration command syntax for IOC mediator is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">i</span><span class="p">,[</span><span class="n">ioc_channel_path</span><span class="p">],[</span><span class="n">wakeup_reason</span><span class="p">]</span>
 <span class="o">-</span><span class="n">l</span><span class="p">,[</span><span class="n">lpc_port</span><span class="p">],[</span><span class="n">ioc_channel_path</span><span class="p">]</span>
 </pre></div>
@@ -1108,7 +1108,7 @@ as its backend.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">ioc_channel_path</span></code> is an absolute path for communication between IOC
 mediator and UART DM.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">lpc_port</span></code> is com1 or com2. IOC mediator needs one unassigned lpc
-port for data transfer between User OS and Service OS.</p></li>
+port for data transfer between the User VM and Service VM.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">wakeup_reason</span></code> is IOC mediator boot reason, where each bit represents
 one wakeup reason.</p></li>
 </ul>
@@ -1245,17 +1245,17 @@ UUID with this option.  If you don’t use this option, a default one
 </dl>
 <hr class="docutils" />
 <dl>
-<dt><code class="docutils literal notranslate"><span class="pre">--vsbl</span> <span class="pre">&lt;vsbl_file_path&gt;</span></code></dt><dd><p>Virtual Slim bootloader (vSBL) is the virtual bootloader supporting booting
+<dt><code class="docutils literal notranslate"><span class="pre">--vsbl</span> <span class="pre">&lt;vsbl_file_path&gt;</span></code></dt><dd><p>Virtual Slim Bootloader (vSBL) is the virtual bootloader supporting booting
 of the User VM on the ACRN hypervisor platform.  The vSBL design is derived
 from Slim Bootloader, which follows a staged design approach that provides
 hardware initialization and launching a payload that provides the boot
 logic.</p>
-<p>The vSBL image is installed on the Service OS root filesystem by the
-service-os bundle, in <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/bios/</span></code>.  In the current design,
-the vSBL supports booting Android guest OS or Linux guest OS using the same
-vSBL image.  For Android VM, the vSBL will load and verify trusty OS first,
-and trusty OS will then load and verify Android OS according to Android OS
-verification mechanism.</p>
+<p>The vSBL image is installed on the Service VM root filesystem by the Service
+VM OS bundle in <code class="docutils literal notranslate"><span class="pre">/usr/share/acrn/bios/</span></code>.  In the current design, the vSBL
+supports booting an Android guest OS or Linux guest OS using the same vSBL
+image.  For an Android VM, the vSBL will load and verify the trusty OS first,
+and the trusty OS will then load and verify the Android OS according to the
+Android OS verification mechanism.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>vSBL is currently only supported on Apollo Lake processors.</p>
@@ -1416,11 +1416,11 @@ system S5.</p>
 </dl>
 <hr class="docutils" />
 <dl>
-<dt><code class="docutils literal notranslate"><span class="pre">--pm_by_vuart</span> <span class="pre">[pty|tty],&lt;node_path&gt;</span></code></dt><dd><p>This option is used to set a user OS power management by virtual UART.
+<dt><code class="docutils literal notranslate"><span class="pre">--pm_by_vuart</span> <span class="pre">[pty|tty],&lt;node_path&gt;</span></code></dt><dd><p>This option is used to set User VM power management by virtual UART.
 With acrn-dm UART emulation and hypervisor UART emulation and configure,
-service OS can communicate with user OS through virtual UART. By this
-option, service OS can notify user OS to shutdown itself by vUART.</p>
-<p>It must work with <cite>–pm_notify_channel</cite> and PCI UART setting (lpc and -l).</p>
+the Service VM can communicate with the User VM through virtual UART. By this
+option, the Service VM can notify the User VM to shut down itself by vUART.</p>
+<p>It must work with <code class="docutils literal notranslate"><span class="pre">--pm_notify_channel</span></code> and PCI UART setting (lpc and -l).</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">general</span> <span class="n">User</span> <span class="n">VM</span><span class="p">,</span> <span class="n">such</span> <span class="k">as</span> <span class="n">LaaG</span> <span class="ow">or</span> <span class="n">WaaG</span><span class="p">,</span> <span class="n">it</span> <span class="n">must</span> <span class="nb">set</span><span class="p">:</span>
    <span class="o">--</span><span class="n">pm_notify_channel</span> <span class="n">uart</span> <span class="o">--</span><span class="n">pm_by_vuart</span> <span class="n">pty</span><span class="p">,</span><span class="o">/</span><span class="n">run</span><span class="o">/</span><span class="n">acrn</span><span class="o">/</span><span class="n">life_mngr_vm1</span>
@@ -1684,7 +1684,7 @@ monitor User VMs.</p></td>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Sep 28, 2021. Published: Nov 08, 2021.
+      <span class="lastupdated">Last modified: Nov 08, 2021. Published: Nov 19, 2021.
       </span></p>
   </div>
 
