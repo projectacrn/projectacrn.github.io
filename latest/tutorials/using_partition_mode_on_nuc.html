@@ -18,6 +18,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
         <script src="../_static/acrn-custom.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -341,6 +342,7 @@
 <li class="toctree-l4"><a class="reference internal" href="rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM Using VM Configuration</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="vcat_configuration.html">Enable vCAT Configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="waag-secure-boot.html">Enable Secure Boot in Windows</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB From Microsoft</a></li>
@@ -1029,12 +1031,12 @@
              
   <div class="section" id="getting-started-guide-for-acrn-partitioned-mode">
 <span id="using-partition-mode-on-nuc"></span><h1>Getting Started Guide for ACRN Partitioned Mode<a class="headerlink" href="#getting-started-guide-for-acrn-partitioned-mode" title="Permalink to this headline">¶</a></h1>
-<p>The ACRN hypervisor supports a partitioned scenario in which the User
-OS, running in a pre-launched VM, can bypass the ACRN
+<p>The ACRN hypervisor supports a partitioned scenario in which the OS running in
+a pre-launched VM can bypass the ACRN
 hypervisor and directly access isolated PCI devices. The following
 guidelines provide step-by-step instructions on how to set up the ACRN
-hypervisor partitioned scenario on Intel NUC while running two
-pre-launched VMs.</p>
+hypervisor partitioned scenario running two
+pre-launched VMs on an Intel NUC.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#validated-versions" id="id1">Validated Versions</a></p></li>
@@ -1077,8 +1079,8 @@ the USB controller respectively.</p></li>
 copy to your (<code class="docutils literal notranslate"><span class="pre">/boot</span></code> directory) and name the file <code class="docutils literal notranslate"><span class="pre">bzImage</span></code>.
 The <code class="docutils literal notranslate"><span class="pre">uname</span> <span class="pre">-r</span></code> command returns the kernel release, for example,
 <code class="docutils literal notranslate"><span class="pre">5.4.0-89-generic</span></code>):</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo cp /boot/vmlinuz-$(uname -r)  /boot/bzImage
-$ sudo cp /boot/initrd.img-$(uname -r) /boot/initrd_Image
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo cp /boot/vmlinuz-$(uname -r)  /boot/bzImage
+sudo cp /boot/initrd.img-$(uname -r) /boot/initrd_Image
 </pre></div>
 </div>
 </li>
@@ -1086,7 +1088,7 @@ $ sudo cp /boot/initrd.img-$(uname -r) /boot/initrd_Image
 multi-boot capable bootloader to boot both the ACRN hypervisor and the
 bootable kernel image built from the previous step. Install the Ubuntu OS
 on the onboard NVMe SSD by following the <a class="reference external" href="https://tutorials.ubuntu.com/tutorial/tutorial-install-ubuntu-desktop">Ubuntu desktop installation
-instructions</a> The
+instructions</a>. The
 Ubuntu installer creates 3 disk partitions on the onboard NVMe SSD. By
 default, the GRUB bootloader is installed on the EFI System Partition
 (ESP) that’s used to bootstrap the ACRN hypervisor.</p></li>
@@ -1100,14 +1102,16 @@ example, assuming the SATA disk and storage device with USB interface are
 assigned to <code class="docutils literal notranslate"><span class="pre">/dev/sda</span></code> and <code class="docutils literal notranslate"><span class="pre">/dev/sdb</span></code> respectively, the following
 commands set up the partition mode loadable kernel modules onto the root
 file systems to be loaded by the pre-launched VMs:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Mount the Ubuntu OS root filesystem on the SATA disk
-$ sudo mount /dev/sda3 /mnt
-$ sudo cp -r /lib/modules/* /mnt/lib/modules
-$ sudo umount /mnt
-# Mount the Ubuntu OS root filesystem on the USB flash disk
-$ sudo mount /dev/sdb3 /mnt
-$ sudo cp -r /lib/modules/* /mnt/lib/modules
-$ sudo umount /mnt
+<p>To mount the Ubuntu OS root filesystem on the SATA disk:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo mount /dev/sda3 /mnt
+sudo cp -r /lib/modules/* /mnt/lib/modules
+sudo umount /mnt
+</pre></div>
+</div>
+<p>To mount the Ubuntu OS root filesystem on the USB flash disk:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo mount /dev/sdb3 /mnt
+sudo cp -r /lib/modules/* /mnt/lib/modules
+sudo umount /mnt
 </pre></div>
 </div>
 </li>
@@ -1122,25 +1126,31 @@ controllers on the Intel NUC. Enter the following command to get the
 I/O addresses of the serial port. The Intel NUC supports one serial port, <strong>ttyS0</strong>.
 Connect the serial port to the development workstation in order to access
 the ACRN serial console to switch between pre-launched VMs:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ dmesg | grep ttyS0
-[    0.000000] console [ttyS0] enabled
-[    1.562546] 00:01: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is
-a 16550A
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dmesg | grep ttyS0
+</pre></div>
+</div>
+<p>Output example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">[    0.000000] console [ttyS0] enabled</span>
+<span class="go">[    1.562546] 00:01: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is</span>
+<span class="go">a 16550A</span>
 </pre></div>
 </div>
 <p>The following command prints detailed information about all PCI buses and
 devices in the system:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo lspci -vv
-00:14.0 USB controller: Intel Corporation Device 9ded (rev 30) (prog-if 30 [XHCI])
-        Subsystem: Intel Corporation Device 7270
-00:17.0 SATA controller: Intel Corporation Device 9dd3 (rev 30) (prog-if 01 [AHCI 1.0])
-        Subsystem: Intel Corporation Device 7270
-02:00.0 Non-Volatile memory controller: Intel Corporation Device f1a8 (rev 03) (prog-if 02 [NVM Express])
-        Subsystem: Intel Corporation Device 390d
-03:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)
-        Subsystem: Intel Corporation I210 Gigabit Network Connection
-04:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)
-        Subsystem: Intel Corporation I210 Gigabit Network Connection
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo lspci -vv
+</pre></div>
+</div>
+<p>Output example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">00:14.0 USB controller: Intel Corporation Device 9ded (rev 30) (prog-if 30 [XHCI])</span>
+<span class="go">        Subsystem: Intel Corporation Device 7270</span>
+<span class="go">00:17.0 SATA controller: Intel Corporation Device 9dd3 (rev 30) (prog-if 01 [AHCI 1.0])</span>
+<span class="go">        Subsystem: Intel Corporation Device 7270</span>
+<span class="go">02:00.0 Non-Volatile memory controller: Intel Corporation Device f1a8 (rev 03) (prog-if 02 [NVM Express])</span>
+<span class="go">        Subsystem: Intel Corporation Device 390d</span>
+<span class="go">03:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)</span>
+<span class="go">        Subsystem: Intel Corporation I210 Gigabit Network Connection</span>
+<span class="go">04:00.0 Ethernet controller: Intel Corporation I210 Gigabit Network Connection (rev 03)</span>
+<span class="go">        Subsystem: Intel Corporation I210 Gigabit Network Connection</span>
 </pre></div>
 </div>
 </li>
@@ -1148,9 +1158,9 @@ devices in the system:</p>
 <p>Refer to <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> to set up the ACRN build
 environment on your development workstation.</p>
 <p>Clone the ACRN source code and check out to the commit 9bae63b941:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/projectacrn/acrn-hypervisor.git
-$ cd acrn-hypervisor
-$ git checkout 9bae63b941
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/projectacrn/acrn-hypervisor.git
+cd acrn-hypervisor
+git checkout 9bae63b941
 </pre></div>
 </div>
 </li>
@@ -1159,7 +1169,7 @@ for each pre-launched VM to ensure you are using the right PCI device BDF inform
 reported by <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">-vv</span></code>). If you need to make changes to this file, create a copy of it and
 use it subsequently when building ACRN (<code class="docutils literal notranslate"><span class="pre">SCENARIO=/path/to/newfile.xml</span></code>).</p></li>
 <li><p>Build the ACRN hypervisor and ACPI binaries for pre-launched VMs with default xmls:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ make hypervisor BOARD=nuc11tnbi5 SCENARIO=partitioned
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make hypervisor BOARD=nuc11tnbi5 SCENARIO=partitioned
 </pre></div>
 </div>
 <div class="admonition note">
@@ -1169,10 +1179,10 @@ The <code class="docutils literal notranslate"><span class="pre">ACPI_VM0.bin</s
 </div>
 </li>
 <li><p>Check the Ubuntu bootloader name.</p>
-<p>In the current design, the partitioned depends on the GRUB boot
+<p>In the current design, the partitioned scenario depends on the GRUB boot
 loader; otherwise, the hypervisor will fail to boot. Verify that the
 default bootloader is GRUB:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo update-grub -V
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo update-grub -V
 </pre></div>
 </div>
 <p>The above command output should contain the <code class="docutils literal notranslate"><span class="pre">GRUB</span></code> keyword.</p>
@@ -1212,16 +1222,16 @@ directory.</p></li>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Update the UUID (<code class="docutils literal notranslate"><span class="pre">--set</span></code>) and PARTUUID (<code class="docutils literal notranslate"><span class="pre">root=</span></code> parameter)
-(or use the device node directly) of the root partition (e.g.``/dev/nvme0n1p2). Hint: use <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">blkid</span></code>.
+(or use the device node directly) of the root partition (e.g., <code class="docutils literal notranslate"><span class="pre">/dev/nvme0n1p2</span></code>). Hint: use <code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">blkid</span></code>.
 The kernel command-line arguments used to boot the pre-launched VMs is <code class="docutils literal notranslate"><span class="pre">bootargs</span></code>
-in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/partitioned.xml</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/partitioned.xml</span></code> file.
 The <code class="docutils literal notranslate"><span class="pre">module2</span> <span class="pre">/boot/bzImage</span></code> param <code class="docutils literal notranslate"><span class="pre">XXXXXX</span></code> is the bzImage tag and must exactly match the <code class="docutils literal notranslate"><span class="pre">kern_mod</span></code>
 in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/partitioned.xml</span></code> file.
 The <code class="docutils literal notranslate"><span class="pre">module2</span> <span class="pre">/boot/initrd_Image</span></code> param <code class="docutils literal notranslate"><span class="pre">XXXXXX</span></code> is the initrd_Image tag and must exactly match the <code class="docutils literal notranslate"><span class="pre">ramdisk_mod</span></code>
 in the <code class="docutils literal notranslate"><span class="pre">misc/config_tools/data/nuc11tnbi5/partitioned.xml</span></code> file.
-The module <code class="docutils literal notranslate"><span class="pre">/boot/ACPI_VM0.bin</span></code> is the binary of ACPI tables for pre-launched VM0, the parameter <code class="docutils literal notranslate"><span class="pre">ACPI_VM0</span></code> is
+The module <code class="docutils literal notranslate"><span class="pre">/boot/ACPI_VM0.bin</span></code> is the binary of ACPI tables for pre-launched VM0. The parameter <code class="docutils literal notranslate"><span class="pre">ACPI_VM0</span></code> is
 VM0’s ACPI tag and should not be modified.
-The module <code class="docutils literal notranslate"><span class="pre">/boot/ACPI_VM1.bin</span></code> is the binary of ACPI tables for pre-launched VM1 the parameter <code class="docutils literal notranslate"><span class="pre">ACPI_VM1</span></code> is
+The module <code class="docutils literal notranslate"><span class="pre">/boot/ACPI_VM1.bin</span></code> is the binary of ACPI tables for pre-launched VM1. The parameter <code class="docutils literal notranslate"><span class="pre">ACPI_VM1</span></code> is
 VM1’s ACPI tag and should not be modified.</p>
 </div>
 </li>
@@ -1257,12 +1267,12 @@ GRUB_CMDLINE_LINUX=&quot;&quot;
 </div>
 </li>
 <li><p>Update GRUB:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ sudo update-grub
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo update-grub
 </pre></div>
 </div>
 </li>
 <li><p>Reboot the Intel NUC. Select the <strong>ACRN hypervisor Partitioned
-Scenario</strong> entry to boot the partitioned of the ACRN hypervisor on
+Scenario</strong> entry to boot the partitioned scenario of the ACRN hypervisor on
 the Intel NUC’s display. The GRUB loader will boot the hypervisor, and the
 hypervisor will automatically start the two pre-launched VMs.</p></li>
 </ol>
@@ -1306,7 +1316,7 @@ for more information about available commands.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Nov 02, 2021. Published: Nov 22, 2021.
+      <span class="lastupdated">Last modified: Nov 23, 2021. Published: Nov 24, 2021.
       </span></p>
   </div>
 

@@ -18,6 +18,7 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
         <script src="../../_static/acrn-custom.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -341,6 +342,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM Using VM Configuration</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vcat_configuration.html">Enable vCAT Configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">Enable Secure Boot in Windows</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB From Microsoft</a></li>
@@ -1039,110 +1041,60 @@ connection, communication, and power supply between personal computers
 and their peripheral devices.</p>
 <div class="figure align-center" id="usb-virt-arch">
 <img alt="../../_images/usb-image51.png" src="../../_images/usb-image51.png" />
-<p class="caption"><span class="caption-number">Figure 183 </span><span class="caption-text">USB architecture overview</span><a class="headerlink" href="#usb-virt-arch" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 223 </span><span class="caption-text">USB Architecture Overview</span><a class="headerlink" href="#usb-virt-arch" title="Permalink to this image">¶</a></p>
 </div>
 <p>The ACRN USB virtualization includes
 emulation of three components, described here and shown in
-<a class="reference internal" href="#usb-virt-arch"><span class="std std-numref">Figure 183</span></a>:</p>
+<a class="reference internal" href="#usb-virt-arch"><span class="std std-numref">Figure 223</span></a>:</p>
 <ul>
 <li><p><strong>xHCI DM</strong> (Host Controller Interface) provides multiple
 instances of virtual xHCI controllers to share among multiple User
-OSes, each USB port can be assigned and dedicated to a VM by user
+VMs, each USB port can be assigned and dedicated to a VM by user
 settings.</p></li>
 <li><p><strong>xDCI controller</strong> (Device Controller Interface)
 can be passed through to the
-specific User OS with I/O MMU assistance.</p></li>
+specific User VM with I/O MMU assistance.</p></li>
 <li><p><strong>DRD DM</strong> (Dual Role Device) emulates the PHY MUX control
 logic. The sysfs interface in a User VM is used to trap the switch operation
-into DM, and the the sysfs interface in the Service VM is used to operate on the physical
-registers to switch between DCI and HCI role.</p>
-<p>On Intel Apollo Lake platform, the sysfs interface path is
-<code class="docutils literal notranslate"><span class="pre">/sys/class/usb_role/intel_xhci_usb_sw/role</span></code>. If user echos string
-<code class="docutils literal notranslate"><span class="pre">device</span></code> to role node, the usb phy will be connected with xDCI controller as
-device mode. Similarly, by echoing <code class="docutils literal notranslate"><span class="pre">host</span></code>, the usb phy will be
-connected with xHCI controller as host mode.</p>
+into DM, and the sysfs interface in the Service VM is used to operate on the
+physical registers to switch between DCI and HCI role.</p>
+<p>On Apollo Lake platforms, the sysfs interface path is
+<code class="docutils literal notranslate"><span class="pre">/sys/class/usb_role/intel_xhci_usb_sw/role</span></code>. If the user echos the string
+<code class="docutils literal notranslate"><span class="pre">device</span></code> to the role node, the USB PHY will be connected with the xDCI
+controller as
+device mode. Similarly, by echoing <code class="docutils literal notranslate"><span class="pre">host</span></code>, the USB PHY will be
+connected with the xHCI controller as host mode.</p>
 </li>
 </ul>
-<p>An xHCI register access from a User VM will induce EPT trap from the User VM to
+<p>An xHCI register access from a User VM will induce an EPT trap from the User VM
+to
 DM, and the xHCI DM or DRD DM will emulate hardware behaviors to make
 the subsystem run.</p>
-<div class="section" id="usb-devices-supported-by-usb-mediator">
-<h2>USB Devices Supported by USB Mediator<a class="headerlink" href="#usb-devices-supported-by-usb-mediator" title="Permalink to this headline">¶</a></h2>
-<p>The following USB devices are supported for the WaaG and LaaG operating systems.</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 44%" />
-<col style="width: 28%" />
-<col style="width: 28%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Device</p></th>
-<th class="head"><p>WaaG OS</p></th>
-<th class="head"><p>LaaG OS</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>USB Storage</p></td>
-<td><p>Y</p></td>
-<td><p>Y</p></td>
-</tr>
-<tr class="row-odd"><td><p>USB Mouse</p></td>
-<td><p>Y</p></td>
-<td><p>Y</p></td>
-</tr>
-<tr class="row-even"><td><p>USB Keyboard</p></td>
-<td><p>Y</p></td>
-<td><p>Y</p></td>
-</tr>
-<tr class="row-odd"><td><p>USB Camera</p></td>
-<td><p>Y</p></td>
-<td><p>Y</p></td>
-</tr>
-<tr class="row-even"><td><p>USB Headset</p></td>
-<td><p>Y</p></td>
-<td><p>Y</p></td>
-</tr>
-<tr class="row-odd"><td><p>USB Hub
-(20 ports max
-per VM)</p></td>
-<td><p>Y</p></td>
-<td><p>Y</p></td>
-</tr>
-</tbody>
-</table>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The above information is current as of ACRN 1.4.</p>
-</div>
-</div>
 <div class="section" id="usb-host-virtualization">
 <h2>USB Host Virtualization<a class="headerlink" href="#usb-host-virtualization" title="Permalink to this headline">¶</a></h2>
 <p>USB host virtualization is implemented as shown in
-<a class="reference internal" href="#xhci-dm-arch"><span class="std std-numref">Figure 184</span></a>:</p>
+<a class="reference internal" href="#xhci-dm-arch"><span class="std std-numref">Figure 224</span></a>:</p>
 <div class="figure align-center" id="xhci-dm-arch">
 <img alt="../../_images/usb-image10.png" src="../../_images/usb-image10.png" />
-<p class="caption"><span class="caption-number">Figure 184 </span><span class="caption-text">xHCI DM software architecture</span><a class="headerlink" href="#xhci-dm-arch" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 224 </span><span class="caption-text">xHCI DM Software Architecture</span><a class="headerlink" href="#xhci-dm-arch" title="Permalink to this image">¶</a></p>
 </div>
-<p>The yellow-colored components make up the ACRN USB stack supporting xHCI
+<p>The following components make up the ACRN USB stack supporting xHCI
 DM:</p>
 <ul class="simple">
-<li><p><strong>xHCI DM</strong> emulates the xHCI controller logic following the xHCI spec;</p></li>
+<li><p><strong>xHCI DM</strong> emulates the xHCI controller logic following the xHCI spec.</p></li>
 <li><p><strong>USB core</strong> is a middle abstract layer to isolate the USB controller
 emulators and USB device emulators.</p></li>
-<li><dl class="simple">
-<dt><strong>USB Port Mapper</strong> maps the specific native physical USB</dt><dd><p>ports to virtual USB ports. It communicate with
-native USB ports though libusb.</p>
-</dd>
-</dl>
-</li>
+<li><p><strong>USB Port Mapper</strong> maps the specific native physical USB
+ports to virtual USB ports. It communicates with
+native USB ports though libusb.</p></li>
 </ul>
 <p>All the USB data buffers from a User VM are in the form of TRB
 (Transfer Request Blocks), according to xHCI spec. xHCI DM will fetch
 these data buffers when the related xHCI doorbell registers are set.
-These data will convert to <em>struct usb_data_xfer</em> and, through USB core,
-forward to the USB port mapper module which will communicate with native USB
+The data will convert to <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">usb_data_xfer</span></code> and, through USB core,
+forward to the USB port mapper module which will communicate with the native USB
 stack over libusb.</p>
-<p>The device model configuration command syntax for xHCI is as follows:</p>
+<p>The Device Model configuration command syntax for xHCI is as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">slot</span><span class="o">&gt;</span><span class="p">,</span><span class="n">xhci</span><span class="p">,[</span><span class="n">bus1</span><span class="o">-</span><span class="n">port1</span><span class="p">,</span><span class="n">bus2</span><span class="o">-</span><span class="n">port2</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -1163,41 +1115,38 @@ detected by a User VM and used as expected.</p>
 <p>USB DRD (Dual Role Device) emulation works as shown in this figure:</p>
 <div class="figure align-center" id="id2">
 <img alt="../../_images/usb-image31.png" src="../../_images/usb-image31.png" />
-<p class="caption"><span class="caption-number">Figure 185 </span><span class="caption-text">xHCI DRD DM software architecture</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 225 </span><span class="caption-text">xHCI DRD DM Software Architecture</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
-<p>ACRN emulates the DRD hardware logic of an Intel Apollo Lake platform to
-support the dual role requirement. The DRD feature is implemented as xHCI
+<p>ACRN emulates the DRD hardware logic of an Apollo Lake platform to
+support the dual role requirement. The DRD feature is implemented as an xHCI
 vendor extended capability.  ACRN emulates
 the same way, so the native driver can be reused in a User VM. When a User VM DRD
-driver reads or writes the related xHCI extended registers, these access will
+driver reads or writes the related xHCI extended registers, these accesses will
 be captured by xHCI DM. xHCI DM uses the native DRD related
 sysfs interface to do the Host/Device mode switch operations.</p>
-<p>The device model configuration command syntax for xHCI DRD is as
+<p>The Device Model configuration command syntax for xHCI DRD is as
 follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">slot</span><span class="o">&gt;</span><span class="p">,</span><span class="n">xhci</span><span class="p">,[</span><span class="n">bus1</span><span class="o">-</span><span class="n">port1</span><span class="p">,</span><span class="n">bus2</span><span class="o">-</span><span class="n">port2</span><span class="p">],</span><span class="n">cap</span><span class="o">=</span><span class="n">platform</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><dl class="simple">
-<dt><em>cap</em>: cap means virtual xHCI capability. This parameter</dt><dd><p>indicates virtual xHCI should emulate the named platform’s xHCI
-capabilities.</p>
-</dd>
-</dl>
-</li>
+<li><p><em>cap</em>: cap means virtual xHCI capability. This parameter
+indicates virtual xHCI should emulate the named platform’s xHCI
+capabilities.</p></li>
 </ul>
 <p>A simple example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="mi">7</span><span class="p">,</span><span class="n">xhci</span><span class="p">,</span><span class="mi">1</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="n">cap</span><span class="o">=</span><span class="n">apl</span>
 </pre></div>
 </div>
 <p>This configuration means the virtual xHCI should emulate xHCI
-capabilities for the Intel Apollo Lake platform, which supports DRD
+capabilities for the Apollo Lake platform, which supports the DRD
 feature.</p>
 </div>
 <div class="section" id="interface-specification">
 <h2>Interface Specification<a class="headerlink" href="#interface-specification" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>reference doxygen-generated API content</p>
+<p>Reference the Doxygen-generated API content.</p>
 </div>
 </div>
 </div>
@@ -1214,7 +1163,7 @@ feature.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Feb 12, 2021. Published: Nov 22, 2021.
+      <span class="lastupdated">Last modified: Nov 09, 2021. Published: Nov 24, 2021.
       </span></p>
   </div>
 

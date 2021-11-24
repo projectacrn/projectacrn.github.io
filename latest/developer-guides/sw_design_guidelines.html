@@ -18,6 +18,7 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
         <script src="../_static/acrn-custom.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -341,6 +342,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM Using VM Configuration</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/vcat_configuration.html">Enable vCAT Configuration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/waag-secure-boot.html">Enable Secure Boot in Windows</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB From Microsoft</a></li>
@@ -1034,10 +1036,10 @@
 <div class="section" id="workflow">
 <h3>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h3>
 <p>Error detection and error handling workflow in the ACRN hypervisor is shown in
-<a class="reference internal" href="#work-flow-of-error-detection-and-error-handling"><span class="std std-numref">Figure 239</span></a>.</p>
+<a class="reference internal" href="#work-flow-of-error-detection-and-error-handling"><span class="std std-numref">Figure 281</span></a>.</p>
 <div class="figure align-center" id="work-flow-of-error-detection-and-error-handling">
 <img alt="../_images/work_flow_of_error_detection_and_error_handling.png" src="../_images/work_flow_of_error_detection_and_error_handling.png" />
-<p class="caption"><span class="caption-number">Figure 239 </span><span class="caption-text">Error Detection and Error Handling Workflow</span><a class="headerlink" href="#work-flow-of-error-detection-and-error-handling" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 281 </span><span class="caption-text">Error Detection and Error Handling Workflow</span><a class="headerlink" href="#work-flow-of-error-detection-and-error-handling" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="design-assumption">
@@ -1246,7 +1248,7 @@ it’s the caller’s responsibility to guarantee these pre-conditions.</p>
 <span class="cm"> * @pre vcpu_id &lt; CONFIG_MAX_VCPUS_PER_VM</span>
 <span class="cm"> * @pre &amp;(vm-&gt;hw.vcpu_array[vcpu_id])-&gt;state != VCPU_OFFLINE</span>
 <span class="cm"> */</span>
-<span class="k">static</span> <span class="kr">inline</span> <span class="k">struct</span> <span class="n">acrn_vcpu</span> <span class="o">*</span><span class="nf">vcpu_from_vid</span><span class="p">(</span><span class="k">struct</span> <span class="n">acrn_vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint16_t</span> <span class="n">vcpu_id</span><span class="p">)</span>
+<span class="k">static</span> <span class="kr">inline</span> <span class="k">struct</span> <span class="nc">acrn_vcpu</span> <span class="o">*</span><span class="n">vcpu_from_vid</span><span class="p">(</span><span class="k">struct</span> <span class="nc">acrn_vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">,</span> <span class="kt">uint16_t</span> <span class="n">vcpu_id</span><span class="p">)</span>
 <span class="p">{</span>
         <span class="k">return</span> <span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">hw</span><span class="p">.</span><span class="n">vcpu_array</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">]);</span>
 <span class="p">}</span>
@@ -1401,12 +1403,12 @@ a module level.</p>
 <span class="cm"> * @pre vm != NULL</span>
 <span class="cm"> * @pre vm-&gt;vpci-&gt;pci_vdev_cnt &lt;= CONFIG_MAX_PCI_DEV_NUM</span>
 <span class="cm"> */</span>
-<span class="k">static</span> <span class="kt">int32_t</span> <span class="nf">partition_mode_vpci_init</span><span class="p">(</span><span class="k">const</span> <span class="k">struct</span> <span class="n">acrn_vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
+<span class="k">static</span> <span class="kt">int32_t</span> <span class="n">partition_mode_vpci_init</span><span class="p">(</span><span class="k">const</span> <span class="k">struct</span> <span class="nc">acrn_vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
 <span class="p">{</span>
-        <span class="k">struct</span> <span class="n">acrn_vpci</span> <span class="o">*</span><span class="n">vpci</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">acrn_vpci</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">);</span>
-        <span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="n">vdev</span><span class="p">;</span>
-        <span class="k">struct</span> <span class="n">acrn_vm_config</span> <span class="o">*</span><span class="n">vm_config</span> <span class="o">=</span> <span class="n">get_vm_config</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vm_id</span><span class="p">);</span>
-        <span class="k">struct</span> <span class="n">acrn_vm_pci_dev_config</span> <span class="o">*</span><span class="n">pci_dev_config</span><span class="p">;</span>
+        <span class="k">struct</span> <span class="nc">acrn_vpci</span> <span class="o">*</span><span class="n">vpci</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="nc">acrn_vpci</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">);</span>
+        <span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">vdev</span><span class="p">;</span>
+        <span class="k">struct</span> <span class="nc">acrn_vm_config</span> <span class="o">*</span><span class="n">vm_config</span> <span class="o">=</span> <span class="n">get_vm_config</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vm_id</span><span class="p">);</span>
+        <span class="k">struct</span> <span class="nc">acrn_vm_pci_dev_config</span> <span class="o">*</span><span class="n">pci_dev_config</span><span class="p">;</span>
         <span class="kt">uint32_t</span> <span class="n">i</span><span class="p">;</span>
 
         <span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span> <span class="o">=</span> <span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_dev_num</span><span class="p">;</span>
@@ -1445,7 +1447,7 @@ pre-conditions and <code class="docutils literal notranslate"><span class="pre">
 <span class="cm"> * @post retval != NULL</span>
 <span class="cm"> * @post retval-&gt;pci_dev_num &lt;= MAX_PCI_DEV_NUM</span>
 <span class="cm"> */</span>
-<span class="k">struct</span> <span class="n">acrn_vm_config</span> <span class="o">*</span><span class="nf">get_vm_config</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">vm_id</span><span class="p">)</span>
+<span class="k">struct</span> <span class="nc">acrn_vm_config</span> <span class="o">*</span><span class="n">get_vm_config</span><span class="p">(</span><span class="kt">uint16_t</span> <span class="n">vm_id</span><span class="p">)</span>
 <span class="p">{</span>
         <span class="k">return</span> <span class="o">&amp;</span><span class="n">vm_configs</span><span class="p">[</span><span class="n">vm_id</span><span class="p">];</span>
 <span class="p">}</span>
@@ -1494,13 +1496,13 @@ boot information.</p>
 <span class="cm"> * @pre vdev != NULL</span>
 <span class="cm"> * @pre vm-&gt;vpci-&gt;pci_vdev_cnt &lt;= CONFIG_MAX_PCI_DEV_NUM</span>
 <span class="cm"> */</span>
-<span class="k">static</span> <span class="kt">void</span> <span class="nf">partition_mode_vpci_deinit</span><span class="p">(</span><span class="k">const</span> <span class="k">struct</span> <span class="n">acrn_vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="n">partition_mode_vpci_deinit</span><span class="p">(</span><span class="k">const</span> <span class="k">struct</span> <span class="nc">acrn_vm</span> <span class="o">*</span><span class="n">vm</span><span class="p">)</span>
 <span class="p">{</span>
-        <span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="n">vdev</span><span class="p">;</span>
+        <span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">vdev</span><span class="p">;</span>
         <span class="kt">uint32_t</span> <span class="n">i</span><span class="p">;</span>
 
         <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0U</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">.</span><span class="n">pci_vdev_cnt</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-                <span class="n">vdev</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">pci_vdev</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">.</span><span class="n">pci_vdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+                <span class="n">vdev</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">.</span><span class="n">pci_vdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
                 <span class="k">if</span> <span class="p">((</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">deinit</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">))</span> <span class="p">{</span>
                         <span class="k">if</span> <span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">deinit</span><span class="p">(</span><span class="n">vdev</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
                                 <span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;vdev-&gt;ops-&gt;deinit failed!&quot;</span><span class="p">);</span>
@@ -1689,7 +1691,7 @@ configuration is dereferenced after it has been instantiated.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Nov 12, 2021. Published: Nov 22, 2021.
+      <span class="lastupdated">Last modified: Nov 12, 2021. Published: Nov 24, 2021.
       </span></p>
   </div>
 
