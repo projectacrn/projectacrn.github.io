@@ -18,7 +18,6 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
         <script src="../_static/acrn-custom.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -300,7 +299,7 @@
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../develop.html#advanced-features">Advanced Features</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="sgx_virtualization.html">Enable SGX Virtualization</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="sgx_virtualization.html#high-level-acrn-sgx-virtualization-design">High Level ACRN SGX Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sgx_virtualization.html#high-level-acrn-sgx-virtualization-design">High-Level ACRN SGX Virtualization Design</a></li>
 <li class="toctree-l4"><a class="reference internal" href="sgx_virtualization.html#enable-sgx-support-for-guest">Enable SGX Support for Guest</a></li>
 <li class="toctree-l4"><a class="reference internal" href="sgx_virtualization.html#sgx-capability-exposure">SGX Capability Exposure</a></li>
 <li class="toctree-l4"><a class="reference internal" href="sgx_virtualization.html#enclave-system-function-handling">Enclave System Function Handling</a></li>
@@ -1039,10 +1038,10 @@ solutions cannot communicate with each other.</p>
 <div class="section" id="enable-ivshmem-support">
 <h2>Enable Ivshmem Support<a class="headerlink" href="#enable-ivshmem-support" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> solution is disabled by default in ACRN. You can enable
-it using the <a class="reference internal" href="acrn_configurator_tool.html#acrn-configurator-tool"><span class="std std-ref">ACRN configurator tool</span></a> with these
+it using the <a class="reference internal" href="acrn_configurator_tool.html#acrn-configurator-tool"><span class="std std-ref">ACRN Configurator</span></a> with these
 steps:</p>
 <ul>
-<li><p>Enable <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> via ACRN configurator tool GUI.</p>
+<li><p>Enable <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> via ACRN Configurator GUI.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>Set <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-hv.FEATURES.IVSHMEM.IVSHMEM_ENABLED"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_ENABLED</span></code></a> to <code class="docutils literal notranslate"><span class="pre">y</span></code></p></li>
@@ -1088,17 +1087,17 @@ with <code class="docutils literal notranslate"><span class="pre">dm:/</span></c
 <p>There are two ways to insert the above boot parameter for <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>:</p>
 <ul>
 <li><p>Manually edit the launch script file. In this case, ensure that both
-<code class="docutils literal notranslate"><span class="pre">shm_name</span></code> and <code class="docutils literal notranslate"><span class="pre">shm_size</span></code> match those defined via the ACRN configurator
+<code class="docutils literal notranslate"><span class="pre">shm_name</span></code> and <code class="docutils literal notranslate"><span class="pre">shm_size</span></code> match those defined via the ACRN Configurator
 tool.</p></li>
 <li><p>Use the following command to create a launch script, when IVSHMEM is enabled
 and <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-hv.FEATURES.IVSHMEM.IVSHMEM_REGION"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_REGION</span></code></a> is properly configured via
-the ACRN configurator tool.</p>
+the ACRN Configurator.</p>
 <blockquote>
 <div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>python3 misc/config_tools/launch_config/launch_cfg_gen.py \
---board &lt;path_to_your_boardxml&gt; \
---scenario &lt;path_to_your_scenarioxml&gt; \
+--board &lt;path_to_your_board_xml&gt; \
+--scenario &lt;path_to_your_scenario_xml&gt; \
 --launch &lt;path_to_your_launch_script_xml&gt;  \
-<span class="hll">--uosid &lt;desired_single_vmid_or_0_for_all_vmids&gt;
+<span class="hll">--user_vmid &lt;desired_single_vmid_or_0_for_all_vmids&gt;
 </span></pre></div>
 </div>
 </div></blockquote>
@@ -1128,7 +1127,7 @@ ivshmem device, the layout of doorbell register is described in
 <dt>Hypervisor:</dt><dd><p>When doorbell register is programmed, hypervisor will search the
 target VM by target Peer ID and inject MSI interrupt to the target VM.</p>
 </dd>
-<dt>Notification Receiver (VM):</dt><dd><p>VM receives MSI interrupt and forward it to related application.</p>
+<dt>Notification Receiver (VM):</dt><dd><p>VM receives MSI interrupt and forwards it to related application.</p>
 </dd>
 </dl>
 <p>ACRN supports up to 8 (MSI-X) interrupt vectors for ivshmem device.
@@ -1161,7 +1160,7 @@ size is 2MB. Both VMs must have the same shared memory name and size:</p>
  -s 2,pci-gvt -G &quot;$2&quot; \
  -s 5,virtio-console,@stdio:stdio_port \
  -s 6,virtio-hyper_dmabuf \
- -s 3,virtio-blk,/home/acrn/uos1.img \
+ -s 3,virtio-blk,/home/acrn/UserVM1.img \
  -s 4,virtio-net,tap0 \
 <span class="hll"> -s 6,ivshmem,dm:/test,2 \
 </span> -s 7,virtio-rnd \
@@ -1173,7 +1172,7 @@ size is 2MB. Both VMs must have the same shared memory name and size:</p>
 <li><p>VM2 Launch Script Sample</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge \
  -s 2,pci-gvt -G &quot;$2&quot; \
- -s 3,virtio-blk,/home/acrn/uos2.img \
+ -s 3,virtio-blk,/home/acrn/UserVM2.img \
  -s 4,virtio-net,tap0 \
 <span class="hll"> -s 5,ivshmem,dm:/test,2 \
 </span> --ovmf /usr/share/acrn/bios/OVMF.fd \
@@ -1192,9 +1191,9 @@ size is 2MB. Both VMs must have the same shared memory name and size:</p>
 <li><p>As recorded in the <a class="reference external" href="https://pci-ids.ucw.cz/read/PC/1af4">PCI ID Repository</a>,
 the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device vendor ID is <code class="docutils literal notranslate"><span class="pre">1af4</span></code> (Red Hat) and device ID is <code class="docutils literal notranslate"><span class="pre">1110</span></code>
 (Inter-VM shared memory).  Use these commands to probe the device:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sudo modprobe uio
-$ sudo modprobe uio_pci_generic
-$ sudo echo &quot;1af4 1110&quot; &gt; /sys/bus/pci/drivers/uio_pci_generic/new_id
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">modprobe</span> <span class="n">uio</span>
+<span class="n">sudo</span> <span class="n">modprobe</span> <span class="n">uio_pci_generic</span>
+<span class="n">sudo</span> <span class="n">echo</span> <span class="s2">&quot;1af4 1110&quot;</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">bus</span><span class="o">/</span><span class="n">pci</span><span class="o">/</span><span class="n">drivers</span><span class="o">/</span><span class="n">uio_pci_generic</span><span class="o">/</span><span class="n">new_id</span>
 </pre></div>
 </div>
 </li>
@@ -1247,7 +1246,7 @@ size is 2MB.</p>
 <li><p>VM2 Launch Script Sample</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -A -m $mem_size -s 0:0,hostbridge \
  -s 2,pci-gvt -G &quot;$2&quot; \
- -s 3,virtio-blk,/home/acrn/uos2.img \
+ -s 3,virtio-blk,/home/acrn/UserVM2.img \
  -s 4,virtio-net,tap0 \
 <span class="hll"> -s 5,ivshmem,hv:/shm_region_0,2 \
 </span> --ovmf /usr/share/acrn/bios/OVMF.fd \
@@ -1276,7 +1275,7 @@ depending on the configuration.</p></li>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021, Project ACRN™.
-      <span class="lastupdated">Last modified: Oct 05, 2021. Published: Nov 24, 2021.
+      <span class="lastupdated">Last modified: Nov 24, 2021. Published: Nov 25, 2021.
       </span></p>
   </div>
 
