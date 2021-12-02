@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pre-Launched Preempt-Rt Linux Mode in ACRN &mdash; Project ACRN™ 2.7-unstable documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <title>Pre-Launched Preempt-RT Linux Mode in ACRN &mdash; Project ACRN™ 2.7-unstable documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
       <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
@@ -438,7 +438,7 @@
 <li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Pre-Launched Preempt-Rt Linux Mode in ACRN</a><ul>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Pre-Launched Preempt-RT Linux Mode in ACRN</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-of-pre-launched-rt">Example of Pre-Launched RT</a></li>
 </ul>
@@ -1019,7 +1019,7 @@
   
      <li><a href="../develop.html">Advanced Guides</a> &raquo;</li>
   
-  <li>Pre-Launched Preempt-Rt Linux Mode in ACRN</li>
+  <li>Pre-Launched Preempt-RT Linux Mode in ACRN</li>
 
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -1030,23 +1030,23 @@
            <div itemprop="articleBody">
              
   <div class="section" id="pre-launched-preempt-rt-linux-mode-in-acrn">
-<span id="pre-launched-rt"></span><h1>Pre-Launched Preempt-Rt Linux Mode in ACRN<a class="headerlink" href="#pre-launched-preempt-rt-linux-mode-in-acrn" title="Permalink to this headline">¶</a></h1>
+<span id="pre-launched-rt"></span><h1>Pre-Launched Preempt-RT Linux Mode in ACRN<a class="headerlink" href="#pre-launched-preempt-rt-linux-mode-in-acrn" title="Permalink to this headline">¶</a></h1>
 <p>The Pre-Launched Preempt-RT Linux Mode of ACRN, abbreviated as
 Pre-Launched RT mode, is an ACRN configuration scenario. Pre-Launched RT
-mode allows you to boot ACRN with a preempt-rt Linux running in VM0, and
-the Service VM running in VM1. VM0 and VM1 are both pre-launched VMs,
-and their resources are partitioned from those on the physical platform.</p>
+mode enables you to create a pre-launched real-time VM (RTVM) running
+Preempt-RT Linux (VM0) and a Service VM (VM1). Their resources are partitioned
+from those on the physical platform.</p>
 <div class="figure align-center">
 <img alt="../_images/pre_launched_rt.png" src="../_images/pre_launched_rt.png" />
 </div>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
-<p>Because the Pre-Launched RT VM and Service VM are physically isolated
+<p>Because the pre-launched RTVM and Service VM are physically isolated
 from each other, they must have their own devices to run a common OS,
 such as Linux. Also, the platform must support booting ACRN with
 multiple kernel images. So, your platform must have:</p>
 <ul class="simple">
-<li><p>Two hard disk drives, one for the Pre-Launched RT and one for the Service
+<li><p>Two hard disk drives, one for the pre-launched RTVM and one for the Service
 VM</p></li>
 <li><p>Two network devices</p></li>
 <li><p>GRUB multiboot support</p></li>
@@ -1056,51 +1056,51 @@ VM</p></li>
 <h2>Example of Pre-Launched RT<a class="headerlink" href="#example-of-pre-launched-rt" title="Permalink to this headline">¶</a></h2>
 <p>Take the Whiskey Lake WHL-IPC-I5 board (as described in <a class="reference internal" href="../reference/hardware.html#hardware"><span class="std std-ref">Supported Hardware</span></a>) for
 example. This platform can connect both an NVMe and a SATA drive and has
-two Ethernet ports. We will passthrough the SATA and Ethernet 03:00.0
-devices into the Pre-Launched RT VM, and give the rest of the devices to
+two Ethernet ports. We will pass through the SATA and Ethernet 03:00.0
+devices into the pre-launched RTVM, and give the rest of the devices to
 the Service VM.</p>
-<div class="section" id="install-sos-with-grub-on-nvme">
-<h3>Install SOS With Grub on NVMe<a class="headerlink" href="#install-sos-with-grub-on-nvme" title="Permalink to this headline">¶</a></h3>
-<p>As with the Hybrid and Logical Partition scenarios, the Pre-Launched RT
+<div class="section" id="install-service-vm-os-with-grub-on-nvme">
+<h3>Install Service VM OS With GRUB on NVMe<a class="headerlink" href="#install-service-vm-os-with-grub-on-nvme" title="Permalink to this headline">¶</a></h3>
+<p>As with the Hybrid and Partition scenarios, the Pre-Launched RT
 mode must boot using GRUB.  The ACRN hypervisor is loaded as a GRUB
-multiboot kernel, while the Pre-Launched RT kernel and Service VM
-kernels are loaded as multiboot modules. The ACRN hypervisor, Service
-VM, and Pre-Launched RT kernel images are all located on the NVMe drive.
+multiboot kernel, while the pre-launched RTVM kernel and Service VM
+kernel are loaded as multiboot modules. The ACRN hypervisor, Service
+VM, and pre-launched RTVM kernel images are all located on the NVMe drive.
 We recommend installing Ubuntu on the NVMe drive as the Service VM OS,
 which also has the required GRUB image to launch Pre-Launched RT mode.
-Refer to <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>, to
-install Ubuntu on the NVMe drive, and use grub to launch the Service VM.</p>
+Refer to <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> to
+install Ubuntu on the NVMe drive, and use GRUB to launch the Service VM.</p>
 </div>
 <div class="section" id="install-pre-launched-rt-filesystem-on-sata-and-kernel-image-on-nvme">
 <h3>Install Pre-Launched RT Filesystem on SATA and Kernel Image on NVMe<a class="headerlink" href="#install-pre-launched-rt-filesystem-on-sata-and-kernel-image-on-nvme" title="Permalink to this headline">¶</a></h3>
-<p>Follow the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> to install RT rootfs on SATA drive.</p>
-<p>The Kernel should
+<p>Follow the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a> to install RT rootfs on the SATA drive.</p>
+<p>The kernel should
 be on the NVMe drive along with GRUB. You’ll need to copy the RT kernel
 to the NVMe drive. Once you have successfully installed and booted
 Ubuntu from the NVMe drive, you’ll then need to copy the RT kernel from
 the SATA to the NVMe drive:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># mount /dev/nvme0n1p1 /boot
-# mount /dev/sda1 /mnt
-# cp /mnt/bzImage /boot/EFI/BOOT/bzImage_RT
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo mount /dev/nvme0n1p1 /boot
+sudo mount /dev/sda1 /mnt
+sudo cp /mnt/bzImage /boot/EFI/BOOT/bzImage_RT
 </pre></div>
 </div>
 </div>
 <div class="section" id="build-acrn-with-pre-launched-rt-mode">
 <h3>Build ACRN With Pre-Launched RT Mode<a class="headerlink" href="#build-acrn-with-pre-launched-rt-mode" title="Permalink to this headline">¶</a></h3>
 <p>The ACRN VM configuration framework can easily configure resources for
-Pre-Launched VMs. On Whiskey Lake WHL-IPC-I5, to passthrough SATA and
-Ethernet 03:00.0 devices to the Pre-Launched RT VM, build ACRN with:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make BOARD_FILE=$PWD/misc/acrn-config/xmls/board-xmls/whl-ipc-i5.xml SCENARIO_FILE=$PWD/misc/acrn-config/xmls/config-xmls/whl-ipc-i5/hybrid_rt.xml RELEASE=0
+pre-launched VMs. On Whiskey Lake WHL-IPC-I5, to pass through SATA and
+Ethernet 03:00.0 devices to the pre-launched RTVM, build ACRN with:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make BOARD=whl-ipc-i5 SCENARIO=hybrid_rt
 </pre></div>
 </div>
 <p>After the build completes, update ACRN on NVMe. It is
-/boot/EFI/BOOT/acrn.bin, if /dev/nvme0n1p1 is mounted at /boot.</p>
+<code class="docutils literal notranslate"><span class="pre">/boot/EFI/BOOT/acrn.bin</span></code>, if <code class="docutils literal notranslate"><span class="pre">/dev/nvme0n1p1</span></code> is mounted at <code class="docutils literal notranslate"><span class="pre">/boot</span></code>.</p>
 </div>
 <div class="section" id="add-pre-launched-rt-kernel-image-to-grub-config">
 <h3>Add Pre-Launched RT Kernel Image to GRUB Config<a class="headerlink" href="#add-pre-launched-rt-kernel-image-to-grub-config" title="Permalink to this headline">¶</a></h3>
-<p>The last step is to modify the GRUB configuration file to load the Pre-Launched
-kernel. (For more information about this, see
-the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>.) The grub config file will look something
+<p>The last step is to modify the GRUB configuration file to load the pre-launched
+RTVM kernel. (For more information about this, see
+the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>.) The GRUB configuration file will look something
 like this:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>menuentry &#39;ACRN multiboot2 hybrid&#39;{
     echo &#39;loading multiboot2 hybrid...&#39;
@@ -1111,16 +1111,16 @@ like this:</p>
 }
 </pre></div>
 </div>
-<p>Reboot the system, and it will boot into Pre-Launched RT Mode</p>
+<p>Reboot the system, and it will boot into Pre-Launched RT Mode:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ACRN:\&gt;vm_list
 VM_UUID                          VM_ID       VM_NAME                    VM_STATE
 ================================ ===== ================================ ========
 26c5e0d88f8a47d88109f201ebd61a5e   0   ACRN PRE-LAUNCHED VM0            Running
-dbbbd4347a574216a12c2201f1ab0240   1   ACRN SOS VM                      Running
+dbbbd4347a574216a12c2201f1ab0240   1   ACRN Service VM                  Running
 ACRN:\&gt;
 </pre></div>
 </div>
-<p>Connect console of VM0, via ‘vm_console’ ACRN shell command (Press
+<p>Connect to the console of VM0, via <code class="docutils literal notranslate"><span class="pre">vm_console</span></code> ACRN shell command. (Press
 <kbd class="kbd docutils literal notranslate">Ctrl</kbd> + <kbd class="kbd docutils literal notranslate">Space</kbd> to return to the ACRN shell.)</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ACRN:\&gt;vm_console 0
 
@@ -1145,7 +1145,7 @@ root@clr-85a5e9fbac604fbbb92644991f6315df ~ #
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2021 Project ACRN™, a Series of LF Projects, LLC.
-      <span class="lastupdated">Last modified: Sep 20, 2021. Published: Dec 01, 2021.
+      <span class="lastupdated">Last modified: Nov 15, 2021. Published: Dec 02, 2021.
       </span></p>
   </div>
 
