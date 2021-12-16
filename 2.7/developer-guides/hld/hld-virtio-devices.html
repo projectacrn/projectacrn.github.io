@@ -1,0 +1,2193 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtio Devices High-Level Design &mdash; Project ACRN™ 2.7 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/menu.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/tabs.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" /><link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/acrn-custom.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Virtio-BLK" href="virtio-blk.html" />
+    <link rel="prev" title="ACRN Shared Memory Based Inter-VM Communication" href="ivshmem-hld.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Project ACRN™<img src="../../_static/ACRN_Logo_200w.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                2.7
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Project ACRN</span>
+      v: 2.7
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Document Versions</dt>
+        
+          <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/2.6/">2.6</a></dd>
+        
+          <dd><a href="/2.5/">2.5</a></dd>
+        
+          <dd><a href="/2.4/">2.4</a></dd>
+        
+          <dd><a href="/2.3/">2.3</a></dd>
+        
+          <dd><a href="/2.2/">2.2</a></dd>
+        
+          <dd><a href="/2.1/">2.1</a></dd>
+        
+          <dd><a href="/2.0/">2.0</a></dd>
+        
+          <dd><a href="/1.6.1/">1.6.1</a></dd>
+        
+          <dd><a href="/1.6/">1.6</a></dd>
+        
+          <dd><a href="/1.5/">1.5</a></dd>
+        
+          <dd><a href="/1.4/">1.4</a></dd>
+        
+          <dd><a href="/1.0/">1.0</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>projectacrn.org links</dt>
+          <dd>
+            <a href="https://www.projectacrn.org/">Project Home</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/projectacrn/acrn-hypervisor/wiki">Wiki</a>
+          </dd>
+      </dl>
+    </div>
+  </div>
+  
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Documentation Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction/index.html">What Is ACRN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#id1">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#key-capabilities">Key Capabilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#device-passthrough">Device Passthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#predefined-sample-scenarios">Predefined Sample Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../try.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/hardware.html">Supported Hardware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#selecting-hardware">Selecting Hardware</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/overview_dev.html">Configuration and Development Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#development-environment">Development Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#general-process-for-building-an-acrn-hypervisor">General Process for Building an ACRN Hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-light-step-1-select-hardware-and-scenario"> Step 1: Select Hardware and Scenario</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#select-your-hardware">Select Your Hardware</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#select-your-scenario">Select Your Scenario</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-2-prepare-the-development-computer"> Step 2: Prepare the Development Computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-target-step-3-generate-a-board-configuration-file"> Step 3: Generate a Board Configuration File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#configure-bios-settings">Configure BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#use-the-board-inspector-to-generate-a-board-configuration-file">Use the Board Inspector to Generate a Board Configuration File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-4-generate-a-scenario-configuration-file-and-launch-scripts"> Step 4: Generate a Scenario Configuration File and Launch Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#generate-a-scenario-configuration-file">Generate a Scenario Configuration File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#generate-launch-scripts">Generate Launch Scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-5-build-acrn"> Step 5: Build ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-target-step-6-install-and-run-acrn"> Step 6: Install and Run ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/getting-started.html">Getting Started Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#set-up-the-hardware">Set Up the Hardware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prepare-the-development-computer">Prepare the Development Computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prepare-the-target-and-generate-a-board-configuration-file">Prepare the Target and Generate a Board Configuration File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#install-os-on-the-target">Install OS on the Target</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#configure-target-bios-settings">Configure Target BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#generate-a-board-configuration-file">Generate a Board Configuration File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#generate-a-scenario-configuration-file-and-launch-scripts">Generate a Scenario Configuration File and Launch Scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#build-acrn">Build ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#run-acrn-and-the-service-vm">Run ACRN and the Service VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#launch-the-user-vm">Launch the User VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../develop.html">Advanced Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-scenario-tutorials">Advanced Scenario Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html">Getting Started Guide for ACRN Hybrid Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#set-up-base-installation">Set-up base installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#prepare-the-zephyr-image">Prepare the Zephyr image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#set-up-acrn-on-your-device">Set-up ACRN on your device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-check">Hybrid Scenario Startup Check</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html">Getting Started Guide for ACRN Partitioned Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#validated-versions">Validated Versions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-kernel-image-and-modules-of-pre-launched-vm">Update Kernel Image and Modules of Pre-Launched VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-acrn-hypervisor-image">Update ACRN Hypervisor Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#update-ubuntu-grub-to-boot-hypervisor-and-load-kernel-image">Update Ubuntu GRUB to Boot Hypervisor and Load Kernel Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_partition_mode_on_nuc.html#partitioned-scenario-startup-check">Partitioned Scenario Startup Check</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#service-vm-tutorials">Service VM Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html">Run Debian as the Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#validated-versions">Validated Versions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#install-acrn-on-the-debian-vm">Install ACRN on the Debian VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_serv_vm.html#enable-network-sharing-to-give-network-access-to-the-user-vm">Enable Network Sharing to Give Network Access to the User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_yp.html">Using Yocto Project With ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_yp.html#the-meta-acrn-layer">The meta-acrn Layer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#user-vm-tutorials">User VM Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html">Launch Windows as the Guest VM on ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#acrn-windows-verified-feature-list">ACRN Windows Verified Feature List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm Popular Command Lines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#secure-boot-enabling">Secure Boot Enabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#activate-windows-10">Activate Windows 10</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html">Run Ubuntu as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html#build-the-ubuntu-kvm-image">Build the Ubuntu KVM Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html#launch-the-ubuntu-image-as-the-user-vm">Launch the Ubuntu Image as the User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_ubun_as_user_vm.html#enable-the-ubuntu-console-instead-of-the-user-interface">Enable the Ubuntu Console Instead of the User Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html">Run Debian as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html#build-the-debian-kvm-image">Build the Debian KVM Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html#launch-the-debian-image-as-the-user-vm">Launch the Debian Image as the User VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/running_deb_as_user_vm.html#enable-the-ttys0-console-on-the-debian-vm">Enable the ttyS0 Console on the Debian VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html">Run Xenomai as the User VM OS (Real-Time VM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#build-the-xenomai-kernel">Build the Xenomai Kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#launch-the-rtvm">Launch the RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#install-the-xenomai-libraries-and-tools">Install the Xenomai Libraries and Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_vxworks_as_user_vm.html">Run VxWorks as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_vxworks_as_user_vm.html#steps-for-using-vxworks-as-user-vm">Steps for Using VxWorks as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#configuration-tutorials">Configuration Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html">Introduction to ACRN Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#types-of-configurations">Types of Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#using-acrn-configuration-toolset">Using ACRN Configuration Toolset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#acrn-configuration-data">ACRN Configuration Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/board_inspector_tool.html">Board Inspector Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#about-the-board-inspector-tool">About the Board Inspector Tool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#generate-a-board-configuration-file">Generate a Board Configuration File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#command-line-options">Command-Line Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html">ACRN Configurator Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#about-the-acrn-configurator-tool">About the ACRN Configurator Tool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#generate-a-scenario-configuration-file-and-launch-scripts">Generate a Scenario Configuration File and Launch Scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/config-options.html">Scenario Configuration Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#common-option-value-types">Common Option Value Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#hv">hv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#vm">vm</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/config-options-launch.html">Launch Configuration Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hv-make-options.html">Hypervisor Makefile Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/hv-make-options.html#build-options-and-targets">Build Options and Targets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/hv-make-options.html#makefile-targets-for-configuration">Makefile Targets for Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/hv-parameters.html">ACRN Hypervisor Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/hv-parameters.html#generic-hypervisor-parameters">Generic Hypervisor Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/kernel-parameters.html">ACRN Kernel Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html">Device Model Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/packaging/README.html">ACRN Installation via Debian Packages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#set-up-prerequisites">Set Up Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#configure-debian-packaging-details">Configure Debian Packaging Details</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#run-the-package-building-script">Run the Package-Building Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#prepare-your-target-system-with-ubuntu-18-04">Prepare Your Target System With Ubuntu 18.04</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#install-debian-packages-on-your-target-system">Install Debian Packages on Your Target System</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#boot-acrn-using-the-multiboot2-grub-choice">Boot ACRN Using the Multiboot2 Grub Choice</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/packaging/README.html#verify-acrn-is-running">Verify ACRN Is Running</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/sgx_virtualization.html">Enable SGX Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#high-level-acrn-sgx-virtualization-design">High-Level ACRN SGX Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#enable-sgx-support-for-guest">Enable SGX Support for Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#sgx-capability-exposure">SGX Capability Exposure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#enclave-system-function-handling">Enclave System Function Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#other-vmexit-control">Other VMExit Control</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sgx_virtualization.html#future-development">Future Development</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#service-vm-configuration">Service VM Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html">Enable vUART Configurations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#console-enable-list">Console Enable List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#how-to-configure-a-console-port">How to Configure a Console Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#how-to-configure-a-communication-port">How to Configure a Communication Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#communication-vuart-enable-list">Communication vUART Enable List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#launch-script">Launch Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#test-the-communication-port">Test the Communication Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#vuart-design">vUART Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#com-port-configurations-for-post-launched-vms">COM Port Configurations for Post-Launched VMs</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html#use-pci-vuart">Use PCI-vUART</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#pci-interface-of-acrn-vuart">PCI Interface of ACRN vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#index-of-vuart">Index of vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#setup-acrn-vuart-using-configuration-tools">Setup ACRN vUART Using Configuration Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#kernel-config-for-legacy-vuart">Kernel Config for Legacy vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#kernel-cmdline-for-pci-vuart-console">Kernel Cmdline for PCI-vUART Console</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rdt_configuration.html">Enable RDT Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#rdt-detection-and-resource-capabilities">RDT Detection and Resource Capabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#tuning-rdt-resources-in-hv-debug-shell">Tuning RDT Resources in HV Debug Shell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM Using VM Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vcat_configuration.html">Enable vCAT Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">Enable Secure Boot in Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB From Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF With Secure Boot Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to Inject Secure Boot Keys Into OVMF</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_s5.html">Enable S5 in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#s5-architecture">S5 Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#id2">Enable S5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#how-to-test">How to Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#system-shutdown">System Shutdown</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/cpu_sharing.html">Enable CPU Sharing in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#scheduling-framework">Scheduling Framework</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#cpu-affinity">CPU Affinity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#thread-object-state">Thread Object State</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#scheduler">Scheduler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/sriov_virtualization.html">Enable SR-IOV Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#verified-version">Verified Version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#supported-hardware-platform">Supported Hardware Platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#bios-settings">BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP Driver</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-docker">Install Docker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-kata-containers">Install Kata Containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#run-a-kata-container-with-acrn">Run a Kata Container With ACRN</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/trustyACRN.html">Trusty and Security Services Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-services">Trusty Services</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/trustyACRN.html#trusty-in-acrn">Trusty in ACRN</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html">Real-Time VM Application Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#run-rtvm-with-dedicated-resources-devices">Run RTVM With Dedicated Resources/Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-virtio-pmd-polling-mode-driver-for-i-o-sharing">RTVM With Virtio PMD (Polling Mode Driver) for I/O Sharing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-hv-emulated-device">RTVM With HV Emulated Device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#dm-emulated-device-except-pmd">DM Emulated Device (Except PMD)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html">Configure ACRN Using OpenStack and Libvirt</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-and-launch-lxc-lxd">Set Up and Launch LXC/LXD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set Up ACRN Prerequisites Inside the Container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-libvirt">Set Up Libvirt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-openstack">Set Up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and Create OpenStack Instance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html">Enable ACRN Over QEMU/KVM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#using-pre-installed-grub">Using Pre-Installed GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#installing-self-built-grub">Installing Self-Built GRUB</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html">Enable ACRN Secure Boot With GRUB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#generate-gpg-key">Generate GPG Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html">Enable ACRN Secure Boot With EFI-Stub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#verified-configurations">Verified Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#installing-without-sb-for-testing">Installing (without SB for testing)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/pre-launched-rt.html">Pre-Launched Preempt-RT Linux Mode in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/pre-launched-rt.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/pre-launched-rt.html#example-of-pre-launched-rt">Example of Pre-Launched RT</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ivshmem.html">Enable Inter-VM Communication Based on Ivshmem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#enable-ivshmem-support">Enable Ivshmem Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Enable Serial Port on NUC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-1-using-the-serial-port-on-tgl-intel-nuc">Option 1: Using the Serial Port on TGL Intel NUC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-2-enabling-pcie-serial-port-on-tgl-intel-nuc">Option 2: Enabling PCIe Serial Port on TGL Intel NUC</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/debug.html">ACRN Debugging Tools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-console-command">ACRN Console Command</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#an-example">An Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-log">ACRN Log</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-trace">ACRN Trace</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html">ACRN Real-Time (RT) Performance Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#vmexit-analysis-for-acrn-rt-performance">vmexit Analysis for ACRN RT Performance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#collecting-performance-monitoring-counters-data">Collecting Performance Monitoring Counters Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html">ACRN Real-Time VM Performance Tips</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#background">Background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#mandatory-options-for-an-rtvm">Mandatory Options for an RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#avoid-vm-exit-latency">Avoid VM-exit Latency</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#isolating-the-impact-of-neighbor-vms">Isolating the Impact of Neighbor VMs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-shell.html">ACRN Shell Commands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-shell.html#command-examples">Command Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html">ACRN-Crashlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#enabling-disabling">Enabling/Disabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html">Acrnprobe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#source-files">Source Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#configuration-files">Configuration Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html">Acrnprobe Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#layout">Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#properties-of-group-members">Properties of Group Members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#crash-tree-in-acrnprobe">Crash Tree in Acrnprobe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#sections">Sections</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html">Usercrash</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#design">Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html">Acrnlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html">Acrntrace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/services/acrn_manager/README.html">Acrnctl and Acrnd</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#acrnd">Acrnd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../contribute.html">Developer Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../contribute.html#design-guides">Design Guides</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html">ACRN Hypervisor: Modular Design</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#principles">Principles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Virtio Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-security.html">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../sw_design_guidelines.html">Software Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#error-detection-and-error-handling">Error Detection and Error Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#module-level-configuration-design-guidelines">Module Level Configuration Design Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html">Trusty TEE</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-specific-hypercalls">Trusty Specific Hypercalls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-boot-flow">Trusty Boot Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#ept-hierarchy">EPT Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#contribute-guides">Contribute Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute_guidelines.html">Contribution Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#technical-steering-committee-tsc">Technical Steering Committee (TSC)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#licensing">Licensing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#developer-certification-of-origin-dco">Developer Certification of Origin (DCO)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#repository-layout">Repository Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#submitting-issues">Submitting Issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-tools-and-git-setup">Contribution Tools and Git Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#coding-style">Coding Style</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-workflow">Contribution Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#commit-guidelines">Commit Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../coding_guidelines.html">Coding Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../c_coding_guidelines.html">C Programming Language Coding Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../asm_coding_guidelines.html">Assembly Language Coding Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../doc_guidelines.html">Documentation Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#headings">Headings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#content-highlighting">Content Highlighting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#lists">Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#multi-column-lists">Multi-Column Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#file-names-and-commands">File Names and Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#branch-specific-file-links">Branch-Specific File Links</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#internal-cross-reference-linking">Internal Cross-Reference Linking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#non-ascii-characters">Non-ASCII Characters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#code-and-command-examples">Code and Command Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#images">Images</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tabs-spaces-and-indenting">Tabs, Spaces, and Indenting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#background-colors">Background Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#drawings">Drawings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#alternative-tabbed-content">Alternative Tabbed Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#instruction-steps">Instruction Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#first-instruction-step">First Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#second-instruction-step">Second Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#configuration-option-documentation">Configuration Option Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#documentation-generation">Documentation Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../graphviz.html">Drawings Using Graphviz</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#simple-directed-graph">Simple Directed Graph</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#adding-edge-labels">Adding Edge Labels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#finite-state-machine">Finite-State Machine</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html">ACRN Documentation Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-overview">Documentation Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#set-up-the-documentation-working-folders">Set Up the Documentation Working Folders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#install-the-documentation-tools">Install the Documentation Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-presentation-theme">Documentation Presentation Theme</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#run-the-documentation-processors">Run the Documentation Processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#publish-content">Publish Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#document-versioning">Document Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#filter-expected-warnings">Filter Expected Warnings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#api-documentation">API Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/hypercall_api.html">Hypercall APIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/devicemodel_api.html">Device Model APIs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.7.html">ACRN v2.7 (Dec 2021)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.7.html#what-s-new-in-v2-7">What’s New in v2.7</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.7.html#upgrading-to-v2-7-from-previous-releases">Upgrading to v2.7 From Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.7.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.7.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.7.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.7.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.7.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.6.html">ACRN v2.6 (Sep 2021)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.6.html#what-s-new-in-v2-6">What’s New in v2.6</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.6.html#upgrading-to-v2-6-from-previous-releases">Upgrading to v2.6 From Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.6.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.6.html#add-new-configuration-options">Add New Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.6.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.6.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.6.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.5.1.html">ACRN v2.5.1 (Aug 2021)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.5.1.html#what-s-new-in-v2-5-1">What’s New in v2.5.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.5.1.html#fixed-issues-details">Fixed Issues Details</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.5.html">ACRN v2.5 (Jun 2021)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.5.html#what-s-new-in-v2-5">What’s New in v2.5</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.5.html#upgrading-to-v2-5-from-previous-releases">Upgrading to v2.5 From Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.5.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.5.html#add-new-configuration-options">Add New Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.5.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.5.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.5.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.4.html">ACRN v2.4 (Apr 2021)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#what-s-new-in-v2-4">What’s New in v2.4</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#acrn-configuration-and-build">ACRN Configuration and Build</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#upgrading-to-v2-4-from-previous-releases">Upgrading to v2.4 From Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#additional-dependencies">Additional Dependencies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#configuration-file-format">Configuration File Format</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#new-configuration-options">New Configuration Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#build-commands">Build Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#patches-on-generated-sources">Patches on Generated Sources</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#document-updates">Document Updates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#deprivileged-boot-mode-support">Deprivileged Boot Mode Support</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.4.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.3.html">ACRN v2.3 (Dec 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.3.html#what-s-new-in-v2-3">What’s New in v2.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.2.html">ACRN v2.2 (Sep 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.2.html#what-s-new-in-v2-2">What’s New in v2.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.2.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.2.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.2.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.1.html">ACRN v2.1 (Aug 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.1.html#what-s-new-in-v2-1">What’s New in v2.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.1.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.1.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_2.0.html">ACRN v2.0 (Jun 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#version-2-0-key-features-comparing-with-v1-0">Version 2.0 Key Features (Comparing With v1.0)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#acrn-architecture-upgrade-to-support-hybrid-mode">ACRN Architecture Upgrade to Support Hybrid Mode</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#new-hardware-platform-support">New Hardware Platform Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#pre-launched-safety-vm-support">Pre-Launched Safety VM Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#post-launched-vm-support-via-ovmf">Post-Launched VM Support via OVMF</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#post-launched-real-time-vm-support">Post-Launched Real-Time VM Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#real-time-vm-performance-optimizations">Real-Time VM Performance Optimizations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#cpu-sharing-support">CPU Sharing Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#large-selection-of-oss-for-user-vms">Large Selection of OSs for User VMs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#grub-bootloader">GRUB Bootloader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#sr-iov-support">SR-IOV Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#graphics-passthrough-support">Graphics Passthrough Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#shared-memory-based-inter-vm-communication">Shared Memory Based Inter-Vm Communication</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#configuration-tool-support">Configuration Tool Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#kata-containers-support">Kata Containers Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#vm-orchestration">VM Orchestration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_2.0.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html">ACRN v1.6.1 (May 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#version-1-6-1-major-features">Version 1.6.1 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#what-s-new-in-v1-6-1">What’s New in v1.6.1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.1.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.6.html">ACRN v1.6 (Mar 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#version-1-6-major-features">Version 1.6 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#what-s-new-in-v1-6">What’s New in v1.6</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.6.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.5.html">ACRN v1.5 (Jan 2020)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#version-1-5-major-features">Version 1.5 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#what-s-new-in-v1-5">What’s New in v1.5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.5.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.4.html">ACRN v1.4 (Oct 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#version-1-4-major-features">Version 1.4 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#what-s-new-in-v1-4">What’s New in v1.4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#security-vulnerabilities">Security Vulnerabilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.4.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.3.html">ACRN v1.3 (Sep 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#version-1-3-major-features">Version 1.3 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#what-s-new-in-v1-3">What’s New in v1.3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.3.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.2.html">ACRN v1.2 (Aug 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#version-1-2-major-features">Version 1.2 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#what-s-new-in-v1-2">What’s New in v1.2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.2.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.1.html">ACRN v1.1 (Jun 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#version-1-1-major-features">Version 1.1 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#hybrid-mode-introduced">Hybrid Mode Introduced</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#support-for-new-guest-operating-systems">Support for New Guest Operating Systems</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.1.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.0.2.html">ACRN v1.0.2 (Nov 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.2.html#change-log-in-v1-0-2-since-v1-0-1">Change Log in v1.0.2 Since v1.0.1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.0.1.html">ACRN v1.0.1 (July 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.1.html#change-log-in-version-1-0-1-since-version-1-0">Change Log in Version 1.0.1 Since Version 1.0</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_1.0.html">ACRN v1.0 (May 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#version-1-0-major-features">Version 1.0 Major Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#hardware-support">Hardware Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#apl-up2-board-with-sbl-firmware">APL UP2 Board With SBL Firmware</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#enable-post-launched-rtvm-support-for-real-time-uos-in-acrn">Enable Post-Launched RTVM Support for Real-Time UOS in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#enable-cache-qos-with-cat">Enable Cache QOS With CAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#enable-qos-based-on-runc-container">Enable QoS Based on runC Container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#s5-support-for-rtvm">S5 Support for RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#ovmf-support-initial-patches-merged-in-acrn">OVMF Support Initial Patches Merged in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#support-acpi-power-key-mediator">Support ACPI Power Key Mediator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#vt-x-vt-d">VT-x, VT-d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#pic-ioapic-msi-msi-x-pci-lapic">PIC/IOAPIC/MSI/MSI-X/PCI/LAPIC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#ethernet">Ethernet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#mass-storage">Mass Storage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#usb-xdci">USB (xDCI)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#usb-mediator-xhci">USB Mediator (xHCI)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#wi-fi">Wi-Fi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#ipu-mipi-csi-2-hdmi-in">IPU (MIPI CSI-2, HDMI-In)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#bluetooth">Bluetooth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#gvt-g-for-acrn">GVT-g for ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#gpu-preemption">GPU - Preemption</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#gpu-display-surface-sharing-via-hyper-dma">GPU - Display Surface Sharing via Hyper DMA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#virtio-standard-is-supported">Virtio Standard Is Supported</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#device-pass-through-support">Device Pass-Through Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#gpio-virtualization">GPIO Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#new-acrn-tools">New ACRN Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_1.0.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.8.html">ACRN v0.8 (Apr 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#version-0-8-new-features">Version 0.8 New Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#gpio-virtualization">GPIO Virtualization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#enable-qos-based-on-runc-container">Enable QoS Based on runC Container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#s5-support-for-rtvm">S5 Support for RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.8.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.7.html">ACRN v0.7 (Mar 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#version-0-7-new-features">Version 0.7 New Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#enable-cache-qos-with-cat">Enable Cache QOS With CAT</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#support-acpi-power-key-mediator">Support ACPI Power Key Mediator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#document-updates">Document Updates</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#new-features-details">New Features Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.7.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.6.html">ACRN v0.6 (Feb 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.6.html#version-0-6-new-features">Version 0.6 New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.6.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.6.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.6.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.5.html">ACRN v0.5 (Jan 2019)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.5.html#version-0-5-new-features">Version 0.5 New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.5.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.5.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.5.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.4.html">ACRN v0.4 (Dec 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.4.html#version-0-4-new-features">Version 0.4 New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.4.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.4.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.4.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.3.html">ACRN v0.3 (Nov 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.3.html#version-0-3-new-features">Version 0.3 New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.3.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.3.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.3.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.2.html">ACRN v0.2 (Sep 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#version-0-2-new-features">Version 0.2 New Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#vt-x-vt-d">VT-x, VT-d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#pic-ioapic-msi-msi-x-pci-lapic">PIC/IOAPIC/MSI/MSI-X/PCI/LAPIC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#ethernet">Ethernet</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#storage-emmc">Storage (eMMC)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#usb-xdci">USB (xDCI)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#usb-mediator-xhci-and-drd">USB Mediator (xHCI and DRD)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#csme">CSME</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#wifi">WiFi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#ipu-mipi-cs2-hdmi-in">IPU (MIPI-CS2, HDMI-In)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#bluetooth">Bluetooth</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#gpu-preemption">GPU  - Preemption</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#gpu-display-surface-sharing-via-hyper-dma">GPU - Display Surface Sharing via Hyper DMA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#s3">S3</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#fixed-issues">Fixed Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.2.html#change-log">Change Log</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_0.1.html">ACRN v0.1 (July 2018)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#version-0-1-new-features">Version 0.1 New Features</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#hardware-support">Hardware Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#gvt-g-for-acrn">GVT-g for ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#virtio-standard-is-supported">Virtio Standard Is Supported</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#device-pass-through-support">Device Pass-Through Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#hypervisor-configuration">Hypervisor Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#new-acrn-tools">New ACRN Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#known-issues">Known Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_0.1.html#change-log">Change Log</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../asa.html">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-7">Addressed in ACRN v2.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-6">Addressed in ACRN v2.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-5">Addressed in ACRN v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-3">Addressed in ACRN v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-1">Addressed in ACRN v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6">Addressed in ACRN v1.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-4">Addressed in ACRN v1.4</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../faq.html#what-hardware-does-acrn-support">What Hardware Does ACRN Support?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary of Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Project ACRN™</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+  <!-- 2.7 -->
+  
+  
+
+  <li><a href="../../index.html">2.7</a> &raquo;</li>
+  
+     <li><a href="../../contribute.html">Developer Reference</a> &raquo;</li>
+  
+     <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
+  
+  <li>Virtio Devices High-Level Design</li>
+
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="virtio-devices-high-level-design">
+<span id="virtio-hld"></span><span id="hld-virtio-devices"></span><h1>Virtio Devices High-Level Design<a class="headerlink" href="#virtio-devices-high-level-design" title="Permalink to this headline">¶</a></h1>
+<p>The ACRN hypervisor follows the <a class="reference external" href="http://docs.oasis-open.org/virtio/virtio/v1.0/virtio-v1.0.html">Virtual I/O Device (virtio)
+specification</a> to
+realize I/O virtualization for many performance-critical devices
+supported in the ACRN project. Adopting the virtio specification lets us
+reuse many frontend virtio drivers already available in a Linux-based
+User VM, drastically reducing potential development effort for frontend
+virtio drivers.  To further reduce the development effort of backend
+virtio drivers, the hypervisor  provides the virtio backend service
+(VBS) APIs, that make  it very straightforward to implement a virtio
+device in the hypervisor.</p>
+<p>The virtio APIs can be divided into 3 groups: DM APIs, virtio backend
+service (VBS) APIs, and virtqueue (VQ) APIs, as shown in
+<a class="reference internal" href="#be-interface"><span class="std std-numref">Figure 198</span></a>.</p>
+<div class="figure align-center" id="be-interface">
+<a class="reference internal image-reference" href="../../_images/virtio-hld-image0.png"><img alt="../../_images/virtio-hld-image0.png" src="../../_images/virtio-hld-image0.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 198 </span><span class="caption-text">ACRN Virtio Backend Service Interface</span><a class="headerlink" href="#be-interface" title="Permalink to this image">¶</a></p>
+</div>
+<ul class="simple">
+<li><p><strong>DM APIs</strong> are exported by the DM, and are mainly used during the
+device initialization phase and runtime. The DM APIs also include
+PCIe emulation APIs because each virtio device is a PCIe device in
+the Service VM and User VM.</p></li>
+<li><p><strong>VBS APIs</strong> are mainly exported by the VBS and related modules.
+Generally they are callbacks to be
+registered into the DM.</p></li>
+<li><p><strong>VQ APIs</strong> are used by a virtio backend device to access and parse
+information from the shared memory between the frontend and backend
+device drivers.</p></li>
+</ul>
+<p>Virtio framework is the para-virtualization specification that ACRN
+follows to implement I/O virtualization of performance-critical
+devices such as audio, eAVB/TSN, IPU, and CSMU devices. This section gives
+an overview about virtio history, motivation, and advantages, and then
+highlights virtio key concepts. Second, this section will describe
+ACRN’s virtio architectures and elaborate on ACRN virtio APIs. Finally
+this section will introduce all the virtio devices currently supported
+by ACRN.</p>
+<div class="section" id="virtio-introduction">
+<h2>Virtio Introduction<a class="headerlink" href="#virtio-introduction" title="Permalink to this headline">¶</a></h2>
+<p>Virtio is an abstraction layer over devices in a para-virtualized
+hypervisor. Virtio was developed by Rusty Russell when he worked at IBM
+research to support his lguest hypervisor in 2007, and it quickly became
+the de facto standard for KVM’s para-virtualized I/O devices.</p>
+<p>Virtio is very popular for virtual I/O devices because it provides a
+straightforward, efficient, standard, and extensible mechanism, and
+eliminates the need for boutique, per-environment, or per-OS mechanisms.
+For example, rather than having a variety of device emulation
+mechanisms, virtio provides a common frontend driver framework that
+standardizes device interfaces, and increases code reuse across
+different virtualization platforms.</p>
+<p>Given the advantages of virtio, ACRN also follows the virtio
+specification.</p>
+</div>
+<div class="section" id="key-concepts">
+<h2>Key Concepts<a class="headerlink" href="#key-concepts" title="Permalink to this headline">¶</a></h2>
+<p>To better understand virtio, especially its usage in ACRN, we’ll
+highlight several key virtio concepts important to ACRN:</p>
+<dl>
+<dt>Frontend virtio driver (FE)</dt><dd><p>Virtio adopts a frontend-backend architecture that enables a simple but
+flexible framework for both frontend and backend virtio drivers. The FE
+driver merely needs to offer services that configure the interface, pass messages,
+produce requests, and kick the backend virtio driver. As a result, the FE
+driver is easy to implement and the performance overhead of emulating
+a device is eliminated.</p>
+</dd>
+<dt>Backend virtio driver (BE)</dt><dd><p>Similar to the FE driver, the BE driver, running either in userland or
+kernel-land of the host OS, consumes requests from the FE driver and sends them
+to the host native device driver. Once the requests are done by the host
+native device driver, the BE driver notifies the FE driver that the
+request is complete.</p>
+<p>Note: To distinguish the BE driver from the host native device driver, the
+host native device driver is called “native driver” in this document.</p>
+</dd>
+<dt>Straightforward: virtio devices as standard devices on existing buses</dt><dd><p>Instead of creating new device buses from scratch, virtio devices are
+built on existing buses. This gives a straightforward way for both FE
+and BE drivers to interact with each other. For example, the FE driver could
+read/write registers of the device, and the virtual device could
+interrupt the FE driver, on behalf of the BE driver, in case something of
+interest is happening.</p>
+<p>Currently virtio supports PCI/PCIe bus and MMIO bus. In ACRN, only
+PCI/PCIe bus is supported, and all the virtio devices share the same
+vendor ID 0x1AF4.</p>
+<p>Note: For MMIO, the “bus” is an overstatement since
+basically it is a few descriptors describing the devices.</p>
+</dd>
+<dt>Efficient: batching operation is encouraged</dt><dd><p>Batching operation and deferred notification are important to achieve
+high-performance I/O, since notification between the FE driver and BE driver
+usually involves an expensive exit of the guest. Therefore batching
+operating and notification suppression are highly encouraged if
+possible. This will give an efficient implementation for
+performance-critical devices.</p>
+</dd>
+<dt>Standard: virtqueue</dt><dd><p>All virtio devices share a standard ring buffer and descriptor
+mechanism, called a virtqueue, shown in <a class="reference internal" href="#virtqueue"><span class="std std-numref">Figure 199</span></a>. A virtqueue is a
+queue of scatter-gather buffers. There are three important methods on
+virtqueues:</p>
+<ul class="simple">
+<li><p><strong>add_buf</strong> is for adding a request/response buffer in a virtqueue,</p></li>
+<li><p><strong>get_buf</strong> is for getting a response/request in a virtqueue, and</p></li>
+<li><p><strong>kick</strong> is for notifying the other side for a virtqueue to consume buffers.</p></li>
+</ul>
+<p>The virtqueues are created in guest physical memory by the FE drivers.
+BE drivers only need to parse the virtqueue structures to obtain
+the requests and process them. The virtqueue organization is
+specific to the Guest OS. In the Linux implementation of virtio, the
+virtqueue is implemented as a ring buffer structure called <cite>vring`</cite>.</p>
+<p>In ACRN, the virtqueue APIs can be leveraged directly so that users
+don’t need to worry about the details of the virtqueue. (Refer to guest
+OS for more details about the virtqueue implementation.)</p>
+</dd>
+</dl>
+<div class="figure align-center" id="virtqueue">
+<a class="reference internal image-reference" href="../../_images/virtio-hld-image2.png"><img alt="../../_images/virtio-hld-image2.png" src="../../_images/virtio-hld-image2.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 199 </span><span class="caption-text">Virtqueue</span><a class="headerlink" href="#virtqueue" title="Permalink to this image">¶</a></p>
+</div>
+<dl>
+<dt>Extensible: feature bits</dt><dd><p>A simple extensible feature negotiation mechanism exists for each
+virtual device and its driver. Each virtual device could claim its
+device specific features while the corresponding driver could respond to
+the device with the subset of features the driver understands. The
+feature mechanism enables forward and backward compatibility for the
+virtual device and driver.</p>
+</dd>
+<dt>Virtio Device Modes</dt><dd><p>The virtio specification defines three modes of virtio devices:
+a legacy mode device, a transitional mode device, and a modern mode
+device. A legacy mode device is compliant to virtio specification
+version 0.95, a transitional mode device is compliant to both
+0.95 and 1.0 spec versions, and a modern mode
+device is only compatible to the version 1.0 specification.</p>
+<p>In ACRN, all the virtio devices are transitional devices, meaning that
+they should be compatible with both the 0.95 and 1.0 versions of the virtio
+specification.</p>
+</dd>
+<dt>Virtio Device Discovery</dt><dd><p>Virtio devices are commonly implemented as PCI/PCIe devices. A
+virtio device using virtio over a PCI/PCIe bus must expose an interface to
+the Guest OS that meets the PCI/PCIe specifications.</p>
+<p>Conventionally, any PCI device with Vendor ID 0x1AF4,
+PCI_VENDOR_ID_REDHAT_QUMRANET, and Device ID 0x1000 through 0x107F
+inclusive is a virtio device. Among the Device IDs, the
+legacy/transitional mode virtio devices occupy the first 64 IDs ranging
+from 0x1000 to 0x103F, while the range 0x1040-0x107F belongs to
+virtio modern devices. In addition, the Subsystem Vendor ID should
+reflect the PCI/PCIe vendor ID of the environment, and the Subsystem
+Device ID indicates which virtio device is supported by the device.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="virtio-frameworks">
+<h2>Virtio Frameworks<a class="headerlink" href="#virtio-frameworks" title="Permalink to this headline">¶</a></h2>
+<p>This section describes the overall architecture of virtio, and
+introduces the ACRN-specific implementations of the virtio framework.</p>
+<div class="section" id="architecture">
+<h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
+<p>Virtio adopts a frontend-backend
+architecture, as shown in <a class="reference internal" href="#virtio-arch"><span class="std std-numref">Figure 200</span></a>. Basically the FE driver and BE
+driver
+communicate with each other through shared memory, via the
+virtqueues. The FE driver talks to the BE driver in the same way it
+would talk to a real PCIe device. The BE driver handles requests
+from the FE driver, and notifies the FE driver if the request has been
+processed.</p>
+<div class="figure align-center" id="virtio-arch">
+<a class="reference internal image-reference" href="../../_images/virtio-hld-image1.png"><img alt="../../_images/virtio-hld-image1.png" src="../../_images/virtio-hld-image1.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 200 </span><span class="caption-text">Virtio Architecture</span><a class="headerlink" href="#virtio-arch" title="Permalink to this image">¶</a></p>
+</div>
+<p>In addition to virtio’s frontend-backend architecture, both FE and BE
+drivers follow a layered architecture, as shown in
+<a class="reference internal" href="#virtio-fe-be"><span class="std std-numref">Figure 201</span></a>. Each
+side has three layers: transports, core models, and device types.
+All virtio devices share the same virtio infrastructure, including
+virtqueues, feature mechanisms, configuration space, and buses.</p>
+<div class="figure align-center" id="virtio-fe-be">
+<a class="reference internal image-reference" href="../../_images/virtio-hld-image4.png"><img alt="../../_images/virtio-hld-image4.png" src="../../_images/virtio-hld-image4.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 201 </span><span class="caption-text">Virtio Frontend/Backend Layered Architecture</span><a class="headerlink" href="#virtio-fe-be" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="userland-virtio-framework">
+<h3>Userland Virtio Framework<a class="headerlink" href="#userland-virtio-framework" title="Permalink to this headline">¶</a></h3>
+<p>The architecture of ACRN userland virtio framework (VBS-U) is shown in
+<a class="reference internal" href="#virtio-userland"><span class="std std-numref">Figure 202</span></a>.</p>
+<p>The FE driver talks to the BE driver as if it were talking with a PCIe
+device. This means for “control plane”, the FE driver could poke device
+registers through PIO or MMIO, and the device will interrupt the FE
+driver when something happens. For “data plane”, the communication
+between the FE driver and BE driver is through shared memory, in the form of
+virtqueues.</p>
+<p>On the Service VM side where the BE driver is located, there are several
+key components in ACRN, including Device Model (DM), Hypervisor
+service module (HSM), VBS-U, and user-level vring service API helpers.</p>
+<p>DM bridges the FE driver and BE driver since each VBS-U module emulates
+a PCIe virtio device. HSM bridges DM and the hypervisor by providing
+remote memory map APIs and notification APIs. VBS-U accesses the
+virtqueue through the user-level vring service API helpers.</p>
+<div class="figure align-center" id="virtio-userland">
+<a class="reference internal image-reference" href="../../_images/virtio-hld-image3.png"><img alt="../../_images/virtio-hld-image3.png" src="../../_images/virtio-hld-image3.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 202 </span><span class="caption-text">ACRN Userland Virtio Framework</span><a class="headerlink" href="#virtio-userland" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="kernel-land-virtio-framework">
+<h3>Kernel-Land Virtio Framework<a class="headerlink" href="#kernel-land-virtio-framework" title="Permalink to this headline">¶</a></h3>
+<p>ACRN supports one kernel-land virtio frameworks:</p>
+<ul class="simple">
+<li><p>Vhost, compatible with Linux Vhost</p></li>
+</ul>
+<div class="section" id="vhost-framework">
+<h4>Vhost Framework<a class="headerlink" href="#vhost-framework" title="Permalink to this headline">¶</a></h4>
+<p>Vhost is a common solution upstreamed in the Linux kernel,
+with several kernel mediators based on it.</p>
+<div class="section" id="id1">
+<h5>Architecture<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h5>
+<p>Vhost/virtio is a semi-virtualized device abstraction interface
+specification that has been widely applied in various virtualization
+solutions. Vhost is a specific kind of virtio where the data plane is
+put into host kernel space to reduce the context switch while processing
+the IO request. It is usually called “virtio” when used as a frontend
+driver in a guest operating system or “vhost” when used as a backend
+driver in a host. Compared with a pure virtio solution on a host, vhost
+uses the same frontend driver as the virtio solution and can achieve better
+performance. <a class="reference internal" href="#vhost-arch"><span class="std std-numref">Figure 203</span></a> shows the vhost architecture on ACRN.</p>
+<div class="figure align-center" id="vhost-arch">
+<img alt="../../_images/virtio-hld-image71.png" src="../../_images/virtio-hld-image71.png" />
+<p class="caption"><span class="caption-number">Figure 203 </span><span class="caption-text">Vhost Architecture on ACRN</span><a class="headerlink" href="#vhost-arch" title="Permalink to this image">¶</a></p>
+</div>
+<p>Compared with a userspace virtio solution, vhost decomposes data plane
+from user space to kernel space. The vhost general data plane workflow
+can be described as:</p>
+<ol class="arabic simple">
+<li><p>The vhost proxy creates two eventfds per virtqueue, one is for kick
+(an ioeventfd), the other is for call (an irqfd).</p></li>
+<li><p>The vhost proxy registers the two eventfds to HSM through HSM character
+device:</p>
+<ol class="loweralpha simple">
+<li><p>Ioeventfd is bound with a PIO/MMIO range. If it is a PIO, it is
+registered with <code class="docutils literal notranslate"><span class="pre">(fd,</span> <span class="pre">port,</span> <span class="pre">len,</span> <span class="pre">value)</span></code>. If it is an MMIO, it is
+registered with <code class="docutils literal notranslate"><span class="pre">(fd,</span> <span class="pre">addr,</span> <span class="pre">len)</span></code>.</p></li>
+<li><p>Irqfd is registered with MSI vector.</p></li>
+</ol>
+</li>
+<li><p>The vhost proxy sets the two fds to vhost kernel through ioctl of vhost
+device.</p></li>
+<li><p>The vhost starts polling the kick fd and wakes up when the guest kicks a
+virtqueue, which results in an event_signal on the kick fd by the HSM
+ioeventfd.</p></li>
+<li><p>The vhost device in the kernel signals on the irqfd to notify the guest.</p></li>
+</ol>
+</div>
+<div class="section" id="ioeventfd-implementation">
+<h5>Ioeventfd Implementation<a class="headerlink" href="#ioeventfd-implementation" title="Permalink to this headline">¶</a></h5>
+<p>Ioeventfd module is implemented in HSM, and can enhance a registered
+eventfd to listen to IO requests (PIO/MMIO) from the HSM ioreq module and
+signal the eventfd when needed. <a class="reference internal" href="#ioeventfd-workflow"><span class="std std-numref">Figure 204</span></a>  shows the
+general workflow of ioeventfd.</p>
+<div class="figure align-center" id="ioeventfd-workflow">
+<img alt="../../_images/virtio-hld-image58.png" src="../../_images/virtio-hld-image58.png" />
+<p class="caption"><span class="caption-number">Figure 204 </span><span class="caption-text">ioeventfd general workflow</span><a class="headerlink" href="#ioeventfd-workflow" title="Permalink to this image">¶</a></p>
+</div>
+<p>The workflow can be summarized as:</p>
+<ol class="arabic simple">
+<li><p>The vhost device initializes. The vhost proxy creates two eventfds for
+ioeventfd and irqfd.</p></li>
+<li><p>The vhost proxy passes the ioeventfd to the vhost kernel driver.</p></li>
+<li><p>The vhost proxy passes the ioeventfd to the HSM driver.</p></li>
+<li><p>The User VM FE driver triggers an ioreq, which is forwarded through the
+hypervisor to the Service VM.</p></li>
+<li><p>The HSM driver dispatches the ioreq to the related HSM client.</p></li>
+<li><p>The ioeventfd HSM client traverses the io_range list and finds the
+corresponding eventfd.</p></li>
+<li><p>The ioeventfd HSM client triggers the signal to the related eventfd.</p></li>
+</ol>
+</div>
+<div class="section" id="irqfd-implementation">
+<h5>Irqfd Implementation<a class="headerlink" href="#irqfd-implementation" title="Permalink to this headline">¶</a></h5>
+<p>The irqfd module is implemented in HSM, and can enhance a registered
+eventfd to inject an interrupt to a guest OS when the eventfd gets
+signaled. <a class="reference internal" href="#irqfd-workflow"><span class="std std-numref">Figure 205</span></a> shows the general flow for irqfd.</p>
+<div class="figure align-center" id="irqfd-workflow">
+<img alt="../../_images/virtio-hld-image60.png" src="../../_images/virtio-hld-image60.png" />
+<p class="caption"><span class="caption-number">Figure 205 </span><span class="caption-text">irqfd general flow</span><a class="headerlink" href="#irqfd-workflow" title="Permalink to this image">¶</a></p>
+</div>
+<p>The workflow can be summarized as:</p>
+<ol class="arabic simple">
+<li><p>The vhost device initializes. The vhost proxy creates two eventfds for
+ioeventfd and irqfd.</p></li>
+<li><p>The vhost proxy passes the irqfd to the vhost kernel driver.</p></li>
+<li><p>The vhost proxy passes the irqfd to the HSM driver.</p></li>
+<li><p>The vhost device driver triggers an IRQ eventfd signal once the related
+native transfer is completed.</p></li>
+<li><p>The irqfd related logic traverses the irqfd list to retrieve related irq
+information.</p></li>
+<li><p>The irqfd related logic injects an interrupt through the HSM interrupt API.</p></li>
+<li><p>The interrupt is delivered to the User VM FE driver through the hypervisor.</p></li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="virtio-apis">
+<span id="id2"></span><h2>Virtio APIs<a class="headerlink" href="#virtio-apis" title="Permalink to this headline">¶</a></h2>
+<p>This section provides details on the ACRN virtio APIs. As outlined previously,
+the ACRN virtio APIs can be divided into three groups: DM_APIs,
+VBS_APIs, and VQ_APIs. The following sections will elaborate on
+these APIs.</p>
+<div class="section" id="vbs-u-key-data-structures">
+<h3>VBS-U Key Data Structures<a class="headerlink" href="#vbs-u-key-data-structures" title="Permalink to this headline">¶</a></h3>
+<p>The key data structures for VBS-U are listed as follows, and their
+relationships are shown in <a class="reference internal" href="#vbs-u-data"><span class="std std-numref">Figure 206</span></a>.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">pci_virtio_blk</span></code></dt><dd><p>An example virtio device, such as virtio-blk.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_common</span></code></dt><dd><p>A common component to any virtio device.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_ops</span></code></dt><dd><p>Virtio specific operation functions for this type of virtio device.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">pci_vdev</span></code></dt><dd><p>Instance of a virtual PCIe device, and any virtio
+device is a virtual PCIe device.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">pci_vdev_ops</span></code></dt><dd><p>PCIe device’s operation functions for this type
+of device.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">vqueue_info</span></code></dt><dd><p>Instance of a virtqueue.</p>
+</dd>
+</dl>
+<div class="figure align-center" id="vbs-u-data">
+<a class="reference internal image-reference" href="../../_images/virtio-hld-image5.png"><img alt="../../_images/virtio-hld-image5.png" src="../../_images/virtio-hld-image5.png" style="width: 900px;" /></a>
+<p class="caption"><span class="caption-number">Figure 206 </span><span class="caption-text">VBS-U Key Data Structures</span><a class="headerlink" href="#vbs-u-data" title="Permalink to this image">¶</a></p>
+</div>
+<p>Each virtio device is a PCIe device. In addition, each virtio device
+could have none or multiple virtqueues, depending on the device type.
+The <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">virtio_common</span></code> is a key data structure to be manipulated by
+DM, and DM finds other key data structures through it. The <code class="docutils literal notranslate"><span class="pre">struct</span>
+<span class="pre">virtio_ops</span></code> abstracts a series of virtio callbacks to be provided by the
+device owner.</p>
+</div>
+<div class="section" id="vhost-key-data-structures">
+<h3>VHOST Key Data Structures<a class="headerlink" href="#vhost-key-data-structures" title="Permalink to this headline">¶</a></h3>
+<p>The key data structures for vhost are listed as follows.</p>
+<dl class="c struct">
+<dt id="c.vhost_dev">
+<span class="target" id="structvhost__dev"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-name descname"><span class="pre">vhost_dev</span></code><br /></dt>
+<dd></dd></dl>
+
+<dl class="c struct">
+<dt id="c.vhost_vq">
+<span class="target" id="structvhost__vq"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-name descname"><span class="pre">vhost_vq</span></code><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="dm-apis">
+<h3>DM APIs<a class="headerlink" href="#dm-apis" title="Permalink to this headline">¶</a></h3>
+<p>The DM APIs are exported by DM, and they should be used when implementing
+BE device drivers on ACRN.</p>
+<dl class="c function">
+<dt id="c.paddr_guest2host">
+<span class="target" id="dm_8h_a0786526ab7fe72a62139d716002252b2_1a0786526ab7fe72a62139d716002252b2"></span><span class="pre">void</span> <span class="pre">*</span><code class="sig-name descname"><span class="pre">paddr_guest2host</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">vmctx</span> <span class="pre">*</span><em><span class="pre">ctx</span></em>, <span class="pre">uintptr_t</span> <em><span class="pre">gaddr</span></em>, <span class="pre">size_t</span> <em><span class="pre">len</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.paddr_guest2host" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Convert guest physical address to host virtual address. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – Pointer to to struct vmctx representing VM context. </p></li>
+<li><p><strong>gaddr</strong> – Guest physical address base. </p></li>
+<li><p><strong>len</strong> – Guest physical address length.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>NULL on convert failed and host virtual address on successful. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_set_cfgdata8">
+<span class="target" id="pci__core_8h_a6264ffd9fa24869901a64734fa546d44_1a6264ffd9fa24869901a64734fa546d44"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">pci_set_cfgdata8</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">offset</span></em>, <span class="pre">uint8_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_set_cfgdata8" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set virtual PCI device’s configuration space in 1 byte width. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device. </p></li>
+<li><p><strong>offset</strong> – Offset in configuration space. </p></li>
+<li><p><strong>val</strong> – Value in 1 byte.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_set_cfgdata16">
+<span class="target" id="pci__core_8h_a5cb403e54fe234f2d579f57d639936c6_1a5cb403e54fe234f2d579f57d639936c6"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">pci_set_cfgdata16</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">offset</span></em>, <span class="pre">uint16_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_set_cfgdata16" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set virtual PCI device’s configuration space in 2 bytes width. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device. </p></li>
+<li><p><strong>offset</strong> – Offset in configuration space. </p></li>
+<li><p><strong>val</strong> – Value in 2 bytes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_set_cfgdata32">
+<span class="target" id="pci__core_8h_a80c9634b8fa82a1d967084f221f9ac40_1a80c9634b8fa82a1d967084f221f9ac40"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">pci_set_cfgdata32</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">offset</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_set_cfgdata32" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set virtual PCI device’s configuration space in 4 bytes width. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device. </p></li>
+<li><p><strong>offset</strong> – Offset in configuration space. </p></li>
+<li><p><strong>val</strong> – Value in 4 bytes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_get_cfgdata8">
+<span class="target" id="pci__core_8h_ad034a56fee14a18fca72ac07e40e29b2_1ad034a56fee14a18fca72ac07e40e29b2"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <span class="pre">uint8_t</span> <code class="sig-name descname"><span class="pre">pci_get_cfgdata8</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">offset</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_get_cfgdata8" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get virtual PCI device’s configuration space in 1 byte width. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device. </p></li>
+<li><p><strong>offset</strong> – Offset in configuration space.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The configuration value in 1 byte. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_get_cfgdata16">
+<span class="target" id="pci__core_8h_a3acaa9c40c11340ab28223e2d126dbad_1a3acaa9c40c11340ab28223e2d126dbad"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <span class="pre">uint16_t</span> <code class="sig-name descname"><span class="pre">pci_get_cfgdata16</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">offset</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_get_cfgdata16" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get virtual PCI device’s configuration space in 2 byte width. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device. </p></li>
+<li><p><strong>offset</strong> – Offset in configuration space.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The configuration value in 2 bytes. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_get_cfgdata32">
+<span class="target" id="pci__core_8h_a48f74f44bf24eb0da4269e0f31fff32c_1a48f74f44bf24eb0da4269e0f31fff32c"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">pci_get_cfgdata32</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">offset</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_get_cfgdata32" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get virtual PCI device’s configuration space in 4 byte width. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device. </p></li>
+<li><p><strong>offset</strong> – Offset in configuration space.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The configuration value in 4 bytes. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_lintr_assert">
+<span class="target" id="pci__core_8h_a951af567a09e5fb452dd5cc23d0a769d_1a951af567a09e5fb452dd5cc23d0a769d"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">pci_lintr_assert</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_lintr_assert" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Assert INTx pin of virtual PCI device. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_lintr_deassert">
+<span class="target" id="pci__core_8h_a8ffb472d1b181f406d3272525c1cba9f_1a8ffb472d1b181f406d3272525c1cba9f"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">pci_lintr_deassert</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_lintr_deassert" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Deassert INTx pin of virtual PCI device. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_generate_msi">
+<span class="target" id="pci__core_8h_a1a4de8a361b9557cb43b3fd6faa6a122_1a1a4de8a361b9557cb43b3fd6faa6a122"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">pci_generate_msi</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_generate_msi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Generate a MSI interrupt to guest. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device. </p></li>
+<li><p><strong>index</strong> – Message data index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.pci_generate_msix">
+<span class="target" id="pci__core_8h_aca11504b194a6b93387b88c6ee34009a_1aca11504b194a6b93387b88c6ee34009a"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">pci_generate_msix</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.pci_generate_msix" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Generate a MSI-X interrupt to guest. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev representing virtual PCI device. </p></li>
+<li><p><strong>index</strong> – MSIs table entry index.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="vbs-apis">
+<h3>VBS APIs<a class="headerlink" href="#vbs-apis" title="Permalink to this headline">¶</a></h3>
+<p>The VBS APIs are exported by VBS related modules, including VBS, DM, and
+Service VM kernel modules.</p>
+<div class="section" id="vbs-u-apis">
+<h4>VBS-U APIs<a class="headerlink" href="#vbs-u-apis" title="Permalink to this headline">¶</a></h4>
+<p>These APIs provided by VBS-U are callbacks to be registered to DM, and
+the virtio framework within DM will invoke them appropriately.</p>
+<dl class="c struct">
+<dt id="c.virtio_ops">
+<span class="target" id="structvirtio__ops"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-name descname"><span class="pre">virtio_ops</span></code><br /></dt>
+<dd><p>Virtio specific operation functions for this type of virtio device. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.virtio_pci_read">
+<span class="target" id="group__acrn__virtio_ga870a59e709a2f2df8d189fbb9afc8977_1ga870a59e709a2f2df8d189fbb9afc8977"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">virtio_pci_read</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">vmctx</span> <span class="pre">*</span><em><span class="pre">ctx</span></em>, <span class="pre">int</span> <em><span class="pre">vcpu</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">baridx</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">offset</span></em>, <span class="pre">int</span> <em><span class="pre">size</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Handle PCI configuration space reads. </p>
+<p>Handle virtio standard register reads, and dispatch other reads to actual virtio device driver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – Pointer to struct vmctx representing VM context. </p></li>
+<li><p><strong>vcpu</strong> – VCPU ID. </p></li>
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev which emulates a PCI device. </p></li>
+<li><p><strong>baridx</strong> – Which BAR[0..5] to use. </p></li>
+<li><p><strong>offset</strong> – Register offset in bytes within a BAR region. </p></li>
+<li><p><strong>size</strong> – Access range in bytes.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>register value. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.virtio_pci_write">
+<span class="target" id="group__acrn__virtio_ga7c84301965b6a744ffaa05c9534d3776_1ga7c84301965b6a744ffaa05c9534d3776"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">virtio_pci_write</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">vmctx</span> <span class="pre">*</span><em><span class="pre">ctx</span></em>, <span class="pre">int</span> <em><span class="pre">vcpu</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <span class="pre">int</span> <em><span class="pre">baridx</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">offset</span></em>, <span class="pre">int</span> <em><span class="pre">size</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">value</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Handle PCI configuration space writes. </p>
+<p>Handle virtio standard register writes, and dispatch other writes to actual virtio device driver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ctx</strong> – Pointer to struct vmctx representing VM context. </p></li>
+<li><p><strong>vcpu</strong> – VCPU ID. </p></li>
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev which emulates a PCI device. </p></li>
+<li><p><strong>baridx</strong> – Which BAR[0..5] to use. </p></li>
+<li><p><strong>offset</strong> – Register offset in bytes within a BAR region. </p></li>
+<li><p><strong>size</strong> – Access range in bytes. </p></li>
+<li><p><strong>value</strong> – Data value to be written into register.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.virtio_interrupt_init">
+<span class="target" id="group__acrn__virtio_ga632fc0b42bdaa53abc5a70237560b115_1ga632fc0b42bdaa53abc5a70237560b115"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">virtio_interrupt_init</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_base" title="virtio_base"><span class="pre">virtio_base</span></a> <span class="pre">*</span><em><span class="pre">base</span></em>, <span class="pre">int</span> <em><span class="pre">use_msix</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Initialize MSI-X vector capabilities if we’re to use MSI-X, or MSI capabilities if not. </p>
+<p>Wrapper function for virtio_intr_init() for cases we directly use BAR 1 for MSI-X capabilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </p></li>
+<li><p><strong>use_msix</strong> – If using MSI-X.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success and non-zero on fail. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.virtio_linkup">
+<span class="target" id="group__acrn__virtio_ga0e7f676fc0677f9edeee06119681f86f_1ga0e7f676fc0677f9edeee06119681f86f"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">virtio_linkup</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_base" title="virtio_base"><span class="pre">virtio_base</span></a> <span class="pre">*</span><em><span class="pre">base</span></em>, <em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_ops" title="virtio_ops"><span class="pre">virtio_ops</span></a> <span class="pre">*</span><em><span class="pre">vops</span></em>, <span class="pre">void</span> <span class="pre">*</span><em><span class="pre">pci_virtio_dev</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">pci_vdev</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_vq_info" title="virtio_vq_info"><span class="pre">virtio_vq_info</span></a> <span class="pre">*</span><em><span class="pre">queues</span></em>, <span class="pre">int</span> <em><span class="pre">backend_type</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Link a <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a> to its constants, the virtio device, and the PCI emulation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </p></li>
+<li><p><strong>vops</strong> – Pointer to struct <a class="reference internal" href="#structvirtio__ops"><span class="std std-ref">virtio_ops</span></a>. </p></li>
+<li><p><strong>pci_virtio_dev</strong> – Pointer to instance of certain virtio device. </p></li>
+<li><p><strong>dev</strong> – Pointer to struct pci_vdev which emulates a PCI device. </p></li>
+<li><p><strong>queues</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>, normally an array. </p></li>
+<li><p><strong>backend_type</strong> – can be VBSU, VBSK or VHOST</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.virtio_reset_dev">
+<span class="target" id="group__acrn__virtio_ga27308a4652e4afcfecb6d6b3a593dff4_1ga27308a4652e4afcfecb6d6b3a593dff4"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">virtio_reset_dev</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_base" title="virtio_base"><span class="pre">virtio_base</span></a> <span class="pre">*</span><em><span class="pre">base</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Reset device (device-wide). </p>
+<p>This erases all queues, i.e., all the queues become invalid. But we don’t wipe out the internal pointers, by just clearing the VQ_ALLOC flag.</p>
+<p>It resets negotiated features to “none”. If MSI-X is enabled, this also resets all the vectors to NO_VECTOR.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.virtio_set_io_bar">
+<span class="target" id="group__acrn__virtio_ga865818acaf99dbe32274184404694bd4_1ga865818acaf99dbe32274184404694bd4"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">virtio_set_io_bar</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_base" title="virtio_base"><span class="pre">virtio_base</span></a> <span class="pre">*</span><em><span class="pre">base</span></em>, <span class="pre">int</span> <em><span class="pre">barnum</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set I/O BAR (usually 0) to map PCI config registers. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </p></li>
+<li><p><strong>barnum</strong> – Which BAR[0..5] to use.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.virtio_set_modern_bar">
+<span class="target" id="group__acrn__virtio_gab44a15ccd237384a0417e59251c61a44_1gab44a15ccd237384a0417e59251c61a44"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">virtio_set_modern_bar</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_base" title="virtio_base"><span class="pre">virtio_base</span></a> <span class="pre">*</span><em><span class="pre">base</span></em>, <span class="pre">bool</span> <em><span class="pre">use_notify_pio</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Set modern BAR (usually 4) to map PCI config registers. </p>
+<p>Set modern MMIO BAR (usually 4) to map virtio 1.0 capabilities and optional set modern PIO BAR (usually 2) to map notify capability. This interface is only valid for modern virtio.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </p></li>
+<li><p><strong>use_notify_pio</strong> – Whether use pio for notify capability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success and non-zero on fail. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.virtio_config_changed">
+<span class="target" id="group__acrn__virtio_ga1cb99243ea7470fb699614f1250ad2f9_1ga1cb99243ea7470fb699614f1250ad2f9"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">virtio_config_changed</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_base" title="virtio_base"><span class="pre">virtio_base</span></a> <span class="pre">*</span><em><span class="pre">vb</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Deliver an config changed interrupt to guest. </p>
+<p>MSI-X or a generic MSI interrupt with config changed event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vb</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="apis-provided-by-dm">
+<h5>APIs Provided by DM<a class="headerlink" href="#apis-provided-by-dm" title="Permalink to this headline">¶</a></h5>
+<dl class="c function">
+<dt id="c.vbs_kernel_reset">
+<span class="target" id="group__acrn__virtio_ga3ba613b74f38a172eee96af7051623ce_1ga3ba613b74f38a172eee96af7051623ce"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">vbs_kernel_reset</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">fd</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Virtio kernel module reset. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fd</strong> – File descriptor representing virtio backend in kernel module.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on OK and non-zero on error. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vbs_kernel_start">
+<span class="target" id="group__acrn__virtio_gadbf23e7f64582b751f98a5101d41b1aa_1gadbf23e7f64582b751f98a5101d41b1aa"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">vbs_kernel_start</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">fd</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">vbs_dev_info</span> <span class="pre">*</span><em><span class="pre">dev</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">vbs_vqs_info</span> <span class="pre">*</span><em><span class="pre">vqs</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Virtio kernel module start. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fd</strong> – File descriptor representing virtio backend in kernel module. </p></li>
+<li><p><strong>dev</strong> – Pointer to struct vbs_dev_info. </p></li>
+<li><p><strong>vqs</strong> – Pointer to struct vbs_vqs_info.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on OK and non-zero on error. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vbs_kernel_stop">
+<span class="target" id="group__acrn__virtio_ga1855aabe947afeebe1ed6de66abc39da_1ga1855aabe947afeebe1ed6de66abc39da"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">vbs_kernel_stop</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">fd</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Virtio kernel module stop. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fd</strong> – File descriptor representing virtio backend in kernel module.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on OK and non-zero on error. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="vhost-apis">
+<h3>VHOST APIs<a class="headerlink" href="#vhost-apis" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h4>APIs Provided by DM<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<dl class="c function">
+<dt id="c.vhost_dev_init">
+<span class="target" id="group__acrn__virtio_ga8dc97b068b037992400bf5bf1b3003e5_1ga8dc97b068b037992400bf5bf1b3003e5"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">vhost_dev_init</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.vhost_dev" title="vhost_dev"><span class="pre">vhost_dev</span></a> <span class="pre">*</span><em><span class="pre">vdev</span></em>, <em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_base" title="virtio_base"><span class="pre">virtio_base</span></a> <span class="pre">*</span><em><span class="pre">base</span></em>, <span class="pre">int</span> <em><span class="pre">fd</span></em>, <span class="pre">int</span> <em><span class="pre">vq_idx</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">vhost_features</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">vhost_ext_features</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">busyloop_timeout</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p><a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a> initialization. </p>
+<p>This interface is called to initialize the <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>. It must be called before the actual feature negotiation with the guest OS starts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vdev</strong> – Pointer to struct <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>. </p></li>
+<li><p><strong>base</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </p></li>
+<li><p><strong>fd</strong> – fd of the vhost chardev. </p></li>
+<li><p><strong>vq_idx</strong> – The first virtqueue which would be used by this vhost dev. </p></li>
+<li><p><strong>vhost_features</strong> – Subset of vhost features which would be enabled. </p></li>
+<li><p><strong>vhost_ext_features</strong> – Specific vhost internal features to be enabled. </p></li>
+<li><p><strong>busyloop_timeout</strong> – Busy loop timeout in us.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success and -1 on failure. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vhost_dev_deinit">
+<span class="target" id="group__acrn__virtio_gaf1f298cb8a5cd78b94d2a0f694032528_1gaf1f298cb8a5cd78b94d2a0f694032528"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">vhost_dev_deinit</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.vhost_dev" title="vhost_dev"><span class="pre">vhost_dev</span></a> <span class="pre">*</span><em><span class="pre">vdev</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p><a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a> cleanup. </p>
+<p>This interface is called to cleanup the <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vdev</strong> – Pointer to struct <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success and -1 on failure. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vhost_dev_start">
+<span class="target" id="group__acrn__virtio_gae52620479a2a3a8f9dd63a1a6cb9d1e2_1gae52620479a2a3a8f9dd63a1a6cb9d1e2"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">vhost_dev_start</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.vhost_dev" title="vhost_dev"><span class="pre">vhost_dev</span></a> <span class="pre">*</span><em><span class="pre">vdev</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>start vhost data plane. </p>
+<p>This interface is called to start the data plane in vhost.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vdev</strong> – Pointer to struct <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success and -1 on failure. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vhost_dev_stop">
+<span class="target" id="group__acrn__virtio_ga63bd8dc90015ca243c17243eb3e5a4e5_1ga63bd8dc90015ca243c17243eb3e5a4e5"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">vhost_dev_stop</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.vhost_dev" title="vhost_dev"><span class="pre">vhost_dev</span></a> <span class="pre">*</span><em><span class="pre">vdev</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>stop vhost data plane. </p>
+<p>This interface is called to stop the data plane in vhost.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vdev</strong> – Pointer to struct <a class="reference internal" href="#structvhost__dev"><span class="std std-ref">vhost_dev</span></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success and -1 on failure. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="linux-vhost-ioctls">
+<h4>Linux Vhost IOCTLs<a class="headerlink" href="#linux-vhost-ioctls" title="Permalink to this headline">¶</a></h4>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_GET_FEATURES</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">_IOR(VHOST_VIRTIO,</span> <span class="pre">0x00,</span> <span class="pre">__u64)</span></code></dt><dd><p>This IOCTL is used to get the supported feature flags by vhost kernel driver.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_FEATURES</span>&#160;&#160;&#160;&#160;&#160; <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x00,</span> <span class="pre">__u64)</span></code></dt><dd><p>This IOCTL is used to set the supported feature flags to vhost kernel driver.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_OWNER</span> <span class="pre">_IO(VHOST_VIRTIO,</span> <span class="pre">0x01)</span></code></dt><dd><p>This IOCTL is used to set the current process as the exclusive owner of the
+vhost char device. It must be called before any other vhost commands.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_RESET_OWNER</span> <span class="pre">_IO(VHOST_VIRTIO,</span> <span class="pre">0x02)</span></code></dt><dd><p>This IOCTL is used to give up the ownership of the vhost char device.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_MEM_TABLE</span>&#160;&#160;&#160;&#160; <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x03,</span> <span class="pre">struct</span> <span class="pre">vhost_memory)</span></code></dt><dd><p>This IOCTL is used to convey the guest OS memory layout to the vhost kernel driver.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_NUM</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x10,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_state)</span></code></dt><dd><p>This IOCTL is used to set the number of descriptors in the virtio ring. It
+cannot be modified while the virtio ring is running.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_ADDR</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x11,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_addr)</span></code></dt><dd><p>This IOCTL is used to set the address of the virtio ring.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_BASE</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x12,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_state)</span></code></dt><dd><p>This IOCTL is used to set the base value where virtqueue looks for available
+descriptors.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_GET_VRING_BASE</span> <span class="pre">_IOWR(VHOST_VIRTIO,</span> <span class="pre">0x12,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_state)</span></code></dt><dd><p>This IOCTL is used to get the base value where virtqueue looks for available
+descriptors.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_KICK</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x20,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_file)</span></code></dt><dd><p>This IOCTL is used to set the eventfd on which vhost can poll for guest
+virtqueue kicks.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">VHOST_SET_VRING_CALL</span> <span class="pre">_IOW(VHOST_VIRTIO,</span> <span class="pre">0x21,</span> <span class="pre">struct</span> <span class="pre">vhost_vring_file)</span></code></dt><dd><p>This IOCTL is used to set the eventfd that is used by vhost to inject
+virtual interrupts.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="hsm-eventfd-ioctls">
+<h4>HSM Eventfd IOCTLs<a class="headerlink" href="#hsm-eventfd-ioctls" title="Permalink to this headline">¶</a></h4>
+<dl class="c struct">
+<dt id="c.acrn_ioeventfd">
+<span class="target" id="structacrn__ioeventfd"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-name descname"><span class="pre">acrn_ioeventfd</span></code><a class="headerlink" href="#c.acrn_ioeventfd" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">IC_EVENT_IOEVENTFD</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">_IC_ID(IC_ID,</span> <span class="pre">IC_ID_EVENT_BASE</span> <span class="pre">+</span> <span class="pre">0x00)</span></code></dt><dd><p>This IOCTL is used to register or unregister an ioeventfd with the appropriate
+address, length, and data value.</p>
+</dd>
+</dl>
+<dl class="c struct">
+<dt id="c.acrn_irqfd">
+<span class="target" id="structacrn__irqfd"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-name descname"><span class="pre">acrn_irqfd</span></code><a class="headerlink" href="#c.acrn_irqfd" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">#define</span> <span class="pre">IC_EVENT_IRQFD</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">_IC_ID(IC_ID,</span> <span class="pre">IC_ID_EVENT_BASE</span> <span class="pre">+</span> <span class="pre">0x01)</span></code></dt><dd><p>This IOCTL is used to register or unregister an irqfd with the appropriate MSI
+information.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="vq-apis">
+<h3>VQ APIs<a class="headerlink" href="#vq-apis" title="Permalink to this headline">¶</a></h3>
+<p>The virtqueue APIs, or VQ APIs, are used by a BE device driver to
+access the virtqueues shared by the FE driver. The VQ APIs abstract the
+details of virtqueues so that users don’t need to worry about the data
+structures within the virtqueues.</p>
+<dl class="c function">
+<dt id="c.vq_interrupt">
+<span class="target" id="group__acrn__virtio_gab9ac943633756d546f493cdf599be2d0_1gab9ac943633756d546f493cdf599be2d0"></span><em class="property"><span class="pre">static</span></em> <em class="property"><span class="pre">inline</span></em> <span class="pre">void</span> <code class="sig-name descname"><span class="pre">vq_interrupt</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_base" title="virtio_base"><span class="pre">virtio_base</span></a> <span class="pre">*</span><em><span class="pre">vb</span></em>, <em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_vq_info" title="virtio_vq_info"><span class="pre">virtio_vq_info</span></a> <span class="pre">*</span><em><span class="pre">vq</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Deliver an interrupt to guest on the given virtqueue. </p>
+<p>The interrupt could be MSI-X or a generic MSI interrupt.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vb</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__base"><span class="std std-ref">virtio_base</span></a>. </p></li>
+<li><p><strong>vq</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vq_getchain">
+<span class="target" id="group__acrn__virtio_ga6151242983e210464a81191ab08dc65e_1ga6151242983e210464a81191ab08dc65e"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">vq_getchain</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_vq_info" title="virtio_vq_info"><span class="pre">virtio_vq_info</span></a> <span class="pre">*</span><em><span class="pre">vq</span></em>, <span class="pre">uint16_t</span> <span class="pre">*</span><em><span class="pre">pidx</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">iovec</span> <span class="pre">*</span><em><span class="pre">iov</span></em>, <span class="pre">int</span> <em><span class="pre">n_iov</span></em>, <span class="pre">uint16_t</span> <span class="pre">*</span><em><span class="pre">flags</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Walk through the chain of descriptors involved in a request and put them into a given iov[] array. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vq</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>. </p></li>
+<li><p><strong>pidx</strong> – Pointer to available ring position. </p></li>
+<li><p><strong>iov</strong> – Pointer to iov[] array prepared by caller. </p></li>
+<li><p><strong>n_iov</strong> – Size of iov[] array. </p></li>
+<li><p><strong>flags</strong> – Pointer to a uint16_t array which will contain flag of each descriptor.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>number of descriptors. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vq_retchain">
+<span class="target" id="group__acrn__virtio_ga4ef2599c65a377ad557dbe22a740cae0_1ga4ef2599c65a377ad557dbe22a740cae0"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vq_retchain</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_vq_info" title="virtio_vq_info"><span class="pre">virtio_vq_info</span></a> <span class="pre">*</span><em><span class="pre">vq</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Return the currently-first request chain back to the available ring. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vq</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vq_relchain">
+<span class="target" id="group__acrn__virtio_ga16a059574b916608a272e33ba11ce919_1ga16a059574b916608a272e33ba11ce919"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vq_relchain</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_vq_info" title="virtio_vq_info"><span class="pre">virtio_vq_info</span></a> <span class="pre">*</span><em><span class="pre">vq</span></em>, <span class="pre">uint16_t</span> <em><span class="pre">idx</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">iolen</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Return specified request chain to the guest, setting its I/O length to the provided value. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vq</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>. </p></li>
+<li><p><strong>idx</strong> – Pointer to available ring position, returned by <a class="reference internal" href="#group__acrn__virtio_ga6151242983e210464a81191ab08dc65e_1ga6151242983e210464a81191ab08dc65e"><span class="std std-ref">vq_getchain()</span></a>. </p></li>
+<li><p><strong>iolen</strong> – Number of data bytes to be returned to frontend.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vq_endchains">
+<span class="target" id="group__acrn__virtio_ga8f921c6bccf1b9770f16bcc8c0590698_1ga8f921c6bccf1b9770f16bcc8c0590698"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vq_endchains</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <a class="reference internal" href="../../api/devicemodel_api.html#c.virtio_vq_info" title="virtio_vq_info"><span class="pre">virtio_vq_info</span></a> <span class="pre">*</span><em><span class="pre">vq</span></em>, <span class="pre">int</span> <em><span class="pre">used_all_avail</span></em><span class="sig-paren">)</span><br /></dt>
+<dd><p>Driver has finished processing “available” chains and calling vq_relchain on each one. </p>
+<p>If driver used all the available chains, used_all_avail need to be set to 1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vq</strong> – Pointer to struct <a class="reference internal" href="../../api/devicemodel_api.html#structvirtio__vq__info"><span class="std std-ref">virtio_vq_info</span></a>. </p></li>
+<li><p><strong>used_all_avail</strong> – Flag indicating if driver used all available chains.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Below is an example showing a typical logic of how a BE driver handles
+requests from a FE driver.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">BE_callback</span><span class="p">(</span><span class="k">struct</span> <span class="n">pci_virtio_xxx</span> <span class="o">*</span><span class="n">pv</span><span class="p">,</span> <span class="k">struct</span> <span class="n">vqueue_info</span> <span class="o">*</span><span class="n">vq</span> <span class="p">)</span> <span class="p">{</span>
+   <span class="k">while</span> <span class="p">(</span><span class="n">vq_has_descs</span><span class="p">(</span><span class="n">vq</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">vq_getchain</span><span class="p">(</span><span class="n">vq</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">idx</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">iov</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+             <span class="cm">/* handle requests in iov */</span>
+             <span class="n">request_handle_proc</span><span class="p">();</span>
+             <span class="cm">/* Release this chain and handle more */</span>
+             <span class="n">vq_relchain</span><span class="p">(</span><span class="n">vq</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
+      <span class="p">}</span>
+   <span class="cm">/* Generate interrupt if appropriate. 1 means ring empty \*/</span>
+   <span class="n">vq_endchains</span><span class="p">(</span><span class="n">vq</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="supported-virtio-devices">
+<h2>Supported Virtio Devices<a class="headerlink" href="#supported-virtio-devices" title="Permalink to this headline">¶</a></h2>
+<p>All the BE virtio drivers are implemented using the
+ACRN virtio APIs, and the FE drivers reuse the standard Linux FE
+virtio drivers. For the devices with FE drivers available in the Linux
+kernel, they should use standard virtio Vendor ID/Device ID and
+Subsystem Vendor ID/Subsystem Device ID. For other devices within ACRN,
+their temporary IDs are listed in the following table.</p>
+<table class="docutils align-center" id="virtio-device-table">
+<caption><span class="caption-number">Table 4 </span><span class="caption-text">Virtio Devices without Existing FE Drivers in Linux</span><a class="headerlink" href="#virtio-device-table" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>virtio
+device</p></td>
+<td><p>Vendor ID</p></td>
+<td><p>Device ID</p></td>
+<td><p>Subvendor
+ID</p></td>
+<td><p>Subdevice
+ID</p></td>
+</tr>
+<tr class="row-even"><td><p>RPMB</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8601</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>HECI</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8602</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFFE</p></td>
+</tr>
+<tr class="row-even"><td><p>audio</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8603</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFFD</p></td>
+</tr>
+<tr class="row-odd"><td><p>IPU</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8604</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFFC</p></td>
+</tr>
+<tr class="row-even"><td><p>TSN/AVB</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8605</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFFB</p></td>
+</tr>
+<tr class="row-odd"><td><p>hyper_dmabuf</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8606</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFFA</p></td>
+</tr>
+<tr class="row-even"><td><p>HDCP</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8607</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFF9</p></td>
+</tr>
+<tr class="row-odd"><td><p>COREU</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8608</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFF8</p></td>
+</tr>
+<tr class="row-even"><td><p>I2C</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x860a</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFF6</p></td>
+</tr>
+<tr class="row-odd"><td><p>GPIO</p></td>
+<td><p>0x8086</p></td>
+<td><p>0x8609</p></td>
+<td><p>0x8086</p></td>
+<td><p>0xFFF7</p></td>
+</tr>
+</tbody>
+</table>
+<p>The following sections introduce the status of virtio devices currently
+supported in ACRN.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="virtio-blk.html">Virtio-BLK</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtio-net.html">Virtio-Net</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtio-input.html">Virtio-Input</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtio-console.html">Virtio-Console</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtio-rnd.html">Virtio-RND</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtio-i2c.html">Virtio-I2C</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtio-gpio.html">Virtio-GPIO</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ivshmem-hld.html" class="btn btn-neutral float-left" title="ACRN Shared Memory Based Inter-VM Communication" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="virtio-blk.html" class="btn btn-neutral float-right" title="Virtio-BLK" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018-2021 Project ACRN™, a Series of LF Projects, LLC.
+      <span class="lastupdated">Last modified: Nov 08, 2021. Published: Dec 16, 2021.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+    <!-- Theme Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GTM-K4WWJZD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'GTM-K4WWJZD', {
+          'anonymize_ip': false,
+      });
+    </script> 
+
+</body>
+</html>
