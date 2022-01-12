@@ -435,6 +435,13 @@
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/inter-vm_communication.html">ACRN Inter-VM Communication</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-vuart">Inter-VM vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-network-communication">Inter-VM network communication</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-shared-memory-communication-ivshmem">Inter-VM shared memory communication (ivshmem)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#how-to-implement-an-ivshmem-application-on-acrn">How to implement an Ivshmem application on ACRN</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
@@ -1025,7 +1032,7 @@
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>The ACRN hypervisor implements a simple but fully functional framework
 to manage interrupts and exceptions, as shown in
-<a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 136</span></a>. In its native layer, it configures
+<a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 141</span></a>. In its native layer, it configures
 the physical PIC, IOAPIC, and LAPIC to support different interrupt
 sources from the local timer/IPI to the external INTx/MSI. In its virtual guest
 layer, it emulates virtual PIC, virtual IOAPIC, and virtual LAPIC/passthrough
@@ -1035,9 +1042,9 @@ the passthrough LAPIC case. For the passthrough LAPIC, refer to
 <a class="reference internal" href="hv-virt-interrupt.html#lapic-passthru"><span class="std std-ref">LAPIC Passthrough Based on vLAPIC</span></a></p>
 <div class="figure align-center" id="interrupt-modules-overview">
 <a class="reference internal image-reference" href="../../_images/interrupt-image3.png"><img alt="../../_images/interrupt-image3.png" src="../../_images/interrupt-image3.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 136 </span><span class="caption-text">ACRN Interrupt Modules Overview</span><a class="headerlink" href="#interrupt-modules-overview" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 141 </span><span class="caption-text">ACRN Interrupt Modules Overview</span><a class="headerlink" href="#interrupt-modules-overview" title="Permalink to this image">¶</a></p>
 </div>
-<p>In the software modules view shown in <a class="reference internal" href="#interrupt-sw-modules"><span class="std std-numref">Figure 137</span></a>,
+<p>In the software modules view shown in <a class="reference internal" href="#interrupt-sw-modules"><span class="std std-numref">Figure 142</span></a>,
 the ACRN hypervisor sets up the physical interrupt in its basic
 interrupt modules (e.g., IOAPIC/LAPIC/IDT). It dispatches the interrupt
 in the hypervisor interrupt flow control layer to the corresponding
@@ -1048,7 +1055,7 @@ necessary virtual interrupt into the specific VM, or directly deliver
 interrupt to the specific RT VM with passthrough LAPIC.</p>
 <div class="figure align-center" id="interrupt-sw-modules">
 <a class="reference internal image-reference" href="../../_images/interrupt-image2.png"><img alt="../../_images/interrupt-image2.png" src="../../_images/interrupt-image2.png" style="width: 600px;" /></a>
-<p class="caption"><span class="caption-number">Figure 137 </span><span class="caption-text">ACRN Interrupt SW Modules Overview</span><a class="headerlink" href="#interrupt-sw-modules" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 142 </span><span class="caption-text">ACRN Interrupt SW Modules Overview</span><a class="headerlink" href="#interrupt-sw-modules" title="Permalink to this image">¶</a></p>
 </div>
 <p>The hypervisor implements the following functionalities for handling
 physical interrupts:</p>
@@ -1102,10 +1109,10 @@ sources:</p>
 initializes all physical interrupt-related modules for all the CPUs. ACRN
 hypervisor creates a framework to manage the physical interrupt for
 hypervisor local devices, passthrough devices, and IPI between CPUs, as
-shown in <a class="reference internal" href="#hv-interrupt-init"><span class="std std-numref">Figure 138</span></a>:</p>
+shown in <a class="reference internal" href="#hv-interrupt-init"><span class="std std-numref">Figure 143</span></a>:</p>
 <div class="figure align-center" id="hv-interrupt-init">
 <img alt="../../_images/interrupt-image66.png" src="../../_images/interrupt-image66.png" />
-<p class="caption"><span class="caption-number">Figure 138 </span><span class="caption-text">Physical Interrupt Initialization</span><a class="headerlink" href="#hv-interrupt-init" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 143 </span><span class="caption-text">Physical Interrupt Initialization</span><a class="headerlink" href="#hv-interrupt-init" title="Permalink to this image">¶</a></p>
 </div>
 <div class="section" id="idt-initialization">
 <h3>IDT Initialization<a class="headerlink" href="#idt-initialization" title="Permalink to this headline">¶</a></h3>
@@ -1126,7 +1133,7 @@ have their own stack set in TSS.</p>
 <h3>PIC/IOAPIC Initialization<a class="headerlink" href="#pic-ioapic-initialization" title="Permalink to this headline">¶</a></h3>
 <p>ACRN hypervisor masks all interrupts from the PIC. All legacy interrupts
 from PIC (&lt;16) will be linked to IOAPIC, as shown in the connections in
-<a class="reference internal" href="#hv-pic-config"><span class="std std-numref">Figure 139</span></a>.</p>
+<a class="reference internal" href="#hv-pic-config"><span class="std std-numref">Figure 144</span></a>.</p>
 <p>ACRN will pre-allocate vectors and set them for these legacy interrupts
 in IOAPIC RTEs. For others (&gt;= 16), ACRN will set them with vector 0 in
 RTEs, and valid vectors will be dynamically allocated on demand.</p>
@@ -1136,7 +1143,7 @@ mappings are maintained internally to determine GSI source IOAPIC.
 Native PIC is not used in the system.</p>
 <div class="figure align-center" id="hv-pic-config">
 <img alt="../../_images/interrupt-image46.png" src="../../_images/interrupt-image46.png" />
-<p class="caption"><span class="caption-number">Figure 139 </span><span class="caption-text">HV PIC/IOAPIC/LAPIC configuration</span><a class="headerlink" href="#hv-pic-config" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 144 </span><span class="caption-text">HV PIC/IOAPIC/LAPIC configuration</span><a class="headerlink" href="#hv-pic-config" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="lapic-initialization">
@@ -1225,7 +1232,7 @@ with which the interrupt/IRQ to vector mapping is the same on all CPUs. Vector
 allocation for CPUs is shown here:</p>
 <div class="figure align-center" id="id3">
 <img alt="../../_images/interrupt-image89.png" src="../../_images/interrupt-image89.png" />
-<p class="caption"><span class="caption-number">Figure 140 </span><span class="caption-text">FLAT mode vector allocation</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 145 </span><span class="caption-text">FLAT mode vector allocation</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="irq-descriptor-table">
@@ -1268,7 +1275,7 @@ necessary.</p>
 <p>Interrupt and IRQ processing flow diagrams are shown below:</p>
 <div class="figure align-center" id="phy-interrupt-processing">
 <img alt="../../_images/interrupt-image48.png" src="../../_images/interrupt-image48.png" />
-<p class="caption"><span class="caption-number">Figure 141 </span><span class="caption-text">Processing of physical interrupts</span><a class="headerlink" href="#phy-interrupt-processing" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 146 </span><span class="caption-text">Processing of physical interrupts</span><a class="headerlink" href="#phy-interrupt-processing" title="Permalink to this image">¶</a></p>
 </div>
 <p>When a physical interrupt is raised and delivered to a physical CPU, the
 CPU may be running under either VMX root mode or non-root mode.</p>
@@ -1282,7 +1289,7 @@ exit processing flow will call dispatch_interrupt() to dispatch and
 handle the interrupt.</p></li>
 </ul>
 <p>After an interrupt occurs from either path shown in
-<a class="reference internal" href="#phy-interrupt-processing"><span class="std std-numref">Figure 141</span></a>, ACRN hypervisor will jump to
+<a class="reference internal" href="#phy-interrupt-processing"><span class="std std-numref">Figure 146</span></a>, ACRN hypervisor will jump to
 dispatch_interrupt. This function gets the vector of the generated
 interrupt from the context, gets IRQ number from vector_to_irq[], and
 then gets the corresponding irq_desc.</p>
@@ -1308,11 +1315,11 @@ as the IRQ number. IRQ numbers greater than max GSI (nr_gsi) number are dynamica
 assigned. For example, HV allocates an interrupt vector to a PCI device,
 an IRQ number is then assigned to that vector. When the vector later
 reaches a CPU, the corresponding IRQ action function is located and executed.</p>
-<p>See <a class="reference internal" href="#request-irq"><span class="std std-numref">Figure 142</span></a> for request IRQ control flow for different
+<p>See <a class="reference internal" href="#request-irq"><span class="std std-numref">Figure 147</span></a> for request IRQ control flow for different
 conditions:</p>
 <div class="figure align-center" id="request-irq">
 <img alt="../../_images/interrupt-image76.png" src="../../_images/interrupt-image76.png" />
-<p class="caption"><span class="caption-number">Figure 142 </span><span class="caption-text">Request IRQ for different conditions</span><a class="headerlink" href="#request-irq" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 147 </span><span class="caption-text">Request IRQ for different conditions</span><a class="headerlink" href="#request-irq" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="ipi-management">
@@ -1611,8 +1618,8 @@ related operations.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2021 Project ACRN™, a Series of LF Projects, LLC.
-      <span class="lastupdated">Last modified: Sep 20, 2021. Published: Dec 21, 2021.
+    <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
+      <span class="lastupdated">Last modified: Sep 20, 2021. Published: Jan 12, 2022.
       </span></p>
   </div>
 
