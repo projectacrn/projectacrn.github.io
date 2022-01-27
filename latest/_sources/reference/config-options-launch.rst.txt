@@ -29,15 +29,6 @@ define post-launched User VM settings. This document describes these option sett
   emulated by the device model; if set to ``Disable``, the vUART0 is
   emulated by the hypervisor if it is configured in the scenario XML.
 
-``poweroff_channel``:
-  Specify whether the User VM power off channel is through the IOC,
-  power button, or vUART.
-
-``allow_trigger_s5``:
-  Allow the VM to trigger S5 shutdown flow. This flag works with
-  ``poweroff_channel``
-  ``vuart1(pty)`` and ``vuart1(tty)`` only.
-
 ``enable_ptm``:
   Enable the Precision Timing Measurement (PTM) feature.
 
@@ -89,7 +80,8 @@ define post-launched User VM settings. This document describes these option sett
   ``[@]stdio|tty|pty|sock:portname[=portpath][,[@]stdio|tty|pty:portname[=portpath]]``.
 
 ``cpu_affinity``:
-  List of pCPU that this VM's vCPUs are pinned to.
+  A comma-separated list of Service VM vCPUs assigned to this VM. A Service VM vCPU is identified
+  by its lapic ID.
 
 .. note::
 
