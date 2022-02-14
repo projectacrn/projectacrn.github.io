@@ -271,16 +271,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">ACRN Installation via Debian Packages</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#set-up-prerequisites">Set Up Prerequisites</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#configure-debian-packaging-details">Configure Debian Packaging Details</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#run-the-package-building-script">Run the Package-Building Script</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#prepare-your-target-system-with-ubuntu-18-04">Prepare Your Target System With Ubuntu 18.04</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#install-debian-packages-on-your-target-system">Install Debian Packages on Your Target System</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#boot-acrn-using-the-multiboot2-grub-choice">Boot ACRN Using the Multiboot2 Grub Choice</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#verify-acrn-is-running">Verify ACRN Is Running</a></li>
-</ul>
-</li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ACRN Installation via Debian Packages</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-features">Advanced Features</a><ul>
@@ -1027,252 +1018,21 @@
              
   <div class="section" id="acrn-installation-via-debian-packages">
 <span id="debian-packaging"></span><h1>ACRN Installation via Debian Packages<a class="headerlink" href="#acrn-installation-via-debian-packages" title="Permalink to this headline">¶</a></h1>
-<p>Debian packages provide a simple way to build and package a collection
-of ACRN configurations on a development system, based on a set of
-hardware platforms and scenario choices.  You can then copy the packages
-onto your target platform, select a particular configuration and reboot
-the system with ACRN and an Ubuntu Service VM up and running.</p>
-<p>Follow these instructions to build Debian packages for the acrn-hypervisor and
-acrn-kernel, install them on your target system, and boot running ACRN.</p>
-<div class="numbered-step section" id="set-up-prerequisites">
-<h2>Set Up Prerequisites<a class="headerlink" href="#set-up-prerequisites" title="Permalink to this headline">¶</a></h2>
-<p>Your development system should be running Ubuntu
-18.04 and be connected to the internet. (You’ll be installing software
-with <code class="docutils literal notranslate"><span class="pre">apt</span></code> and from Pypi and downloading ACRN software from
-GitHub.)</p>
-<p>It’s likely you’ve already got python3 on your system, but we can make
-sure by installing it with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">python3</span>
-</pre></div>
-</div>
-<p>All of the Debian packaging work is handled by a script found in the
-ACRN GitHub repo.  If you don’t have it downloaded already, clone the
-ACRN repo with:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">projectacrn</span><span class="o">/</span><span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">.</span><span class="n">git</span>
-</pre></div>
-</div>
-<p>All the configuration files and scripts to build the Debian packages are
-in the <code class="docutils literal notranslate"><span class="pre">misc/packaging</span></code> folder, so let’s go there:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">/</span><span class="n">misc</span><span class="o">/</span><span class="n">packaging</span>
-</pre></div>
-</div>
-</div>
-<div class="numbered-step section" id="configure-debian-packaging-details">
-<h2>Configure Debian Packaging Details<a class="headerlink" href="#configure-debian-packaging-details" title="Permalink to this headline">¶</a></h2>
-<p>The build and packaging script <code class="docutils literal notranslate"><span class="pre">install_uSoS.py</span></code> does all the work to
-build and make the Debian packages.  You configure what the script does
-by editing its configuration file, <code class="docutils literal notranslate"><span class="pre">release.json</span></code>.  Comments in the
-JSON file document how you can adjust things to your specific needs.  For
-example, the default <code class="docutils literal notranslate"><span class="pre">release.json</span></code> file builds for all three default
-ACRN configurations (industry, hybrid, and logical_partition) and for
-two supported boards (nuc717dnb and whl-ipc-i5).</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>In the current implementation of this packaging script, if you
-change the <code class="docutils literal notranslate"><span class="pre">release.json</span></code> boards configuration choices, you’ll also need to
-manually update the <code class="docutils literal notranslate"><span class="pre">acrn-hypervisor.postinst</span></code> script to match.</p>
-</div>
-<p>Here’s the default <code class="docutils literal notranslate"><span class="pre">release.json</span></code> configuration:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-	<span class="s2">&quot;//&quot;</span><span class="p">:</span><span class="s2">&quot;release ubuntu as sos verion&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;install_package&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;gcc_version&quot;</span><span class="p">:</span><span class="s2">&quot;7.3.0&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;binutils&quot;</span><span class="p">:</span><span class="s2">&quot;2.27&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;//&quot;</span><span class="p">:</span><span class="s2">&quot;acrn-hypervisor config&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;build_acrn&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;sync_acrn_code&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;acrn_repo&quot;</span><span class="p">:</span><span class="s2">&quot;https://github.com/projectacrn/acrn-hypervisor.git&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;release_version&quot;</span><span class="p">:</span><span class="s2">&quot;remotes/origin/release_2.1&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;acrn_deb_package&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;install_acrn_deb&quot;</span><span class="p">:</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;build_cmd&quot;</span><span class="p">:</span>
-	<span class="p">{</span>
-		<span class="s2">&quot;build_method&quot;</span><span class="p">:</span>
-		<span class="p">{</span>
-			<span class="s2">&quot;use_xml&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-			<span class="s2">&quot;use_sourcecode&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span>
-		<span class="p">},</span>
-		<span class="s2">&quot;scenario&quot;</span><span class="p">:</span>
-		<span class="p">{</span>
-			<span class="s2">&quot;industry&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-			<span class="s2">&quot;hybrid&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-			<span class="s2">&quot;logical_partition&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span>
-
-		<span class="p">},</span>
-		<span class="s2">&quot;board&quot;</span><span class="p">:</span>
-		<span class="p">{</span>
-			<span class="s2">&quot;nuc7i7dnb&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-			<span class="s2">&quot;whl-ipc-i5&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span>
-		<span class="p">},</span>
-		<span class="s2">&quot;release&quot;</span><span class="p">:</span><span class="s2">&quot;0&quot;</span>
-	<span class="p">},</span>
-	<span class="s2">&quot;acrn_patch&quot;</span><span class="p">:</span>
-	<span class="p">{</span>
-		<span class="s2">&quot;patch_need&quot;</span><span class="p">:</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
-		<span class="s2">&quot;patch_dir&quot;</span><span class="p">:</span><span class="s2">&quot;acrn_additional_patch&quot;</span><span class="p">,</span>
-		<span class="s2">&quot;patch_list&quot;</span><span class="p">:</span>
-		<span class="p">{</span>
-			<span class="s2">&quot;0001-xxxxxxxx.patch&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
-			<span class="s2">&quot;0002-xxxxxxxx.patch&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span>
-		<span class="p">}</span>
-
-	<span class="p">},</span>
-	<span class="s2">&quot;//&quot;</span><span class="p">:</span><span class="s2">&quot;kernel config&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;build_acrn_kernel&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;sync_acrn_kernel_code&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;kernel_patch&quot;</span><span class="p">:</span>
-	<span class="p">{</span>
-		<span class="s2">&quot;patch_need&quot;</span><span class="p">:</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
-		<span class="s2">&quot;patch_dir&quot;</span><span class="p">:</span><span class="s2">&quot;kernel_additional_patch&quot;</span><span class="p">,</span>
-		<span class="s2">&quot;patch_list&quot;</span><span class="p">:</span>
-		<span class="p">{</span>
-			<span class="s2">&quot;0001_xxxxxxxx.patch&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span>
-		<span class="p">}</span>
-
-	<span class="p">},</span>
-	<span class="s2">&quot;kernel_release_version&quot;</span><span class="p">:</span><span class="s2">&quot;remotes/origin/release_2.1&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;sos_kernel_repo&quot;</span><span class="p">:</span><span class="s2">&quot;https://github.com/projectacrn/acrn-kernel.git&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;acrn_kernel_deb_package&quot;</span><span class="p">:</span><span class="s2">&quot;true&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;install_acrn_kernel_deb&quot;</span><span class="p">:</span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;//&quot;</span><span class="p">:</span><span class="s2">&quot;misc&quot;</span><span class="p">,</span>
-	<span class="s2">&quot;auto_reboot&quot;</span><span class="p">:</span><span class="s2">&quot;false&quot;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</div>
-<div class="numbered-step section" id="run-the-package-building-script">
-<h2>Run the Package-Building Script<a class="headerlink" href="#run-the-package-building-script" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">install_uSoS.py</span></code> Python script does all the work to install
-needed tools (such as make, gnu-efi, libssl-dev, libpciaccess-dev,
-uuid-dev, and more).  It also verifies that tool versions (such as the
-gcc compiler) are appropriate (as configured in the <code class="docutils literal notranslate"><span class="pre">release.json</span></code>
-file).</p>
-<p>The script runs without further user input, and must be run with
-<code class="docutils literal notranslate"><span class="pre">sudo</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">python3</span> <span class="n">install_uSoS</span><span class="o">.</span><span class="n">py</span>
-</pre></div>
-</div>
-<p>With the default <code class="docutils literal notranslate"><span class="pre">release.json</span></code> configuration, this script will run
-for about 30 minutes, but could take longer depending on your internet
-speed (for downloading files) and overall computer performance (for
-compiling the Linux kernel, ACRN hypervisor, and ACRN tools).</p>
-<p>When done, it creates two Debian packages:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">acrn_deb_package.deb</span></code> with the ACRN hypervisor and tools built
-for each configuration combination, and</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">acrn_kernel_deb_package.deb</span></code> with the ACRN-patched Linux kernel.</p></li>
-</ul>
-</div></blockquote>
-<p>You’ll need to copy these two files onto your target system, either via
-the network or simply by using a USB drive.</p>
-</div>
-<div class="numbered-step section" id="prepare-your-target-system-with-ubuntu-18-04">
-<h2>Prepare Your Target System With Ubuntu 18.04<a class="headerlink" href="#prepare-your-target-system-with-ubuntu-18-04" title="Permalink to this headline">¶</a></h2>
-<p>Your target system must be one of the choices listed in the <code class="docutils literal notranslate"><span class="pre">release.json</span></code>
-file and should be running Ubuntu 18.04.  Make sure it’s updated using the
-commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span> <span class="n">update</span>
-<span class="n">sudo</span> <span class="n">apt</span> <span class="n">upgrade</span>
-</pre></div>
-</div>
-<p>Reboot your system to complete the installation.</p>
-</div>
-<div class="numbered-step section" id="install-debian-packages-on-your-target-system">
-<h2>Install Debian Packages on Your Target System<a class="headerlink" href="#install-debian-packages-on-your-target-system" title="Permalink to this headline">¶</a></h2>
-<p>Copy the Debian packages you created on your development system, for
-example, using a USB drive.  Then install the ACRN Debian package:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">dpkg</span> <span class="o">-</span><span class="n">i</span> <span class="n">acrn_deb_package</span><span class="o">.</span><span class="n">deb</span>
-</pre></div>
-</div>
-<p>Make your choices for scenario, board, and which disk to use,
-for example, this selects the industry scenario, nuc7i7dnb board, and
-installation on the NVMe drive (input is highlighted):</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Selecting previously unselected package acrn-package.</span>
-<span class="gp gp-VirtualEnv">(Reading database ... 163871 files and directories currently installed.)</span>
-<span class="go">Preparing to unpack acrn_deb_package.deb...</span>
-<span class="go">Unpacking acrn-package (2020-07-17) ...</span>
-<span class="go">Setting up acrn-package (2020-07-17) ...</span>
-<span class="go">please choose &lt;scenario&gt; ,&lt;board&gt; ,&lt;disk type&gt;</span>
-<span class="go">Scenario is -&gt;</span>
-<span class="go">        1. industry</span>
-<span class="go">        2. hybrid</span>
-<span class="go">        3. logical_partition</span>
-<span class="hll"><span class="go">1</span>
-</span><span class="go">Scenario is industry</span>
-<span class="go">Board is -&gt;</span>
-<span class="go">        1. nuc7i7dnb</span>
-<span class="go">        2. whl-ipc-i5</span>
-<span class="hll"><span class="go">1</span>
-</span><span class="go">Board is nuc7i7dnb</span>
-<span class="go">Your acrn bin is -&gt;</span>
-<span class="go">/boot/acrn.industry.nuc7i7dnb.bin</span>
-<span class="go">disk type is -&gt;</span>
-<span class="go">        1. nvme</span>
-<span class="go">        2. sda</span>
-<span class="hll"><span class="go">1</span>
-</span><span class="go">disk type is nvme</span>
-<span class="go">Sourcing file &#39;/etc/default/grub&#39;</span>
-<span class="go">Generating grub configuration file ...</span>
-<span class="go">Found linux image: /boot/vmlinuz-5.3.0-62-generic</span>
-<span class="go">Found initrd image: /boot/initrd.img-5.3.0-62-generic</span>
-<span class="go">Found linux image: /boot/vmlinuz-5.3.0-28-generic</span>
-<span class="go">Found initrd image: /boot/initrd.img-5.3.0-28-generic</span>
-<span class="go">Added boot menu entry for EFI firmware configuration</span>
-<span class="go">done</span>
-</pre></div>
-</div>
-<p>Then install the ACRN-patched kernel package:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">dpkg</span> <span class="o">-</span><span class="n">i</span> <span class="n">acrn_kernel_deb_package</span><span class="o">.</span><span class="n">deb</span>
-</pre></div>
-</div>
-<p>After that, you’re ready to reboot.</p>
-</div>
-<div class="numbered-step section" id="boot-acrn-using-the-multiboot2-grub-choice">
-<h2>Boot ACRN Using the Multiboot2 Grub Choice<a class="headerlink" href="#boot-acrn-using-the-multiboot2-grub-choice" title="Permalink to this headline">¶</a></h2>
-<p>This time when you boot your target system you’ll see some new options:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go"> Ubuntu</span>
-<span class="go"> Advanced options for Ubuntu</span>
-<span class="go"> System setup</span>
-<span class="hll"><span class="go">*ACRN multiboot2</span>
-</span></pre></div>
-</div>
-<p>If your target system has a serial port active, you can simply hit
-<kbd class="kbd docutils literal notranslate">return</kbd> (or wait for the timeout) to boot with this
-<code class="docutils literal notranslate"><span class="pre">ACRN</span> <span class="pre">multiboot2</span></code> choice.</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>If you don’t have an active serial port, you’ll need to
-edit the grub configuration a bit by pressing <kbd class="kbd docutils literal notranslate">e</kbd> (for edit) and
-remove the <code class="docutils literal notranslate"><span class="pre">i915.modeset=0</span> <span class="pre">video=efifb:off</span></code> parameters at the end of
-the multiboot2 grub command:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">setparams &#39;ACRN multiboot2 &#39;</span>
-
-<span class="go">    load_video</span>
-<span class="go">    insmod gzio</span>
-<span class="go">    insmod part_gpt</span>
-<span class="go">    insmod ext2</span>
-<span class="go">    search --no-floppy --fs-uuid  --set $uuid</span>
-<span class="hll"><span class="go">multiboot2 /boot/acrn.industry.nuc7i7dnb.bin root=PARTUUID=&quot;06d5265d-863a-4bc0-b469-66b5e6b8a9cb&quot; i915.modeset=0 video=efifb:off</span>
-</span><span class="go">module2 /boot/vmlinuz-5.4.43.PKT-200203T060100Z Linux_bzImage</span>
-</pre></div>
-</div>
-<p>Then press <kbd class="kbd docutils literal notranslate">F10</kbd> to continue booting</p>
-</div>
-</div>
-<div class="numbered-step section" id="verify-acrn-is-running">
-<h2>Verify ACRN Is Running<a class="headerlink" href="#verify-acrn-is-running" title="Permalink to this headline">¶</a></h2>
-<p>After the system boots, you can verify ACRN was detected and is running
-by looking at the dmesg log:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">acrn@acrn-NUC:~$</span> dmesg <span class="p">|</span> grep -i acrn
-<span class="go">[    0.000000] Linux version 5.4.43-PKT-200203T060100Z (root@acrn-NUC7i7DNHE) (gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)) #1 SMP PREEMPT Thu Jul 16 16:33:58 CST 2020</span>
-<span class="hll"><span class="go">[    0.000000] Hypervisor detected: ACRN</span>
-</span><span class="go">[    2.413796] ACRNTrace: Initialized acrn trace module with 4 cpu</span>
-<span class="go">[    2.413883] ACRN HVLog: Failed to init last hvlog devs, errno -19</span>
-<span class="go">[    2.413884] ACRN HVLog: Initialized hvlog module with 4 cpu</span>
-</pre></div>
-</div>
-</div>
+<p>Debian packages provide a simple way to package ACRN configurations on
+a development computer. You can then copy the packages onto your target system,
+install the packages, and reboot the system with ACRN and an Ubuntu Service VM
+up and running.</p>
+<p>ACRN does not distribute pre-built Debian packages for the hypervisor or kernel
+because ACRN and the kernel are configured based on your specific hardware and
+scenario configurations, as described in the <a class="reference internal" href="../../getting-started/overview_dev.html#overview-dev"><span class="std std-ref">Configuration and Development Overview</span></a>. Instead after
+configuring ACRN to your needs, Debian packages are created when you build your
+ACRN hypervisor and ACRN kernel via <code class="docutils literal notranslate"><span class="pre">Makefile</span></code> commands.</p>
+<p>All the configuration files and scripts used by the Makefile to build the Debian
+packages are in the <code class="docutils literal notranslate"><span class="pre">misc/packaging</span></code> folder. The <code class="docutils literal notranslate"><span class="pre">gen_acrn_deb.py</span></code> script
+does all the work to build the Debian packages so you can copy and install them
+on your target system.</p>
+<p>For build and installation steps, see <a class="reference internal" href="../../getting-started/getting-started.html#gsg-build"><span class="std std-ref">Build ACRN</span></a> in the Getting Started
+Guide.</p>
 </div>
 
 
@@ -1287,7 +1047,7 @@ by looking at the dmesg log:</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
-      <span class="lastupdated">Last modified: Feb 12, 2021. Published: Feb 10, 2022.
+      <span class="lastupdated">Last modified: Feb 08, 2022. Published: Feb 14, 2022.
       </span></p>
   </div>
 
