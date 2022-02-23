@@ -1031,29 +1031,29 @@ C-state management. All these ACPI data must be consistent with the
 native data because the control method is a kind of passthrough.</p>
 <p>These ACPI objects data are parsed by an offline tool and hard-coded in a
 Hypervisor module named CPU state table:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">cpu_pstate_data</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">core_frequency</span><span class="p">;</span><span class="w">        </span><span class="cm">/* megahertz */</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">power</span><span class="p">;</span><span class="w">                 </span><span class="cm">/* milliWatts */</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">transition_latency</span><span class="p">;</span><span class="w">    </span><span class="cm">/* microseconds */</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">bus_master_latency</span><span class="p">;</span><span class="w">    </span><span class="cm">/* microseconds */</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">control</span><span class="p">;</span><span class="w">               </span><span class="cm">/* control value */</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">status</span><span class="p">;</span><span class="w">                </span><span class="cm">/* success indicator */</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">cpu_pstate_data</span> <span class="p">{</span>
+    <span class="kt">uint64_t</span> <span class="n">core_frequency</span><span class="p">;</span>        <span class="cm">/* megahertz */</span>
+    <span class="kt">uint64_t</span> <span class="n">power</span><span class="p">;</span>                 <span class="cm">/* milliWatts */</span>
+    <span class="kt">uint64_t</span> <span class="n">transition_latency</span><span class="p">;</span>    <span class="cm">/* microseconds */</span>
+    <span class="kt">uint64_t</span> <span class="n">bus_master_latency</span><span class="p">;</span>    <span class="cm">/* microseconds */</span>
+    <span class="kt">uint64_t</span> <span class="n">control</span><span class="p">;</span>               <span class="cm">/* control value */</span>
+    <span class="kt">uint64_t</span> <span class="n">status</span><span class="p">;</span>                <span class="cm">/* success indicator */</span>
+<span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
 
-<span class="k">struct</span><span class="w"> </span><span class="nc">acrn_acpi_generic_address</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint8_t</span><span class="w">     </span><span class="n">space_id</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint8_t</span><span class="w">     </span><span class="n">bit_width</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint8_t</span><span class="w">     </span><span class="n">bit_offset</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint8_t</span><span class="w">     </span><span class="n">access_size</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w">    </span><span class="n">address</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span><span class="w"></span>
+<span class="k">struct</span> <span class="nc">acrn_acpi_generic_address</span> <span class="p">{</span>
+    <span class="kt">uint8_t</span>     <span class="n">space_id</span><span class="p">;</span>
+    <span class="kt">uint8_t</span>     <span class="n">bit_width</span><span class="p">;</span>
+    <span class="kt">uint8_t</span>     <span class="n">bit_offset</span><span class="p">;</span>
+    <span class="kt">uint8_t</span>     <span class="n">access_size</span><span class="p">;</span>
+    <span class="kt">uint64_t</span>    <span class="n">address</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
 
-<span class="k">struct</span><span class="w"> </span><span class="nc">cpu_cstate_data</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_acpi_generic_address</span><span class="w"> </span><span class="n">cx_reg</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint8_t</span><span class="w">     </span><span class="n">type</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint32_t</span><span class="w">    </span><span class="n">latency</span><span class="p">;</span><span class="w"></span>
-<span class="w">    </span><span class="kt">uint64_t</span><span class="w">    </span><span class="n">power</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span><span class="w"></span>
+<span class="k">struct</span> <span class="nc">cpu_cstate_data</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="nc">acrn_acpi_generic_address</span> <span class="n">cx_reg</span><span class="p">;</span>
+    <span class="kt">uint8_t</span>     <span class="n">type</span><span class="p">;</span>
+    <span class="kt">uint32_t</span>    <span class="n">latency</span><span class="p">;</span>
+    <span class="kt">uint64_t</span>    <span class="n">power</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">aligned</span><span class="p">(</span><span class="mi">8</span><span class="p">)));</span>
 </pre></div>
 </div>
 <p>With these Px/Cx data, the Hypervisor is able to intercept the guest’s
@@ -1193,7 +1193,7 @@ mapped to shutdown. So the S5 process is a little different:</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
-      <span class="lastupdated">Last modified: Nov 09, 2021. Published: Feb 22, 2022.
+      <span class="lastupdated">Last modified: Nov 09, 2021. Published: Feb 23, 2022.
       </span></p>
   </div>
 
