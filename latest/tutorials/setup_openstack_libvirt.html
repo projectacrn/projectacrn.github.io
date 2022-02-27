@@ -272,6 +272,12 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../misc/packaging/README.html">ACRN Installation via Debian Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tar_installation.html">ACRN Installation via Tar Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="tar_installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tar_installation.html#build-the-tar-files">Build the Tar Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="tar_installation.html#install-and-run-acrn">Install and Run ACRN</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2 current"><a class="reference internal" href="../develop.html#advanced-features">Advanced Features</a><ul class="current">
@@ -1017,11 +1023,11 @@
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>This document provides instructions for setting up libvirt to configure
-ACRN. We use OpenStack to use libvirt and we’ll install OpenStack in a container
-to avoid crashing your system and to take advantage of easy
-snapshots/restores so that you can quickly roll back your system in the
+ACRN. We use OpenStack to use libvirt. We’ll show how to install OpenStack in a
+container to avoid crashing your system and to take advantage of easy
+snapshots and restores so that you can quickly roll back your system in the
 event of setup failure. (You should only install OpenStack directly on Ubuntu if
-you have a dedicated testing machine). This setup utilizes LXC/LXD on
+you have a dedicated testing machine.) This setup utilizes LXC/LXD on
 Ubuntu 20.04.</p>
 </div>
 <div class="section" id="install-acrn">
@@ -1087,8 +1093,8 @@ security.privileged: &quot;true&quot;
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Make sure to respect the indentation as to keep these options within
-the <strong>config</strong> section. It is a good idea after saving your changes
-to check that they have been correctly recorded (<code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">config</span> <span class="pre">show</span> <span class="pre">openstack</span></code>).</p>
+the <strong>config</strong> section. After saving your changes,
+check that they have been correctly recorded (<code class="docutils literal notranslate"><span class="pre">lxc</span> <span class="pre">config</span> <span class="pre">show</span> <span class="pre">openstack</span></code>).</p>
 </div>
 </li>
 <li><p>Run the following commands to configure <code class="docutils literal notranslate"><span class="pre">openstack</span></code>:</p>
@@ -1113,7 +1119,7 @@ $ for n in {0..15}; do lxc config device add openstack loop$n unix-block path=/d
 </li>
 <li><p>Let <code class="docutils literal notranslate"><span class="pre">systemd</span></code> manage <strong>eth1</strong> in the container, with <strong>eth0</strong> as the
 default route:</p>
-<p>Edit <code class="docutils literal notranslate"><span class="pre">/etc/netplan/50-cloud-init.yaml</span></code></p>
+<p>Edit <code class="docutils literal notranslate"><span class="pre">/etc/netplan/50-cloud-init.yaml</span></code> as follows:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>network:
     version: 2
     ethernets:
@@ -1144,7 +1150,7 @@ Both IP addresses assigned to <strong>eth0</strong> and
 </pre></div>
 </div>
 </li>
-<li><p>Add a new user named <strong>stack</strong> and set permissions</p>
+<li><p>Add a new user named <strong>stack</strong> and set permissions:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span># useradd -s /bin/bash -d /opt/stack -m stack
 # echo &quot;stack ALL=(ALL) NOPASSWD: ALL&quot; &gt;&gt; /etc/sudoers
 </pre></div>
@@ -1223,7 +1229,7 @@ $ sudo make install
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">dev-acrn-v6.1.0</span></code> branch is used in this tutorial. It is
+<p>The <code class="docutils literal notranslate"><span class="pre">dev-acrn-v6.1.0</span></code> branch is used in this tutorial and is
 the default branch.</p>
 </div>
 </li>
@@ -1313,8 +1319,8 @@ and running.</p></li>
 <ol class="loweralpha">
 <li><p>Inside the container, use the command <code class="docutils literal notranslate"><span class="pre">ip</span> <span class="pre">a</span></code> to identify the <code class="docutils literal notranslate"><span class="pre">br-ex</span></code> bridge
 interface. <code class="docutils literal notranslate"><span class="pre">br-ex</span></code> should have two IPs. One should be visible to
-the native Ubuntu’s <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> interface (e.g. iNet 192.168.1.104/24).
-The other one is internal to OpenStack (e.g. iNet 172.24.4.1/24). The
+the native Ubuntu’s <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> interface (for example, iNet 192.168.1.104/24).
+The other one is internal to OpenStack (for example, iNet 172.24.4.1/24). The
 latter corresponds to the public network in OpenStack.</p></li>
 <li><p>Set up SNAT to establish a link between <code class="docutils literal notranslate"><span class="pre">acrn-br0</span></code> and OpenStack.
 For example:</p>
@@ -1338,13 +1344,13 @@ for example:</p>
 to finish setting up the network and configure and create an OpenStack
 instance.</p>
 <ol class="arabic">
-<li><p>Begin by using your browser to login as <strong>admin</strong> to the OpenStack management
+<li><p>Begin by using your browser to log in as <strong>admin</strong> to the OpenStack management
 dashboard (using the URL reported previously). Use the admin
 password you set in the <code class="docutils literal notranslate"><span class="pre">devstack/local.conf</span></code> file:</p>
 <div class="figure align-center" id="os-01-login">
 <a class="reference internal image-reference" href="../_images/OpenStack-01-login.png"><img alt="../_images/OpenStack-01-login.png" src="../_images/OpenStack-01-login.png" style="width: 1200px;" /></a>
 </div>
-<p>Click on the <strong>Project / Network Topology</strong> and then the <strong>Topology</strong> tab
+<p>Click <strong>Project / Network Topology</strong> and then the <strong>Topology</strong> tab
 to view the existing <strong>public</strong> (external) and <strong>shared</strong> (internal) networks:</p>
 <div class="figure align-center" id="os-02-topology">
 <a class="reference internal image-reference" href="../_images/OpenStack-02-topology.png"><img alt="../_images/OpenStack-02-topology.png" src="../_images/OpenStack-02-topology.png" style="width: 1200px;" /></a>
@@ -1357,20 +1363,20 @@ networks. Create a router using <strong>Project / Network / Routers /
 <a class="reference internal image-reference" href="../_images/OpenStack-03-create-router.png"><img alt="../_images/OpenStack-03-create-router.png" src="../_images/OpenStack-03-create-router.png" style="width: 1200px;" /></a>
 </div>
 <p>Give it a name (<strong>acrn_router</strong>), select <strong>public</strong> for the external network,
-and select create router:</p>
+and select <strong>Create Router</strong>:</p>
 <div class="figure align-center" id="os-03a-router">
 <a class="reference internal image-reference" href="../_images/OpenStack-03a-create-router.png"><img alt="../_images/OpenStack-03a-create-router.png" src="../_images/OpenStack-03a-create-router.png" style="width: 1200px;" /></a>
 </div>
 <p>That added the external network to the router.  Now add
-the internal network too. Click on the acrn_router name:</p>
+the internal network too. Click the acrn_router name:</p>
 <div class="figure align-center" id="os-03b-router">
 <a class="reference internal image-reference" href="../_images/OpenStack-03b-created-router.png"><img alt="../_images/OpenStack-03b-created-router.png" src="../_images/OpenStack-03b-created-router.png" style="width: 1200px;" /></a>
 </div>
-<p>Go to the interfaces tab, and click on <strong>+Add interface</strong>:</p>
+<p>Go to the <strong>Interfaces</strong> tab, and click <strong>+Add interface</strong>:</p>
 <div class="figure align-center" id="os-04a-add-interface">
 <a class="reference internal image-reference" href="../_images/OpenStack-04a-add-interface.png"><img alt="../_images/OpenStack-04a-add-interface.png" src="../_images/OpenStack-04a-add-interface.png" style="width: 1200px;" /></a>
 </div>
-<p>Select the subnet of the shared (private) network and click submit:</p>
+<p>Select the subnet of the shared (private) network and click <strong>Submit</strong>:</p>
 <div class="figure align-center" id="os-04b-add-interface">
 <a class="reference internal image-reference" href="../_images/OpenStack-04b-add-interface.png"><img alt="../_images/OpenStack-04b-add-interface.png" src="../_images/OpenStack-04b-add-interface.png" style="width: 1200px;" /></a>
 </div>
@@ -1379,7 +1385,7 @@ networks:</p>
 <div class="figure align-center" id="os-04c-add-interface">
 <a class="reference internal image-reference" href="../_images/OpenStack-04c-add-interface.png"><img alt="../_images/OpenStack-04c-add-interface.png" src="../_images/OpenStack-04c-add-interface.png" style="width: 1200px;" /></a>
 </div>
-<p>View the router graphically by clicking on the “Network Topology” tab:</p>
+<p>View the router graphically by clicking the <strong>Network Topology</strong> tab:</p>
 <div class="figure align-center" id="os-05-topology">
 <a class="reference internal image-reference" href="../_images/OpenStack-05-topology.png"><img alt="../_images/OpenStack-05-topology.png" src="../_images/OpenStack-05-topology.png" style="width: 1200px;" /></a>
 </div>
@@ -1387,8 +1393,8 @@ networks:</p>
 networking.</p>
 </li>
 <li><p>Next, we’ll prepare for launching an OpenStack instance.
-Click on the <strong>Admin / Compute/ Image</strong> tab and then the <strong>+Create
-image</strong> button:</p>
+Click the <strong>Admin / Compute / Image</strong> tab and then the <strong>+Create
+Image</strong> button:</p>
 <div class="figure align-center" id="os-06-create-image">
 <a class="reference internal image-reference" href="../_images/OpenStack-06-create-image.png"><img alt="../_images/OpenStack-06-create-image.png" src="../_images/OpenStack-06-create-image.png" style="width: 1200px;" /></a>
 </div>
@@ -1401,30 +1407,30 @@ downloaded earlier:</p>
 <img alt="../_images/OpenStack-06b-create-image-select.png" src="../_images/OpenStack-06b-create-image-select.png" />
 </div>
 <p>Give the image a name (<strong>Ubuntu20.04</strong>), select the <strong>QCOW2 - QEMU
-Emulator</strong> format, and click on <strong>Create Image</strong>:</p>
+Emulator</strong> format, and click <strong>Create Image</strong>:</p>
 <div class="figure align-center" id="os-063-create-image">
 <a class="reference internal image-reference" href="../_images/OpenStack-06e-create-image.png"><img alt="../_images/OpenStack-06e-create-image.png" src="../_images/OpenStack-06e-create-image.png" style="width: 900px;" /></a>
 </div>
-<p>This will take a few minutes to complete.</p>
+<p>This task will take a few minutes to complete.</p>
 </li>
-<li><p>Next, click on the <strong>Admin / Computer / Flavors</strong> tabs and then the
-<strong>+Create Flavor</strong> button.  This is where you’ll define a machine flavor name
+<li><p>Next, click the <strong>Admin / Compute / Flavors</strong> tab and then the
+<strong>+Create Flavor</strong> button.  Define a machine flavor name
 (<strong>UbuntuCloud</strong>), and specify its resource requirements: the number of vCPUs (<strong>2</strong>), RAM size
 (<strong>512MB</strong>), and root disk size (<strong>4GB</strong>):</p>
 <div class="figure align-center" id="os-07a-create-flavor">
 <a class="reference internal image-reference" href="../_images/OpenStack-07a-create-flavor.png"><img alt="../_images/OpenStack-07a-create-flavor.png" src="../_images/OpenStack-07a-create-flavor.png" style="width: 700px;" /></a>
 </div>
-<p>Click on <strong>Create Flavor</strong> and you’ll return to see a list of
+<p>Click <strong>Create Flavor</strong> and you’ll return to see a list of
 available flavors plus the new one you created (<strong>UbuntuCloud</strong>):</p>
 <div class="figure align-center" id="os-07b-create-flavor">
 <a class="reference internal image-reference" href="../_images/OpenStack-07b-flavor-created.png"><img alt="../_images/OpenStack-07b-flavor-created.png" src="../_images/OpenStack-07b-flavor-created.png" style="width: 1200px;" /></a>
 </div>
 </li>
 <li><p>OpenStack security groups act as a virtual firewall controlling
-connections between instances, allowing connections such as SSH, and
+connections between instances, allowing connections such as SSH and
 HTTPS. These next steps create a security group allowing SSH and ICMP
 connections.</p>
-<p>Go to <strong>Project / Network / Security Groups</strong> and click on the <strong>+Create
+<p>Go to <strong>Project / Network / Security Groups</strong> and click the <strong>+Create
 Security Group</strong> button:</p>
 <div class="figure align-center" id="os-08-security-group">
 <a class="reference internal image-reference" href="../_images/OpenStack-08-security-group.png"><img alt="../_images/OpenStack-08-security-group.png" src="../_images/OpenStack-08-security-group.png" style="width: 1200px;" /></a>
@@ -1435,7 +1441,7 @@ Security Group</strong>:</p>
 <a class="reference internal image-reference" href="../_images/OpenStack-08a-create-security-group.png"><img alt="../_images/OpenStack-08a-create-security-group.png" src="../_images/OpenStack-08a-create-security-group.png" style="width: 1200px;" /></a>
 </div>
 <p>You’ll return to a rule management screen for this new group.  Click
-on the <strong>+Add Rule</strong> button:</p>
+the <strong>+Add Rule</strong> button:</p>
 <div class="figure align-center" id="os-08b-security-group">
 <a class="reference internal image-reference" href="../_images/OpenStack-08b-add-rule.png"><img alt="../_images/OpenStack-08b-add-rule.png" src="../_images/OpenStack-08b-add-rule.png" style="width: 1200px;" /></a>
 </div>
@@ -1443,26 +1449,26 @@ on the <strong>+Add Rule</strong> button:</p>
 <div class="figure align-center" id="os-08c-security-group">
 <a class="reference internal image-reference" href="../_images/OpenStack-08c-add-SSH-rule.png"><img alt="../_images/OpenStack-08c-add-SSH-rule.png" src="../_images/OpenStack-08c-add-SSH-rule.png" style="width: 1200px;" /></a>
 </div>
-<p>Similarly, add another rule to add a <strong>All ICMP</strong> rule too:</p>
+<p>Similarly, add another rule to add an <strong>All ICMP</strong> rule too:</p>
 <div class="figure align-center" id="os-08d-security-group">
 <a class="reference internal image-reference" href="../_images/OpenStack-08d-add-All-ICMP-rule.png"><img alt="../_images/OpenStack-08d-add-All-ICMP-rule.png" src="../_images/OpenStack-08d-add-All-ICMP-rule.png" style="width: 1200px;" /></a>
 </div>
 </li>
 <li><p>Create a public/private keypair used to access the created instance.
-Go to <strong>Project / Compute / Key Pairs</strong> and click on <strong>+Create Key
+Go to <strong>Project / Compute / Key Pairs</strong> and click <strong>+Create Key
 Pair</strong>, give the keypair a name (<strong>acrnKeyPair</strong>) and Key Type
-(<strong>SSH Key</strong>) and click on <strong>Create Key Pair</strong>:</p>
+(<strong>SSH Key</strong>) and click <strong>Create Key Pair</strong>:</p>
 <div class="figure align-center" id="os-09a-key-pair">
 <a class="reference internal image-reference" href="../_images/OpenStack-09a-create-key-pair.png"><img alt="../_images/OpenStack-09a-create-key-pair.png" src="../_images/OpenStack-09a-create-key-pair.png" style="width: 1200px;" /></a>
 </div>
-<p>You should save the <strong>private</strong> keypair file safely,
+<p>Save the <strong>private</strong> keypair file safely,
 for future use:</p>
 <div class="figure align-center" id="os-09c-key-pair">
 <a class="reference internal image-reference" href="../_images/OpenStack-09c-key-pair-private-key.png"><img alt="../_images/OpenStack-09c-key-pair-private-key.png" src="../_images/OpenStack-09c-key-pair-private-key.png" style="width: 1200px;" /></a>
 </div>
 </li>
 <li><p>Now we’re ready to launch an instance.  Go to <strong>Project / Compute /
-Instance</strong>, click on the <strong>Launch Instance</strong> button, give it a name
+Instance</strong>, click the <strong>Launch Instance</strong> button, give it a name
 (<strong>UbuntuOnACRN</strong>) and click <strong>Next</strong>:</p>
 <div class="figure align-center" id="os-10a-launch">
 <a class="reference internal image-reference" href="../_images/OpenStack-10a-launch-instance-name.png"><img alt="../_images/OpenStack-10a-launch-instance-name.png" src="../_images/OpenStack-10a-launch-instance-name.png" style="width: 900px;" /></a>
@@ -1478,43 +1484,43 @@ instance:</p>
 <div class="figure align-center" id="os-10c-launch">
 <a class="reference internal image-reference" href="../_images/OpenStack-10c-select-flavor.png"><img alt="../_images/OpenStack-10c-select-flavor.png" src="../_images/OpenStack-10c-select-flavor.png" style="width: 900px;" /></a>
 </div>
-<p>Click on <strong>&gt;</strong> next to the Allocated <strong>UbuntuCloud</strong> flavor and see
+<p>Click <strong>&gt;</strong> next to the Allocated <strong>UbuntuCloud</strong> flavor and see
 details about your choice:</p>
 <div class="figure align-center" id="os-10d-launch">
 <a class="reference internal image-reference" href="../_images/OpenStack-10d-flavor-selected.png"><img alt="../_images/OpenStack-10d-flavor-selected.png" src="../_images/OpenStack-10d-flavor-selected.png" style="width: 900px;" /></a>
 </div>
-<p>Click on the <strong>Networks</strong> tab, and select the internal <strong>shared</strong>
+<p>Click the <strong>Networks</strong> tab, and select the internal <strong>shared</strong>
 network from the “Available” list:</p>
 <div class="figure align-center" id="os-10e-launch">
 <a class="reference internal image-reference" href="../_images/OpenStack-10e-select-network.png"><img alt="../_images/OpenStack-10e-select-network.png" src="../_images/OpenStack-10e-select-network.png" style="width: 1200px;" /></a>
 </div>
-<p>Click on the <strong>Security Groups</strong> tab and select
+<p>Click the <strong>Security Groups</strong> tab and select
 the <strong>acrnSecuGroup</strong>  security group you created earlier. Remove the
 <strong>default</strong> security group if it’s in the “Allocated” list:</p>
 <div class="figure align-center" id="os-10d-security">
 <a class="reference internal image-reference" href="../_images/OpenStack-10d-only-acrn-security-group.png"><img alt="../_images/OpenStack-10d-only-acrn-security-group.png" src="../_images/OpenStack-10d-only-acrn-security-group.png" style="width: 1200px;" /></a>
 </div>
-<p>Click on the <strong>Key Pair</strong> tab and verify the <strong>acrnKeyPair</strong> you
-created earlier is in the “Allocated” list, and click on <strong>Launch
+<p>Click the <strong>Key Pair</strong> tab and verify the <strong>acrnKeyPair</strong> you
+created earlier is in the “Allocated” list, and click <strong>Launch
 Instance</strong>:</p>
 <div class="figure align-center" id="os-10g-launch">
 <a class="reference internal image-reference" href="../_images/OpenStack-10g-show-keypair-launch.png"><img alt="../_images/OpenStack-10g-show-keypair-launch.png" src="../_images/OpenStack-10g-show-keypair-launch.png" style="width: 1200px;" /></a>
 </div>
 <p>It will take a few minutes to complete launching the instance.</p>
 </li>
-<li><p>Click on the <strong>Project / Compute / Instances</strong> tab to monitor
+<li><p>Click the <strong>Project / Compute / Instances</strong> tab to monitor
 progress. When the instance status is “Active” and power state is
 “Running”, associate a floating IP to the instance
 so you can access it:</p>
 <div class="figure align-center" id="os-11-running">
 <a class="reference internal image-reference" href="../_images/OpenStack-11-wait-for-running-create-snapshot.png"><img alt="../_images/OpenStack-11-wait-for-running-create-snapshot.png" src="../_images/OpenStack-11-wait-for-running-create-snapshot.png" style="width: 1200px;" /></a>
 </div>
-<p>On the <strong>Manage Floating IP Associations</strong> screen, click on the <strong>+</strong>
+<p>On the <strong>Manage Floating IP Associations</strong> screen, click the <strong>+</strong>
 to add an association:</p>
 <div class="figure align-center" id="os-11a-running">
 <a class="reference internal image-reference" href="../_images/OpenStack-11a-manage-floating-ip.png"><img alt="../_images/OpenStack-11a-manage-floating-ip.png" src="../_images/OpenStack-11a-manage-floating-ip.png" style="width: 700px;" /></a>
 </div>
-<p>Select <strong>public</strong> pool, and click on <strong>Allocate IP</strong>:</p>
+<p>Select <strong>public</strong> pool, and click <strong>Allocate IP</strong>:</p>
 <div class="figure align-center" id="os-11b-running">
 <a class="reference internal image-reference" href="../_images/OpenStack-11b-allocate-floating-ip.png"><img alt="../_images/OpenStack-11b-allocate-floating-ip.png" src="../_images/OpenStack-11b-allocate-floating-ip.png" style="width: 1200px;" /></a>
 </div>
@@ -1527,13 +1533,13 @@ to add an association:</p>
 </div>
 <div class="section" id="final-steps">
 <h2>Final Steps<a class="headerlink" href="#final-steps" title="Permalink to this headline">¶</a></h2>
-<p>With that, the OpenStack instance is running and connected to the
-network.  You can graphically see this by returning to the <strong>Project /
+<p>The OpenStack instance is now running and connected to the
+network.  You can confirm by returning to the <strong>Project /
 Network / Network Topology</strong> view:</p>
 <div class="figure align-center" id="os-12b-running">
 <a class="reference internal image-reference" href="../_images/OpenStack-12b-running-topology-instance.png"><img alt="../_images/OpenStack-12b-running-topology-instance.png" src="../_images/OpenStack-12b-running-topology-instance.png" style="width: 1200px;" /></a>
 </div>
-<p>You can also see a hypervisor summary by clicking on <strong>Admin / Compute /
+<p>You can also see a hypervisor summary by clicking <strong>Admin / Compute /
 Hypervisors</strong>:</p>
 <div class="figure align-center" id="os-12d-running">
 <a class="reference internal image-reference" href="../_images/OpenStack-12d-compute-hypervisor.png"><img alt="../_images/OpenStack-12d-compute-hypervisor.png" src="../_images/OpenStack-12d-compute-hypervisor.png" style="width: 1200px;" /></a>
@@ -1567,7 +1573,7 @@ address.</p></li>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
-      <span class="lastupdated">Last modified: Dec 01, 2021. Published: Feb 23, 2022.
+      <span class="lastupdated">Last modified: Feb 24, 2022. Published: Feb 27, 2022.
       </span></p>
   </div>
 
