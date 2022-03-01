@@ -1020,12 +1020,21 @@
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+  
+    <div class="admonition important">
+        <p class="admonition-title">Important</p>
+        <p>This is the latest documentation for the unstable development branch of
+        Project ACRN (master).<br/>Use the drop-down menu on the left to select
+        documentation for a stable release such as <a href="/2.7/">v2.7</a>.</p>
+    </div>
+  
+  
            <div itemprop="articleBody">
              
   <div class="section" id="acrn-shared-memory-based-inter-vm-communication">
 <span id="ivshmem-hld"></span><h1>ACRN Shared Memory Based Inter-VM Communication<a class="headerlink" href="#acrn-shared-memory-based-inter-vm-communication" title="Permalink to this headline">¶</a></h1>
 <p>ACRN supports inter-virtual machine communication based on a shared
-memory mechanism. The ACRN device model or hypervisor emulates a virtual
+memory mechanism. The ACRN Device Model or hypervisor emulates a virtual
 PCI device (called an <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device) to expose the base address and
 size of this shared memory.</p>
 <div class="section" id="inter-vm-communication-overview">
@@ -1034,41 +1043,43 @@ size of this shared memory.</p>
 <img alt="../../_images/ivshmem-architecture.png" src="../../_images/ivshmem-architecture.png" />
 <p class="caption"><span class="caption-number">Figure 200 </span><span class="caption-text">ACRN shared memory based inter-VM communication architecture</span><a class="headerlink" href="#ivshmem-architecture-overview" title="Permalink to this image">¶</a></p>
 </div>
-<p>There are two ways ACRN can emulate the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device:</p>
+<p>ACRN can emulate the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device in two ways:</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> dm-land</dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is emulated in the ACRN device model,
+<dt><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> dm-land</dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is emulated in the ACRN Device Model,
 and the shared memory regions are reserved in the Service VM’s
 memory space.  This solution only supports communication between
-post-launched VMs.</p>
+post-launched User VMs.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> hv-land</dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is emulated in the hypervisor, and the
 shared memory regions are reserved in the hypervisor’s
 memory space.  This solution works for both pre-launched and
-post-launched VMs.</p>
+post-launched User VMs.</p>
 </dd>
 </dl>
-<p>While both solutions can be used at the same time,  Inter-VM communication
+<p>While both solutions can be used at the same time, inter-VM communication
 may only be done between VMs using the same solution.</p>
 <dl>
 <dt>ivshmem hv:</dt><dd><p>The <strong>ivshmem hv</strong> implements register virtualization
 and shared memory mapping in the ACRN hypervisor.
-Notification/interrupt mechanism is supported.</p>
+A notification/interrupt mechanism is supported.</p>
 </dd>
 <dt>ivshmem dm:</dt><dd><p>The <strong>ivshmem dm</strong> implements register virtualization
 and shared memory mapping in the ACRN Device Model (<code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>).
-It will support notification/interrupt mechanism in the future.</p>
+It will support a notification/interrupt mechanism in the future.</p>
 </dd>
 <dt>ivshmem server:</dt><dd><p>With <strong>ivshmem server</strong> support, VMs with ivshmem devices enabled can send
-notification (interrupt) to each other by writing the target peer ID (VM ID)
-and vector index to the doorbell register of ivshmem device, <strong>ivshmem server</strong>
-forwards this notification event to target VM.</p>
+notifications (interrupts) to each other by writing the target peer ID (VM
+ID) and vector index to the doorbell register of the ivshmem device. The
+<strong>ivshmem server</strong> forwards this notification event to the target VM.</p>
 <p>Two types of <strong>ivshmem server</strong> are defined in ACRN:</p>
-<p>User land <strong>ivshmem server</strong> is a daemon in user space to forward notifications
-for <strong>dm-land</strong> ivshmem devices only, by co-working with <strong>ivshmem dm</strong>.
-User land <strong>ivshmem server</strong> is not implemented.</p>
-<p>HV-land <strong>ivshmem server</strong> plays similar role with user land <strong>ivshmem server</strong>,
-but it is a hypervisor module and forwards notification (virtual interrupt) to
-target VM with  <strong>hv-land</strong> ivshmem devices enabled.</p>
+<ul class="simple">
+<li><p>User land <strong>ivshmem server</strong> is a daemon in user space to forward
+notifications for <strong>dm-land</strong> ivshmem devices only, by co-working with
+<strong>ivshmem dm</strong>. User land <strong>ivshmem server</strong> is not implemented.</p></li>
+<li><p>HV-land <strong>ivshmem server</strong> plays a role similar to the user land <strong>ivshmem
+server</strong>, but it is a hypervisor module and forwards notifications (virtual
+interrupts) to the target VM with  <strong>hv-land</strong> ivshmem devices enabled.</p></li>
+</ul>
 </dd>
 </dl>
 <div class="figure align-center" id="ivshmem-hv-land-doorbell-overview">
@@ -1078,18 +1089,14 @@ target VM with  <strong>hv-land</strong> ivshmem devices enabled.</p>
 </div>
 <div class="section" id="ivshmem-device-introduction">
 <h2>Ivshmem Device Introduction<a class="headerlink" href="#ivshmem-device-introduction" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><blockquote>
-<div><p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is a virtual standard PCI device consisting of
+<p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device is a virtual standard PCI device consisting of
 three Base Address Registers (BARs):</p>
 <ul class="simple">
-<li><p>BAR0 is used for emulating interrupt related registers,</p></li>
-<li><p>BAR1 is used for emulating MSIX entry table, and</p></li>
+<li><p>BAR0 is used for emulating interrupt-related registers.</p></li>
+<li><p>BAR1 is used for emulating MSIX entry table.</p></li>
 <li><p>BAR2 is used for exposing a shared memory region.</p></li>
 </ul>
-</div></blockquote>
 <p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device supports no extra capabilities.</p>
-</div></blockquote>
 <p>Configuration Space Definition</p>
 <table class="docutils align-default">
 <colgroup>
@@ -1136,13 +1143,13 @@ three Base Address Registers (BARs):</p>
 <td><p>0x0</p></td>
 <td><p>R/W</p></td>
 <td><p>Interrupt Status register is used for legacy interrupt.
-ivshmem doesn’t support interrupts, so this is reserved.</p></td>
+ivshmem doesn’t support interrupts, so this register is reserved.</p></td>
 </tr>
 <tr class="row-odd"><td><p>IVSHMEM_IRQ_STA_REG</p></td>
 <td><p>0x4</p></td>
 <td><p>R/W</p></td>
 <td><p>Interrupt Mask register is used for legacy interrupt.
-ivshmem doesn’t support interrupts, so this is reserved.</p></td>
+ivshmem doesn’t support interrupts, so this register is reserved.</p></td>
 </tr>
 <tr class="row-even"><td><p>IVSHMEM_IV_POS_REG</p></td>
 <td><p>0x8</p></td>
@@ -1161,51 +1168,49 @@ ivshmem doesn’t support interrupts.</p></td>
 </div>
 <div class="section" id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
-<p>For usage information, see <a class="reference internal" href="../../tutorials/enable_ivshmem.html#enable-ivshmem"><span class="std std-ref">Enable Inter-VM Communication Based on Ivshmem</span></a></p>
+<p>For usage information, see <a class="reference internal" href="../../tutorials/enable_ivshmem.html#enable-ivshmem"><span class="std std-ref">Enable Inter-VM Communication Based on Ivshmem</span></a>.</p>
 </div>
 <div class="section" id="inter-vm-communication-security-hardening-bkms">
 <h2>Inter-VM Communication Security Hardening (BKMs)<a class="headerlink" href="#inter-vm-communication-security-hardening-bkms" title="Permalink to this headline">¶</a></h2>
-<p>As previously highlighted, ACRN 2.0 provides the capability to create shared
-memory regions between Post-Launched User VMs known as “Inter-VM Communication”.
-This mechanism is based on ivshmem v1.0 exposing virtual PCI devices for the
-shared regions (in Service VM’s memory for this release). This feature adopts a
-community-approved design for shared memory between VMs, following same
+<p>Inter-VM communication enables you to create shared
+memory regions between post-launched User VMs.
+This mechanism is based on ivshmem v1.0 and exposes virtual PCI devices for the
+shared regions (in the Service VM’s memory). This feature adopts a
+community-approved design for shared memory between VMs, following the same
 specification for KVM/QEMU (<a class="reference external" href="https://git.qemu.org/?p=qemu.git;a=blob_plain;f=docs/specs/ivshmem-spec.txt;hb=HEAD">Link</a>).</p>
 <p>Following the ACRN threat model, the policy definition for allocation and
 assignment of these regions is controlled by the Service VM, which is part of
 ACRN’s Trusted Computing Base (TCB). However, to secure inter-VM communication
-between any userspace applications that harness this channel, applications will
+between any user space applications that harness this channel, applications will
 face more requirements for the confidentiality, integrity, and authenticity of
-shared or transferred data. It is the application development team’s
-responsibility to define a threat model and security architecture for the
-application and utilize custom or public libraries accordingly. In this document
-we provide an overview about potential hardening techniques from a userspace
+shared or transferred data. The application development team is
+responsibility for defining a threat model and security architecture for the
+application and utilizing custom or public libraries accordingly. This document
+provides an overview about potential hardening techniques from a user space
 application’s perspective. Consider these techniques when defining the security
 architecture and threat model for your application.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This is not a definitive guide on all security technologies or how to implement security. We provide general pointers not bounded to a specific OS or use-case.</p>
+<p>This document is not a definitive guide on all security technologies
+or how to implement security. We provide general pointers not bounded to a
+specific OS or use case.</p>
 </div>
-<ol class="arabic">
+<ol class="arabic simple">
 <li><p><strong>Secure Feature Configurability</strong></p>
 <ul class="simple">
-<li><p>ACRN ensure a minimal control plane for the configuration of the memory region’s boundaries and name handles. This is managed only by the Service VM during the creation of the guest VM through the Device Model (DM).</p></li>
-<li><p>Service VM Admin should refer to the <a class="reference internal" href="#ivshmem-hld"><span class="std std-ref">usage guide</span></a> for secure configuration flow.</p></li>
-<li><p>Create different permissions or groups for the <code class="docutils literal notranslate"><span class="pre">admin</span></code> role to isolate it from other entities that might have access to the Service VM. For example only admin permissions allow R/W/X on DM binary.</p></li>
-<li><p>Reference: <a class="reference internal" href="#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a></p></li>
+<li><p>ACRN ensures a minimal control plane for the configuration of the memory region’s boundaries and name handles. This capability is managed only by the Service VM during the creation of the guest VM through the Device Model (DM).</p></li>
+<li><p>Create different permissions or groups for the <code class="docutils literal notranslate"><span class="pre">admin</span></code> role to isolate it from other entities that might have access to the Service VM. For example, only admin permissions allow R/W/X on the DM binary.</p></li>
 </ul>
 </li>
 <li><p><strong>Apply Access Control</strong></p>
-<ul>
+<ul class="simple">
 <li><p>Add restrictions based on behavior or subject and object rules around information flow and accesses.</p></li>
-<li><p>In Service VM, consider the <code class="docutils literal notranslate"><span class="pre">/dev/shm</span></code> device node as a critical interface with special access requirement. Those requirements can be fulfilled using any of the existing opensource MAC technologies or even ACLs depending on the OS compatibility (Ubuntu, Windows, etc..) and integration complexity.</p></li>
-<li><p>In the User VM, the shared memory region can be accessed using <code class="docutils literal notranslate"><span class="pre">mmap()</span></code> of UIO device node. Other complementary info can be found under:</p>
-<blockquote>
-<div><ul class="simple">
+<li><p>In the Service VM, consider the <code class="docutils literal notranslate"><span class="pre">/dev/shm</span></code> device node as a critical interface with special access requirements. Those requirements can be fulfilled using any of the existing open source MAC technologies or even ACLs depending on the OS compatibility (Ubuntu, Windows, etc.) and integration complexity.</p></li>
+<li><p>In the User VM, the shared memory region can be accessed using the <code class="docutils literal notranslate"><span class="pre">mmap()</span></code> of the UIO device node. Other complementary information can be found under:</p>
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/resource2</span></code> –&gt; shared memory base address</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/config</span></code> –&gt; shared memory Size.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/config</span></code> –&gt; shared memory size</p></li>
 </ul>
-</div></blockquote>
 </li>
 <li><p>For Linux-based User VMs, we recommend using the standard <code class="docutils literal notranslate"><span class="pre">UIO</span></code> and <code class="docutils literal notranslate"><span class="pre">UIO_PCI_GENERIC</span></code> drivers through the device node (for example, <code class="docutils literal notranslate"><span class="pre">/dev/uioX</span></code>).</p></li>
 <li><p>Reference: <a class="reference external" href="https://wiki.ubuntuusers.de/AppArmor/">AppArmor</a>, <a class="reference external" href="https://selinuxproject.org/page/Main_Page">SELinux</a>, <a class="reference external" href="https://www.kernel.org/doc/html/v4.12/driver-api/uio-howto.html">UIO driver-API</a></p></li>
@@ -1213,25 +1218,25 @@ architecture and threat model for your application.</p>
 </li>
 <li><p><strong>Crypto Support and Secure Applied Crypto</strong></p>
 <ul class="simple">
-<li><p>According to the application’s threat model and the defined assets that need to be shared securely, define the requirements for crypto algorithms.Those algorithms should enable operations such as authenticated encryption and decryption, secure key exchange, true random number generation, and seed extraction. In addition, consider the landscape of your attack surface and define the need for security engine (for example CSME services.</p></li>
-<li><p>Don’t implement your own crypto functions. Use available compliant crypto libraries as applicable, such as. (<a class="reference external" href="https://github.com/intel/ipp-crypto">Intel IPP</a> or <a class="reference external" href="https://01.org/tinycrypt">TinyCrypt</a>)</p></li>
-<li><p>Utilize the platform/kernel infrastructure and services (e.g., <a class="reference internal" href="hld-security.html#hld-security"><span class="std std-ref">Security High-Level Design</span></a> , <a class="reference external" href="https://www.kernel.org/doc/html/v5.4/crypto/index.html">Kernel Crypto backend/APIs</a> , <a class="reference external" href="https://www.man7.org/linux/man-pages/man7/keyrings.7.html">keyring subsystem</a>, etc..).</p></li>
-<li><p>Implement necessary flows for key lifecycle management including wrapping,revocation and migration, depending on the crypto key type used and if there are requirements for key persistence across system and power management events.</p></li>
-<li><p>Follow open source secure crypto coding guidelines for secure wrappers and marshalling data structures: <a class="reference external" href="https://github.comveorq/cryptocoding">Secure Applied Crypto</a></p></li>
+<li><p>According to the application’s threat model and the defined assets that need to be shared securely, define the requirements for crypto algorithms. Those algorithms should enable operations such as authenticated encryption and decryption, secure key exchange, true random number generation, and seed extraction. In addition, consider the landscape of your attack surface and define the need for a security engine (for example, CSME services).</p></li>
+<li><p>Don’t implement your own crypto functions. Use available compliant crypto libraries as applicable, such as <a class="reference external" href="https://github.com/intel/ipp-crypto">Intel IPP</a> or <a class="reference external" href="https://01.org/tinycrypt">TinyCrypt</a>.</p></li>
+<li><p>Utilize the platform/kernel infrastructure and services (for example, <a class="reference internal" href="hld-security.html#hld-security"><span class="std std-ref">Security High-Level Design</span></a>, <a class="reference external" href="https://www.kernel.org/doc/html/v5.4/crypto/index.html">Kernel Crypto backend/APIs</a>, and <a class="reference external" href="https://www.man7.org/linux/man-pages/man7/keyrings.7.html">keyring subsystem</a>).</p></li>
+<li><p>Implement necessary flows for key lifecycle management, including wrapping, revocation, and migration, depending on the crypto key type and requirements for key persistence across system and power management events.</p></li>
+<li><p>Follow open source secure crypto coding guidelines for secure wrappers and marshaling data structures: <a class="reference external" href="https://github.comveorq/cryptocoding">Secure Applied Crypto</a></p></li>
 <li><p>References: <a class="reference external" href="https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines">NIST Crypto Standards and Guidelines</a>, <a class="reference external" href="https://www.openssl.org/">OpenSSL</a></p></li>
 </ul>
 </li>
 <li><p><strong>Applications Passlisting</strong></p>
 <ul class="simple">
 <li><p>For use cases implemented in static environments (for example, Industrial and Automotive usages), follow application approval techniques and disable any third-party or native app stores.</p></li>
-<li><p>This mechanism can be chained with the access control policies to protect access to passlisting rules and configuration files (refer to opensource or implement your custom solution).</p></li>
+<li><p>This mechanism can be chained with the access control policies to protect access to passlisting rules and configuration files (refer to open source or implement your custom solution).</p></li>
 <li><p>References: <a class="reference external" href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-167.pdf">NIST SP800-167</a>, <a class="reference external" href="https://github.com/linux-application-whitelisting/fapolicyd">fapolicyd</a></p></li>
 </ul>
 </li>
-<li><p><strong>Secure boot and File System Integrity Verification</strong></p>
+<li><p><strong>Secure Boot and File System Integrity Verification</strong></p>
 <ul class="simple">
-<li><p>The previously highlighted technologies rely on the kernel, as a secure component, to enforce such policies. Because of this, we strongly recommend enabling secure boot for the Service VM, and extend the secureboot chain to any post-launched VM kernels.</p></li>
-<li><p>To ensure no malicious software is introduced or persists, utilize the filesystem (FS) verification methods on every boot to extend the secure boot chain for post-launch VMs (kernel/FS).</p></li>
+<li><p>The previously highlighted technologies rely on the kernel, as a secure component, to enforce such policies. We strongly recommend enabling secure boot for the Service VM, and extend the secure boot chain to any post-launched VM kernels.</p></li>
+<li><p>To ensure that no malware is introduced or persists, utilize the file system (FS) verification methods on every boot to extend the secure boot chain for post-launch VMs (kernel/FS).</p></li>
 <li><p>Reference: <a class="reference internal" href="../../tutorials/waag-secure-boot.html#how-to-enable-secure-boot-for-windows"><span class="std std-ref">Enable Secure Boot in Windows</span></a></p></li>
 <li><p>Reference Stack:  <a class="reference external" href="https://www.kernel.org/doc/html/latest/admin-guide/device-mapper/verity.html">dm-verity</a></p></li>
 </ul>
@@ -1247,6 +1252,7 @@ architecture and threat model for your application.</p>
 
            </div>
           </div>
+
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="split-dm.html" class="btn btn-neutral float-left" title="Split Device Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="hld-virtio-devices.html" class="btn btn-neutral float-right" title="Virtio Devices High-Level Design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
@@ -1256,7 +1262,7 @@ architecture and threat model for your application.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
-      <span class="lastupdated">Last modified: Feb 23, 2021. Published: Feb 27, 2022.
+      <span class="lastupdated">Last modified: Feb 25, 2022. Published: Mar 01, 2022.
       </span></p>
   </div>
 
