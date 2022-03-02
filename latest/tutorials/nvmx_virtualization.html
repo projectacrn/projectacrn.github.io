@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Enable Nested Virtualization &mdash; Project ACRN™ 2.8-unstable documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <title>Enable Nested Virtualization &mdash; Project ACRN™ 3.0-unstable documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
       <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
@@ -1130,14 +1130,13 @@ with these settings:</p>
 <p class="admonition-title">Note</p>
 <p>Normally you’d use the ACRN Configurator GUI to edit the scenario XML file.
 The tool wasn’t updated in time for the v2.5 release, so you’ll need to manually edit
-the ACRN scenario XML configuration file to edit the <code class="docutils literal notranslate"><span class="pre">SCHEDULER</span></code>, <code class="docutils literal notranslate"><span class="pre">NVMX_ENABLED</span></code>,
-<code class="docutils literal notranslate"><span class="pre">pcpu_id</span></code> , <code class="docutils literal notranslate"><span class="pre">guest_flags</span></code>, <code class="docutils literal notranslate"><span class="pre">legacy_vuart</span></code>, and <code class="docutils literal notranslate"><span class="pre">console_vuart</span></code> settings for
+the ACRN scenario XML configuration file to edit the <code class="docutils literal notranslate"><span class="pre">SCHEDULER</span></code>, <code class="docutils literal notranslate"><span class="pre">pcpu_id</span></code>,
+<code class="docutils literal notranslate"><span class="pre">guest_flags</span></code>, <code class="docutils literal notranslate"><span class="pre">legacy_vuart</span></code>, and <code class="docutils literal notranslate"><span class="pre">console_vuart</span></code> settings for
 the Service VM, as shown below.</p>
 </div>
 <ol class="arabic">
 <li><p>Configure system level features:</p>
 <ul>
-<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-hv.FEATURES.NVMX_ENABLED"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.FEATURES.NVMX_ENABLED</span></code></a> to <cite>y</cite> to enable nested virtualization</p></li>
 <li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-hv.FEATURES.SCHEDULER"><code class="xref std std-option docutils literal notranslate"><span class="pre">hv.FEATURES.SCHEDULER</span></code></a> to <code class="docutils literal notranslate"><span class="pre">SCHED_NOOP</span></code> to disable CPU sharing</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;FEATURES&gt;</span>
     <span class="nt">&lt;RELOC&gt;</span>y<span class="nt">&lt;/RELOC&gt;</span>
@@ -1156,18 +1155,17 @@ the Service VM, as shown below.</p>
         <span class="nt">&lt;CLOS_MASK&gt;</span>0xfff<span class="nt">&lt;/CLOS_MASK&gt;</span>
         <span class="nt">&lt;CLOS_MASK&gt;</span>0xfff<span class="nt">&lt;/CLOS_MASK&gt;</span>
     <span class="nt">&lt;/RDT&gt;</span>
-<span class="hll">    <span class="nt">&lt;NVMX_ENABLED&gt;</span>y<span class="nt">&lt;/NVMX_ENABLED&gt;</span>
-</span>    <span class="nt">&lt;HYPERV_ENABLED&gt;</span>y<span class="nt">&lt;/HYPERV_ENABLED&gt;</span>
-</pre></div>
+<span class="hll">    <span class="nt">&lt;HYPERV_ENABLED&gt;</span>y<span class="nt">&lt;/HYPERV_ENABLED&gt;</span>
+</span></pre></div>
 </div>
 </li>
 </ul>
 </li>
 <li><p>In each guest VM configuration:</p>
 <ul>
-<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.guest_flags.guest_flag"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.guest_flags.guest_flag</span></code></a> on the Service VM section and add <code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_NVMX_ENABLED</span></code>
+<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.nested_virtualization_support"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.nested_virtualization_support</span></code></a> on the Service VM section and set it to <cite>y</cite>
 to enable the nested virtualization feature on the Service VM.</p></li>
-<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.guest_flags.guest_flag"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.guest_flags.guest_flag</span></code></a> and add <code class="docutils literal notranslate"><span class="pre">GUEST_FLAG_LAPIC_PASSTHROUGH</span></code> to enable local
+<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.lapic_passthrough"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.lapic_passthrough</span></code></a> and set it to <cite>y</cite> to enable local
 APIC passthrough on the Service VM.</p></li>
 <li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.cpu_affinity.pcpu_id"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.cpu_affinity.pcpu_id</span></code></a> to assign <code class="docutils literal notranslate"><span class="pre">pCPU</span></code> IDs to run the Service VM. If you are
 using debug build and need the hypervisor console, don’t assign
@@ -1191,7 +1189,7 @@ passthrough, which may prevent the Service VM from booting. Instead, we need to 
 the PCI-vUART for the Service VM. Refer to <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">Enable vUART Configurations</span></a>
 for more details about VUART configuration.</p>
 </li>
-<li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.legacy_vuart.base"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.legacy_vuart.base</span></code></a> in <code class="docutils literal notranslate"><span class="pre">legacy_vuart</span> <span class="pre">0</span></code> and set it to <code class="docutils literal notranslate"><span class="pre">INVALID_LEGACY_PIO</span></code></p></li>
+<li><p>Edit <code class="docutils literal notranslate"><span class="pre">vm.legacy_vuart.base</span></code> in <code class="docutils literal notranslate"><span class="pre">legacy_vuart</span> <span class="pre">0</span></code> and set it to <code class="docutils literal notranslate"><span class="pre">INVALID_LEGACY_PIO</span></code></p></li>
 <li><p>Edit <a class="reference internal" href="../reference/config-options.html#cmdoption-arg-vm.console_vuart.base"><code class="xref std std-option docutils literal notranslate"><span class="pre">vm.console_vuart.base</span></code></a> in <code class="docutils literal notranslate"><span class="pre">console_vuart</span> <span class="pre">0</span></code> and set it to <code class="docutils literal notranslate"><span class="pre">PCI_VUART</span></code></p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;legacy_vuart</span> <span class="na">id=</span><span class="s">&quot;0&quot;</span><span class="nt">&gt;</span>
     <span class="nt">&lt;type&gt;</span>VUART_LEGACY_PIO<span class="nt">&lt;/type&gt;</span>
@@ -1368,7 +1366,7 @@ and you’ll see that this is a QEMU-managed virtual machine:</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
-      <span class="lastupdated">Last modified: Nov 30, 2021. Published: Mar 01, 2022.
+      <span class="lastupdated">Last modified: Mar 02, 2022. Published: Mar 02, 2022.
       </span></p>
   </div>
 
