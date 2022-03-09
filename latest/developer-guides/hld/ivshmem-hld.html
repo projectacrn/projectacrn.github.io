@@ -1198,45 +1198,81 @@ specific OS or use case.</p>
 <ol class="arabic simple">
 <li><p><strong>Secure Feature Configurability</strong></p>
 <ul class="simple">
-<li><p>ACRN ensures a minimal control plane for the configuration of the memory region’s boundaries and name handles. This capability is managed only by the Service VM during the creation of the guest VM through the Device Model (DM).</p></li>
-<li><p>Create different permissions or groups for the <code class="docutils literal notranslate"><span class="pre">admin</span></code> role to isolate it from other entities that might have access to the Service VM. For example, only admin permissions allow R/W/X on the DM binary.</p></li>
+<li><p>ACRN ensures a minimal control plane for the configuration of the memory
+region’s boundaries and name handles. This capability is managed only by
+the Service VM during the creation of the guest VM through the Device Model
+(DM).</p></li>
+<li><p>Create different permissions or groups for the <code class="docutils literal notranslate"><span class="pre">admin</span></code> role to isolate it
+from other entities that might have access to the Service VM. For example,
+only admin permissions allow R/W/X on the DM binary.</p></li>
 </ul>
 </li>
 <li><p><strong>Apply Access Control</strong></p>
 <ul class="simple">
-<li><p>Add restrictions based on behavior or subject and object rules around information flow and accesses.</p></li>
-<li><p>In the Service VM, consider the <code class="docutils literal notranslate"><span class="pre">/dev/shm</span></code> device node as a critical interface with special access requirements. Those requirements can be fulfilled using any of the existing open source MAC technologies or even ACLs depending on the OS compatibility (Ubuntu, Windows, etc.) and integration complexity.</p></li>
-<li><p>In the User VM, the shared memory region can be accessed using the <code class="docutils literal notranslate"><span class="pre">mmap()</span></code> of the UIO device node. Other complementary information can be found under:</p>
+<li><p>Add restrictions based on behavior or subject and object rules around
+information flow and accesses.</p></li>
+<li><p>In the Service VM, consider the <code class="docutils literal notranslate"><span class="pre">/dev/shm</span></code> device node as a critical
+interface with special access requirements. Those requirements can be
+fulfilled using any of the existing open source MAC technologies or even
+ACLs depending on the OS compatibility (Ubuntu, Windows, etc.) and
+integration complexity.</p></li>
+<li><p>In the User VM, the shared memory region can be accessed using the
+<code class="docutils literal notranslate"><span class="pre">mmap()</span></code> of the UIO device node. Other complementary information can be
+found under:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/resource2</span></code> –&gt; shared memory base address</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/config</span></code> –&gt; shared memory size</p></li>
 </ul>
 </li>
-<li><p>For Linux-based User VMs, we recommend using the standard <code class="docutils literal notranslate"><span class="pre">UIO</span></code> and <code class="docutils literal notranslate"><span class="pre">UIO_PCI_GENERIC</span></code> drivers through the device node (for example, <code class="docutils literal notranslate"><span class="pre">/dev/uioX</span></code>).</p></li>
+<li><p>For Linux-based User VMs, we recommend using the standard <code class="docutils literal notranslate"><span class="pre">UIO</span></code> and
+<code class="docutils literal notranslate"><span class="pre">UIO_PCI_GENERIC</span></code> drivers through the device node (for example,
+<code class="docutils literal notranslate"><span class="pre">/dev/uioX</span></code>).</p></li>
 <li><p>Reference: <a class="reference external" href="https://wiki.ubuntuusers.de/AppArmor/">AppArmor</a>, <a class="reference external" href="https://selinuxproject.org/page/Main_Page">SELinux</a>, <a class="reference external" href="https://www.kernel.org/doc/html/v4.12/driver-api/uio-howto.html">UIO driver-API</a></p></li>
 </ul>
 </li>
 <li><p><strong>Crypto Support and Secure Applied Crypto</strong></p>
 <ul class="simple">
-<li><p>According to the application’s threat model and the defined assets that need to be shared securely, define the requirements for crypto algorithms. Those algorithms should enable operations such as authenticated encryption and decryption, secure key exchange, true random number generation, and seed extraction. In addition, consider the landscape of your attack surface and define the need for a security engine (for example, CSME services).</p></li>
-<li><p>Don’t implement your own crypto functions. Use available compliant crypto libraries as applicable, such as <a class="reference external" href="https://github.com/intel/ipp-crypto">Intel IPP</a> or <a class="reference external" href="https://01.org/tinycrypt">TinyCrypt</a>.</p></li>
-<li><p>Utilize the platform/kernel infrastructure and services (for example, <a class="reference internal" href="hld-security.html#hld-security"><span class="std std-ref">Security High-Level Design</span></a>, <a class="reference external" href="https://www.kernel.org/doc/html/v5.4/crypto/index.html">Kernel Crypto backend/APIs</a>, and <a class="reference external" href="https://www.man7.org/linux/man-pages/man7/keyrings.7.html">keyring subsystem</a>).</p></li>
-<li><p>Implement necessary flows for key lifecycle management, including wrapping, revocation, and migration, depending on the crypto key type and requirements for key persistence across system and power management events.</p></li>
-<li><p>Follow open source secure crypto coding guidelines for secure wrappers and marshaling data structures: <a class="reference external" href="https://github.comveorq/cryptocoding">Secure Applied Crypto</a></p></li>
-<li><p>References: <a class="reference external" href="https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines">NIST Crypto Standards and Guidelines</a>, <a class="reference external" href="https://www.openssl.org/">OpenSSL</a></p></li>
+<li><p>According to the application’s threat model and the defined assets that
+need to be shared securely, define the requirements for crypto algorithms.
+Those algorithms should enable operations such as authenticated encryption
+and decryption, secure key exchange, true random number generation, and
+seed extraction. In addition, consider the landscape of your attack surface
+and define the need for a security engine (for example, CSME services).</p></li>
+<li><p>Don’t implement your own crypto functions. Use available compliant crypto
+libraries as applicable, such as <a class="reference external" href="https://github.com/intel/ipp-crypto">Intel IPP</a> or <a class="reference external" href="https://01.org/tinycrypt">TinyCrypt</a>.</p></li>
+<li><p>Utilize the platform/kernel infrastructure and services (for example,
+<a class="reference internal" href="hld-security.html#hld-security"><span class="std std-ref">Security High-Level Design</span></a>, <a class="reference external" href="https://www.kernel.org/doc/html/v5.4/crypto/index.html">Kernel Crypto backend/APIs</a>, and <a class="reference external" href="https://www.man7.org/linux/man-pages/man7/keyrings.7.html">keyring
+subsystem</a>).</p></li>
+<li><p>Implement necessary flows for key lifecycle management, including wrapping,
+revocation, and migration, depending on the crypto key type and
+requirements for key persistence across system and power management events.</p></li>
+<li><p>Follow open source secure crypto coding guidelines for secure wrappers and
+marshaling data structures: <a class="reference external" href="https://github.comveorq/cryptocoding">Secure Applied Crypto</a></p></li>
+<li><p>References: <a class="reference external" href="https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines">NIST Crypto Standards and Guidelines</a>,
+<a class="reference external" href="https://www.openssl.org/">OpenSSL</a></p></li>
 </ul>
 </li>
 <li><p><strong>Applications Passlisting</strong></p>
 <ul class="simple">
-<li><p>For use cases implemented in static environments (for example, Industrial and Automotive usages), follow application approval techniques and disable any third-party or native app stores.</p></li>
-<li><p>This mechanism can be chained with the access control policies to protect access to passlisting rules and configuration files (refer to open source or implement your custom solution).</p></li>
-<li><p>References: <a class="reference external" href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-167.pdf">NIST SP800-167</a>, <a class="reference external" href="https://github.com/linux-application-whitelisting/fapolicyd">fapolicyd</a></p></li>
+<li><p>For use cases implemented in static environments (for example, Industrial
+and Automotive usages), follow application approval techniques and disable
+any third-party or native app stores.</p></li>
+<li><p>This mechanism can be chained with the access control policies to protect
+access to passlisting rules and configuration files (refer to open source
+or implement your custom solution).</p></li>
+<li><p>References: <a class="reference external" href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-167.pdf">NIST SP800-167</a>,
+<a class="reference external" href="https://github.com/linux-application-whitelisting/fapolicyd">fapolicyd</a></p></li>
 </ul>
 </li>
 <li><p><strong>Secure Boot and File System Integrity Verification</strong></p>
 <ul class="simple">
-<li><p>The previously highlighted technologies rely on the kernel, as a secure component, to enforce such policies. We strongly recommend enabling secure boot for the Service VM, and extend the secure boot chain to any post-launched VM kernels.</p></li>
-<li><p>To ensure that no malware is introduced or persists, utilize the file system (FS) verification methods on every boot to extend the secure boot chain for post-launch VMs (kernel/FS).</p></li>
+<li><p>The previously highlighted technologies rely on the kernel, as a secure
+component, to enforce such policies. We strongly recommend enabling secure
+boot for the Service VM, and extend the secure boot chain to any
+post-launched VM kernels.</p></li>
+<li><p>To ensure that no malware is introduced or persists, utilize the file
+system (FS) verification methods on every boot to extend the secure boot
+chain for post-launch VMs (kernel/FS).</p></li>
 <li><p>Reference: <a class="reference internal" href="../../tutorials/waag-secure-boot.html#how-to-enable-secure-boot-for-windows"><span class="std std-ref">Enable Secure Boot in Windows</span></a></p></li>
 <li><p>Reference Stack:  <a class="reference external" href="https://www.kernel.org/doc/html/latest/admin-guide/device-mapper/verity.html">dm-verity</a></p></li>
 </ul>
@@ -1244,7 +1280,8 @@ specific OS or use case.</p>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>All the mentioned hardening techniques might require minor extra development efforts.</p>
+<p>All the mentioned hardening techniques might require minor extra
+development efforts.</p>
 </div>
 </div>
 </div>
@@ -1262,7 +1299,7 @@ specific OS or use case.</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
-      <span class="lastupdated">Last modified: Feb 25, 2022. Published: Mar 02, 2022.
+      <span class="lastupdated">Last modified: Feb 28, 2022. Published: Mar 09, 2022.
       </span></p>
   </div>
 
