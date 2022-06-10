@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physical Interrupt High-Level Design &mdash; Project ACRN™ 3.0 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/menu.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/tabs.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" /><link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/acrn-custom.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Timer" href="hv-timer.html" />
+    <link rel="prev" title="IOC Virtualization High-Level Design" href="hv-ioc-virt.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Project ACRN™<img src="../../_static/ACRN_Logo_200w.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Project ACRN</span>
+      v: 3.0
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Document Versions</dt>
+        
+          <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/2.7/">2.7</a></dd>
+        
+          <dd><a href="/2.6/">2.6</a></dd>
+        
+          <dd><a href="/2.5/">2.5</a></dd>
+        
+          <dd><a href="/2.0/">2.0</a></dd>
+        
+          <dd><a href="/1.6.1/">1.6.1</a></dd>
+        
+          <dd><a href="/1.0/">1.0</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>projectacrn.org links</dt>
+          <dd>
+            <a href="https://www.projectacrn.org/">Project Home</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/projectacrn/acrn-hypervisor/wiki">Wiki</a>
+          </dd>
+      </dl>
+    </div>
+  </div>
+  
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Documentation Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction/index.html">What Is ACRN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#id1">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#key-capabilities">Key Capabilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#community-support">Community Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#resources">Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#device-passthrough">Device Passthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#predefined-sample-scenarios">Predefined Sample Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../try.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/hardware.html">Supported Hardware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#selecting-hardware">Selecting Hardware</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/overview_dev.html">Configuration and Development Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#development-environment">Development Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#general-process-for-building-an-acrn-hypervisor">General Process for Building an ACRN Hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-light-step-1-select-hardware-and-scenario"> Step 1: Select Hardware and Scenario</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#select-your-hardware">Select Your Hardware</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#select-your-scenario">Select Your Scenario</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-2-prepare-the-development-computer"> Step 2: Prepare the Development Computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-target-step-3-generate-a-board-configuration-file"> Step 3: Generate a Board Configuration File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#configure-bios-settings">Configure BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#use-the-board-inspector-to-generate-a-board-configuration-file">Use the Board Inspector to Generate a Board Configuration File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-4-generate-a-scenario-configuration-file-and-launch-scripts"> Step 4: Generate a Scenario Configuration File and Launch Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#generate-a-scenario-configuration-file">Generate a Scenario Configuration File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#generate-launch-scripts">Generate Launch Scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-5-build-acrn"> Step 5: Build ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-target-step-6-install-and-run-acrn"> Step 6: Install and Run ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/getting-started.html">Getting Started Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#set-up-the-target-hardware">Set Up the Target Hardware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prepare-the-development-computer">Prepare the Development Computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prepare-the-target-and-generate-a-board-configuration-file">Prepare the Target and Generate a Board Configuration File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#install-os-on-the-target">Install OS on the Target</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#configure-target-bios-settings">Configure Target BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#generate-a-board-configuration-file">Generate a Board Configuration File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#generate-a-scenario-configuration-file-and-launch-script">Generate a Scenario Configuration File and Launch Script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#build-acrn">Build ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#run-acrn-and-the-service-vm">Run ACRN and the Service VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#launch-the-user-vm">Launch the User VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../develop.html">Advanced Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-scenario-tutorials">Advanced Scenario Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html">Getting Started Guide for ACRN Hybrid Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#set-up-base-installation">Set-up base installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#prepare-the-zephyr-image">Prepare the Zephyr image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#set-up-acrn-on-your-device">Set-up ACRN on your device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-check">Hybrid Scenario Startup Check</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#user-vm-tutorials">User VM Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html">Launch Windows as the Guest VM on ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#acrn-windows-verified-feature-list">ACRN Windows Verified Feature List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm Popular Command Lines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#secure-boot-enabling">Secure Boot Enabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#activate-windows-10">Activate Windows 10</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html">Run Xenomai as the User VM OS (Real-Time VM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#build-the-xenomai-kernel">Build the Xenomai Kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#launch-the-rtvm">Launch the RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#install-the-xenomai-libraries-and-tools">Install the Xenomai Libraries and Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_vxworks_as_user_vm.html">Run VxWorks as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_vxworks_as_user_vm.html#steps-for-using-vxworks-as-user-vm">Steps for Using VxWorks as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#configuration-tutorials">Configuration Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html">Introduction to ACRN Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#types-of-configurations">Types of Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#using-acrn-configuration-toolset">Using ACRN Configuration Toolset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#acrn-configuration-data">ACRN Configuration Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/board_inspector_tool.html">Board Inspector Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#about-the-board-inspector-tool">About the Board Inspector Tool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#generate-a-board-configuration-file">Generate a Board Configuration File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#command-line-options">Command-Line Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/upgrading_configuration.html">Upgrading ACRN Configurations to Recent Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#board-xml">Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#scenario-xml">Scenario XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#launch-xml">Launch XML</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/config-options.html">Scenario Configuration Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#common-option-value-types">Common Option Value Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#hypervisor-options">Hypervisor Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#inter-vm-virtual-uart-connection">Inter-VM virtual UART connection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#debug-options">Debug options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#memory-options">Memory options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#hypervisor-capacities">Hypervisor capacities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#cache-region">CACHE_REGION</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtual-machine-options">Virtual Machine Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#physical-cpu-affinity">Physical CPU affinity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#sgx-enclave-page-cache">SGX Enclave Page Cache</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#os-configuration">OS Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#mmio-resources">MMIO Resources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtio-console-device">Virtio console device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtio-network-device">Virtio network device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtio-input-device">Virtio input device</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/config-options-launch.html">Launch Configuration Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hv-make-options.html">Hypervisor Makefile Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/hv-make-options.html#build-options-and-targets">Build Options and Targets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/hv-make-options.html#makefile-targets-for-configuration">Makefile Targets for Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/hv-parameters.html">ACRN Hypervisor Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/hv-parameters.html#generic-hypervisor-parameters">Generic Hypervisor Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/kernel-parameters.html">ACRN Kernel Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html">Device Model Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/packaging/README.html">ACRN Installation via Debian Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/tar_installation.html">ACRN Installation via Tar Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#build-the-tar-files">Build the Tar Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#install-and-run-acrn">Install and Run ACRN</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#service-vm-configuration">Service VM Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html">Enable vUART Configurations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#console-enable-list">Console Enable List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#how-to-configure-a-console-port">How to Configure a Console Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#how-to-configure-a-communication-port">How to Configure a Communication Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#communication-vuart-enable-list">Communication vUART Enable List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#launch-script">Launch Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#test-the-communication-port">Test the Communication Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#vuart-design">vUART Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#com-port-configurations-for-post-launched-vms">COM Port Configurations for Post-Launched VMs</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html#use-pci-vuart">Use PCI-vUART</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#pci-interface-of-acrn-vuart">PCI Interface of ACRN vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#index-of-vuart">Index of vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#setup-acrn-vuart-using-configuration-tools">Setup ACRN vUART Using Configuration Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#kernel-config-for-legacy-vuart">Kernel Config for Legacy vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#kernel-cmdline-for-pci-vuart-console">Kernel Cmdline for PCI-vUART Console</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rdt_configuration.html">Enable RDT Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#rdt-detection-and-resource-capabilities">RDT Detection and Resource Capabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#tuning-rdt-resources-in-hv-debug-shell">Tuning RDT Resources in HV Debug Shell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM Using VM Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vcat_configuration.html">Enable vCAT Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">Enable Secure Boot in Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB From Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF With Secure Boot Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to Inject Secure Boot Keys Into OVMF</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_s5.html">Enable S5 in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#s5-architecture">S5 Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#id2">Enable S5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#how-to-test">How to Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#system-shutdown">System Shutdown</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/cpu_sharing.html">Enable CPU Sharing in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#scheduling-framework">Scheduling Framework</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#cpu-affinity">CPU Affinity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#thread-object-state">Thread Object State</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#scheduler">Scheduler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/sriov_virtualization.html">Enable SR-IOV Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#verified-version">Verified Version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#supported-hardware-platform">Supported Hardware Platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#bios-settings">BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP Driver</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-docker">Install Docker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-kata-containers">Install Kata Containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#run-a-kata-container-with-acrn">Run a Kata Container With ACRN</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html">Real-Time VM Application Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#run-rtvm-with-dedicated-resources-devices">Run RTVM With Dedicated Resources/Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-virtio-pmd-polling-mode-driver-for-i-o-sharing">RTVM With Virtio PMD (Polling Mode Driver) for I/O Sharing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-hv-emulated-device">RTVM With HV Emulated Device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#dm-emulated-device-except-pmd">DM Emulated Device (Except PMD)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html">Configure ACRN Using OpenStack and Libvirt</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-and-launch-lxc-lxd">Set Up and Launch LXC/LXD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set Up ACRN Prerequisites Inside the Container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-libvirt">Set Up Libvirt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-openstack">Set Up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and Create OpenStack Instance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html">Enable ACRN Over QEMU/KVM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#using-pre-installed-grub">Using Pre-Installed GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#installing-self-built-grub">Installing Self-Built GRUB</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html">Enable ACRN Secure Boot With GRUB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#generate-gpg-key">Generate GPG Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html">Enable ACRN Secure Boot With EFI-Stub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#verified-configurations">Verified Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#installing-without-sb-for-testing">Installing (without SB for testing)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ivshmem.html">Enable Inter-VM Communication Based on Ivshmem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#enable-ivshmem-support">Enable Ivshmem Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/inter-vm_communication.html">ACRN Inter-VM Communication</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-vuart">Inter-VM vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-network-communication">Inter-VM network communication</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-shared-memory-communication-ivshmem">Inter-VM shared memory communication (ivshmem)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#how-to-implement-an-ivshmem-application-on-acrn">How to implement an Ivshmem application on ACRN</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Enable Serial Port on NUC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-1-using-the-serial-port-on-tgl-intel-nuc">Option 1: Using the Serial Port on TGL Intel NUC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-2-enabling-pcie-serial-port-on-tgl-intel-nuc">Option 2: Enabling PCIe Serial Port on TGL Intel NUC</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/debug.html">ACRN Debugging Tools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-console-command">ACRN Console Command</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#an-example">An Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-log">ACRN Log</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-trace">ACRN Trace</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html">ACRN Real-Time (RT) Performance Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#vmexit-analysis-for-acrn-rt-performance">vmexit Analysis for ACRN RT Performance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#collecting-performance-monitoring-counters-data">Collecting Performance Monitoring Counters Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html">ACRN Real-Time VM Performance Tips</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#background">Background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#mandatory-options-for-an-rtvm">Mandatory Options for an RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#avoid-vm-exit-latency">Avoid VM-exit Latency</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#isolating-the-impact-of-neighbor-vms">Isolating the Impact of Neighbor VMs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-shell.html">ACRN Shell Commands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-shell.html#command-examples">Command Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html">ACRN-Crashlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#enabling-disabling">Enabling/Disabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html">Acrnprobe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#source-files">Source Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#configuration-files">Configuration Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html">Acrnprobe Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#layout">Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#properties-of-group-members">Properties of Group Members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#crash-tree-in-acrnprobe">Crash Tree in Acrnprobe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#sections">Sections</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html">Usercrash</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#design">Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html">Acrnlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html">Acrntrace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/services/acrn_manager/README.html">Acrnctl and Acrnd</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#acrnd">Acrnd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../contribute.html">Developer Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../contribute.html#design-guides">Design Guides</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html">ACRN Hypervisor: Modular Design</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#principles">Principles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-security.html">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../sw_design_guidelines.html">Software Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#error-detection-and-error-handling">Error Detection and Error Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#module-level-configuration-design-guidelines">Module Level Configuration Design Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html">Trusty TEE</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-specific-hypercalls">Trusty Specific Hypercalls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-boot-flow">Trusty Boot Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#ept-hierarchy">EPT Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#contribute-guides">Contribute Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute_guidelines.html">Contribution Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#technical-steering-committee-tsc">Technical Steering Committee (TSC)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#licensing">Licensing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#developer-certification-of-origin-dco">Developer Certification of Origin (DCO)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#repository-layout">Repository Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#submitting-issues">Submitting Issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-tools-and-git-setup">Contribution Tools and Git Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#coding-style">Coding Style</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-workflow">Contribution Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#commit-guidelines">Commit Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../coding_guidelines.html">Coding Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../c_coding_guidelines.html">C Programming Language Coding Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../asm_coding_guidelines.html">Assembly Language Coding Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../doc_guidelines.html">Documentation Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#headings">Headings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#content-highlighting">Content Highlighting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#lists">Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#multi-column-lists">Multi-Column Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#file-names-and-commands">File Names and Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#branch-specific-file-links">Branch-Specific File Links</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#internal-cross-reference-linking">Internal Cross-Reference Linking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#non-ascii-characters">Non-ASCII Characters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#code-and-command-examples">Code and Command Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#images">Images</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tabs-spaces-and-indenting">Tabs, Spaces, and Indenting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#background-colors">Background Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#drawings">Drawings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#alternative-tabbed-content">Alternative Tabbed Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#instruction-steps">Instruction Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#first-instruction-step">First Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#second-instruction-step">Second Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#configuration-option-documentation">Configuration Option Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#documentation-generation">Documentation Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../graphviz.html">Drawings Using Graphviz</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#simple-directed-graph">Simple Directed Graph</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#adding-edge-labels">Adding Edge Labels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#finite-state-machine">Finite-State Machine</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html">ACRN Documentation Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-overview">Documentation Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#set-up-the-documentation-working-folders">Set Up the Documentation Working Folders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#install-the-documentation-tools">Install the Documentation Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-presentation-theme">Documentation Presentation Theme</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#run-the-documentation-processors">Run the Documentation Processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#publish-content">Publish Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#document-versioning">Document Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#filter-expected-warnings">Filter Expected Warnings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#api-documentation">API Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/hypercall_api.html">Hypercall APIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/devicemodel_api.html">Device Model APIs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.0.html">ACRN v3.0 (DRAFT)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#what-s-new-in-v3-0">What’s New in v3.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#upgrading-to-v3-0-from-previous-releases">Upgrading to v3.0 From Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/index.html#release-notes-archive">Release Notes Archive</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../asa.html">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-7">Addressed in ACRN v2.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-6">Addressed in ACRN v2.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-5">Addressed in ACRN v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-3">Addressed in ACRN v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-1">Addressed in ACRN v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6">Addressed in ACRN v1.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-4">Addressed in ACRN v1.4</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary of Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Project ACRN™</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+  <!-- 3.0 -->
+  
+  
+
+  <li><a href="../../index.html">3.0</a> &raquo;</li>
+  
+     <li><a href="../../contribute.html">Developer Reference</a> &raquo;</li>
+  
+     <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
+  
+     <li><a href="hld-hypervisor.html">Hypervisor High-Level Design</a> &raquo;</li>
+  
+  <li>Physical Interrupt High-Level Design</li>
+
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/developer-guides/hld/hv-interrupt.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+  
+  
+           <div itemprop="articleBody">
+             
+  <div class="section" id="physical-interrupt-high-level-design">
+<span id="interrupt-hld"></span><h1>Physical Interrupt High-Level Design<a class="headerlink" href="#physical-interrupt-high-level-design" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The ACRN hypervisor implements a simple but fully functional framework
+to manage interrupts and exceptions, as shown in
+<a class="reference internal" href="#interrupt-modules-overview"><span class="std std-numref">Figure 119</span></a>. In its native layer, it configures
+the physical PIC, IOAPIC, and LAPIC to support different interrupt
+sources from the local timer/IPI to the external INTx/MSI. In its virtual guest
+layer, it emulates virtual PIC, virtual IOAPIC, and virtual LAPIC/passthrough
+LAPIC. It provides full APIs, allowing virtual interrupt injection from
+emulated or passthrough devices. The contents in this section do not include
+the passthrough LAPIC case. For the passthrough LAPIC, refer to
+<a class="reference internal" href="hv-virt-interrupt.html#lapic-passthru"><span class="std std-ref">LAPIC Passthrough Based on vLAPIC</span></a></p>
+<div class="figure align-center" id="interrupt-modules-overview">
+<a class="reference internal image-reference" href="../../_images/interrupt-image3.png"><img alt="../../_images/interrupt-image3.png" src="../../_images/interrupt-image3.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 119 </span><span class="caption-text">ACRN Interrupt Modules Overview</span><a class="headerlink" href="#interrupt-modules-overview" title="Permalink to this image">¶</a></p>
+</div>
+<p>In the software modules view shown in <a class="reference internal" href="#interrupt-sw-modules"><span class="std std-numref">Figure 120</span></a>,
+the ACRN hypervisor sets up the physical interrupt in its basic
+interrupt modules (e.g., IOAPIC/LAPIC/IDT). It dispatches the interrupt
+in the hypervisor interrupt flow control layer to the corresponding
+handlers; this could be predefined IPI notification, timer, or runtime
+registered passthrough devices. The ACRN hypervisor then uses its VM
+interfaces based on vPIC, vIOAPIC, and vMSI modules, to inject the
+necessary virtual interrupt into the specific VM, or directly deliver
+interrupt to the specific RT VM with passthrough LAPIC.</p>
+<div class="figure align-center" id="interrupt-sw-modules">
+<a class="reference internal image-reference" href="../../_images/interrupt-image2.png"><img alt="../../_images/interrupt-image2.png" src="../../_images/interrupt-image2.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 120 </span><span class="caption-text">ACRN Interrupt Software Modules Overview</span><a class="headerlink" href="#interrupt-sw-modules" title="Permalink to this image">¶</a></p>
+</div>
+<p>The hypervisor implements the following functionalities for handling
+physical interrupts:</p>
+<ul class="simple">
+<li><p>Configure interrupt-related hardware including IDT, PIC, LAPIC, and
+IOAPIC on startup.</p></li>
+<li><p>Provide APIs to manipulate the registers of LAPIC and IOAPIC.</p></li>
+<li><p>Acknowledge physical interrupts.</p></li>
+<li><p>Set up a callback mechanism for the other components in the
+hypervisor to request for an interrupt vector and register a
+handler for that interrupt.</p></li>
+</ul>
+<p>HV owns all native physical interrupts and manages 256 vectors per CPU.
+All physical interrupts are first handled in VMX root-mode.  The
+“external-interrupt exiting” bit in VM-Execution controls field is set
+to support this. The ACRN hypervisor also initializes all the interrupt
+related modules like IDT, PIC, IOAPIC, and LAPIC.</p>
+<p>HV does not own any host devices (except UART). All devices are by
+default assigned to the Service VM. Any interrupts received by VM
+(Service VM or User VM) device drivers are virtual interrupts injected
+by HV (via vLAPIC).
+HV manages a Host-to-Guest mapping. When a native IRQ/interrupt occurs,
+HV decides whether this IRQ/interrupt should be forwarded to a VM and
+which VM to forward to (if any). Refer to
+<a class="reference internal" href="hv-virt-interrupt.html#virt-interrupt-injection"><span class="std std-ref">Virtual Interrupt Injection</span></a> and <a class="reference internal" href="hv-dev-passthrough.html#interrupt-remapping"><span class="std std-ref">Interrupt Remapping</span></a> for
+more information.</p>
+<p>HV does not own any exceptions. Guest VMCS are configured so no VM Exit
+happens, with some exceptions such as #INT3 and #MC.  This is to
+simplify the design as HV does not support any exception handling
+itself. HV supports only static memory mapping, so there should be no
+#PF or #GP. If HV receives an exception indicating an error, an assert
+function is then executed with an error message printout, and the
+system then halts.</p>
+<p>Native interrupts can be generated from one of the following
+sources:</p>
+<ul class="simple">
+<li><p>GSI interrupts</p>
+<ul>
+<li><p>PIC or Legacy devices IRQ (0~15)</p></li>
+<li><p>IOAPIC pin</p></li>
+</ul>
+</li>
+<li><p>PCI MSI/MSI-X vectors</p></li>
+<li><p>Inter CPU IPI</p></li>
+<li><p>LAPIC timer</p></li>
+</ul>
+</div>
+<div class="section" id="physical-interrupt-initialization">
+<span id="id1"></span><h2>Physical Interrupt Initialization<a class="headerlink" href="#physical-interrupt-initialization" title="Permalink to this headline">¶</a></h2>
+<p>After ACRN hypervisor gets control from the bootloader, it
+initializes all physical interrupt-related modules for all the CPUs. ACRN
+hypervisor creates a framework to manage the physical interrupt for
+hypervisor local devices, passthrough devices, and IPI between CPUs, as
+shown in <a class="reference internal" href="#hv-interrupt-init"><span class="std std-numref">Figure 121</span></a>:</p>
+<div class="figure align-center" id="hv-interrupt-init">
+<img alt="../../_images/interrupt-image66.png" src="../../_images/interrupt-image66.png" />
+<p class="caption"><span class="caption-number">Figure 121 </span><span class="caption-text">Physical Interrupt Initialization</span><a class="headerlink" href="#hv-interrupt-init" title="Permalink to this image">¶</a></p>
+</div>
+<div class="section" id="idt-initialization">
+<h3>IDT Initialization<a class="headerlink" href="#idt-initialization" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor builds its native IDT (interrupt descriptor table)
+during interrupt initialization and sets up the following handlers:</p>
+<ul class="simple">
+<li><p>On an exception, the hypervisor dumps its context and halts the current
+physical processor (because physical exceptions are not expected).</p></li>
+<li><p>For external interrupts, HV may mask the interrupt (depending on the
+trigger mode), followed by interrupt acknowledgement and dispatch
+to the registered handler, if any.</p></li>
+</ul>
+<p>Most interrupts and exceptions are handled without a stack switch,
+except for machine-check, double fault, and stack fault exceptions which
+have their own stack set in TSS.</p>
+</div>
+<div class="section" id="pic-ioapic-initialization">
+<h3>PIC/IOAPIC Initialization<a class="headerlink" href="#pic-ioapic-initialization" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor masks all interrupts from the PIC. All legacy interrupts
+from PIC (&lt;16) will be linked to IOAPIC, as shown in the connections in
+<a class="reference internal" href="#hv-pic-config"><span class="std std-numref">Figure 122</span></a>.</p>
+<p>ACRN will pre-allocate vectors and set them for these legacy interrupts
+in IOAPIC RTEs. For others (&gt;= 16), ACRN will set them with vector 0 in
+RTEs, and valid vectors will be dynamically allocated on demand.</p>
+<p>All external IOAPIC pins are categorized as GSI interrupt according to
+ACPI definition. HV supports multiple IOAPIC components. IRQ PIN to GSI
+mappings are maintained internally to determine GSI source IOAPIC.
+Native PIC is not used in the system.</p>
+<div class="figure align-center" id="hv-pic-config">
+<img alt="../../_images/interrupt-image46.png" src="../../_images/interrupt-image46.png" />
+<p class="caption"><span class="caption-number">Figure 122 </span><span class="caption-text">Hypervisor PIC/IOAPIC/LAPIC Configuration</span><a class="headerlink" href="#hv-pic-config" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="lapic-initialization">
+<h3>LAPIC Initialization<a class="headerlink" href="#lapic-initialization" title="Permalink to this headline">¶</a></h3>
+<p>Physical LAPICs are in x2APIC mode in ACRN hypervisor. The hypervisor
+initializes LAPIC for each physical CPU by masking all interrupts in the
+local vector table (LVT), clearing all ISRs, and enabling LAPIC.</p>
+<p>APIs are provided to access LAPIC for the other components in the
+hypervisor, aiming for further usage of local timer (TSC Deadline)
+program, IPI notification program, etc. See <a class="reference internal" href="#hv-interrupt-data-api"><span class="std std-ref">Data Structures and Interfaces</span></a>
+for a complete list.</p>
+</div>
+<div class="section" id="hv-interrupt-vectors-and-delivery-mode">
+<h3>HV Interrupt Vectors and Delivery Mode<a class="headerlink" href="#hv-interrupt-vectors-and-delivery-mode" title="Permalink to this headline">¶</a></h3>
+<p>The interrupt vectors are assigned as shown here:</p>
+<dl class="simple">
+<dt><strong>Vector 0-0x1F</strong></dt><dd><p>are exceptions that are not handled by HV. If
+such an exception does occur, the system then halts.</p>
+</dd>
+<dt><strong>Vector: 0x20-0x2F</strong></dt><dd><p>are allocated statically for legacy IRQ0-15.</p>
+</dd>
+<dt><strong>Vector: 0x30-0xDF</strong></dt><dd><p>are dynamically allocated vectors for PCI devices
+INTx or MSI/MIS-X usage. According to different interrupt delivery mode
+(FLAT or PER_CPU mode), an interrupt will be assigned to a vector for
+all the CPUs or a particular CPU.</p>
+</dd>
+<dt><strong>Vector: 0xE0-0xFE</strong></dt><dd><p>are high priority vectors reserved by HV for
+dedicated purposes. For example, 0xEF is used for timer, 0xF0 is used
+for IPI.</p>
+</dd>
+</dl>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Vectors</p></th>
+<th class="head"><p>Usage</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0x0-0x14</p></td>
+<td><p>Exceptions: NMI, INT3, page dault, GP, debug.</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x15-0x1F</p></td>
+<td><p>Reserved</p></td>
+</tr>
+<tr class="row-even"><td><p>0x20-0x2F</p></td>
+<td><p>Statically allocated for external IRQ (IRQ0-IRQ15)</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x30-0xDF</p></td>
+<td><p>Dynamically allocated for IOAPIC IRQ from PCI INTx/MSI</p></td>
+</tr>
+<tr class="row-even"><td><p>0xE0-0xFE</p></td>
+<td><p>Static allocated for HV</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xEF</p></td>
+<td><p>Timer</p></td>
+</tr>
+<tr class="row-even"><td><p>0xF0</p></td>
+<td><p>IPI</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xF2</p></td>
+<td><p>Posted Interrupt</p></td>
+</tr>
+<tr class="row-even"><td><p>0xF3</p></td>
+<td><p>Hypervisor Callback HSM</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xF4</p></td>
+<td><p>Performance Monitering Interrupt</p></td>
+</tr>
+<tr class="row-even"><td><p>0xFF</p></td>
+<td><p>SPURIOUS_APIC_VECTOR</p></td>
+</tr>
+</tbody>
+</table>
+<p>Interrupts from either IOAPIC or MSI can be delivered to a target CPU.
+By default, they are configured as Lowest Priority (FLAT mode), meaning they
+are delivered to a CPU core that is idle or executing the lowest
+priority ISR. There is no guarantee a device’s interrupt will be
+delivered to a specific Guest’s CPU. Timer interrupts are an exception -
+these are always delivered to the CPU which programs the LAPIC timer.</p>
+<p>x86-64 supports per CPU IDTs, but ACRN uses a global shared IDT,
+with which the interrupt/IRQ to vector mapping is the same on all CPUs. Vector
+allocation for CPUs is shown here:</p>
+<div class="figure align-center" id="id3">
+<img alt="../../_images/interrupt-image89.png" src="../../_images/interrupt-image89.png" />
+<p class="caption"><span class="caption-number">Figure 123 </span><span class="caption-text">FLAT Mode Vector Allocation</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="irq-descriptor-table">
+<h3>IRQ Descriptor Table<a class="headerlink" href="#irq-descriptor-table" title="Permalink to this headline">¶</a></h3>
+<p>ACRN hypervisor maintains a global IRQ Descriptor Table shared among the
+physical CPUs, so the same vector will link to the same IRQ number for
+all CPUs.</p>
+<p>The <em>irq_desc[]</em> array’s index represents IRQ number. A <em>handle_irq</em>
+will be called from <em>interrupt_dispatch</em> to commonly handle edge/level
+triggered IRQ and call the registered <em>action_fn</em>.</p>
+<p>Another reverse mapping from vector to IRQ is used in addition to the
+IRQ descriptor table which maintains the mapping from IRQ to vector.</p>
+<p>On initialization, the descriptor of the legacy IRQs are initialized with
+proper vectors and the corresponding reverse mapping is set up.
+The descriptor of other IRQs are filled with an invalid
+vector which will be updated on IRQ allocation.</p>
+<p>For example, if local timer registers an interrupt with IRQ number 254 and
+vector 0xEF, then this date will be set up:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">irq_desc</span><span class="p">[</span><span class="mi">254</span><span class="p">].</span><span class="n">irq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">254</span><span class="w"></span>
+<span class="n">irq_desc</span><span class="p">[</span><span class="mi">254</span><span class="p">].</span><span class="n">vector</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0xEF</span><span class="w"></span>
+<span class="n">vector_to_irq</span><span class="p">[</span><span class="mh">0xEF</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">254</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="external-interrupt-handling">
+<h2>External Interrupt Handling<a class="headerlink" href="#external-interrupt-handling" title="Permalink to this headline">¶</a></h2>
+<p>CPU runs under VMX non-root mode and inside Guest VMs.
+<code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_PINBASED_CTLS.bit[0]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">MSR_IA32_VMX_EXIT_CTLS.bit[15]</span></code> are set to allow vCPU VM Exit to HV
+whenever there are interrupts to that physical CPU under
+non-root mode. HV ACKs the interrupts in VMX non-root and saves the
+interrupt vector to the relevant VM Exit field for HV IRQ processing.</p>
+<p>Note that as discussed above, an external interrupt causing vCPU VM Exit
+to HV does not mean that the interrupt belongs to that Guest VM. When
+CPU executes VM Exit into root-mode, interrupt handling will be enabled
+and the interrupt will be delivered and processed as quickly as possible
+inside HV. HV may emulate a virtual interrupt and inject to Guest if
+necessary.</p>
+<p>Interrupt and IRQ processing flow diagrams are shown below:</p>
+<div class="figure align-center" id="phy-interrupt-processing">
+<img alt="../../_images/interrupt-image48.png" src="../../_images/interrupt-image48.png" />
+<p class="caption"><span class="caption-number">Figure 124 </span><span class="caption-text">Processing of Physical Interrupts</span><a class="headerlink" href="#phy-interrupt-processing" title="Permalink to this image">¶</a></p>
+</div>
+<p>When a physical interrupt is raised and delivered to a physical CPU, the
+CPU may be running under either VMX root mode or non-root mode.</p>
+<ul class="simple">
+<li><p>If the CPU is running under VMX root mode, the interrupt is handled
+following the standard native IRQ flow: interrupt gate to
+dispatch_interrupt(), IRQ handler, and finally the registered callback.</p></li>
+<li><p>If the CPU is running under VMX non-root mode, an external interrupt
+calls a VM exit for reason “external-interrupt”, and then the VM
+exit processing flow will call dispatch_interrupt() to dispatch and
+handle the interrupt.</p></li>
+</ul>
+<p>After an interrupt occurs from either path shown in
+<a class="reference internal" href="#phy-interrupt-processing"><span class="std std-numref">Figure 124</span></a>, ACRN hypervisor will jump to
+dispatch_interrupt. This function gets the vector of the generated
+interrupt from the context, gets IRQ number from vector_to_irq[], and
+then gets the corresponding irq_desc.</p>
+<p>Though there is only one generic IRQ handler for registered interrupt,
+there are three different handling flows according to flags:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">!IRQF_LEVEL</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IRQF_LEVEL</span> <span class="pre">&amp;&amp;</span> <span class="pre">!IRQF_PT</span></code></p>
+<p>To avoid continuous interrupt triggers, it masks the IOAPIC pin and
+unmask it only after IRQ action callback is executed</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">IRQF_LEVEL</span> <span class="pre">&amp;&amp;</span> <span class="pre">IRQF_PT</span></code></p>
+<p>For passthrough devices, to avoid continuous interrupt triggers, it masks
+the IOAPIC pin and leaves it unmasked until corresponding vIOAPIC
+pin gets an explicit EOI ACK from guest.</p>
+</li>
+</ul>
+<p>Since interrupts are not shared for multiple devices, there is only one
+IRQ action registered for each interrupt.</p>
+<p>The IRQ number inside HV is a software concept to identify GSI and
+Vectors. Each GSI will be mapped to one IRQ. The GSI number is usually the same
+as the IRQ number. IRQ numbers greater than max GSI (nr_gsi) number are dynamically
+assigned. For example, HV allocates an interrupt vector to a PCI device,
+an IRQ number is then assigned to that vector. When the vector later
+reaches a CPU, the corresponding IRQ action function is located and executed.</p>
+<p>See <a class="reference internal" href="#request-irq"><span class="std std-numref">Figure 125</span></a> for request IRQ control flow for different
+conditions:</p>
+<div class="figure align-center" id="request-irq">
+<img alt="../../_images/interrupt-image76.png" src="../../_images/interrupt-image76.png" />
+<p class="caption"><span class="caption-number">Figure 125 </span><span class="caption-text">Request IRQ for Different Conditions</span><a class="headerlink" href="#request-irq" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="ipi-management">
+<span id="id2"></span><h2>IPI Management<a class="headerlink" href="#ipi-management" title="Permalink to this headline">¶</a></h2>
+<p>The only purpose of IPI use in HV is to kick a vCPU out of non-root mode
+and enter to HV mode. This requires I/O request and virtual interrupt
+injection be distributed to different IPI vectors. The I/O request uses
+IPI vector 0xF3 upcall. The virtual interrupt injection uses IPI vector 0xF0.</p>
+<dl class="simple">
+<dt>0xF3 upcall</dt><dd><p>A Guest vCPU VM Exit exits due to EPT violation or IO instruction trap.
+It requires Device Module to emulate the MMIO/PortIO instruction.
+However it could be that the Service VM vCPU0 is still in non-root
+mode. So an IPI (0xF3 upcall vector) should be sent to the physical CPU0
+(with non-root mode as vCPU0 inside the Service VM) to force vCPU0 to VM Exit due
+to the external interrupt. The virtual upcall vector is then injected to
+the Service VM, and the vCPU0 inside the Service VM then will pick up the IO request and do
+emulation for other Guest.</p>
+</dd>
+<dt>0xF0 IPI flow</dt><dd><p>If Device Module inside the Service VM needs to inject an interrupt to other Guest
+such as vCPU1, it will issue an IPI first to kick CPU1 (assuming CPU1 is
+running on vCPU1) to root-hv_interrupt-data-apmode. CPU1 will inject the
+interrupt before VM Enter.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="data-structures-and-interfaces">
+<span id="hv-interrupt-data-api"></span><h2>Data Structures and Interfaces<a class="headerlink" href="#data-structures-and-interfaces" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="ioapic">
+<h3>IOAPIC<a class="headerlink" href="#ioapic" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for IOAPIC related
+operations.</p>
+<dl class="c function">
+<dt id="c.ioapic_gsi_to_irq">
+<span class="target" id="group__ioapic__ext__apis_1ga1a78ceb538b472311794252949bab87b"></span><span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">ioapic_gsi_to_irq</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">gsi</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ioapic_gsi_to_irq" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get irq num from gsi num. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gsi</strong> – <strong>[in]</strong> The gsi number</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>irq number </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.ioapic_set_rte">
+<span class="target" id="group__ioapic__ext__apis_1ga684cf990ffc23a948f9f1795b2de9052"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ioapic_set_rte</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">irq</span></em>, <em class="property"><span class="pre">union</span></em> <span class="pre">ioapic_rte</span> <em><span class="pre">rte</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ioapic_set_rte" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the redirection table entry. </p>
+<p>Set the redirection table entry of an interrupt</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>irq</strong> – <strong>[in]</strong> The number of irq to set </p></li>
+<li><p><strong>rte</strong> – <strong>[in]</strong> Union of ioapic_rte to set </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.ioapic_get_rte">
+<span class="target" id="group__ioapic__ext__apis_1gab3475736a2727dd65bdce40cbc71c901"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ioapic_get_rte</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">irq</span></em>, <em class="property"><span class="pre">union</span></em> <span class="pre">ioapic_rte</span> <span class="pre">*</span><em><span class="pre">rte</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ioapic_get_rte" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the redirection table entry. </p>
+<p>Get the redirection table entry of an interrupt</p>
+<p><dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>rte != NULL </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>irq</strong> – <strong>[in]</strong> The number of irq to fetch RTE </p></li>
+<li><p><strong>rte</strong> – <strong>[inout]</strong> Pointer to union ioapic_rte to return result RTE</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.suspend_ioapic">
+<span class="target" id="group__ioapic__ext__apis_1ga6a826ac1cbf33c6118efa1c352e81f90"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">suspend_ioapic</span></code><span class="sig-paren">(</span><span class="pre">void</span><span class="sig-paren">)</span><a class="headerlink" href="#c.suspend_ioapic" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Suspend ioapic. </p>
+<p>Suspend ioapic, mainly save the RTEs. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.resume_ioapic">
+<span class="target" id="group__ioapic__ext__apis_1ga49ff9824b469ddac9984071f28a69f08"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">resume_ioapic</span></code><span class="sig-paren">(</span><span class="pre">void</span><span class="sig-paren">)</span><a class="headerlink" href="#c.resume_ioapic" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Resume ioapic. </p>
+<p>Resume ioapic, mainly restore the RTEs. </p>
+</dd></dl>
+
+</div>
+<div class="section" id="lapic">
+<h3>LAPIC<a class="headerlink" href="#lapic" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for LAPIC related operations.</p>
+<dl class="c function">
+<dt id="c.early_init_lapic">
+<span class="target" id="group__lapic__ext__apis_1gacd64c8d01af5f428403614a049e95672"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">early_init_lapic</span></code><span class="sig-paren">(</span><span class="pre">void</span><span class="sig-paren">)</span><a class="headerlink" href="#c.early_init_lapic" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Enable LAPIC in x2APIC mode. </p>
+<p>Enable LAPIC in x2APIC mode via MSR writes. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.suspend_lapic">
+<span class="target" id="group__lapic__ext__apis_1ga0a719182b50c283feaf7455cec33fe08"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">suspend_lapic</span></code><span class="sig-paren">(</span><span class="pre">void</span><span class="sig-paren">)</span><a class="headerlink" href="#c.suspend_lapic" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Suspend LAPIC. </p>
+<p>Suspend LAPIC by getting the APIC base addr and saving the registers. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.resume_lapic">
+<span class="target" id="group__lapic__ext__apis_1ga55340d2402a66eb9fe6d284f65545119"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">resume_lapic</span></code><span class="sig-paren">(</span><span class="pre">void</span><span class="sig-paren">)</span><a class="headerlink" href="#c.resume_lapic" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Resume LAPIC. </p>
+<p>Resume LAPIC by setting the APIC base addr and restoring the registers. </p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.get_cur_lapic_id">
+<span class="target" id="group__lapic__ext__apis_1ga10f60b609eb683f191b0330da095c3e3"></span><span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">get_cur_lapic_id</span></code><span class="sig-paren">(</span><span class="pre">void</span><span class="sig-paren">)</span><a class="headerlink" href="#c.get_cur_lapic_id" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the LAPIC ID. </p>
+<p>Get the LAPIC ID via MSR read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>LAPIC ID </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="ipi">
+<h3>IPI<a class="headerlink" href="#ipi" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for IPI related operations.</p>
+<dl class="c function">
+<dt id="c.send_startup_ipi">
+<span class="target" id="group__ipi__ext__apis_1gafa5d77ca847ee8d39f5404d539af947b"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">send_startup_ipi</span></code><span class="sig-paren">(</span><span class="pre">uint16_t</span> <em><span class="pre">dest_pcpu_id</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">cpu_startup_start_address</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.send_startup_ipi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Send an SIPI to a specific cpu. </p>
+<p>Send an Startup IPI to a specific cpu, to notify the cpu to start booting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dest_pcpu_id</strong> – <strong>[in]</strong> The id of destination physical cpu </p></li>
+<li><p><strong>cpu_startup_start_address</strong> – <strong>[in]</strong> The address for the dest pCPU to start running </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.send_dest_ipi_mask">
+<span class="target" id="group__ipi__ext__apis_1gab752cfd29fe2d839e637f6f0da2aa5be"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">send_dest_ipi_mask</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">dest_mask</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.send_dest_ipi_mask" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Send an IPI to multiple pCPUs. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dest_mask</strong> – <strong>[in]</strong> The mask of destination physical cpus </p></li>
+<li><p><strong>vector</strong> – <strong>[in]</strong> The vector of interrupt </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.send_single_ipi">
+<span class="target" id="group__ipi__ext__apis_1gaf6022d35f7ea8cebe988453c29231df7"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">send_single_ipi</span></code><span class="sig-paren">(</span><span class="pre">uint16_t</span> <em><span class="pre">pcpu_id</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">vector</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.send_single_ipi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Send an IPI to a single pCPU. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pcpu_id</strong> – <strong>[in]</strong> The id of destination physical cpu </p></li>
+<li><p><strong>vector</strong> – <strong>[in]</strong> The vector of interrupt </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="physical-interrupt">
+<h3>Physical Interrupt<a class="headerlink" href="#physical-interrupt" title="Permalink to this headline">¶</a></h3>
+<p>The following APIs are external interfaces for physical interrupt
+related operations.</p>
+<dl class="c function">
+<dt id="c.reserve_irq_num">
+<span class="target" id="group__phys__int__ext__apis_1ga21fe8d65f8feccbfa92063c648630eb3"></span><span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">reserve_irq_num</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">req_irq</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.reserve_irq_num" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Reserve an interrupt num. </p>
+<p>Reserved interrupt num will not be available for dynamic IRQ allocations. This is normally used by the hypervisor for static IRQ mappings and/or arch specific, e.g. IOAPIC, interrupts during initialization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>req_irq</strong> – <strong>[in]</strong> irq_num to be reserved</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>&gt;=0</strong> – on success, IRQ_INVALID on failure </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.request_irq">
+<span class="target" id="group__phys__int__ext__apis_1ga95ca013da588dfbeb1d2535a1e368807"></span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">request_irq</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">req_irq</span></em>, <span class="pre">irq_action_t</span> <em><span class="pre">action_fn</span></em>, <span class="pre">void</span> <span class="pre">*</span><em><span class="pre">priv_data</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">flags</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.request_irq" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Request an interrupt. </p>
+<p>Request interrupt num if not specified, and register irq action for the specified/allocated irq.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>req_irq</strong> – <strong>[in]</strong> irq_num to request, if IRQ_INVALID, a free irq number will be allocated </p></li>
+<li><p><strong>action_fn</strong> – <strong>[in]</strong> Function to be called when the IRQ occurs </p></li>
+<li><p><strong>priv_data</strong> – <strong>[in]</strong> Private data for action function. </p></li>
+<li><p><strong>flags</strong> – <strong>[in]</strong> Interrupt type flags, including: IRQF_NONE; IRQF_LEVEL - 1: level trigger; 0: edge trigger; IRQF_PT - 1: for passthrough dev</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>&gt;=0</strong> – on success </p></li>
+<li><p><strong>IRQ_INVALID</strong> – on failure </p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.free_irq">
+<span class="target" id="group__phys__int__ext__apis_1ga9c6d7caa4f845c04c77cc48667b6fc6b"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">free_irq</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">irq</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.free_irq" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Free an interrupt. </p>
+<p>Free irq num and unregister the irq action.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>irq</strong> – <strong>[in]</strong> irq_num to be freed </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.set_irq_trigger_mode">
+<span class="target" id="group__phys__int__ext__apis_1ga5381d8169816942c5c18ed1de5044d1e"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">set_irq_trigger_mode</span></code><span class="sig-paren">(</span><span class="pre">uint32_t</span> <em><span class="pre">irq</span></em>, <span class="pre">bool</span> <em><span class="pre">is_level_triggered</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.set_irq_trigger_mode" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set interrupt trigger mode. </p>
+<p>Set the irq trigger mode: edge-triggered or level-triggered</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>irq</strong> – <strong>[in]</strong> irq_num of interrupt to be set </p></li>
+<li><p><strong>is_level_triggered</strong> – <strong>[in]</strong> Trigger mode to set </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.do_irq">
+<span class="target" id="group__phys__int__ext__apis_1ga53ff807e45fa29684530a9b388f8174f"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">do_irq</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">uint32_t</span> <em><span class="pre">irq</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.do_irq" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Process an IRQ. </p>
+<p>To process an IRQ, an action callback will be called if registered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>irq</strong> – irq_num to be processed </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.init_interrupt">
+<span class="target" id="group__phys__int__ext__apis_1gac82838b1b8cc15297b70278d33336236"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">init_interrupt</span></code><span class="sig-paren">(</span><span class="pre">uint16_t</span> <em><span class="pre">pcpu_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.init_interrupt" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize interrupt. </p>
+<p>To do interrupt initialization for a cpu, will be called for each physical cpu.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pcpu_id</strong> – <strong>[in]</strong> The id of physical cpu to initialize </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hv-ioc-virt.html" class="btn btn-neutral float-left" title="IOC Virtualization High-Level Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hv-timer.html" class="btn btn-neutral float-right" title="Timer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
+
+<span class="lastupdated">Last updated on Mar 18, 2022. Published on Jun 10, 2022</span>
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+    <!-- Theme Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GTM-K4WWJZD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'GTM-K4WWJZD', {
+          'anonymize_ip': false,
+      });
+    </script> 
+
+</body>
+</html>

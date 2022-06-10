@@ -1,0 +1,2284 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPU Virtualization &mdash; Project ACRN™ 3.0 documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/menu.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/sphinx_tabs/tabs.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" /><link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/acrn-custom.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Memory Management High-Level Design" href="hv-memmgt.html" />
+    <link rel="prev" title="VM Management" href="hv-vm-management.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Project ACRN™<img src="../../_static/ACRN_Logo_200w.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Project ACRN</span>
+      v: 3.0
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Document Versions</dt>
+        
+          <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/2.7/">2.7</a></dd>
+        
+          <dd><a href="/2.6/">2.6</a></dd>
+        
+          <dd><a href="/2.5/">2.5</a></dd>
+        
+          <dd><a href="/2.0/">2.0</a></dd>
+        
+          <dd><a href="/1.6.1/">1.6.1</a></dd>
+        
+          <dd><a href="/1.0/">1.0</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>projectacrn.org links</dt>
+          <dd>
+            <a href="https://www.projectacrn.org/">Project Home</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/projectacrn/acrn-hypervisor/wiki">Wiki</a>
+          </dd>
+      </dl>
+    </div>
+  </div>
+  
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Documentation Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction/index.html">What Is ACRN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#id1">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#key-capabilities">Key Capabilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#community-support">Community Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#resources">Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#device-passthrough">Device Passthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#predefined-sample-scenarios">Predefined Sample Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../try.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/hardware.html">Supported Hardware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#selecting-hardware">Selecting Hardware</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/overview_dev.html">Configuration and Development Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#development-environment">Development Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#general-process-for-building-an-acrn-hypervisor">General Process for Building an ACRN Hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-light-step-1-select-hardware-and-scenario"> Step 1: Select Hardware and Scenario</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#select-your-hardware">Select Your Hardware</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#select-your-scenario">Select Your Scenario</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-2-prepare-the-development-computer"> Step 2: Prepare the Development Computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-target-step-3-generate-a-board-configuration-file"> Step 3: Generate a Board Configuration File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#configure-bios-settings">Configure BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#use-the-board-inspector-to-generate-a-board-configuration-file">Use the Board Inspector to Generate a Board Configuration File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-4-generate-a-scenario-configuration-file-and-launch-scripts"> Step 4: Generate a Scenario Configuration File and Launch Scripts</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#generate-a-scenario-configuration-file">Generate a Scenario Configuration File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#generate-launch-scripts">Generate Launch Scripts</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-5-build-acrn"> Step 5: Build ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-target-step-6-install-and-run-acrn"> Step 6: Install and Run ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/getting-started.html">Getting Started Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#set-up-the-target-hardware">Set Up the Target Hardware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prepare-the-development-computer">Prepare the Development Computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prepare-the-target-and-generate-a-board-configuration-file">Prepare the Target and Generate a Board Configuration File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#install-os-on-the-target">Install OS on the Target</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#configure-target-bios-settings">Configure Target BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#generate-a-board-configuration-file">Generate a Board Configuration File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#generate-a-scenario-configuration-file-and-launch-script">Generate a Scenario Configuration File and Launch Script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#build-acrn">Build ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#run-acrn-and-the-service-vm">Run ACRN and the Service VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#launch-the-user-vm">Launch the User VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../develop.html">Advanced Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-scenario-tutorials">Advanced Scenario Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html">Getting Started Guide for ACRN Hybrid Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#set-up-base-installation">Set-up base installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#prepare-the-zephyr-image">Prepare the Zephyr image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#set-up-acrn-on-your-device">Set-up ACRN on your device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-check">Hybrid Scenario Startup Check</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#user-vm-tutorials">User VM Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html">Launch Windows as the Guest VM on ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#acrn-windows-verified-feature-list">ACRN Windows Verified Feature List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm Popular Command Lines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#secure-boot-enabling">Secure Boot Enabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#activate-windows-10">Activate Windows 10</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html">Run Xenomai as the User VM OS (Real-Time VM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#build-the-xenomai-kernel">Build the Xenomai Kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#launch-the-rtvm">Launch the RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#install-the-xenomai-libraries-and-tools">Install the Xenomai Libraries and Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_vxworks_as_user_vm.html">Run VxWorks as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_vxworks_as_user_vm.html#steps-for-using-vxworks-as-user-vm">Steps for Using VxWorks as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#configuration-tutorials">Configuration Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html">Introduction to ACRN Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#types-of-configurations">Types of Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#using-acrn-configuration-toolset">Using ACRN Configuration Toolset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#acrn-configuration-data">ACRN Configuration Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/board_inspector_tool.html">Board Inspector Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#about-the-board-inspector-tool">About the Board Inspector Tool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#generate-a-board-configuration-file">Generate a Board Configuration File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#command-line-options">Command-Line Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/upgrading_configuration.html">Upgrading ACRN Configurations to Recent Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#board-xml">Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#scenario-xml">Scenario XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#launch-xml">Launch XML</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/config-options.html">Scenario Configuration Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#common-option-value-types">Common Option Value Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#hypervisor-options">Hypervisor Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#inter-vm-virtual-uart-connection">Inter-VM virtual UART connection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#debug-options">Debug options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#memory-options">Memory options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#hypervisor-capacities">Hypervisor capacities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#cache-region">CACHE_REGION</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtual-machine-options">Virtual Machine Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#physical-cpu-affinity">Physical CPU affinity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#sgx-enclave-page-cache">SGX Enclave Page Cache</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#os-configuration">OS Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#mmio-resources">MMIO Resources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtio-console-device">Virtio console device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtio-network-device">Virtio network device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtio-input-device">Virtio input device</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/config-options-launch.html">Launch Configuration Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hv-make-options.html">Hypervisor Makefile Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/hv-make-options.html#build-options-and-targets">Build Options and Targets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/hv-make-options.html#makefile-targets-for-configuration">Makefile Targets for Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/hv-parameters.html">ACRN Hypervisor Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/hv-parameters.html#generic-hypervisor-parameters">Generic Hypervisor Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/kernel-parameters.html">ACRN Kernel Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html">Device Model Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/packaging/README.html">ACRN Installation via Debian Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/tar_installation.html">ACRN Installation via Tar Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#build-the-tar-files">Build the Tar Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#install-and-run-acrn">Install and Run ACRN</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html">Enable Nested Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#high-level-acrn-nested-virtualization-design">High-Level ACRN Nested Virtualization Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#restrictions-and-constraints">Restrictions and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#service-vm-configuration">Service VM Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#prepare-for-service-vm-kernel-and-rootfs">Prepare for Service VM Kernel and rootfs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/nvmx_virtualization.html#launch-a-nested-guest-vm">Launch a Nested Guest VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html">Enable vUART Configurations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#console-enable-list">Console Enable List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#how-to-configure-a-console-port">How to Configure a Console Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#how-to-configure-a-communication-port">How to Configure a Communication Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#communication-vuart-enable-list">Communication vUART Enable List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#launch-script">Launch Script</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#test-the-communication-port">Test the Communication Port</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#vuart-design">vUART Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#com-port-configurations-for-post-launched-vms">COM Port Configurations for Post-Launched VMs</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html#use-pci-vuart">Use PCI-vUART</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#pci-interface-of-acrn-vuart">PCI Interface of ACRN vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#index-of-vuart">Index of vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#setup-acrn-vuart-using-configuration-tools">Setup ACRN vUART Using Configuration Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#kernel-config-for-legacy-vuart">Kernel Config for Legacy vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#kernel-cmdline-for-pci-vuart-console">Kernel Cmdline for PCI-vUART Console</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rdt_configuration.html">Enable RDT Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#rdt-detection-and-resource-capabilities">RDT Detection and Resource Capabilities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#tuning-rdt-resources-in-hv-debug-shell">Tuning RDT Resources in HV Debug Shell</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#configure-rdt-for-vm-using-vm-configuration">Configure RDT for VM Using VM Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vcat_configuration.html">Enable vCAT Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">Enable Secure Boot in Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB From Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF With Secure Boot Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to Inject Secure Boot Keys Into OVMF</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_s5.html">Enable S5 in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#s5-architecture">S5 Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#id2">Enable S5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#how-to-test">How to Test</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#system-shutdown">System Shutdown</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/cpu_sharing.html">Enable CPU Sharing in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#scheduling-framework">Scheduling Framework</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#cpu-affinity">CPU Affinity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#thread-object-state">Thread Object State</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#scheduler">Scheduler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/sriov_virtualization.html">Enable SR-IOV Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/gpu-passthru.html">Enable GVT-d in ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#verified-version">Verified Version</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#supported-hardware-platform">Supported Hardware Platform</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#bios-settings">BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#passthrough-the-gpu-to-guest">Passthrough the GPU to Guest</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#enable-the-gvt-d-gop-driver">Enable the GVT-d GOP Driver</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-docker">Install Docker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-kata-containers">Install Kata Containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#run-a-kata-container-with-acrn">Run a Kata Container With ACRN</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html">Real-Time VM Application Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#run-rtvm-with-dedicated-resources-devices">Run RTVM With Dedicated Resources/Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-virtio-pmd-polling-mode-driver-for-i-o-sharing">RTVM With Virtio PMD (Polling Mode Driver) for I/O Sharing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-hv-emulated-device">RTVM With HV Emulated Device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#dm-emulated-device-except-pmd">DM Emulated Device (Except PMD)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html">Configure ACRN Using OpenStack and Libvirt</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-and-launch-lxc-lxd">Set Up and Launch LXC/LXD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-acrn-prerequisites-inside-the-container">Set Up ACRN Prerequisites Inside the Container</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-libvirt">Set Up Libvirt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#set-up-openstack">Set Up OpenStack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#configure-and-create-openstack-instance">Configure and Create OpenStack Instance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/setup_openstack_libvirt.html#final-steps">Final Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html">Enable ACRN Over QEMU/KVM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#using-pre-installed-grub">Using Pre-Installed GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#installing-self-built-grub">Installing Self-Built GRUB</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html">Enable ACRN Secure Boot With GRUB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#generate-gpg-key">Generate GPG Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html">Enable ACRN Secure Boot With EFI-Stub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#verified-configurations">Verified Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#installing-without-sb-for-testing">Installing (without SB for testing)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ivshmem.html">Enable Inter-VM Communication Based on Ivshmem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#enable-ivshmem-support">Enable Ivshmem Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/inter-vm_communication.html">ACRN Inter-VM Communication</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-vuart">Inter-VM vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-network-communication">Inter-VM network communication</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-shared-memory-communication-ivshmem">Inter-VM shared memory communication (ivshmem)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#how-to-implement-an-ivshmem-application-on-acrn">How to implement an Ivshmem application on ACRN</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Enable Serial Port on NUC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-1-using-the-serial-port-on-tgl-intel-nuc">Option 1: Using the Serial Port on TGL Intel NUC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-2-enabling-pcie-serial-port-on-tgl-intel-nuc">Option 2: Enabling PCIe Serial Port on TGL Intel NUC</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/debug.html">ACRN Debugging Tools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-console-command">ACRN Console Command</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#an-example">An Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-log">ACRN Log</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-trace">ACRN Trace</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html">ACRN Real-Time (RT) Performance Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#vmexit-analysis-for-acrn-rt-performance">vmexit Analysis for ACRN RT Performance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#collecting-performance-monitoring-counters-data">Collecting Performance Monitoring Counters Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html">ACRN Real-Time VM Performance Tips</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#background">Background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#mandatory-options-for-an-rtvm">Mandatory Options for an RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#avoid-vm-exit-latency">Avoid VM-exit Latency</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#isolating-the-impact-of-neighbor-vms">Isolating the Impact of Neighbor VMs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-shell.html">ACRN Shell Commands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-shell.html#command-examples">Command Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html">ACRN-Crashlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#enabling-disabling">Enabling/Disabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html">Acrnprobe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#source-files">Source Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#configuration-files">Configuration Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html">Acrnprobe Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#layout">Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#properties-of-group-members">Properties of Group Members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#crash-tree-in-acrnprobe">Crash Tree in Acrnprobe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#sections">Sections</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html">Usercrash</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#design">Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html">Acrnlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html">Acrntrace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/services/acrn_manager/README.html">Acrnctl and Acrnd</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#acrnd">Acrnd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../contribute.html">Developer Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../contribute.html#design-guides">Design Guides</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html">ACRN Hypervisor: Modular Design</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#principles">Principles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-security.html">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../sw_design_guidelines.html">Software Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#error-detection-and-error-handling">Error Detection and Error Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#module-level-configuration-design-guidelines">Module Level Configuration Design Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html">Trusty TEE</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-specific-hypercalls">Trusty Specific Hypercalls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-boot-flow">Trusty Boot Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#ept-hierarchy">EPT Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#contribute-guides">Contribute Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute_guidelines.html">Contribution Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#technical-steering-committee-tsc">Technical Steering Committee (TSC)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#licensing">Licensing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#developer-certification-of-origin-dco">Developer Certification of Origin (DCO)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#repository-layout">Repository Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#submitting-issues">Submitting Issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-tools-and-git-setup">Contribution Tools and Git Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#coding-style">Coding Style</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-workflow">Contribution Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#commit-guidelines">Commit Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../coding_guidelines.html">Coding Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../c_coding_guidelines.html">C Programming Language Coding Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../asm_coding_guidelines.html">Assembly Language Coding Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../doc_guidelines.html">Documentation Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#headings">Headings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#content-highlighting">Content Highlighting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#lists">Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#multi-column-lists">Multi-Column Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#file-names-and-commands">File Names and Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#branch-specific-file-links">Branch-Specific File Links</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#internal-cross-reference-linking">Internal Cross-Reference Linking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#non-ascii-characters">Non-ASCII Characters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#code-and-command-examples">Code and Command Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#images">Images</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tabs-spaces-and-indenting">Tabs, Spaces, and Indenting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#background-colors">Background Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#drawings">Drawings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#alternative-tabbed-content">Alternative Tabbed Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#instruction-steps">Instruction Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#first-instruction-step">First Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#second-instruction-step">Second Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#configuration-option-documentation">Configuration Option Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#documentation-generation">Documentation Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../graphviz.html">Drawings Using Graphviz</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#simple-directed-graph">Simple Directed Graph</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#adding-edge-labels">Adding Edge Labels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#finite-state-machine">Finite-State Machine</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html">ACRN Documentation Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-overview">Documentation Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#set-up-the-documentation-working-folders">Set Up the Documentation Working Folders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#install-the-documentation-tools">Install the Documentation Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-presentation-theme">Documentation Presentation Theme</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#run-the-documentation-processors">Run the Documentation Processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#publish-content">Publish Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#document-versioning">Document Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#filter-expected-warnings">Filter Expected Warnings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#api-documentation">API Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/hypercall_api.html">Hypercall APIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/devicemodel_api.html">Device Model APIs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.0.html">ACRN v3.0 (DRAFT)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#what-s-new-in-v3-0">What’s New in v3.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#upgrading-to-v3-0-from-previous-releases">Upgrading to v3.0 From Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/index.html#release-notes-archive">Release Notes Archive</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../asa.html">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-7">Addressed in ACRN v2.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-6">Addressed in ACRN v2.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-5">Addressed in ACRN v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-3">Addressed in ACRN v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-1">Addressed in ACRN v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6">Addressed in ACRN v1.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-4">Addressed in ACRN v1.4</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary of Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Project ACRN™</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+  <!-- 3.0 -->
+  
+  
+
+  <li><a href="../../index.html">3.0</a> &raquo;</li>
+  
+     <li><a href="../../contribute.html">Developer Reference</a> &raquo;</li>
+  
+     <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
+  
+     <li><a href="hld-hypervisor.html">Hypervisor High-Level Design</a> &raquo;</li>
+  
+  <li>CPU Virtualization</li>
+
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/developer-guides/hld/hv-cpu-virt.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+  
+  
+           <div itemprop="articleBody">
+             
+  <div class="section" id="cpu-virtualization">
+<span id="hv-cpu-virt"></span><h1>CPU Virtualization<a class="headerlink" href="#cpu-virtualization" title="Permalink to this headline">¶</a></h1>
+<div class="figure align-center" id="hv-cpu-virt-components">
+<img alt="../../_images/hld-image47.png" src="../../_images/hld-image47.png" />
+<p class="caption"><span class="caption-number">Figure 78 </span><span class="caption-text">ACRN Hypervisor CPU Virtualization Components</span><a class="headerlink" href="#hv-cpu-virt-components" title="Permalink to this image">¶</a></p>
+</div>
+<p>The following sections discuss the major modules (indicated above in blue)
+in the CPU virtualization overview shown in <a class="reference internal" href="#hv-cpu-virt-components"><span class="std std-numref">Figure 78</span></a>.</p>
+<p>Based on Intel VT-x virtualization technology, ACRN emulates a virtual CPU
+(vCPU) with the following methods:</p>
+<ul class="simple">
+<li><p><strong>core partition</strong>: one vCPU is dedicated and associated with one
+physical CPU (pCPU),
+making much of the hardware register emulation simply
+passthrough. This method provides good isolation for physical interrupts
+and guest execution.  (See <a class="reference internal" href="#static-cpu-partitioning">Static CPU Partitioning</a> for more
+information.)</p></li>
+<li><p><strong>core sharing</strong> (to be added): two or more vCPUs share one
+physical CPU (pCPU). A more complicated context switch is needed
+between different vCPUs’ switching. This method provides flexible computing
+resources sharing for low-performance demand vCPU tasks.
+(See <a class="reference internal" href="#flexible-cpu-sharing">Flexible CPU Sharing</a> for more information.)</p></li>
+<li><p><strong>simple schedule</strong>: a well-designed scheduler framework that allows ACRN
+to adopt different scheduling policies, such as the <strong>noop</strong> and <strong>round-robin</strong>:</p>
+<ul>
+<li><p><strong>noop scheduler</strong>: only two thread loops are maintained for a CPU: a
+vCPU thread and a default idle thread. A CPU runs most of the time in
+the vCPU thread for emulating a guest CPU, switching between VMX root
+mode and non-root mode. A CPU schedules out to default idle when an
+operation needs it to stay in VMX root mode, such as when waiting for
+an I/O request from the Device Model (DM) or when ready to destroy.</p></li>
+<li><p><strong>round-robin scheduler</strong> (to be added): allows more vCPU thread loops
+to run on a CPU. A CPU switches among different vCPU threads and default
+idle threads as it runs out corresponding timeslices or necessary
+scheduling outs such as waiting for an I/O request. A vCPU can yield
+itself as well, such as when it executes a “PAUSE” instruction.</p></li>
+</ul>
+</li>
+</ul>
+<div class="section" id="static-cpu-partitioning">
+<h2>Static CPU Partitioning<a class="headerlink" href="#static-cpu-partitioning" title="Permalink to this headline">¶</a></h2>
+<p>CPU partitioning is a policy for mapping a virtual
+CPU (vCPU) to a physical CPU. To enable this feature, the ACRN hypervisor can
+configure a noop scheduler as the schedule policy for this physical CPU.</p>
+<p>ACRN then forces a fixed 1:1 mapping between a vCPU and this physical CPU
+when creating a vCPU for the guest operating system. This makes the vCPU
+management code much simpler.</p>
+<p>ACRN uses the <code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> parameter in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> to decide which
+physical CPU to map to a vCPU in a VM, then finalizes the fixed mapping. When
+launching a User VM, need to choose pCPUs from the VM’s <code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> that
+are not used by any other VMs.</p>
+</div>
+<div class="section" id="flexible-cpu-sharing">
+<h2>Flexible CPU Sharing<a class="headerlink" href="#flexible-cpu-sharing" title="Permalink to this headline">¶</a></h2>
+<p>To enable CPU sharing, the ACRN hypervisor can configure the BVT
+(Borrowed Virtual Time) scheduler policy.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> parameter in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> indicates all the physical CPUs
+on which this VM is allowed to run. A pCPU can be shared among a Service VM and
+any User VM as long as the local APIC passthrough is not enabled in that User
+VM.</p>
+<p>See <a class="reference internal" href="../../tutorials/cpu_sharing.html#cpu-sharing"><span class="std std-ref">Enable CPU Sharing in ACRN</span></a> for more information.</p>
+</div>
+<div class="section" id="cpu-management-in-the-service-vm-under-static-cpu-partitioning">
+<span id="hv-cpu-virt-cpu-mgmt-partition"></span><h2>CPU Management in the Service VM Under Static CPU Partitioning<a class="headerlink" href="#cpu-management-in-the-service-vm-under-static-cpu-partitioning" title="Permalink to this headline">¶</a></h2>
+<p>With ACRN, all ACPI table entries are passthrough to the Service VM, including
+the Multiple Interrupt Controller Table (MADT). The Service VM sees all
+physical CPUs by parsing the MADT when the Service VM kernel boots. All
+physical CPUs are initially assigned to the Service VM by creating the same
+number of virtual CPUs.</p>
+<p>After the Service VM boots, it releases the physical CPUs intended
+for User VM use.</p>
+<p>Here is an example flow of CPU allocation on a multi-core platform.</p>
+<div class="figure align-center" id="static-core-cpu-allocation">
+<a class="reference internal image-reference" href="../../_images/static-core-image2.png"><img alt="../../_images/static-core-image2.png" src="../../_images/static-core-image2.png" style="width: 600px;" /></a>
+<p class="caption"><span class="caption-number">Figure 79 </span><span class="caption-text">CPU Allocation on a Multi-core Platform</span><a class="headerlink" href="#static-core-cpu-allocation" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="cpu-management-in-the-service-vm-under-flexible-cpu-sharing">
+<h2>CPU Management in the Service VM Under Flexible CPU Sharing<a class="headerlink" href="#cpu-management-in-the-service-vm-under-flexible-cpu-sharing" title="Permalink to this headline">¶</a></h2>
+<p>The Service VM sees all physical CPUs via the MADT, as described in
+<a class="reference internal" href="#hv-cpu-virt-cpu-mgmt-partition"><span class="std std-ref">CPU Management in the Service VM Under Static CPU Partitioning</span></a>. However, the Service VM does not release
+the physical CPUs intended for User VM use.</p>
+</div>
+<div class="section" id="cpu-management-in-the-user-vm">
+<h2>CPU Management in the User VM<a class="headerlink" href="#cpu-management-in-the-user-vm" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> parameter in <code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code> defines a set of pCPUs that a
+User VM is allowed to run on. The Device Model can launch a User VM on only a
+subset of the pCPUs or on all pCPUs listed in <code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code>, but it cannot
+assign any pCPU that is not included in it.</p>
+</div>
+<div class="section" id="cpu-assignment-management-in-the-hypervisor">
+<h2>CPU Assignment Management in the Hypervisor<a class="headerlink" href="#cpu-assignment-management-in-the-hypervisor" title="Permalink to this headline">¶</a></h2>
+<p>The physical CPU assignment is predefined by <code class="docutils literal notranslate"><span class="pre">cpu_affinity</span></code> in
+<code class="docutils literal notranslate"><span class="pre">vm</span> <span class="pre">config</span></code>, while post-launched VMs could be launched on pCPUs that are
+a subset of it.</p>
+<p>The ACRN hypervisor does not support virtual CPU migration to
+different physical CPUs. No changes to the mapping of the virtual CPU to
+physical CPU can happen without first calling <code class="docutils literal notranslate"><span class="pre">offline_vcpu</span></code>.</p>
+</div>
+<div class="section" id="vcpu-lifecycle">
+<span id="id1"></span><h2>vCPU Lifecycle<a class="headerlink" href="#vcpu-lifecycle" title="Permalink to this headline">¶</a></h2>
+<p>A vCPU lifecycle is shown in <a class="reference internal" href="#hv-vcpu-transitions"><span class="std std-numref">Figure 80</span></a> below, where
+the major states are:</p>
+<ul class="simple">
+<li><p><strong>VCPU_INIT</strong>: vCPU is in an initialized state, and its vCPU thread
+is not ready to run on its associated CPU.</p></li>
+<li><p><strong>VCPU_RUNNING</strong>: vCPU is running, and its vCPU thread is ready (in
+the queue) or running on its associated CPU.</p></li>
+<li><p><strong>VCPU_PAUSED</strong>: vCPU is paused, and its vCPU thread is not running
+on its associated CPU.</p></li>
+<li><p><strong>VPCU_ZOMBIE</strong>: vCPU is transitioning to an offline state, and its vCPU thread is
+not running on its associated CPU.</p></li>
+<li><p><strong>VPCU_OFFLINE</strong>: vCPU is offline.</p></li>
+</ul>
+<div class="figure align-center" id="hv-vcpu-transitions">
+<img alt="../../_images/hld-image17.png" src="../../_images/hld-image17.png" />
+<p class="caption"><span class="caption-number">Figure 80 </span><span class="caption-text">ACRN vCPU State Transitions</span><a class="headerlink" href="#hv-vcpu-transitions" title="Permalink to this image">¶</a></p>
+</div>
+<p>The following functions are used to drive the state machine of the vCPU
+lifecycle:</p>
+<dl class="c function">
+<dt id="c.create_vcpu">
+<span class="target" id="group__acrn__vcpu_ga612ff21bb6cf482c2cb4522689869bf0_1ga612ff21bb6cf482c2cb4522689869bf0"></span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">create_vcpu</span></code><span class="sig-paren">(</span><span class="pre">uint16_t</span> <em><span class="pre">pcpu_id</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vm</span> <span class="pre">*</span><em><span class="pre">vm</span></em>, <em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><span class="pre">*</span><em><span class="pre">rtn_vcpu_handle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.create_vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>create a vcpu for the target vm </p>
+<p>Creates/allocates a vCPU instance, with initialization for its vcpu_id, vpid, vmcs, vlapic, etc. It sets the init vCPU state to VCPU_INIT</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pcpu_id</strong> – <strong>[in]</strong> created vcpu will run on this pcpu </p></li>
+<li><p><strong>vm</strong> – <strong>[in]</strong> pointer to vm data structure, this vcpu will owned by this vm. </p></li>
+<li><p><strong>rtn_vcpu_handle</strong> – <strong>[out]</strong> pointer to the created vcpu</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>0</strong> – vcpu created successfully, other values failed. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.zombie_vcpu">
+<span class="target" id="group__acrn__vcpu_ga195cf91fe091b72d192f248e42861e19_1ga195cf91fe091b72d192f248e42861e19"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">zombie_vcpu</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <em class="property"><span class="pre">enum</span></em> <span class="pre">vcpu_state</span> <em><span class="pre">new_state</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.zombie_vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>pause the vcpu and set new state </p>
+<p>Change a vCPU state to VCPU_ZOMBIE, and make a reschedule request for it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>new_state</strong> – <strong>[in]</strong> the state to set vcpu</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.reset_vcpu">
+<span class="target" id="group__acrn__vcpu_ga8bce080df518816dbcb6d8d360cea1b7_1ga8bce080df518816dbcb6d8d360cea1b7"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">reset_vcpu</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <em class="property"><span class="pre">enum</span></em> <span class="pre">reset_mode</span> <em><span class="pre">mode</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.reset_vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>reset vcpu state and values </p>
+<p>Reset all fields in a vCPU instance, the vCPU state is reset to VCPU_INIT.</p>
+<p><dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>vcpu != NULL </p>
+</dd>
+<dt><strong>Preconditions</strong></dt><dd><p>vcpu-&gt;state == VCPU_ZOMBIE </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>mode</strong> – <strong>[in]</strong> the reset mode </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.offline_vcpu">
+<span class="target" id="group__acrn__vcpu_ga7bb6aa97299372db536a85a0b502804d_1ga7bb6aa97299372db536a85a0b502804d"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">offline_vcpu</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.offline_vcpu" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>unmap the vcpu with pcpu and free its vlapic </p>
+<p>Unmap the vcpu with pcpu and free its vlapic, and set the vcpu state to offline</p>
+<p><dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>vcpu != NULL </p>
+</dd>
+<dt><strong>Preconditions</strong></dt><dd><p>vcpu-&gt;state == VCPU_ZOMBIE </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="vcpu-scheduling-under-static-cpu-partitioning">
+<h2>vCPU Scheduling Under Static CPU Partitioning<a class="headerlink" href="#vcpu-scheduling-under-static-cpu-partitioning" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="hv-vcpu-schedule">
+<img alt="../../_images/hld-image35.png" src="../../_images/hld-image35.png" />
+<p class="caption"><span class="caption-number">Figure 81 </span><span class="caption-text">ACRN vCPU Scheduling Flow Under Static CPU Partitioning</span><a class="headerlink" href="#hv-vcpu-schedule" title="Permalink to this image">¶</a></p>
+</div>
+<p>For static CPU partitioning, ACRN implements a simple scheduling mechanism
+based on two threads: vcpu_thread and default_idle. A vCPU in the
+VCPU_RUNNING state always runs in a vcpu_thread loop.
+A vCPU in the VCPU_PAUSED or VCPU_ZOMBIE state runs in a default_idle
+loop. The behaviors in the vcpu_thread and default_idle threads
+are illustrated in <a class="reference internal" href="#hv-vcpu-schedule"><span class="std std-numref">Figure 81</span></a>:</p>
+<ul class="simple">
+<li><p>The <strong>vcpu_thread</strong> loop will do the loop of handling VM exits,
+and pending requests around the VM entry/exit.
+It will also check the reschedule request then schedule out to
+default_idle if necessary. See <a class="reference internal" href="#vcpu-thread">vCPU Thread</a> for more details
+about vcpu_thread.</p></li>
+<li><p>The <strong>default_idle</strong> loop simply does do_cpu_idle while also
+checking for need-offline and reschedule requests.
+If a CPU is marked as need-offline, it will go to cpu_dead.
+If a reschedule request is made for this CPU, it will
+schedule out to vcpu_thread if necessary.</p></li>
+<li><p>The function <code class="docutils literal notranslate"><span class="pre">make_reschedule_request</span></code> drives the thread
+switch between vcpu_thread and default_idle.</p></li>
+</ul>
+<p>Some example scenario flows are shown here:</p>
+<div class="figure align-center" id="id5">
+<img alt="../../_images/hld-image7.png" src="../../_images/hld-image7.png" />
+<p class="caption"><span class="caption-number">Figure 82 </span><span class="caption-text">ACRN vCPU Scheduling Scenarios</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+</div>
+<ul class="simple">
+<li><p><strong>During VM startup</strong>: after a vCPU is created, the bootstrap processor (BSP)
+calls <em>launch_vcpu</em> through <em>start_vm</em>. The application processor (AP) calls
+<em>launch_vcpu</em> through vLAPIC INIT-SIPI emulation. Finally, this vCPU runs in
+a <em>vcpu_thread</em> loop.</p></li>
+<li><p><strong>During VM shutdown</strong>: <em>pause_vm</em> function forces a vCPU
+running in <em>vcpu_thread</em> to schedule out to <em>default_idle</em>. The
+following <em>reset_vcpu</em>  and <em>offline_vcpu</em> de-init and then offline
+this vCPU instance.</p></li>
+<li><p><strong>During IOReq handling</strong>: after an IOReq is sent to DM for emulation, a
+vCPU running in <em>vcpu_thread</em> schedules out to <em>default_idle</em>
+through <em>acrn_insert_request_wait-&gt;pause_vcpu</em>. After the DM
+completes the emulation for this IOReq, it calls
+<em>hcall_notify_ioreq_finish-&gt;resume_vcpu</em> and changes the vCPU
+schedule back to <em>vcpu_thread</em> to continue its guest execution.</p></li>
+</ul>
+</div>
+<div class="section" id="vcpu-scheduling-under-flexible-cpu-sharing">
+<h2>vCPU Scheduling Under Flexible CPU Sharing<a class="headerlink" href="#vcpu-scheduling-under-flexible-cpu-sharing" title="Permalink to this headline">¶</a></h2>
+<p>To be added.</p>
+</div>
+<div class="section" id="vcpu-thread">
+<h2>vCPU Thread<a class="headerlink" href="#vcpu-thread" title="Permalink to this headline">¶</a></h2>
+<p>The vCPU thread flow is a loop as shown and described below:</p>
+<div class="figure align-center" id="id6">
+<img alt="../../_images/hld-image68.png" src="../../_images/hld-image68.png" />
+<p class="caption"><span class="caption-number">Figure 83 </span><span class="caption-text">ACRN vCPU Thread</span><a class="headerlink" href="#id6" title="Permalink to this image">¶</a></p>
+</div>
+<ol class="arabic simple">
+<li><p>Check if <em>vcpu_thread</em> needs to schedule out to <em>default_idle</em> or
+other <em>vcpu_thread</em> by reschedule request. If needed, then schedule
+out to <em>default_idle</em> or other <em>vcpu_thread</em>.</p></li>
+<li><p>Handle pending request by calling <em>acrn_handle_pending_request</em>.
+(See <a class="reference internal" href="#id2">Pending Request Handlers</a>.)</p></li>
+<li><p>VM Enter by calling <em>start/run_vcpu</em>, then enter non-root mode to do
+guest execution.</p></li>
+<li><p>VM Exit from <em>start/run_vcpu</em> when the guest triggers a VM exit reason in
+non-root mode.</p></li>
+<li><p>Handle VM exit based on specific reason.</p></li>
+<li><p>Loop back to step 1.</p></li>
+</ol>
+<div class="section" id="vcpu-run-context">
+<h3>vCPU Run Context<a class="headerlink" href="#vcpu-run-context" title="Permalink to this headline">¶</a></h3>
+<p>During a vCPU switch between root and non-root mode, the run context of
+the vCPU is saved and restored using this structure:</p>
+<dl class="c struct">
+<dt id="c.run_context">
+<span class="target" id="structrun__context"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-name descname"><span class="pre">run_context</span></code><a class="headerlink" href="#c.run_context" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>registers info saved for vcpu running context </p>
+</dd></dl>
+
+<p>The vCPU handles runtime context saving by three different
+categories:</p>
+<ul class="simple">
+<li><p>Always save/restore during VM exit/entry:</p>
+<ul>
+<li><p>These registers must be saved for each VM exit, and restored
+for each VM entry</p></li>
+<li><p>Registers include: general purpose registers, CR2, and
+IA32_SPEC_CTRL</p></li>
+<li><p>Definition in <em>vcpu-&gt;run_context</em></p></li>
+<li><p>Get/Set them through <em>vcpu_get/set_xxx</em></p></li>
+</ul>
+</li>
+<li><p>On-demand cache/update during VM exit/entry:</p>
+<ul>
+<li><p>These registers are used frequently. They should be cached from
+VMCS on first time access after a VM exit, and updated to VMCS on
+VM entry if marked dirty</p></li>
+<li><p>Registers include: RSP, RIP, EFER, RFLAGS, CR0, and CR4</p></li>
+<li><p>Definition in <em>vcpu-&gt;run_context</em></p></li>
+<li><p>Get/Set them through <em>vcpu_get/set_xxx</em></p></li>
+</ul>
+</li>
+<li><p>Always read/write from/to VMCS:</p>
+<ul>
+<li><p>These registers are rarely used. Access to them is always
+from/to VMCS.</p></li>
+<li><p>Registers are in VMCS but not list in the two cases above.</p></li>
+<li><p>No definition in <em>vcpu-&gt;run_context</em></p></li>
+<li><p>Get/Set them through VMCS API</p></li>
+</ul>
+</li>
+</ul>
+<p>For the first two categories above, ACRN provides these get/set APIs:</p>
+<dl class="c function">
+<dt id="c.vcpu_get_gpreg">
+<span class="target" id="group__acrn__vcpu_gaede416117178fa33b5a0ed08165e89ca_1gaede416117178fa33b5a0ed08165e89ca"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">vcpu_get_gpreg</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">reg</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_get_gpreg" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>get vcpu register value </p>
+<p>Get target vCPU’s general purpose registers value in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[in]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>reg</strong> – <strong>[in]</strong> register of the vcpu</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of the register. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_set_gpreg">
+<span class="target" id="group__acrn__vcpu_ga00a4b232e06cd4a62b2eb4a5a9c23d26_1ga00a4b232e06cd4a62b2eb4a5a9c23d26"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vcpu_set_gpreg</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">reg</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_set_gpreg" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>set vcpu register value </p>
+<p>Set target vCPU’s general purpose registers value in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>reg</strong> – <strong>[in]</strong> register of the vcpu </p></li>
+<li><p><strong>val</strong> – <strong>[in]</strong> the value set the register of the vcpu</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_get_rip">
+<span class="target" id="group__acrn__vcpu_gacffb8b405cae6788609029bc22459d51_1gacffb8b405cae6788609029bc22459d51"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">vcpu_get_rip</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_get_rip" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>get vcpu RIP value </p>
+<p>Get &amp; cache target vCPU’s RIP in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[in]</strong> pointer to vcpu data structure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of RIP. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_set_rip">
+<span class="target" id="group__acrn__vcpu_ga0c5fca20b46e20e9c9b2b3b8d800bb54_1ga0c5fca20b46e20e9c9b2b3b8d800bb54"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vcpu_set_rip</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_set_rip" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>set vcpu RIP value </p>
+<p>Update target vCPU’s RIP in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>val</strong> – <strong>[in]</strong> the value set RIP</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_get_rsp">
+<span class="target" id="group__acrn__vcpu_ga7020e720780d9729f14abe8c5137ce4d_1ga7020e720780d9729f14abe8c5137ce4d"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">vcpu_get_rsp</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_get_rsp" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>get vcpu RSP value </p>
+<p>Get &amp; cache target vCPU’s RSP in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[in]</strong> pointer to vcpu data structure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of RSP. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_set_rsp">
+<span class="target" id="group__acrn__vcpu_gaa4045c9842b4b67aa3cd7904a9112fa6_1gaa4045c9842b4b67aa3cd7904a9112fa6"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vcpu_set_rsp</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_set_rsp" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>set vcpu RSP value </p>
+<p>Update target vCPU’s RSP in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>val</strong> – <strong>[in]</strong> the value set RSP</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_get_efer">
+<span class="target" id="group__acrn__vcpu_ga6e3dde451b267ab04be8dd366ee5e638_1ga6e3dde451b267ab04be8dd366ee5e638"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">vcpu_get_efer</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_get_efer" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>get vcpu EFER value </p>
+<p>Get &amp; cache target vCPU’s EFER in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[in]</strong> pointer to vcpu data structure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of EFER. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_set_efer">
+<span class="target" id="group__acrn__vcpu_gae6891e4b556bed5b89538e7437b9f8bd_1gae6891e4b556bed5b89538e7437b9f8bd"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vcpu_set_efer</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_set_efer" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>set vcpu EFER value </p>
+<p>Update target vCPU’s EFER in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>val</strong> – <strong>[in]</strong> the value set EFER</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_get_rflags">
+<span class="target" id="group__acrn__vcpu_gac4454681ed3c1f98aa324cef630faa45_1gac4454681ed3c1f98aa324cef630faa45"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">vcpu_get_rflags</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_get_rflags" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>get vcpu RFLAG value </p>
+<p>Get &amp; cache target vCPU’s RFLAGS in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[in]</strong> pointer to vcpu data structure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of RFLAGS. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_set_rflags">
+<span class="target" id="group__acrn__vcpu_ga94762485dad836e236d8ad5be7d043ad_1ga94762485dad836e236d8ad5be7d043ad"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vcpu_set_rflags</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_set_rflags" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>set vcpu RFLAGS value </p>
+<p>Update target vCPU’s RFLAGS in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>val</strong> – <strong>[in]</strong> the value set RFLAGS</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_get_cr0">
+<span class="target" id="group__vCR_ga62bf27ad6ca751d48c075ce35ca17526_1ga62bf27ad6ca751d48c075ce35ca17526"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">vcpu_get_cr0</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_get_cr0" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>get vcpu CR0 value </p>
+<p>Get &amp; cache target vCPU’s CR0 in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[in]</strong> pointer to vcpu data structure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of CR0. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_set_cr0">
+<span class="target" id="group__vCR_ga4dae53d14f546725a22a5e9f6177667e_1ga4dae53d14f546725a22a5e9f6177667e"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vcpu_set_cr0</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_set_cr0" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>set vcpu CR0 value </p>
+<p>Update target vCPU’s CR0 in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>val</strong> – <strong>[in]</strong> the value set CR0 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_get_cr2">
+<span class="target" id="group__vCR_ga43462bff20c87c9c6e3fa715da6078f4_1ga43462bff20c87c9c6e3fa715da6078f4"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">vcpu_get_cr2</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_get_cr2" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>get vcpu CR2 value </p>
+<p>Get &amp; cache target vCPU’s CR2 in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[in]</strong> pointer to vcpu data structure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of CR2. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_set_cr2">
+<span class="target" id="group__vCR_ga0e8c1a82a34cee966c4f019682acba2a_1ga0e8c1a82a34cee966c4f019682acba2a"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vcpu_set_cr2</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_set_cr2" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>set vcpu CR2 value </p>
+<p>Update target vCPU’s CR2 in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>val</strong> – <strong>[in]</strong> the value set CR2 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_get_cr4">
+<span class="target" id="group__vCR_gab779ab8254ee467798df1b4a7def3c9c_1gab779ab8254ee467798df1b4a7def3c9c"></span><span class="pre">uint64_t</span> <code class="sig-name descname"><span class="pre">vcpu_get_cr4</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_get_cr4" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>get vcpu CR4 value </p>
+<p>Get &amp; cache target vCPU’s CR4 in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[in]</strong> pointer to vcpu data structure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of CR4. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.vcpu_set_cr4">
+<span class="target" id="group__vCR_ga9989f0b4f8d4c8db8a6d6492060cb143_1ga9989f0b4f8d4c8db8a6d6492060cb143"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">vcpu_set_cr4</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vcpu</span> <span class="pre">*</span><em><span class="pre">vcpu</span></em>, <span class="pre">uint64_t</span> <em><span class="pre">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.vcpu_set_cr4" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>set vcpu CR4 value </p>
+<p>Update target vCPU’s CR4 in <a class="reference internal" href="#structrun__context"><span class="std std-ref">run_context</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vcpu</strong> – <strong>[inout]</strong> pointer to vcpu data structure </p></li>
+<li><p><strong>val</strong> – <strong>[in]</strong> the value set CR4 </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="vm-exit-handlers">
+<h3>VM Exit Handlers<a class="headerlink" href="#vm-exit-handlers" title="Permalink to this headline">¶</a></h3>
+<p>ACRN implements its VM exit handlers with a static table. Except for the
+exit reasons listed below, a default <em>unhandled_vmexit_handler</em> is used
+that will trigger an error message and return without handling:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>VM Exit Reason</strong></p></th>
+<th class="head"><p><strong>Handler</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>VMX_EXIT_REASON_EXCEPTION_OR_NMI</p></td>
+<td><p>exception_vmexit_handler</p></td>
+<td><p>Only trap #MC, print error then inject back to guest</p></td>
+</tr>
+<tr class="row-odd"><td><p>VMX_EXIT_REASON_EXTERNAL_INTERRUPT</p></td>
+<td><p>external_interrupt_vmexit_handler</p></td>
+<td><p>External interrupt handler for physical interrupt happening in non-root mode</p></td>
+</tr>
+<tr class="row-even"><td><p>VMX_EXIT_REASON_TRIPLE_FAULT</p></td>
+<td><p>triple_fault_vmexit_handler</p></td>
+<td><p>Handle triple fault from vCPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>VMX_EXIT_REASON_INIT_SIGNAL</p></td>
+<td><p>init_signal_vmexit_handler</p></td>
+<td><p>Handle INIT signal from vCPU</p></td>
+</tr>
+<tr class="row-even"><td><p>VMX_EXIT_REASON_INTERRUPT_WINDOW</p></td>
+<td><p>interrupt_window_vmexit_handler</p></td>
+<td><p>To support interrupt window if VID is disabled</p></td>
+</tr>
+<tr class="row-odd"><td><p>VMX_EXIT_REASON_CPUID</p></td>
+<td><p>cpuid_vmexit_handler</p></td>
+<td><p>Handle CPUID access from guest</p></td>
+</tr>
+<tr class="row-even"><td><p>VMX_EXIT_REASON_VMCALL</p></td>
+<td><p>vmcall_vmexit_handler</p></td>
+<td><p>Handle hypercall from guest</p></td>
+</tr>
+<tr class="row-odd"><td><p>VMX_EXIT_REASON_CR_ACCESS</p></td>
+<td><p>cr_access_vmexit_handler</p></td>
+<td><p>Handle CR registers access from guest</p></td>
+</tr>
+<tr class="row-even"><td><p>VMX_EXIT_REASON_IO_INSTRUCTION</p></td>
+<td><p>pio_instr_vmexit_handler</p></td>
+<td><p>Emulate I/O access with range in IO_BITMAP,
+which may have a handler in hypervisor (such as vUART or vPIC),
+or need to create an I/O request to DM</p></td>
+</tr>
+<tr class="row-odd"><td><p>VMX_EXIT_REASON_RDMSR</p></td>
+<td><p>rdmsr_vmexit_handler</p></td>
+<td><p>Read MSR from guest in MSR_BITMAP</p></td>
+</tr>
+<tr class="row-even"><td><p>VMX_EXIT_REASON_WRMSR</p></td>
+<td><p>wrmsr_vmexit_handler</p></td>
+<td><p>Write MSR from guest in MSR_BITMAP</p></td>
+</tr>
+<tr class="row-odd"><td><p>VMX_EXIT_REASON_APIC_ACCESS</p></td>
+<td><p>apic_access_vmexit_handler</p></td>
+<td><p>APIC access for APICv</p></td>
+</tr>
+<tr class="row-even"><td><p>VMX_EXIT_REASON_VIRTUALIZED_EOI</p></td>
+<td><p>veoi_vmexit_handler</p></td>
+<td><p>Trap vLAPIC EOI for specific vector with level trigger mode
+in vIOAPIC, required for supporting PTdev</p></td>
+</tr>
+<tr class="row-odd"><td><p>VMX_EXIT_REASON_EPT_VIOLATION</p></td>
+<td><p>ept_violation_vmexit_handler</p></td>
+<td><p>MMIO emulation, which may have handler in hypervisor
+(such as vLAPIC or vIOAPIC), or need to create an I/O
+request to DM</p></td>
+</tr>
+<tr class="row-even"><td><p>VMX_EXIT_REASON_XSETBV</p></td>
+<td><p>xsetbv_vmexit_handler</p></td>
+<td><p>Set host owned XCR0 for supporting xsave</p></td>
+</tr>
+<tr class="row-odd"><td><p>VMX_EXIT_REASON_APIC_WRITE</p></td>
+<td><p>apic_write_vmexit_handler</p></td>
+<td><p>APIC write for APICv</p></td>
+</tr>
+</tbody>
+</table>
+<p>Details of each VM exit reason handler are described in other sections.</p>
+</div>
+<div class="section" id="pending-request-handlers">
+<span id="id2"></span><h3>Pending Request Handlers<a class="headerlink" href="#pending-request-handlers" title="Permalink to this headline">¶</a></h3>
+<p>ACRN uses the function <em>acrn_handle_pending_request</em> to handle
+requests before VM entry in <em>vcpu_thread</em>.</p>
+<p>A bitmap in the vCPU structure lists the different requests:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define ACRN_REQUEST_EXCP 0U</span>
+<span class="cp">#define ACRN_REQUEST_EVENT 1U</span>
+<span class="cp">#define ACRN_REQUEST_EXTINT 2U</span>
+<span class="cp">#define ACRN_REQUEST_NMI 3U</span>
+<span class="cp">#define ACRN_REQUEST_EOI_EXIT_BITMAP_UPDATE 4U</span>
+<span class="cp">#define ACRN_REQUEST_EPT_FLUSH 5U</span>
+<span class="cp">#define ACRN_REQUEST_TRP_FAULT 6U</span>
+<span class="cp">#define ACRN_REQUEST_VPID_FLUSH 7U </span><span class="cm">/* flush vpid tlb */</span><span class="cp"></span>
+</pre></div>
+</div>
+<p>ACRN provides the function <em>vcpu_make_request</em> to make different
+requests, set the bitmap of the corresponding request, and notify the target
+vCPU through the IPI if necessary (when the target vCPU is not
+running). See <a class="reference internal" href="hv-virt-interrupt.html#vcpu-request-interrupt-injection"><span class="std std-ref">vCPU Request for Interrupt Injection</span></a> for details.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">vcpu_make_request</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vcpu</span><span class="w"> </span><span class="o">*</span><span class="n">vcpu</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">eventid</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">   </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">pcpu_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pcpuid_from_vcpu</span><span class="p">(</span><span class="n">vcpu</span><span class="p">);</span><span class="w"></span>
+
+<span class="w">   </span><span class="n">bitmap_set_lock</span><span class="p">(</span><span class="n">eventid</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vcpu</span><span class="o">-&gt;</span><span class="n">arch_vcpu</span><span class="p">.</span><span class="n">pending_req</span><span class="p">);</span><span class="w"></span>
+<span class="w">   </span><span class="cm">/*</span>
+<span class="cm">    * if current hostcpu is not the target vcpu&#39;s hostcpu, we need</span>
+<span class="cm">    * to invoke IPI to wake up target vcpu</span>
+<span class="cm">    *</span>
+<span class="cm">    * TODO: Here we just compare with cpuid, since cpuid is</span>
+<span class="cm">    *  global under pCPU / vCPU 1:1 mapping. If later we enabled vcpu</span>
+<span class="cm">    *  scheduling, we need change here to determine it target vcpu is</span>
+<span class="cm">    *  VMX non-root or root mode</span>
+<span class="cm">    */</span><span class="w"></span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">get_cpu_id</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">pcpu_id</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">           </span><span class="n">send_single_ipi</span><span class="p">(</span><span class="n">pcpu_id</span><span class="p">,</span><span class="w"> </span><span class="n">VECTOR_NOTIFY_VCPU</span><span class="p">);</span><span class="w"></span>
+<span class="w">   </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The function <em>acrn_handle_pending_request</em> handles each
+request as shown below.</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Request</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Request Maker</strong></p></th>
+<th class="head"><p><strong>Request Handler</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ACRN_REQUEST_EXCP</p></td>
+<td><p>Request for exception injection</p></td>
+<td><p>vcpu_inject_gp, vcpu_inject_pf, vcpu_inject_ud, vcpu_inject_ac,
+or vcpu_inject_ss and then queue corresponding exception by
+vcpu_queue_exception</p></td>
+<td><p>vcpu_inject_hi_exception, vcpu_inject_lo_exception based
+on exception priority</p></td>
+</tr>
+<tr class="row-odd"><td><p>ACRN_REQUEST_EVENT</p></td>
+<td><p>Request for vLAPIC interrupt vector injection</p></td>
+<td><p>vlapic_fire_lvt or vlapic_set_intr, which could be triggered
+by vlapic lvt, vioapic, or vmsi</p></td>
+<td><p>vcpu_do_pending_event</p></td>
+</tr>
+<tr class="row-even"><td><p>ACRN_REQUEST_EXTINT</p></td>
+<td><p>Request for extint vector injection</p></td>
+<td><p>vcpu_inject_extint, triggered by vPIC</p></td>
+<td><p>vcpu_do_pending_extint</p></td>
+</tr>
+<tr class="row-odd"><td><p>ACRN_REQUEST_NMI</p></td>
+<td><p>Request for nmi injection</p></td>
+<td><p>vcpu_inject_nmi</p></td>
+<td><p>Program VMX_ENTRY_INT_INFO_FIELD directly</p></td>
+</tr>
+<tr class="row-even"><td><p>ACRN_REQUEST_EOI_EXIT_BITMAP_UPDATE</p></td>
+<td><p>Request for VEOI bitmap update for level triggered vector</p></td>
+<td><p>vlapic_reset_tmr or vlapic_set_tmr change trigger mode in RTC</p></td>
+<td><p>vcpu_set_vmcs_eoi_exit</p></td>
+</tr>
+<tr class="row-odd"><td><p>ACRN_REQUEST_EPT_FLUSH</p></td>
+<td><p>Request for EPT flush</p></td>
+<td><p>ept_add_mr, ept_modify_mr, ept_del_mr, or vmx_write_cr0 disable cache</p></td>
+<td><p>invept</p></td>
+</tr>
+<tr class="row-even"><td><p>ACRN_REQUEST_TRP_FAULT</p></td>
+<td><p>Request for handling triple fault</p></td>
+<td><p>vcpu_queue_exception meet triple fault</p></td>
+<td><p>fatal error</p></td>
+</tr>
+<tr class="row-odd"><td><p>ACRN_REQUEST_VPID_FLUSH</p></td>
+<td><p>Request for VPID flush</p></td>
+<td><p>None</p></td>
+<td><p>flush_vpid_single</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Refer to the interrupt management chapter for request
+handling order for exception, nmi, and interrupts. For other requests
+such as tmr update, or EPT flush, there is no mandatory order.</p>
+</div>
+</div>
+</div>
+<div class="section" id="vmx-initialization">
+<h2>VMX Initialization<a class="headerlink" href="#vmx-initialization" title="Permalink to this headline">¶</a></h2>
+<p>ACRN attempts to initialize the vCPU’s VMCS before its first
+launch. ACRN sets the host state, execution control, guest state,
+entry control, and exit control, as shown in the table below.</p>
+<p>The table briefly shows how each field is configured.
+The guest state field is critical for running a guest CPU
+based on different CPU modes.</p>
+<p>For a guest vCPU’s state initialization:</p>
+<ul class="simple">
+<li><p>If it’s BSP, the guest state configuration is done in software load,
+which can be initialized by different objects:</p>
+<ul>
+<li><p>Service VM BSP: Hypervisor does context initialization in different
+software load based on different boot mode</p></li>
+<li><p>User VM BSP: DM context initialization through hypercall</p></li>
+</ul>
+</li>
+<li><p>If it’s AP, it always starts from real mode, and the start
+vector always comes from vLAPIC INIT-SIPI emulation.</p></li>
+</ul>
+<dl class="c struct">
+<dt id="c.acrn_regs">
+<span class="target" id="structacrn__regs"></span><em class="property"><span class="pre">struct</span> </em><code class="sig-name descname"><span class="pre">acrn_regs</span></code><br /></dt>
+<dd><p>registers info for vcpu. </p>
+</dd></dl>
+
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 40%" />
+<col style="width: 10%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>VMX Domain</strong></p></th>
+<th class="head"><p><strong>Fields</strong></p></th>
+<th class="head"><p><strong>Bits</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>host state</strong></p></td>
+<td><p>CS, DS, ES, FS, GS, TR, LDTR, GDTR, IDTR</p></td>
+<td><p>n/a</p></td>
+<td><p>According to host</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>MSR_IA32_PAT, MSR_IA32_EFER</p></td>
+<td><p>n/a</p></td>
+<td><p>According to host</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>CR0, CR3, CR4</p></td>
+<td><p>n/a</p></td>
+<td><p>According to host</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>RIP</p></td>
+<td><p>n/a</p></td>
+<td><p>Set to vm_exit pointer</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>IA32_SYSENTER_CS/ESP/EIP</p></td>
+<td><p>n/a</p></td>
+<td><p>Set to 0</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>execution control</strong></p></td>
+<td><p>VMX_PIN_VM_EXEC_CONTROLS</p></td>
+<td><p>0</p></td>
+<td><p>Enable external-interrupt exiting</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>7</p></td>
+<td><p>Enable posted interrupts</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>VMX_PROC_VM_EXEC_CONTROLS</p></td>
+<td><p>3</p></td>
+<td><p>Use TSC offsetting</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>21</p></td>
+<td><p>Use TPR shadow</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>25</p></td>
+<td><p>Use I/O bitmaps</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>28</p></td>
+<td><p>Use MSR bitmaps</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>31</p></td>
+<td><p>Activate secondary controls</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>VMX_PROC_VM_EXEC_CONTROLS2</p></td>
+<td><p>0</p></td>
+<td><p>Virtualize APIC accesses</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>1</p></td>
+<td><p>Enable EPT</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>3</p></td>
+<td><p>Enable RDTSCP</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>5</p></td>
+<td><p>Enable VPID</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>7</p></td>
+<td><p>Unrestricted guest</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>8</p></td>
+<td><p>APIC-register virtualization</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>9</p></td>
+<td><p>Virtual-interrupt delivery</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>20</p></td>
+<td><p>Enable XSAVES/XRSTORS</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>guest state</strong></p></td>
+<td><p>CS, DS, ES, FS, GS, TR, LDTR, GDTR, IDTR</p></td>
+<td><p>n/a</p></td>
+<td><p>According to vCPU mode and init_ctx</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>RIP, RSP</p></td>
+<td><p>n/a</p></td>
+<td><p>According to vCPU mode and init_ctx</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>CR0, CR3, CR4</p></td>
+<td><p>n/a</p></td>
+<td><p>According to vCPU mode and init_ctx</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>GUEST_IA32_SYSENTER_CS/ESP/EIP</p></td>
+<td><p>n/a</p></td>
+<td><p>Set to 0</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>GUEST_IA32_PAT</p></td>
+<td><p>n/a</p></td>
+<td><p>Set to PAT_POWER_ON_VALUE</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>entry control</strong></p></td>
+<td><p>VMX_ENTRY_CONTROLS</p></td>
+<td><p>2</p></td>
+<td><p>Load debug controls</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>14</p></td>
+<td><p>Load IA32_PAT</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>15</p></td>
+<td><p>Load IA23_EFER</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>exit control</strong></p></td>
+<td><p>VMX_EXIT_CONTROLS</p></td>
+<td><p>2</p></td>
+<td><p>Save debug controls</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>9</p></td>
+<td><p>Host address space size</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>15</p></td>
+<td><p>Acknowledge Interrupt on exit</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>18</p></td>
+<td><p>Save IA32_PAT</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>19</p></td>
+<td><p>Load IA32_PAT</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>20</p></td>
+<td><p>Save IA32_EFER</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>21</p></td>
+<td><p>Load IA32_EFER</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="cpuid-virtualization">
+<h2>CPUID Virtualization<a class="headerlink" href="#cpuid-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>CPUID access from a guest would cause VM exits unconditionally if executed
+as a VMX non-root operation. ACRN must return the emulated processor
+identification and feature information in the EAX, EBX, ECX, and EDX
+registers.</p>
+<p>To simplify, ACRN returns the same values from the physical CPU for most
+of the CPUID, and specially handles a few CPUID features that are APIC
+ID related such as CPUID.01H.</p>
+<p>ACRN emulates some extra CPUID features for the hypervisor as well.</p>
+<p>The per-vm <em>vcpuid_entries</em> array is initialized during VM creation
+and used to cache most of the CPUID entries for each VM.  During guest
+CPUID emulation, ACRN reads the cached value from this array, except
+some APIC ID-related CPUID data emulated at runtime.</p>
+<p>This table describes details for CPUID emulation:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 80%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>CPUID</strong></p></th>
+<th class="head"><p><strong>Emulation Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>01H</p></td>
+<td><ul class="simple">
+<li><p>Get original value from physical CPUID</p></li>
+<li><p>Fill APIC ID from vLAPIC</p></li>
+<li><p>Disable x2APIC</p></li>
+<li><p>Disable PCID</p></li>
+<li><p>Disable VMX</p></li>
+<li><p>Disable XSAVE if host not enabled</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>0BH</p></td>
+<td><ul class="simple">
+<li><p>Fill according to X2APIC feature support (default is disabled)</p></li>
+<li><p>If not supported, fill all registers with 0</p></li>
+<li><p>If supported, get from physical CPUID</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>0DH</p></td>
+<td><ul class="simple">
+<li><p>Fill according to XSAVE feature support</p></li>
+<li><p>If not supported, fill all registers with 0</p></li>
+<li><p>If supported, get from physical CPUID</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>07H</p></td>
+<td><ul class="simple">
+<li><p>Get from per-vm CPUID entries cache</p></li>
+<li><p>For subleaf 0, disabled INVPCID, Intel RDT</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>16H</p></td>
+<td><ul class="simple">
+<li><p>Get from per-vm CPUID entries cache</p></li>
+<li><p>If physical CPU supports CPUID.16H, read from physical CPUID</p></li>
+<li><p>If physical CPU does not support it, emulate with TSC frequency</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>40000000H</p></td>
+<td><ul class="simple">
+<li><p>Get from per-vm CPUID entries cache</p></li>
+<li><p>EAX: the maximum input value for CPUID supported by ACRN (40000010)</p></li>
+<li><p>EBX, ECX, EDX: hypervisor vendor ID signature - “ACRNACRNACRN”</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>40000010H</p></td>
+<td><ul class="simple">
+<li><p>Get from per-vm CPUID entries cache</p></li>
+<li><p>EAX: virtual TSC frequency in kHz</p></li>
+<li><p>EBX, ECX, EDX: reserved to 0</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>0AH</p></td>
+<td><ul class="simple">
+<li><p>PMU disabled</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>0FH, 10H</p></td>
+<td><ul class="simple">
+<li><p>Intel RDT disabled</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>12H</p></td>
+<td><ul class="simple">
+<li><p>Fill according to SGX virtualization</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>14H</p></td>
+<td><ul class="simple">
+<li><p>Intel Processor Trace disabled</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Others</p></td>
+<td><ul class="simple">
+<li><p>Get from per-vm CPUID entries cache</p></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>ACRN needs to take care of
+some CPUID values that can change at runtime, for example, the XD feature in
+CPUID.80000001H may be cleared by the MISC_ENABLE MSR.</p>
+</div>
+</div>
+<div class="section" id="msr-virtualization">
+<h2>MSR Virtualization<a class="headerlink" href="#msr-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>ACRN always enables an MSR bitmap in the <em>VMX_PROC_VM_EXEC_CONTROLS</em> VMX
+execution control field. This bitmap marks the MSRs to cause a VM
+exit upon guest access for both read and write. The VM
+exit reason for reading or writing these MSRs is respectively
+<em>VMX_EXIT_REASON_RDMSR</em> or <em>VMX_EXIT_REASON_WRMSR</em> and the VM exit
+handler is <em>rdmsr_vmexit_handler</em> or <em>wrmsr_vmexit_handler</em>.</p>
+<p>This table shows the predefined MSRs that ACRN will trap for all the guests. For
+the MSRs whose bitmap values are not set in the MSR bitmap, guest access will be
+passthrough directly:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>MSR</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+<th class="head"><p><strong>Handler</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MSR_IA32_TSC_ADJUST</p></td>
+<td><p>TSC adjustment of local APIC’s TSC deadline mode</p></td>
+<td><p>Emulates with vLAPIC</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_TSC_DEADLINE</p></td>
+<td><p>TSC target of local APIC’s TSC deadline mode</p></td>
+<td><p>Emulates with vLAPIC</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_BIOS_UPDT_TRIG</p></td>
+<td><p>BIOS update trigger</p></td>
+<td><p>Update microcode from the Service VM, the signature ID read is from
+physical MSR, and a BIOS update trigger from the Service VM will trigger a
+physical microcode update.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_BIOS_SIGN_ID</p></td>
+<td><p>BIOS update signature ID</p></td>
+<td><p>&quot;</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_TIME_STAMP_COUNTER</p></td>
+<td><p>Time-stamp counter</p></td>
+<td><p>Work with VMX_TSC_OFFSET_FULL to emulate virtual TSC</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_APIC_BASE</p></td>
+<td><p>APIC base address</p></td>
+<td><p>Emulates with vLAPIC</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_PAT</p></td>
+<td><p>Page-attribute table</p></td>
+<td><p>Save/restore in vCPU, write to VMX_GUEST_IA32_PAT_FULL if cr0.cd is 0</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_PERF_CTL</p></td>
+<td><p>Performance control</p></td>
+<td><p>Trigger real P-state change if P-state is valid when writing,
+fetch physical MSR when reading</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_FEATURE_CONTROL</p></td>
+<td><p>Feature control bits that configure operation of VMX and SMX</p></td>
+<td><p>Disabled, locked</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_MCG_CAP/STATUS</p></td>
+<td><p>Machine-Check global control/status</p></td>
+<td><p>Emulates with vMCE</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_MISC_ENABLE</p></td>
+<td><p>Miscellaneous feature control</p></td>
+<td><p>Read-only, except MONITOR/MWAIT enable bit</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_SGXLEPUBKEYHASH0/1/2/3</p></td>
+<td><p>SHA256 digest of the authorized launch enclaves</p></td>
+<td><p>Emulates with vSGX</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_SGX_SVN_STATUS</p></td>
+<td><p>Status and SVN threshold of SGX support for ACM</p></td>
+<td><p>Read-only, emulates with vSGX</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_MTRR_CAP</p></td>
+<td><p>Memory type range register related</p></td>
+<td><p>Handled by MTRR emulation</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_MTRR_DEF_TYPE</p></td>
+<td><p>&quot;</p></td>
+<td><p>&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_MTRR_PHYSBASE_0~9</p></td>
+<td><p>&quot;</p></td>
+<td><p>&quot;</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_MTRR_FIX64K_00000</p></td>
+<td><p>&quot;</p></td>
+<td><p>&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_MTRR_FIX16K_80000/A0000</p></td>
+<td><p>&quot;</p></td>
+<td><p>&quot;</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_MTRR_FIX4K_C0000~F8000</p></td>
+<td><p>&quot;</p></td>
+<td><p>&quot;</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_X2APIC_*</p></td>
+<td><p>x2APIC related MSRs (offset from 0x800 to 0x900)</p></td>
+<td><p>Emulates with vLAPIC</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_L2_MASK_BASE~n</p></td>
+<td><p>L2 CAT mask for CLOSn</p></td>
+<td><p>Disabled for guest access</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_L3_MASK_BASE~n</p></td>
+<td><p>L3 CAT mask for CLOSn</p></td>
+<td><p>Disabled for guest access</p></td>
+</tr>
+<tr class="row-even"><td><p>MSR_IA32_MBA_MASK_BASE~n</p></td>
+<td><p>MBA delay mask for CLOSn</p></td>
+<td><p>Disabled for guest access</p></td>
+</tr>
+<tr class="row-odd"><td><p>MSR_IA32_VMX_BASIC~VMX_TRUE_ENTRY_CTLS</p></td>
+<td><p>VMX related MSRs</p></td>
+<td><p>Not supported, access will inject #GP</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="cr-virtualization">
+<h2>CR Virtualization<a class="headerlink" href="#cr-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>ACRN emulates <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr0</span></code>, <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr4</span></code>, <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr8</span></code>, and <code class="docutils literal notranslate"><span class="pre">mov</span>
+<span class="pre">from</span> <span class="pre">cr8</span></code> through <em>cr_access_vmexit_handler</em> based on
+<em>VMX_EXIT_REASON_CR_ACCESS</em>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr8</span></code> and <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">from</span> <span class="pre">cr8</span></code> are
+not valid as <code class="docutils literal notranslate"><span class="pre">CR8-load/store</span> <span class="pre">exiting</span></code> bits are set as 0 in
+<em>VMX_PROC_VM_EXEC_CONTROLS</em>.</p>
+</div>
+<p>A VM can <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">from</span> <span class="pre">cr0</span></code> and <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">from</span>
+<span class="pre">cr4</span></code> without triggering a VM exit. The values read are the read shadows
+of the corresponding register in VMCS. The shadows are updated by the
+hypervisor on CR writes.</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>Operation</strong></p></th>
+<th class="head"><p><strong>Handler</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mov to cr0</p></td>
+<td><p>Based on vCPU set context API: vcpu_set_cr0 -&gt; vmx_write_cr0</p></td>
+</tr>
+<tr class="row-odd"><td><p>mov to cr4</p></td>
+<td><p>Based on vCPU set context API: vcpu_set_cr4 -&gt; vmx_write_cr4</p></td>
+</tr>
+<tr class="row-even"><td><p>mov to cr8</p></td>
+<td><p>Based on vLAPIC tpr API: vlapic_set_cr8 -&gt; vlapic_set_tpr</p></td>
+</tr>
+<tr class="row-odd"><td><p>mov from cr8</p></td>
+<td><p>Based on vLAPIC tpr API: vlapic_get_cr8 -&gt; vlapic_get_tpr</p></td>
+</tr>
+</tbody>
+</table>
+<p>For <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr0</span></code> and <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr4</span></code>, ACRN sets
+<em>cr0_host_mask/cr4_host_mask</em> into <em>VMX_CR0_MASK/VMX_CR4_MASK</em>
+for the bitmask causing VM exit.</p>
+<p>As ACRN always enables <code class="docutils literal notranslate"><span class="pre">unrestricted</span> <span class="pre">guest</span></code> in
+<em>VMX_PROC_VM_EXEC_CONTROLS2</em>, <em>CR0.PE</em> and <em>CR0.PG</em> can be
+controlled by the guest.</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 40%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>CR0 MASK</strong></p></th>
+<th class="head"><p><strong>Value</strong></p></th>
+<th class="head"><p><strong>Comments</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>cr0_always_on_mask</p></td>
+<td><p>fixed0 &amp; (~(CR0_PE | CR0_PG))</p></td>
+<td><p>fixed0 comes from MSR_IA32_VMX_CR0_FIXED0, these bits
+are fixed to be 1 under VMX operation.</p></td>
+</tr>
+<tr class="row-odd"><td><p>cr0_always_off_mask</p></td>
+<td><p>~fixed1</p></td>
+<td><p>~fixed1 comes from MSR_IA32_VMX_CR0_FIXED1, these bits
+are fixed to be 0 under VMX operation.</p></td>
+</tr>
+<tr class="row-even"><td><p>CR0_TRAP_MASK</p></td>
+<td><p>CR0_PE | CR0_PG | CR0_WP | CR0_CD | CR0_NW</p></td>
+<td><p>ACRN will also trap PE, PG, WP, CD, and  NW bits.</p></td>
+</tr>
+<tr class="row-odd"><td><p>cr0_host_mask</p></td>
+<td><p>~(fixed0 ^ fixed1) | CR0_TRAP_MASK</p></td>
+<td><p>ACRN will finally trap bits under VMX root mode control plus
+additionally added bits.</p></td>
+</tr>
+</tbody>
+</table>
+<p>For <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr0</span></code> emulation, ACRN will handle a paging mode change based on
+PG bit change, and a cache mode change based on CD and NW bits changes.
+ACRN also takes care of  illegal writing from a guest to invalid
+CR0 bits (for example, set PG while CR4.PAE = 0 and IA32_EFER.LME = 1),
+which will finally inject a #GP to the guest. Finally,
+<em>VMX_CR0_READ_SHADOW</em> will be updated for guest reading of host
+controlled bits, and <em>VMX_GUEST_CR0</em> will be updated for real vmx cr0
+setting.</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 40%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>CR4 MASK</strong></p></th>
+<th class="head"><p><strong>Value</strong></p></th>
+<th class="head"><p><strong>Comments</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>cr4_always_on_mask</p></td>
+<td><p>fixed0</p></td>
+<td><p>fixed0 comes from MSR_IA32_VMX_CR4_FIXED0, these bits
+are fixed to be 1 under VMX operation</p></td>
+</tr>
+<tr class="row-odd"><td><p>cr4_always_off_mask</p></td>
+<td><p>~fixed1</p></td>
+<td><p>~fixed1 comes from MSR_IA32_VMX_CR4_FIXED1, these bits
+are fixed to be 0 under VMX operation</p></td>
+</tr>
+<tr class="row-even"><td><p>CR4_TRAP_MASK</p></td>
+<td><p>CR4_PSE | CR4_PAE | CR4_VMXE | CR4_PCIDE | CR4_SMEP | CR4_SMAP | CR4_PKE</p></td>
+<td><p>ACRN will also trap PSE, PAE, VMXE, and PCIDE bits</p></td>
+</tr>
+<tr class="row-odd"><td><p>cr4_host_mask</p></td>
+<td><p>~(fixed0 ^ fixed1) | CR4_TRAP_MASK</p></td>
+<td><p>ACRN will finally trap bits under VMX root mode control plus
+additionally added bits</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">mov</span> <span class="pre">to</span> <span class="pre">cr4</span></code> emulation is similar to cr0 emulation noted above.</p>
+</div>
+<div class="section" id="io-mmio-emulation">
+<span id="id3"></span><h2>IO/MMIO Emulation<a class="headerlink" href="#io-mmio-emulation" title="Permalink to this headline">¶</a></h2>
+<p>ACRN always enables an I/O bitmap in <em>VMX_PROC_VM_EXEC_CONTROLS</em> and EPT
+in <em>VMX_PROC_VM_EXEC_CONTROLS2</em>. Based on them,
+<em>pio_instr_vmexit_handler</em> and <em>ept_violation_vmexit_handler</em> are
+used for IO/MMIO emulation for an emulated device. The device can
+be emulated by the hypervisor or DM in the Service VM.</p>
+<p>For a device emulated by the hypervisor, ACRN provides some basic
+APIs to register its IO/MMIO range:</p>
+<ul class="simple">
+<li><p>For the Service VM, the default I/O bitmap values are all set to 0, which
+means the Service VM will passthrough all I/O port access by default. Adding
+an I/O handler for a hypervisor emulated device needs to first set its
+corresponding I/O bitmap to 1.</p></li>
+<li><p>For the User VM, the default I/O bitmap values are all set to 1, which means
+the User VM will trap all I/O port access by default. Adding an I/O handler
+for a hypervisor emulated device does not need to change its I/O bitmap. If
+the trapped I/O port access does not fall into a hypervisor emulated device,
+it will create an I/O request and pass it to the Service VM DM.</p></li>
+<li><p>For the Service VM, EPT maps the entire range of memory to the Service VM
+except for the ACRN hypervisor area. The Service VM will passthrough all
+MMIO access by default. Adding an MMIO handler for a hypervisor emulated
+device needs to first remove its MMIO range from EPT mapping.</p></li>
+<li><p>For the User VM, EPT only maps its system RAM to the User VM, which means the
+User VM will trap all MMIO access by default. Adding an MMIO handler for a
+hypervisor emulated device does not need to change its EPT mapping. If the
+trapped MMIO access does not fall into a hypervisor emulated device, it will
+create an I/O request and pass it to the Service VM DM.</p></li>
+</ul>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p><strong>API</strong></p></th>
+<th class="head"><p><strong>Description</strong></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>register_pio_emulation_handler</p></td>
+<td><p>Register an I/O emulation handler for a hypervisor emulated device
+by specific I/O range.</p></td>
+</tr>
+<tr class="row-odd"><td><p>register_mmio_emulation_handler</p></td>
+<td><p>Register an MMIO emulation handler for a hypervisor emulated device
+by specific MMIO range.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="instruction-emulation">
+<span id="id4"></span><h2>Instruction Emulation<a class="headerlink" href="#instruction-emulation" title="Permalink to this headline">¶</a></h2>
+<p>ACRN implements a simple instruction emulation infrastructure for
+MMIO (EPT) and APIC access emulation. When such a VM exit is triggered, the
+hypervisor needs to decode the instruction from RIP then attempt the
+corresponding emulation based on its instruction and read/write direction.</p>
+<p>ACRN supports emulating instructions for <code class="docutils literal notranslate"><span class="pre">mov</span></code>, <code class="docutils literal notranslate"><span class="pre">movx</span></code>,
+<code class="docutils literal notranslate"><span class="pre">movs</span></code>, <code class="docutils literal notranslate"><span class="pre">stos</span></code>, <code class="docutils literal notranslate"><span class="pre">test</span></code>, <code class="docutils literal notranslate"><span class="pre">and</span></code>, <code class="docutils literal notranslate"><span class="pre">or</span></code>, <code class="docutils literal notranslate"><span class="pre">cmp</span></code>, <code class="docutils literal notranslate"><span class="pre">sub</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">bittest</span></code> without support for lock prefix.  Real mode emulation is not
+supported.</p>
+<div class="figure align-center" id="id7">
+<img alt="../../_images/hld-image82.png" src="../../_images/hld-image82.png" />
+<p class="caption"><span class="caption-number">Figure 84 </span><span class="caption-text">Instruction Emulation Work Flow</span><a class="headerlink" href="#id7" title="Permalink to this image">¶</a></p>
+</div>
+<p>In the handlers for EPT violation or APIC access VM exit, ACRN will:</p>
+<ol class="arabic simple">
+<li><p>Fetch the MMIO access request’s address and size.</p></li>
+<li><p>Do <em>decode_instruction</em>  for the instruction in the current RIP
+with the following check:</p>
+<ol class="loweralpha simple">
+<li><p>Is the instruction supported? If not, inject #UD to the guest.</p></li>
+<li><p>Is the GVA of RIP, dest, and src valid? If not, inject #PF to the guest.</p></li>
+<li><p>Is the stack valid? If not, inject #SS to the guest.</p></li>
+</ol>
+</li>
+<li><p>If step 2 succeeds, check the access direction. If it’s a write, then
+do <em>emulate_instruction</em> to fetch the MMIO request’s value from
+instruction operands.</p></li>
+<li><p>Execute the MMIO request handler. For EPT violation, it is <em>emulate_io</em>.
+For APIC access, it is <em>vlapic_write/read</em> based on access
+direction. It will finally complete this MMIO request emulation
+by:</p>
+<ol class="loweralpha simple">
+<li><p>putting req.val to req.addr for write operation</p></li>
+<li><p>getting req.val from req.addr for read operation</p></li>
+</ol>
+</li>
+<li><p>If the access direction is read, then do <em>emulate_instruction</em> to
+put the MMIO request’s value into instruction operands.</p></li>
+<li><p>Return to the guest.</p></li>
+</ol>
+</div>
+<div class="section" id="tsc-emulation">
+<h2>TSC Emulation<a class="headerlink" href="#tsc-emulation" title="Permalink to this headline">¶</a></h2>
+<p>Guest vCPU execution of <em>RDTSC/RDTSCP</em> and access to
+<em>MSR_IA32_TSC_AUX</em> do not cause a VM Exit to the hypervisor.
+The hypervisor uses <em>MSR_IA32_TSC_AUX</em> to record CPU ID, thus
+the CPU ID provided by <em>MSR_IA32_TSC_AUX</em> might be changed via the guest.</p>
+<p><em>RDTSCP</em> is widely used by the hypervisor to identify the current CPU ID. Due
+to no VM Exit for the <em>MSR_IA32_TSC_AUX</em> MSR register, the ACRN hypervisor
+saves the <em>MSR_IA32_TSC_AUX</em> value on every VM Exit and restores it on every VM Enter.
+Before the hypervisor restores the host CPU ID, <em>rdtscp</em> should not be
+called as it could get the vCPU ID instead of the host CPU ID.</p>
+<p>The <em>MSR_IA32_TIME_STAMP_COUNTER</em> is emulated by the ACRN hypervisor, with a
+simple implementation based on <em>TSC_OFFSET</em> (enabled
+in <em>VMX_PROC_VM_EXEC_CONTROLS</em>):</p>
+<ul class="simple">
+<li><p>For read: <code class="docutils literal notranslate"><span class="pre">val</span> <span class="pre">=</span> <span class="pre">rdtsc()</span> <span class="pre">+</span> <span class="pre">exec_vmread64(VMX_TSC_OFFSET_FULL)</span></code></p></li>
+<li><p>For write: <code class="docutils literal notranslate"><span class="pre">exec_vmwrite64(VMX_TSC_OFFSET_FULL,</span> <span class="pre">val</span> <span class="pre">-</span> <span class="pre">rdtsc())</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="art-virtualization">
+<h2>ART Virtualization<a class="headerlink" href="#art-virtualization" title="Permalink to this headline">¶</a></h2>
+<p>The invariant TSC is based on the invariant timekeeping hardware (called
+Always Running Timer or ART), which runs at the core crystal clock frequency.
+The ratio defined by the CPUID leaf 15H expresses the frequency relationship
+between the ART hardware and the TSC.</p>
+<p>If CPUID.15H.EBX[31:0] != 0 and CPUID.80000007H:EDX[InvariantTSC] = 1, the
+following linearity relationship holds between the TSC and the ART hardware:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">TSC_Value</span> <span class="pre">=</span> <span class="pre">(ART_Value</span> <span class="pre">*</span> <span class="pre">CPUID.15H:EBX[31:0])</span> <span class="pre">/</span> <span class="pre">CPUID.15H:EAX[31:0]</span> <span class="pre">+</span> <span class="pre">K</span></code></p>
+</div></blockquote>
+<p>Where <cite>K</cite> is an offset that can be adjusted by a privileged agent.
+When ART hardware is reset, both invariant TSC and K are also reset.</p>
+<p>The guideline of ART virtualization (vART) is that software in native can run in
+the VM too. The vART solution is:</p>
+<ul class="simple">
+<li><p>Present the ART capability to the guest through CPUID leaf 15H for <cite>CPUID.15H:EBX[31:0]</cite>
+and <cite>CPUID.15H:EAX[31:0]</cite>.</p></li>
+<li><p>Passthrough devices see the physical ART_Value (vART_Value = pART_Value).</p></li>
+<li><p>Relationship between the ART and TSC in the guest is:
+<code class="docutils literal notranslate"><span class="pre">vTSC_Value</span> <span class="pre">=</span> <span class="pre">(vART_Value</span> <span class="pre">*</span> <span class="pre">CPUID.15H:EBX[31:0])</span> <span class="pre">/</span> <span class="pre">CPUID.15H:EAX[31:0]</span> <span class="pre">+</span> <span class="pre">vK</span></code>
+where <cite>vK = K + VMCS.TSC_OFFSET</cite>.</p></li>
+<li><p>If the guest changes <cite>vK</cite> or <cite>vTSC_Value</cite>, we change the <cite>VMCS.TSC_OFFSET</cite> accordingly.</p></li>
+<li><p><cite>K</cite> should never be changed by the hypervisor.</p></li>
+</ul>
+</div>
+<div class="section" id="xsave-emulation">
+<h2>XSAVE Emulation<a class="headerlink" href="#xsave-emulation" title="Permalink to this headline">¶</a></h2>
+<p>The XSAVE feature set is composed of eight instructions:</p>
+<ul class="simple">
+<li><p><em>XGETBV</em> and <em>XSETBV</em> allow software to read and write the extended
+control register <em>XCR0</em>, which controls the operation of the
+XSAVE feature set.</p></li>
+<li><p><em>XSAVE</em>, <em>XSAVEOPT</em>, <em>XSAVEC</em>, and <em>XSAVES</em> are four instructions
+that save the processor state to memory.</p></li>
+<li><p><em>XRSTOR</em> and <em>XRSTORS</em> are corresponding instructions that load the
+processor state from memory.</p></li>
+<li><p><em>XGETBV</em>, <em>XSAVE</em>, <em>XSAVEOPT</em>, <em>XSAVEC</em>, and <em>XRSTOR</em> can be executed
+at any privilege level.</p></li>
+<li><p><em>XSETBV</em>, <em>XSAVES</em>, and <em>XRSTORS</em> can be executed only if CPL = 0.</p></li>
+</ul>
+<p>Enabling the XSAVE feature set is controlled by XCR0 (through XSETBV)
+and IA32_XSS MSR. Refer to the <a class="reference external" href="https://www.intel.com/content/www/us/en/architecture-and-technology/64-ia-32-architectures-software-developer-vol-1-manual.html">Intel SDM Volume 1</a> chapter 13 for more details.</p>
+<div class="figure align-center" id="id8">
+<img alt="../../_images/hld-image38.png" src="../../_images/hld-image38.png" />
+<p class="caption"><span class="caption-number">Figure 85 </span><span class="caption-text">ACRN Hypervisor XSAVE Emulation</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+</div>
+<p>By default, ACRN enables XSAVES/XRSTORS in
+<em>VMX_PROC_VM_EXEC_CONTROLS2</em>, so it allows the guest to use the XSAVE
+feature. Because guest execution of <em>XSETBV</em> will always trigger XSETBV VM
+exit, ACRN actually needs to take care of XCR0 access.</p>
+<p>ACRN emulates XSAVE features through the following rules:</p>
+<ol class="arabic simple">
+<li><p>Enumerate CPUID.01H for native XSAVE feature support.</p></li>
+<li><p>If yes for step 1, enable XSAVE in the hypervisor by CR4.OSXSAVE.</p></li>
+<li><p>Emulate XSAVE related CPUID.01H and CPUID.0DH to the guest.</p></li>
+<li><p>Emulate XCR0 access through <em>xsetbv_vmexit_handler</em>.</p></li>
+<li><p>Passthrough the access of IA32_XSS MSR to the guest.</p></li>
+<li><p>ACRN hypervisor does NOT use any feature of XSAVE.</p></li>
+<li><p>When ACRN emulates the vCPU with partition mode: based on above rules 5
+and 6, a guest vCPU will fully control the XSAVE feature in
+non-root mode.</p></li>
+</ol>
+</div>
+</div>
+
+
+           </div>
+          </div>
+
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hv-vm-management.html" class="btn btn-neutral float-left" title="VM Management" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hv-memmgt.html" class="btn btn-neutral float-right" title="Memory Management High-Level Design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
+
+<span class="lastupdated">Last updated on Apr 13, 2022. Published on Jun 10, 2022</span>
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+    <!-- Theme Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GTM-K4WWJZD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'GTM-K4WWJZD', {
+          'anonymize_ip': false,
+      });
+    </script> 
+
+</body>
+</html>
