@@ -92,14 +92,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#resources">Resources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#background">Background</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scenario-types">Scenario Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#device-passthrough">Device Passthrough</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#predefined-sample-scenarios">Predefined Sample Scenarios</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#boot-sequence">Boot Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#learn-more">Learn More</a></li>
 </ul>
@@ -249,8 +249,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters and Launch Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#device-model-parameters">Device Model Parameters</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#launch-script">Launch Script</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../misc/packaging/README.html">ACRN Installation via Debian Packages</a></li>
@@ -357,12 +359,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../tutorials/enable_ivshmem.html">Enable Inter-VM Communication Based on Ivshmem</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#enable-ivshmem-support">Enable Ivshmem Support</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/enable_ivshmem.html">Enable Inter-VM Shared Memory Communication (IVSHMEM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#about-inter-vm-shared-memory-communication-ivshmem">About Inter-VM Shared Memory Communication (IVSHMEM)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#learn-more">Learn More</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/inter-vm_communication.html">ACRN Inter-VM Communication</a><ul>
@@ -843,6 +844,111 @@ stopping, and pausing a VM, and pausing or resuming a virtual CPU.</p>
 <p>See the <a class="reference internal" href="../developer-guides/hld/hld-overview.html#hld-overview"><span class="std std-ref">ACRN High-Level Design Overview</span></a> developer reference material for more in-depth
 information.</p>
 </div>
+<div class="section" id="static-configuration-based-on-scenarios">
+<h2>Static Configuration Based on Scenarios<a class="headerlink" href="#static-configuration-based-on-scenarios" title="Permalink to this headline">¶</a></h2>
+<p>Scenarios are a way to describe the system configuration settings of the ACRN
+hypervisor, VMs, and resources they have access to that meet your specific
+application’s needs such as compute, memory, storage, graphics, networking, and
+other devices.  Scenario configurations are stored in an XML format file and
+edited using the ACRN Configurator.</p>
+<p>Following a general embedded-system programming model, the ACRN hypervisor is
+designed to be statically customized at build time per hardware and scenario,
+rather than providing one binary for all scenarios.  Dynamic configuration
+parsing is not used in the ACRN hypervisor for these reasons:</p>
+<ul class="simple">
+<li><p><strong>Reduce complexity</strong>. ACRN is a lightweight reference hypervisor, built for
+embedded IoT and Edge. As new platforms for embedded systems are rapidly introduced,
+support for one binary could require more and more complexity in the
+hypervisor, which is something we strive to avoid.</p></li>
+<li><p><strong>Maintain small footprint</strong>. Implementing dynamic parsing introduces hundreds or
+thousands of lines of code. Avoiding dynamic parsing helps keep the
+hypervisor’s Lines of Code (LOC) in a desirable range (less than 40K).</p></li>
+<li><p><strong>Improve boot time</strong>. Dynamic parsing at runtime increases the boot time. Using a
+static build-time configuration and not dynamic parsing helps improve the boot
+time of the hypervisor.</p></li>
+</ul>
+<p>The scenario XML file together with a target board XML file are used to build
+the ACRN hypervisor image tailored to your hardware and application needs. The ACRN
+project provides the Board Inspector tool to automatically create the board XML
+file by inspecting the target hardware. ACRN also provides the
+<a class="reference internal" href="../tutorials/acrn_configuration_tool.html#acrn-configuration-tool"><span class="std std-ref">ACRN Configurator tool</span></a>
+to create and edit a tailored scenario XML file based on predefined sample
+scenario configurations.</p>
+</div>
+<div class="section" id="scenario-types">
+<span id="usage-scenarios"></span><h2>Scenario Types<a class="headerlink" href="#scenario-types" title="Permalink to this headline">¶</a></h2>
+<p>Here are three sample scenario types and diagrams to illustrate how you
+can define your own configuration scenarios.</p>
+<ul>
+<li><p><strong>Shared</strong> is a traditional
+computing, memory, and device resource sharing
+model among VMs. The ACRN hypervisor launches the Service VM. The Service VM
+then launches any post-launched User VMs and provides device and resource
+sharing mediation through the Device Model.  The Service VM runs the native
+device drivers to access the hardware and provides I/O mediation to the User
+VMs.</p>
+<div class="figure align-center" id="arch-shared-example">
+<img alt="../_images/ACRN-industry-example-1-0.75x.png" src="../_images/ACRN-industry-example-1-0.75x.png" />
+<p class="caption"><span class="caption-number">Figure 2 </span><span class="caption-text">ACRN High-Level Architecture Shared Example</span><a class="headerlink" href="#arch-shared-example" title="Permalink to this image">¶</a></p>
+</div>
+<p>Virtualization is especially important in industrial environments because of
+device and application longevity. Virtualization enables factories to
+modernize their control system hardware by using VMs to run older control
+systems and operating systems far beyond their intended retirement dates.</p>
+<p>The ACRN hypervisor needs to run different workloads with little-to-no
+interference, increase security functions that safeguard the system, run hard
+real-time sensitive workloads together with general computing workloads, and
+conduct data analytics for timely actions and predictive maintenance.</p>
+<p>In this example, one post-launched User VM provides Human Machine Interface
+(HMI) capability, another provides Artificial Intelligence (AI) capability,
+some compute function is run in the Kata Container, and the RTVM runs the soft
+Programmable Logic Controller (PLC) that requires hard real-time
+characteristics.</p>
+<ul class="simple">
+<li><p>The Service VM provides device sharing functionalities, such as disk and
+network mediation, to other virtual machines.  It can also run an
+orchestration agent allowing User VM orchestration with tools such as
+Kubernetes.</p></li>
+<li><p>The HMI Application OS can be Windows or Linux. Windows is dominant in
+Industrial HMI environments.</p></li>
+<li><p>ACRN can support a soft real-time OS such as preempt-rt Linux for soft-PLC
+control, or a hard real-time OS that offers less jitter.</p></li>
+</ul>
+</li>
+<li><p><strong>Partitioned</strong> is a VM resource partitioning model when a User VM requires
+independence and isolation from other VMs.  A partitioned VM’s resources are
+statically configured and are not shared with other VMs.  Partitioned User VMs
+can be Real-Time VMs, Safety VMs, or standard VMs and are launched at boot
+time by the hypervisor. There is no need for the Service VM or Device Model
+since all partitioned VMs run native device drivers and directly access their
+configured resources.</p>
+<div class="figure align-center" id="arch-partitioned-example">
+<img alt="../_images/ACRN-partitioned-example-1-0.75x.png" src="../_images/ACRN-partitioned-example-1-0.75x.png" />
+<p class="caption"><span class="caption-number">Figure 3 </span><span class="caption-text">ACRN High-Level Architecture Partitioned Example</span><a class="headerlink" href="#arch-partitioned-example" title="Permalink to this image">¶</a></p>
+</div>
+<p>This scenario is a simplified configuration showing VM partitioning: both
+User VMs are independent and isolated, they do not share resources, and both
+are automatically launched at boot time by the hypervisor.  The User VMs can
+be Real-Time VMs (RTVMs), Safety VMs, or standard User VMs.</p>
+</li>
+<li><p><strong>Hybrid</strong> scenario simultaneously supports both sharing and partitioning on
+the consolidated system. The pre-launched (partitioned) User VMs, with their
+statically configured and unshared resources, are started by the hypervisor.
+The hypervisor then launches the Service VM. The post-launched (shared) User
+VMs are started by the Device Model in the Service VM and share the remaining
+resources.</p>
+<div class="figure align-center" id="arch-hybrid-rt-example">
+<img alt="../_images/ACRN-hybrid-rt-example-1-0.75x.png" src="../_images/ACRN-hybrid-rt-example-1-0.75x.png" />
+<p class="caption"><span class="caption-number">Figure 4 </span><span class="caption-text">ACRN High-Level Architecture Hybrid-RT Example</span><a class="headerlink" href="#arch-hybrid-rt-example" title="Permalink to this image">¶</a></p>
+</div>
+<p>In this Hybrid real-time (RT) scenario, a pre-launched RTVM is started by the
+hypervisor. The Service VM runs a post-launched User VM that runs non-safety or
+non-real-time tasks.</p>
+</li>
+</ul>
+<p>The <a class="reference internal" href="../tutorials/acrn_configuration_tool.html#acrn-configuration-tool"><span class="std std-ref">Introduction to ACRN Configuration</span></a> tutorial explains how to use the ACRN
+Configurator to create your own scenario, or to view and modify an existing one.</p>
+</div>
 <div class="section" id="acrn-device-model-architecture">
 <h2>ACRN Device Model Architecture<a class="headerlink" href="#acrn-device-model-architecture" title="Permalink to this headline">¶</a></h2>
 <p>Because devices may need to be shared between VMs, device emulation is
@@ -891,7 +997,7 @@ of a device to a given guest operating system so that the device can be
 used exclusively by that User VM.</p>
 <div class="figure align-center" id="id2">
 <img alt="../_images/device-passthrough.png" src="../_images/device-passthrough.png" />
-<p class="caption"><span class="caption-number">Figure 2 </span><span class="caption-text">Device Passthrough</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Figure 5 </span><span class="caption-text">Device Passthrough</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 <p>Near-native performance can be achieved by using device passthrough.  This is
 ideal for networking applications (or those with high disk I/O needs) that have
@@ -935,115 +1041,8 @@ must be compiled to support passthrough by using kernel
 build-time options.</p>
 </div>
 </div>
-<div class="section" id="static-configuration-based-on-scenarios">
-<span id="static-configuration-scenarios"></span><h2>Static Configuration Based on Scenarios<a class="headerlink" href="#static-configuration-based-on-scenarios" title="Permalink to this headline">¶</a></h2>
-<p>Scenarios are a way to describe the system configuration settings of the ACRN
-hypervisor, VMs, and resources they have access to that meet your specific
-application’s needs such as compute, memory, storage, graphics, networking, and
-other devices.  Scenario configurations are stored in an XML format file and
-edited using the ACRN Configurator.</p>
-<p>Following a general embedded-system programming model, the ACRN hypervisor is
-designed to be statically customized at build time per hardware and scenario,
-rather than providing one binary for all scenarios.  Dynamic configuration
-parsing is not used in the ACRN hypervisor for these reasons:</p>
-<ul class="simple">
-<li><p><strong>Reduce complexity</strong>. ACRN is a lightweight reference hypervisor, built for
-embedded IoT and Edge. As new platforms for embedded systems are rapidly introduced,
-support for one binary could require more and more complexity in the
-hypervisor, which is something we strive to avoid.</p></li>
-<li><p><strong>Maintain small footprint</strong>. Implementing dynamic parsing introduces hundreds or
-thousands of lines of code. Avoiding dynamic parsing helps keep the
-hypervisor’s Lines of Code (LOC) in a desirable range (less than 40K).</p></li>
-<li><p><strong>Improve boot time</strong>. Dynamic parsing at runtime increases the boot time. Using a
-static build-time configuration and not dynamic parsing helps improve the boot
-time of the hypervisor.</p></li>
-</ul>
-<p>The scenario XML file together with a target board XML file are used to build
-the ACRN hypervisor image tailored to your hardware and application needs. The ACRN
-project provides the Board Inspector tool to automatically create the board XML
-file by inspecting the target hardware. ACRN also provides the
-<a class="reference internal" href="../tutorials/acrn_configuration_tool.html#acrn-configuration-tool"><span class="std std-ref">ACRN Configurator tool</span></a>
-to create and edit a tailored scenario XML file based on predefined sample
-scenario configurations.</p>
-</div>
-<div class="section" id="predefined-sample-scenarios">
-<span id="usage-scenarios"></span><h2>Predefined Sample Scenarios<a class="headerlink" href="#predefined-sample-scenarios" title="Permalink to this headline">¶</a></h2>
-<p>Project ACRN provides some predefined sample scenarios to illustrate how you
-can define your own configuration scenarios.</p>
-<ul>
-<li><p><strong>Shared</strong> (called <strong>Industry</strong> in previous releases) is a traditional
-computing, memory, and device resource sharing
-model among VMs. The ACRN hypervisor launches the Service VM. The Service VM
-then launches any post-launched User VMs and provides device and resource
-sharing mediation through the Device Model.  The Service VM runs the native
-device drivers to access the hardware and provides I/O mediation to the User
-VMs.</p>
-<div class="figure align-center" id="arch-shared-example">
-<img alt="../_images/ACRN-industry-example-1-0.75x.png" src="../_images/ACRN-industry-example-1-0.75x.png" />
-<p class="caption"><span class="caption-number">Figure 3 </span><span class="caption-text">ACRN High-Level Architecture Shared Example</span><a class="headerlink" href="#arch-shared-example" title="Permalink to this image">¶</a></p>
-</div>
-<p>Virtualization is especially important in industrial environments because of
-device and application longevity. Virtualization enables factories to
-modernize their control system hardware by using VMs to run older control
-systems and operating systems far beyond their intended retirement dates.</p>
-<p>The ACRN hypervisor needs to run different workloads with little-to-no
-interference, increase security functions that safeguard the system, run hard
-real-time sensitive workloads together with general computing workloads, and
-conduct data analytics for timely actions and predictive maintenance.</p>
-<p>In this example, one post-launched User VM provides Human Machine Interface
-(HMI) capability, another provides Artificial Intelligence (AI) capability,
-some compute function is run in the Kata Container, and the RTVM runs the soft
-Programmable Logic Controller (PLC) that requires hard real-time
-characteristics.</p>
-<ul class="simple">
-<li><p>The Service VM provides device sharing functionalities, such as disk and
-network mediation, to other virtual machines.  It can also run an
-orchestration agent allowing User VM orchestration with tools such as
-Kubernetes.</p></li>
-<li><p>The HMI Application OS can be Windows or Linux. Windows is dominant in
-Industrial HMI environments.</p></li>
-<li><p>ACRN can support a soft real-time OS such as preempt-rt Linux for soft-PLC
-control, or a hard real-time OS that offers less jitter.</p></li>
-</ul>
-</li>
-<li><p><strong>Partitioned</strong> is a VM resource partitioning model when a User VM requires
-independence and isolation from other VMs.  A partitioned VM’s resources are
-statically configured and are not shared with other VMs.  Partitioned User VMs
-can be Real-Time VMs, Safety VMs, or standard VMs and are launched at boot
-time by the hypervisor. There is no need for the Service VM or Device Model
-since all partitioned VMs run native device drivers and directly access their
-configured resources.</p>
-<div class="figure align-center" id="arch-partitioned-example">
-<img alt="../_images/ACRN-partitioned-example-1-0.75x.png" src="../_images/ACRN-partitioned-example-1-0.75x.png" />
-<p class="caption"><span class="caption-number">Figure 4 </span><span class="caption-text">ACRN High-Level Architecture Partitioned Example</span><a class="headerlink" href="#arch-partitioned-example" title="Permalink to this image">¶</a></p>
-</div>
-<p>This scenario is a simplified configuration showing VM partitioning: both
-User VMs are independent and isolated, they do not share resources, and both
-are automatically launched at boot time by the hypervisor.  The User VMs can
-be Real-Time VMs (RTVMs), Safety VMs, or standard User VMs.</p>
-</li>
-<li><p><strong>Hybrid</strong> scenario simultaneously supports both sharing and partitioning on
-the consolidated system. The pre-launched (partitioned) User VMs, with their
-statically configured and unshared resources, are started by the hypervisor.
-The hypervisor then launches the Service VM. The post-launched (shared) User
-VMs are started by the Device Model in the Service VM and share the remaining
-resources.</p>
-<div class="figure align-center" id="arch-hybrid-rt-example">
-<img alt="../_images/ACRN-hybrid-rt-example-1-0.75x.png" src="../_images/ACRN-hybrid-rt-example-1-0.75x.png" />
-<p class="caption"><span class="caption-number">Figure 5 </span><span class="caption-text">ACRN High-Level Architecture Hybrid-RT Example</span><a class="headerlink" href="#arch-hybrid-rt-example" title="Permalink to this image">¶</a></p>
-</div>
-<p>In this Hybrid real-time (RT) scenario, a pre-launched RTVM is started by the
-hypervisor. The Service VM runs a post-launched User VM that runs non-safety or
-non-real-time tasks.</p>
-</li>
-</ul>
-<p>You can find the predefined scenario XML files in the
-<a class="reference external" href="https://github.com/projectacrn/acrn-hypervisor/blob/master/misc/config_tools/data">misc/config_tools/data</a> folder in the hypervisor source code. The
-<a class="reference internal" href="../tutorials/acrn_configuration_tool.html#acrn-configuration-tool"><span class="std std-ref">Introduction to ACRN Configuration</span></a> tutorial explains how to use the ACRN
-Configurator to create your own scenario, or to view and modify an existing one.</p>
-</div>
 <div class="section" id="boot-sequence">
-<h2>Boot Sequence<a class="headerlink" href="#boot-sequence" title="Permalink to this headline">¶</a></h2>
+<span id="static-conmbfiguration-scenarios"></span><h2>Boot Sequence<a class="headerlink" href="#boot-sequence" title="Permalink to this headline">¶</a></h2>
 <p>The ACRN hypervisor can be booted from a third-party bootloader
 directly. A popular bootloader is <a class="reference external" href="https://www.gnu.org/software/grub/manual/grub/">grub</a> and is
 also widely used by Linux distributions.</p>
@@ -1116,7 +1115,7 @@ guides and tutorials:</p>
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Apr 18, 2022. Published on Jun 24, 2022</span>
+<span class="lastupdated">Last updated on Jun 27, 2022. Published on Jun 27, 2022</span>
 
   </div>
 

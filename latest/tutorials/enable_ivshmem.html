@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Enable Inter-VM Communication Based on Ivshmem &mdash; Project ACRN™ 3.0-unstable documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <title>Enable Inter-VM Shared Memory Communication (IVSHMEM) &mdash; Project ACRN™ 3.0-unstable documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
       <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
@@ -92,14 +92,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#resources">Resources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#background">Background</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#scenario-types">Scenario Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#device-passthrough">Device Passthrough</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#predefined-sample-scenarios">Predefined Sample Scenarios</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#boot-sequence">Boot Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#learn-more">Learn More</a></li>
 </ul>
@@ -249,8 +249,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters and Launch Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#device-model-parameters">Device Model Parameters</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#launch-script">Launch Script</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../misc/packaging/README.html">ACRN Installation via Debian Packages</a></li>
@@ -357,12 +359,11 @@
 <li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Enable Inter-VM Communication Based on Ivshmem</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#enable-ivshmem-support">Enable Ivshmem Support</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Enable Inter-VM Shared Memory Communication (IVSHMEM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#about-inter-vm-shared-memory-communication-ivshmem">About Inter-VM Shared Memory Communication (IVSHMEM)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#learn-more">Learn More</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="inter-vm_communication.html">ACRN Inter-VM Communication</a><ul>
@@ -627,7 +628,7 @@
   
      <li><a href="../develop.html">Advanced Guides</a> &raquo;</li>
   
-  <li>Enable Inter-VM Communication Based on Ivshmem</li>
+  <li>Enable Inter-VM Shared Memory Communication (IVSHMEM)</li>
 
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/tutorials/enable_ivshmem.rst.txt" rel="nofollow"> View page source</a>
@@ -647,235 +648,75 @@
   
            <div itemprop="articleBody">
              
-  <div class="section" id="enable-inter-vm-communication-based-on-ivshmem">
-<span id="enable-ivshmem"></span><h1>Enable Inter-VM Communication Based on Ivshmem<a class="headerlink" href="#enable-inter-vm-communication-based-on-ivshmem" title="Permalink to this headline">¶</a></h1>
-<p>You can use inter-VM communication based on the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> dm-land
-solution or hv-land solution, according to the usage scenario needs.
-(See <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> for a high-level description of these solutions.)
-While both solutions can be used at the same time, VMs using different
-solutions cannot communicate with each other.</p>
-<div class="section" id="enable-ivshmem-support">
-<h2>Enable Ivshmem Support<a class="headerlink" href="#enable-ivshmem-support" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> solution is disabled by default in ACRN. You can enable
-it using the <a class="reference internal" href="acrn_configurator_tool.html#acrn-configurator-tool"><span class="std std-ref">ACRN Configurator</span></a> with these
-steps:</p>
-<ul>
-<li><p>Enable <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> via ACRN Configurator GUI.</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Set <code class="docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_ENABLED</span></code> to <code class="docutils literal notranslate"><span class="pre">y</span></code></p></li>
-<li><p>Edit <code class="docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_REGION</span></code> to specify the shared
-memory name, size and
-communication VMs. The <code class="docutils literal notranslate"><span class="pre">IVSHMEM_REGION</span></code> format is <code class="docutils literal notranslate"><span class="pre">shm_name,shm_size,VM</span> <span class="pre">IDs</span></code>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">shm_name</span></code> - Specify a shared memory name. The name needs to start
-with the <code class="docutils literal notranslate"><span class="pre">hv:/</span></code> prefix for hv-land, or <code class="docutils literal notranslate"><span class="pre">dm:/</span></code> for dm-land.
-For example, <code class="docutils literal notranslate"><span class="pre">hv:/shm_region_0</span></code> for hv-land and <code class="docutils literal notranslate"><span class="pre">dm:/shm_region_0</span></code>
-for dm-land.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">shm_size</span></code> - Specify a shared memory size. The unit is megabyte. The
-size ranges from 2 megabytes to 512 megabytes and must be a power of 2 megabytes.
-For example, to set up a shared memory of 2 megabytes, use <code class="docutils literal notranslate"><span class="pre">2</span></code>
-instead of <code class="docutils literal notranslate"><span class="pre">shm_size</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">VM</span> <span class="pre">IDs</span></code>   - Specify the VM IDs to use the same shared memory
-communication and separate it with <code class="docutils literal notranslate"><span class="pre">:</span></code>. For example, the
-communication between VM0 and VM2, it can be written as <code class="docutils literal notranslate"><span class="pre">0:2</span></code></p></li>
-</ul>
-</li>
-</ul>
-</div></blockquote>
-</li>
-<li><p>Build with the XML configuration, refer to <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>.</p></li>
-</ul>
-</div>
-<div class="section" id="ivshmem-dm-land-usage">
-<h2>Ivshmem DM-Land Usage<a class="headerlink" href="#ivshmem-dm-land-usage" title="Permalink to this headline">¶</a></h2>
-<p>Follow <a class="reference internal" href="#enable-ivshmem-support">Enable Ivshmem Support</a> and
-add below line as an <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code> boot parameter:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">s</span> <span class="n">slot</span><span class="p">,</span><span class="n">ivshmem</span><span class="p">,</span><span class="n">shm_name</span><span class="p">,</span><span class="n">shm_size</span>
-</pre></div>
-</div>
-<p>where</p>
+  <div class="section" id="enable-inter-vm-shared-memory-communication-ivshmem">
+<span id="enable-ivshmem"></span><h1>Enable Inter-VM Shared Memory Communication (IVSHMEM)<a class="headerlink" href="#enable-inter-vm-shared-memory-communication-ivshmem" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about-inter-vm-shared-memory-communication-ivshmem">
+<h2>About Inter-VM Shared Memory Communication (IVSHMEM)<a class="headerlink" href="#about-inter-vm-shared-memory-communication-ivshmem" title="Permalink to this headline">¶</a></h2>
+<p>Inter-VM shared memory communication allows VMs to communicate with each other
+via a shared memory mechanism.</p>
+<p>As an example, users in the industrial segment can use a shared memory region to
+exchange commands and responses between a Windows VM that is taking inputs from
+operators and a real-time VM that is running real-time tasks.</p>
+<p>The ACRN Device Model or hypervisor emulates a virtual PCI device (called an
+IVSHMEM device) to expose this shared memory’s base address and size.</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">slot</span></code>  - Specify the virtual PCI slot number</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ivshmem</span></code>  - Virtual PCI device emulating the Shared Memory</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">shm_name</span></code> - Specify a shared memory name. This <code class="docutils literal notranslate"><span class="pre">shm_name</span></code> must be listed
-in <code class="docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_REGION</span></code> in <a class="reference internal" href="#enable-ivshmem-support">Enable Ivshmem Support</a> section and needs to start
-with <code class="docutils literal notranslate"><span class="pre">dm:/</span></code> prefix.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">shm_size</span></code> - Shared memory size of selected <code class="docutils literal notranslate"><span class="pre">shm_name</span></code>.</p></li>
+<li><p>Device Model: The IVSHMEM device is emulated in the ACRN Device Model, and the
+shared memory regions are reserved in the Service VM’s memory space. This
+solution only supports communication between post-launched User VMs.</p></li>
+<li><p>Hypervisor: The IVSHMEM device is emulated in the hypervisor, and the shared
+memory regions are reserved in the hypervisor’s memory space. This solution
+works for both pre-launched and post-launched User VMs.</p></li>
 </ul>
-<p>There are two ways to insert the above boot parameter for <code class="docutils literal notranslate"><span class="pre">acrn-dm</span></code>:</p>
-<ul>
-<li><p>Manually edit the launch script file. In this case, ensure that both
-<code class="docutils literal notranslate"><span class="pre">shm_name</span></code> and <code class="docutils literal notranslate"><span class="pre">shm_size</span></code> match those defined via the ACRN Configurator
-tool.</p></li>
-<li><p>Use the following command to create a launch script, when IVSHMEM is enabled
-and <code class="docutils literal notranslate"><span class="pre">hv.FEATURES.IVSHMEM.IVSHMEM_REGION</span></code> is properly configured via
-the ACRN Configurator.</p>
-<blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>python3 misc/config_tools/launch_config/launch_cfg_gen.py \
---board &lt;path_to_your_board_xml&gt; \
---scenario &lt;path_to_your_scenario_xml&gt; \
---launch &lt;path_to_your_launch_script_xml&gt;  \
-<span class="hll">--user_vmid &lt;desired_single_vmid_or_0_for_all_vmids&gt;
-</span></pre></div>
+<p>While both solutions can be used in the same ACRN configuration, VMs using
+different solutions cannot communicate with each other.</p>
 </div>
-</div></blockquote>
-</li>
-</ul>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This device can be used with real-time VM (RTVM) as well.</p>
-</div>
-</div>
-<div class="section" id="ivshmem-hv-land-usage">
-<span id="ivshmem-hv"></span><h2>Ivshmem HV-Land Usage<a class="headerlink" href="#ivshmem-hv-land-usage" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>Follow <a class="reference internal" href="#enable-ivshmem-support">Enable Ivshmem Support</a> to setup HV-Land Ivshmem support.</p>
-</div></blockquote>
-</div>
-<div class="section" id="ivshmem-notification-mechanism">
-<h2>Ivshmem Notification Mechanism<a class="headerlink" href="#ivshmem-notification-mechanism" title="Permalink to this headline">¶</a></h2>
-<p>Notification (doorbell) of ivshmem device allows VMs with ivshmem
-devices enabled to notify (interrupt) each other following this flow:</p>
-<dl class="simple">
-<dt>Notification Sender (VM):</dt><dd><p>VM triggers the notification to target VM by writing target Peer ID
-(Equals to VM ID of target VM) and vector index to doorbell register of
-ivshmem device, the layout of doorbell register is described in
-<a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a>.</p>
-</dd>
-<dt>Hypervisor:</dt><dd><p>When doorbell register is programmed, hypervisor will search the
-target VM by target Peer ID and inject MSI interrupt to the target VM.</p>
-</dd>
-<dt>Notification Receiver (VM):</dt><dd><p>VM receives MSI interrupt and forwards it to related application.</p>
-</dd>
-</dl>
-<p>ACRN supports up to 8 (MSI-X) interrupt vectors for ivshmem device.
-Guest VMs shall implement their own mechanism to forward MSI interrupts
-to applications.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Notification is supported only for HV-land ivshmem devices. (Future
-support may include notification for DM-land ivshmem devices.)</p>
-</div>
-</div>
-<div class="section" id="inter-vm-communication-examples">
-<h2>Inter-VM Communication Examples<a class="headerlink" href="#inter-vm-communication-examples" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="dm-land-example">
-<h3>DM-Land Example<a class="headerlink" href="#dm-land-example" title="Permalink to this headline">¶</a></h3>
-<p>This example uses dm-land inter-VM communication between two
-Linux-based post-launched VMs (VM1 and VM2).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>An <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> Windows driver exists and can be found
-<a class="reference external" href="https://github.com/virtio-win/kvm-guest-drivers-windows/tree/master/ivshmem">here</a>.</p>
-</div>
-<ol class="arabic">
-<li><p>Add a new virtual PCI device for both VMs: the device type is
-<code class="docutils literal notranslate"><span class="pre">ivshmem</span></code>, shared memory name is <code class="docutils literal notranslate"><span class="pre">dm:/test</span></code>, and shared memory
-size is 2MB. Both VMs must have the same shared memory name and size:</p>
-<ul>
-<li><p>VM1 Launch Script Sample</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -m $mem_size -s 0:0,hostbridge \
- -s 5,virtio-console,@stdio:stdio_port \
- -s 6,virtio-hyper_dmabuf \
- -s 3,virtio-blk,/home/acrn/UserVM1.img \
- -s 4,virtio-net,tap=tap0 \
-<span class="hll"> -s 6,ivshmem,dm:/test,2 \
-</span> -s 7,virtio-rnd \
- --ovmf /usr/share/acrn/bios/OVMF.fd \
- $vm_name
-</pre></div>
-</div>
-</li>
-<li><p>VM2 Launch Script Sample</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -m $mem_size -s 0:0,hostbridge \
- -s 3,virtio-blk,/home/acrn/UserVM2.img \
- -s 4,virtio-net,tap=tap0 \
-<span class="hll"> -s 5,ivshmem,dm:/test,2 \
-</span> --ovmf /usr/share/acrn/bios/OVMF.fd \
- $vm_name
-</pre></div>
-</div>
-</li>
-</ul>
-</li>
-<li><p>Boot two VMs and use <code class="docutils literal notranslate"><span class="pre">lspci</span> <span class="pre">|</span> <span class="pre">grep</span> <span class="pre">&quot;shared</span> <span class="pre">memory&quot;</span></code> to verify that the virtual device is ready for each VM.</p>
+<div class="section" id="dependencies-and-constraints">
+<h2>Dependencies and Constraints<a class="headerlink" href="#dependencies-and-constraints" title="Permalink to this headline">¶</a></h2>
+<p>Consider the following dependencies and constraints:</p>
 <ul class="simple">
-<li><p>For VM1, it shows <code class="docutils literal notranslate"><span class="pre">00:06.0</span> <span class="pre">RAM</span> <span class="pre">memory:</span> <span class="pre">Red</span> <span class="pre">Hat,</span> <span class="pre">Inc.</span> <span class="pre">Inter-VM</span> <span class="pre">shared</span> <span class="pre">memory</span> <span class="pre">(rev</span> <span class="pre">01)</span></code></p></li>
-<li><p>For VM2, it shows <code class="docutils literal notranslate"><span class="pre">00:05.0</span> <span class="pre">RAM</span> <span class="pre">memory:</span> <span class="pre">Red</span> <span class="pre">Hat,</span> <span class="pre">Inc.</span> <span class="pre">Inter-VM</span> <span class="pre">shared</span> <span class="pre">memory</span> <span class="pre">(rev</span> <span class="pre">01)</span></code></p></li>
-</ul>
-</li>
-<li><p>As recorded in the <a class="reference external" href="https://pci-ids.ucw.cz/read/PC/1af4">PCI ID Repository</a>,
-the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device vendor ID is <code class="docutils literal notranslate"><span class="pre">1af4</span></code> (Red Hat) and device ID is <code class="docutils literal notranslate"><span class="pre">1110</span></code>
-(Inter-VM shared memory).  Use these commands to probe the device:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">modprobe</span> <span class="n">uio</span>
-<span class="n">sudo</span> <span class="n">modprobe</span> <span class="n">uio_pci_generic</span>
-<span class="n">sudo</span> <span class="n">echo</span> <span class="s2">&quot;1af4 1110&quot;</span> <span class="o">&gt;</span> <span class="o">/</span><span class="n">sys</span><span class="o">/</span><span class="n">bus</span><span class="o">/</span><span class="n">pci</span><span class="o">/</span><span class="n">drivers</span><span class="o">/</span><span class="n">uio_pci_generic</span><span class="o">/</span><span class="n">new_id</span>
-</pre></div>
-</div>
-</li>
-</ol>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>These commands are applicable to Linux-based guests with <code class="docutils literal notranslate"><span class="pre">CONFIG_UIO</span></code> and <code class="docutils literal notranslate"><span class="pre">CONFIG_UIO_PCI_GENERIC</span></code> enabled.</p>
-</div>
-<ol class="arabic" start="4">
-<li><p>Finally, a user application can get the shared memory base address from
-the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device BAR resource
-(<code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/resource2</span></code>) and the shared memory size from
-the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device config resource
-(<code class="docutils literal notranslate"><span class="pre">/sys/class/uio/uioX/device/config</span></code>).</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">X</span></code> in <code class="docutils literal notranslate"><span class="pre">uioX</span></code> above, is a number that can be retrieved using the
-<code class="docutils literal notranslate"><span class="pre">ls</span></code> command:</p>
-<ul class="simple">
-<li><p>For VM1 use <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">-lh</span> <span class="pre">/sys/bus/pci/devices/0000:00:06.0/uio</span></code></p></li>
-<li><p>For VM2 use <code class="docutils literal notranslate"><span class="pre">ls</span> <span class="pre">-lh</span> <span class="pre">/sys/bus/pci/devices/0000:00:05.0/uio</span></code></p></li>
-</ul>
-</li>
-</ol>
-</div>
-<div class="section" id="hv-land-example">
-<h3>HV-Land Example<a class="headerlink" href="#hv-land-example" title="Permalink to this headline">¶</a></h3>
-<p>This example uses hv-land inter-VM communication between two
-Linux-based VMs (VM0 is a pre-launched VM and VM2 is a post-launched VM).</p>
-<ol class="arabic">
-<li><p>Make a copy of the predefined hybrid_rt scenario on whl-ipc-i5 (available at
-<code class="docutils literal notranslate"><span class="pre">acrn-hypervisor/misc/config_tools/data/whl-ipc-i5/hybrid_rt.xml</span></code>) and
-configure shared memory for the communication between VM0 and VM2. The shared
-memory name is <code class="docutils literal notranslate"><span class="pre">hv:/shm_region_0</span></code>, and shared memory size is 2M bytes. The
-resulting scenario XML should look like this:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;IVSHMEM&gt;
-<span class="hll">       &lt;IVSHMEM_ENABLED&gt;y&lt;/IVSHMEM_ENABLED&gt;
-</span><span class="hll">       &lt;IVSHMEM_REGION&gt;hv:/shm_region_0, 2, 0:2&lt;/IVSHMEM_REGION&gt;
-</span>&lt;/IVSHMEM&gt;
-</pre></div>
-</div>
-</li>
-<li><p>Build ACRN based on the XML configuration for hybrid_rt scenario on whl-ipc-i5 board:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">BOARD</span><span class="o">=</span><span class="n">whl</span><span class="o">-</span><span class="n">ipc</span><span class="o">-</span><span class="n">i5</span> <span class="n">SCENARIO</span><span class="o">=&lt;</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">edited</span><span class="o">/</span><span class="n">scenario</span><span class="o">.</span><span class="n">xml</span><span class="o">&gt;</span>
-</pre></div>
-</div>
-</li>
-<li><p>Add a new virtual PCI device for VM2 (post-launched VM): the device type is
-<code class="docutils literal notranslate"><span class="pre">ivshmem</span></code>, shared memory name is <code class="docutils literal notranslate"><span class="pre">hv:/shm_region_0</span></code>, and shared memory
-size is 2MB.</p>
+<li><p>Inter-VM shared memory communication is a hardware-neutral feature.</p></li>
+<li><p>Guest OSes are required to have either of the following:</p>
 <ul>
-<li><p>VM2 Launch Script Sample</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>acrn-dm -m $mem_size -s 0:0,hostbridge \
- -s 3,virtio-blk,/home/acrn/UserVM2.img \
- -s 4,virtio-net,tap=tap0 \
-<span class="hll"> -s 5,ivshmem,hv:/shm_region_0,2 \
-</span> --ovmf /usr/share/acrn/bios/OVMF.fd \
- $vm_name
-</pre></div>
-</div>
-</li>
+<li><p>An IVSHMEM driver, such as <a class="reference external" href="https://github.com/virtio-win/kvm-guest-drivers-windows">virtio-WIN</a> for Windows and
+<a class="reference external" href="https://docs.zephyrproject.org/apidoc/latest/group__ivshmem.html">ivshmem APIs</a> in
+Zephyr</p></li>
+<li><p>A mechanism granting user-space applications access to a PCI device, such as
+the <a class="reference external" href="https://www.kernel.org/doc/html/latest/driver-api/uio-howto.html">Userspace I/O (UIO) driver</a> in
+Linux</p></li>
 </ul>
 </li>
-<li><p>Continue following the dm-land steps 2-4 and the <code class="docutils literal notranslate"><span class="pre">ivshmem</span></code> device BDF may be different
-depending on the configuration.</p></li>
-</ol>
+</ul>
 </div>
+<div class="section" id="configuration-overview">
+<h2>Configuration Overview<a class="headerlink" href="#configuration-overview" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="acrn_configurator_tool.html#acrn-configurator-tool"><span class="std std-ref">ACRN Configurator Tool</span></a> lets you configure inter-VM shared memory
+communication among VMs. The following documentation is a general overview of
+the configuration process.</p>
+<p>To configure inter-VM shared memory communication among VMs, go to the
+<strong>Hypervisor Global Settings &gt; Basic Parameters &gt; InterVM shared memory</strong>. Click
+<strong>+</strong> to add the first shared memory region.</p>
+<img alt="../_images/configurator-ivshmem01.png" class="drop-shadow align-center" src="../_images/configurator-ivshmem01.png" />
+<p>For the shared memory region:</p>
+<ol class="arabic simple">
+<li><p>Enter a name for the shared memory region.</p></li>
+<li><p>Select the source of the emulation, either Hypervisor or Device Model.</p></li>
+<li><p>Select the size of the shared memory region.</p></li>
+<li><p>Select at least two VMs that can use the shared memory region.</p></li>
+<li><p>Enter a virtual Board:Device.Function (BDF) address for each VM or leave it
+blank. If the field is blank, the tool provides an address when the
+configuration is saved.</p></li>
+<li><p>Add more VMs to the shared memory region by clicking <strong>+</strong> on the right
+side of an existing VM. Or click <strong>-</strong> to delete a VM.</p></li>
+</ol>
+<p>To add another shared memory region, click <strong>+</strong> on the right side of an
+existing region. Or click <strong>-</strong> to delete a region.</p>
+<img alt="../_images/configurator-ivshmem02.png" class="drop-shadow align-center" src="../_images/configurator-ivshmem02.png" />
+</div>
+<div class="section" id="learn-more">
+<h2>Learn More<a class="headerlink" href="#learn-more" title="Permalink to this headline">¶</a></h2>
+<p>ACRN supports multiple inter-VM communication methods. For a comparison, see
+<a class="reference internal" href="inter-vm_communication.html#inter-vm-communication"><span class="std std-ref">ACRN Inter-VM Communication</span></a>.</p>
+<p>For details on ACRN IVSHMEM high-level design, see <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a>.</p>
 </div>
 </div>
 
@@ -893,7 +734,7 @@ depending on the configuration.</p></li>
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Mar 20, 2022. Published on Jun 24, 2022</span>
+<span class="lastupdated">Last updated on Jun 27, 2022. Published on Jun 27, 2022</span>
 
   </div>
 

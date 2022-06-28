@@ -23,7 +23,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Enable Serial Port on NUC" href="using_serial_port.html" />
-    <link rel="prev" title="Enable Inter-VM Communication Based on Ivshmem" href="enable_ivshmem.html" /> 
+    <link rel="prev" title="Enable Inter-VM Shared Memory Communication (IVSHMEM)" href="enable_ivshmem.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -92,14 +92,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#resources">Resources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#background">Background</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#scenario-types">Scenario Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#device-passthrough">Device Passthrough</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#predefined-sample-scenarios">Predefined Sample Scenarios</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#boot-sequence">Boot Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#learn-more">Learn More</a></li>
 </ul>
@@ -249,8 +249,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters and Launch Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#device-model-parameters">Device Model Parameters</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#launch-script">Launch Script</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../misc/packaging/README.html">ACRN Installation via Debian Packages</a></li>
@@ -357,12 +359,11 @@
 <li class="toctree-l4"><a class="reference internal" href="acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="enable_ivshmem.html">Enable Inter-VM Communication Based on Ivshmem</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#enable-ivshmem-support">Enable Ivshmem Support</a></li>
-<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
-<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="enable_ivshmem.html">Enable Inter-VM Shared Memory Communication (IVSHMEM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#about-inter-vm-shared-memory-communication-ivshmem">About Inter-VM Shared Memory Communication (IVSHMEM)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="enable_ivshmem.html#learn-more">Learn More</a></li>
 </ul>
 </li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">ACRN Inter-VM Communication</a><ul>
@@ -719,7 +720,7 @@ by using Socket-based APIs).</p></li>
 <p>Inter-VM shared memory communication is based on a shared memory mechanism
 to transfer data between VMs. The ACRN Device Model or hypervisor emulates
 a virtual PCI device (called an <code class="docutils literal notranslate"><span class="pre">ivshmem</span> <span class="pre">device</span></code>) to expose this shared memory’s
-base address and size. (Refer to <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> and <a class="reference internal" href="enable_ivshmem.html#enable-ivshmem"><span class="std std-ref">Enable Inter-VM Communication Based on Ivshmem</span></a> for the
+base address and size. (Refer to <a class="reference internal" href="../developer-guides/hld/ivshmem-hld.html#ivshmem-hld"><span class="std std-ref">ACRN Shared Memory Based Inter-VM Communication</span></a> and <a class="reference internal" href="enable_ivshmem.html#enable-ivshmem"><span class="std std-ref">Enable Inter-VM Shared Memory Communication (IVSHMEM)</span></a> for the
 background introductions).</p>
 <p><a class="reference internal" href="#inter-vm-shared-memory-communication"><span class="std std-numref">Figure 24</span></a> shows the Inter-VM shared memory communication overview:</p>
 <div class="figure align-center" id="inter-vm-shared-memory-communication">
@@ -750,7 +751,7 @@ integrity.</p></li>
 </ul>
 </div>
 <div class="section" id="how-to-implement-an-ivshmem-application-on-acrn">
-<h2>How to implement an Ivshmem application on ACRN<a class="headerlink" href="#how-to-implement-an-ivshmem-application-on-acrn" title="Permalink to this headline">¶</a></h2>
+<span id="inter-vm-communication-ivshmem-app"></span><h2>How to implement an Ivshmem application on ACRN<a class="headerlink" href="#how-to-implement-an-ivshmem-application-on-acrn" title="Permalink to this headline">¶</a></h2>
 <p>As Ivshmem is a PCI device that shares memory inside a virtual machine, the application
 running on the VM can access it as a standard PCI device. The application needs to design
 a data transfer notification mechanism between the VMs.</p>
@@ -1141,7 +1142,7 @@ round of data transfer.</p></li>
           </div>
 
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="enable_ivshmem.html" class="btn btn-neutral float-left" title="Enable Inter-VM Communication Based on Ivshmem" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="enable_ivshmem.html" class="btn btn-neutral float-left" title="Enable Inter-VM Shared Memory Communication (IVSHMEM)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="using_serial_port.html" class="btn btn-neutral float-right" title="Enable Serial Port on NUC" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
@@ -1150,7 +1151,7 @@ round of data transfer.</p></li>
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Mar 18, 2022. Published on Jun 24, 2022</span>
+<span class="lastupdated">Last updated on Jun 27, 2022. Published on Jun 27, 2022</span>
 
   </div>
 

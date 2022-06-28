@@ -92,14 +92,14 @@
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#resources">Resources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#background">Background</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#scenario-types">Scenario Types</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#device-passthrough">Device Passthrough</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#predefined-sample-scenarios">Predefined Sample Scenarios</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#boot-sequence">Boot Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction/index.html#learn-more">Learn More</a></li>
 </ul>
@@ -249,8 +249,10 @@
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html">Device Model Parameters and Launch Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#device-model-parameters">Device Model Parameters</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../user-guides/acrn-dm-parameters.html#launch-script">Launch Script</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../misc/packaging/README.html">ACRN Installation via Debian Packages</a></li>
@@ -357,12 +359,11 @@
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../tutorials/enable_ivshmem.html">Enable Inter-VM Communication Based on Ivshmem</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#enable-ivshmem-support">Enable Ivshmem Support</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem-dm-land-usage">Ivshmem DM-Land Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem-hv-land-usage">Ivshmem HV-Land Usage</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#ivshmem-notification-mechanism">Ivshmem Notification Mechanism</a></li>
-<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#inter-vm-communication-examples">Inter-VM Communication Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/enable_ivshmem.html">Enable Inter-VM Shared Memory Communication (IVSHMEM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#about-inter-vm-shared-memory-communication-ivshmem">About Inter-VM Shared Memory Communication (IVSHMEM)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/enable_ivshmem.html#learn-more">Learn More</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/inter-vm_communication.html">ACRN Inter-VM Communication</a><ul>
@@ -786,7 +787,7 @@ with minimal history, as shown here.)</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
 git clone https://github.com/projectacrn/acrn-hypervisor.git
 <span class="nb">cd</span> acrn-hypervisor
-git checkout release_3.0
+git checkout v3.0
 
 <span class="nb">cd</span> ..
 git clone --depth <span class="m">1</span> --branch release_3.0 https://github.com/projectacrn/acrn-kernel.git
@@ -986,7 +987,7 @@ their attributes, and the resources they have access to.</p>
 post-launched User VM. Each User VM has its own launch script.</p>
 <ol class="arabic">
 <li><p>On the development computer, install the ACRN Configurator:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install -y ~/acrn-work/acrn-hypervisor/build/acrn-configurator_*_amd64.deb <span class="c1"># TODO update file path</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install -y ~/acrn-work/acrn-hypervisor/build/acrn-configurator_*_amd64.deb
 </pre></div>
 </div>
 </li>
@@ -1051,6 +1052,9 @@ this example, we will use Ubuntu 20.04 to boot the post-launched VM.
 Ubuntu 20.04 needs at least 1024 MB to boot.</p></li>
 <li><p>For <strong>Physical CPU affinity</strong>, select pCPU ID <code class="docutils literal notranslate"><span class="pre">0</span></code>, then click <strong>+</strong> and
 select pCPU ID <code class="docutils literal notranslate"><span class="pre">1</span></code> to affine the VM to CPU cores 0 and 1.</p></li>
+<li><p>For <strong>Virtio console device</strong>, click <strong>+</strong> to add a device and keep the
+default options. This parameter specifies the console that you will use to
+log in to the User VM later in this guide.</p></li>
 <li><p>For <strong>Virtio block device</strong>, click <strong>+</strong> and enter
 <code class="docutils literal notranslate"><span class="pre">~/acrn-work/ubuntu-20.04.4-desktop-amd64.iso</span></code>. This parameter
 specifies the VM’s OS image and its location on the target system. Later
@@ -1088,11 +1092,12 @@ make clean <span class="o">&amp;&amp;</span> make <span class="nv">BOARD</span><
 Debian package in the <code class="docutils literal notranslate"><span class="pre">./build</span></code> directory:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ./build
 ls *.deb
-   acrn-my_board-shared-2.7.deb <span class="c1"># TODO update file name</span>
+   acrn-my_board-MyConfiguration-3.0-acrn-*.deb
 </pre></div>
 </div>
 <p>The Debian package contains the ACRN hypervisor and tools to ease installing
-ACRN on the target.</p>
+ACRN on the target. The Debian file name contains the board name (<code class="docutils literal notranslate"><span class="pre">my_board</span></code>)
+and the working folder name (<code class="docutils literal notranslate"><span class="pre">MyConfiguration</span></code>).</p>
 </li>
 <li><p>Build the ACRN kernel for the Service VM:</p>
 <ol class="loweralpha">
@@ -1118,10 +1123,10 @@ computer. When done, the build generates four Debian packages in the
 directory above the build root directory:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ..
 ls *.deb
-   linux-headers-5.10.78-acrn-service-vm_5.10.78-acrn-service-vm-1_amd64.deb
-   linux-image-5.10.78-acrn-service-vm_5.10.78-acrn-service-vm-1_amd64.deb
-   linux-image-5.10.78-acrn-service-vm-dbg_5.10.78-acrn-service-vm-1_amd64.deb
-   linux-libc-dev_5.10.78-acrn-service-vm-1_amd64.deb
+   linux-headers-5.10.115-acrn-service-vm_5.10.115-acrn-service-vm-1_amd64.deb
+   linux-image-5.10.115-acrn-service-vm_5.10.115-acrn-service-vm-1_amd64.deb
+   linux-image-5.10.115-acrn-service-vm-dbg_5.10.115-acrn-service-vm-1_amd64.deb
+   linux-libc-dev_5.10.115-acrn-service-vm-1_amd64.deb
 </pre></div>
 </div>
 </li>
@@ -1130,9 +1135,9 @@ target system by USB disk as follows:</p>
 <ol class="loweralpha">
 <li><p>Insert the USB disk into the development computer and run these commands:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls /media/<span class="nv">$USER</span><span class="k">)</span>
-cp ~/acrn-work/acrn-hypervisor/build/acrn-my_board-shared-2.7.deb <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/ <span class="c1"># TODO update file name</span>
+cp ~/acrn-work/acrn-hypervisor/build/acrn-my_board-MyConfiguration-3.0-acrn-*.deb <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
 cp ~/acrn-work/*acrn-service-vm*.deb <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
-cp ~/acrn-work/my_board/output/launch_user_vm_id3.sh <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
+cp ~/acrn-work/my_board/output/launch_user_vm_id1.sh <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
 cp ~/acrn-work/acpica-unix-20210105/generate/unix/bin/iasl <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
 sync <span class="o">&amp;&amp;</span> sudo umount <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>
 </pre></div>
@@ -1143,9 +1148,9 @@ going to launch one of them, so we’ll only need the one launch script.</p>
 <li><p>Insert the USB disk you just used into the target system and run these
 commands to copy the files locally:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls /media/<span class="nv">$USER</span><span class="k">)</span>
-cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/acrn-my_board-shared-2.7.deb ~/acrn-work <span class="c1"># TODO update file name</span>
+cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/acrn-my_board-MyConfiguration-3.0-acrn-*.deb ~/acrn-work
 cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/*acrn-service-vm*.deb ~/acrn-work
-cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/launch_user_vm_id3.sh ~/acrn-work
+cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/launch_user_vm_id1.sh ~/acrn-work
 sudo cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/iasl /usr/sbin/
 sync <span class="o">&amp;&amp;</span> sudo umount <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>
 </pre></div>
@@ -1161,7 +1166,7 @@ sync <span class="o">&amp;&amp;</span> sudo umount <span class="s2">&quot;</span
 <li><p>Install the ACRN Debian package and ACRN kernel Debian packages using these
 commands:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
-sudo apt install ./acrn-my_board-shared-2.7.deb <span class="c1"># TODO update file name</span>
+sudo apt install ./acrn-my_board-MyConfiguration-3.0-acrn-*.deb
 sudo apt install ./*acrn-service-vm*.deb
 </pre></div>
 </div>
@@ -1220,8 +1225,8 @@ get the Ubuntu Desktop 20.04 LTS ISO image
 specified earlier in the ACRN Configurator UI.)</p></li>
 <li><p>Put the ISO file in the path <code class="docutils literal notranslate"><span class="pre">~/acrn-work/</span></code> on the target system.</p></li>
 <li><p>Launch the User VM:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo chmod +x ~/acrn-work/launch_user_vm_id3.sh <span class="c1"># TODO update file name</span>
-sudo ~/acrn-work/launch_user_vm_id3.sh <span class="c1"># TODO update file name</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo chmod +x ~/acrn-work/launch_user_vm_id1.sh
+sudo ~/acrn-work/launch_user_vm_id1.sh
 </pre></div>
 </div>
 </li>
@@ -1237,7 +1242,7 @@ will appear as follows:</p>
 <li><p>Log in to the User VM. For the Ubuntu 20.04 ISO, the user is <code class="docutils literal notranslate"><span class="pre">ubuntu</span></code>, and
 there’s no password.</p></li>
 <li><p>Confirm that you see output similar to this example:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Welcome to Ubuntu 20.04.4 LTS (GNU/Linux 5.11.0-27-generic x86_64)</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Welcome to Ubuntu 20.04.4 LTS (GNU/Linux 5.13.0-30-generic x86_64)</span>
 
 <span class="go">* Documentation:  https://help.ubuntu.com</span>
 <span class="go">* Management:     https://landscape.canonical.com</span>
@@ -1265,13 +1270,13 @@ there’s no password.</p></li>
 <li><p>This User VM and the Service VM are running different Ubuntu images. Use this
 command to see that the User VM is running the downloaded Ubuntu ISO image:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">ubuntu@ubuntu:~$ </span>uname -r
-<span class="go">5.11.0-27-generic</span>
+<span class="go">5.13.0-30-generic</span>
 </pre></div>
 </div>
 <p>Then open a new terminal window and use the command to see that the Service
 VM is running the <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code> Service VM image:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">acrn@vecow:~$ </span>uname -r
-<span class="go">5.10.78-acrn-service-vm</span>
+<span class="go">5.10.115-acrn-service-vm</span>
 </pre></div>
 </div>
 <p>The User VM has launched successfully. You have completed this ACRN setup.</p>
@@ -1305,7 +1310,7 @@ additional details.</p>
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Jun 17, 2022. Published on Jun 24, 2022</span>
+<span class="lastupdated">Last updated on Jun 27, 2022. Published on Jun 27, 2022</span>
 
   </div>
 
