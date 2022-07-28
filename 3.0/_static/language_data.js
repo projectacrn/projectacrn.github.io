@@ -202,7 +202,7 @@ var Stemmer = function() {
  * Simple search result scoring code.
  *
  * Copyright 2007-2018 by the Sphinx team
- * Copyright (c) 2019, Intel
+ * Copyright (c) 2019-2022, Intel Corporation.
  * SPDX-License-Identifier: Apache-2.0
  */
 
