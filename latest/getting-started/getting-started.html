@@ -714,8 +714,10 @@ for creating the USB disk.</p></li>
 <li><p>Ethernet cable and Internet access</p></li>
 <li><p>A second USB disk with minimum 1GB capacity to copy files between the
 development computer and target system (this guide offers steps for
-copying via USB disk, but you can use another method if you prefer)</p></li>
-<li><p>Local storage device (NVMe or SATA drive, for example)</p></li>
+copying via USB disk, but you can use another method, such as using <code class="docutils literal notranslate"><span class="pre">scp</span></code>
+to copy files over the local network, if you prefer)</p></li>
+<li><p>Local storage device (NVMe or SATA drive, for example).  We recommend having
+40GB or more of free space.</p></li>
 </ul>
 </li>
 </ul>
@@ -725,8 +727,9 @@ copying via USB disk, but you can use another method if you prefer)</p></li>
 configure a proxy for accessing the internet, if you haven’t done so already.
 While some tools use the environment variables <code class="docutils literal notranslate"><span class="pre">http_proxy</span></code> and <code class="docutils literal notranslate"><span class="pre">https_proxy</span></code> to
 get their proxy settings, some use their own configuration files, most
-notably <code class="docutils literal notranslate"><span class="pre">apt</span></code> and <code class="docutils literal notranslate"><span class="pre">git</span></code>.  If a proxy is needed and not configured, you
-may see errors such as, “unable to access …” or “couldn’t resolve host …”.</p>
+notably <code class="docutils literal notranslate"><span class="pre">apt</span></code> and <code class="docutils literal notranslate"><span class="pre">git</span></code>.  If a proxy is needed and it’s not configured,
+commands that access the internet may time out and you may see errors such
+as, “unable to access …” or “couldn’t resolve host …”.</p>
 </div>
 </div>
 <div class="numbered-step section" id="prepare-the-development-computer">
@@ -741,8 +744,8 @@ Desktop 20.04 is running:</p>
 <p>If you have an older version, see <a class="reference external" href="https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview">Ubuntu documentation</a> to
 install a new OS on the development computer.</p>
 </li>
-<li><p>Download the information database about all available package updates for
-your Ubuntu release. We’ll need it to get the latest tools and libraries used
+<li><p>Download the apt information database about all available package updates for
+your Ubuntu release. We’ll need it to get the tools and libraries used
 for ACRN builds:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt update
 </pre></div>
@@ -755,39 +758,27 @@ issues:</p>
 </pre></div>
 </div>
 </li>
+<li><p>Get the ACRN hypervisor and ACRN kernel source code, and check out the
+current release branch.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
+git clone https://github.com/projectacrn/acrn-hypervisor.git
+<span class="nb">cd</span> acrn-hypervisor
+git checkout v3.0
+
+<span class="nb">cd</span> ..
+git clone https://github.com/projectacrn/acrn-kernel.git
+<span class="nb">cd</span> acrn-kernel
+git checkout acrn-v3.0
+</pre></div>
+</div>
+</li>
 <li><p>Install the necessary ACRN build tools:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install -y gcc <span class="se">\</span>
-     git <span class="se">\</span>
-     make <span class="se">\</span>
-     vim <span class="se">\</span>
-     libssl-dev <span class="se">\</span>
-     libpciaccess-dev <span class="se">\</span>
-     uuid-dev <span class="se">\</span>
-     libsystemd-dev <span class="se">\</span>
-     libevent-dev <span class="se">\</span>
-     libxml2-dev <span class="se">\</span>
-     libxml2-utils <span class="se">\</span>
-     libusb-1.0-0-dev <span class="se">\</span>
-     python3 <span class="se">\</span>
-     python3-pip <span class="se">\</span>
-     python3.8-venv <span class="se">\</span>
-     libblkid-dev <span class="se">\</span>
-     e2fslibs-dev <span class="se">\</span>
-     pkg-config <span class="se">\</span>
-     libnuma-dev <span class="se">\</span>
-     libcjson-dev <span class="se">\</span>
-     liblz4-tool <span class="se">\</span>
-     flex <span class="se">\</span>
-     bison <span class="se">\</span>
-     xsltproc <span class="se">\</span>
-     clang-format <span class="se">\</span>
-     bc <span class="se">\</span>
-     libpixman-1-dev <span class="se">\</span>
-     libsdl2-dev <span class="se">\</span>
-     libegl-dev <span class="se">\</span>
-     libgles-dev <span class="se">\</span>
-     libdrm-dev <span class="se">\</span>
-     gnu-efi
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install -y gcc git make vim libssl-dev libpciaccess-dev uuid-dev <span class="se">\</span>
+     libsystemd-dev libevent-dev libxml2-dev libxml2-utils libusb-1.0-0-dev <span class="se">\</span>
+     python3 python3-pip python3.8-venv libblkid-dev e2fslibs-dev <span class="se">\</span>
+     pkg-config libnuma-dev libcjson-dev liblz4-tool flex bison <span class="se">\</span>
+     xsltproc clang-format bc libpixman-1-dev libsdl2-dev libegl-dev <span class="se">\</span>
+     libgles-dev libdrm-dev gnu-efi
 </pre></div>
 </div>
 </li>
@@ -801,7 +792,7 @@ issues:</p>
 </pre></div>
 </div>
 </li>
-<li><p>Install the iASL compiler/disassembler used for advanced power management,
+<li><p>Build and install the iASL compiler/disassembler used for advanced power management,
 device discovery, and configuration (ACPI) within the host OS:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
 wget https://acpica.org/sites/acpica/files/acpica-unix-20210105.tar.gz
@@ -809,19 +800,6 @@ tar zxvf acpica-unix-20210105.tar.gz
 <span class="nb">cd</span> acpica-unix-20210105
 make clean <span class="o">&amp;&amp;</span> make iasl
 sudo cp ./generate/unix/bin/iasl /usr/sbin
-</pre></div>
-</div>
-</li>
-<li><p>Get the ACRN hypervisor and kernel source code.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
-git clone https://github.com/projectacrn/acrn-hypervisor.git
-<span class="nb">cd</span> acrn-hypervisor
-git checkout v3.0
-
-<span class="nb">cd</span> ..
-git clone https://github.com/projectacrn/acrn-kernel.git
-<span class="nb">cd</span> acrn-kernel
-git checkout acrn-v3.0
 </pre></div>
 </div>
 </li>
@@ -840,8 +818,8 @@ hardware.</p>
 <p>Before running the Board Inspector, you must set up your target hardware and
 BIOS exactly as you want it, including connecting all peripherals,
 configuring BIOS settings, and adding memory and PCI devices. For example,
-you must connect all USB devices; otherwise, the Board Inspector will not
-detect the USB devices for passthrough. If you change the hardware or BIOS
+you must connect all USB devices you intend to access; otherwise, the Board Inspector will not
+detect these USB devices for passthrough. If you change the hardware or BIOS
 configuration, or add or remove USB devices, you must run the Board Inspector
 again to generate a new board configuration file.</p>
 </div>
@@ -859,7 +837,9 @@ again to generate a new board configuration file.</p>
 <div class="section" id="install-os-on-the-target">
 <h3>Install OS on the Target<a class="headerlink" href="#install-os-on-the-target" title="Permalink to this headline">¶</a></h3>
 <p>The target system needs Ubuntu Desktop 20.04 LTS to run the Board Inspector
-tool.</p>
+tool. You can read the full instructions to download, create a bootable USB
+stick, and <a class="reference external" href="https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview">Install Ubuntu desktop</a> on the Ubuntu
+site.  We’ll provide a summary here:</p>
 <p>To install Ubuntu 20.04:</p>
 <ol class="arabic">
 <li><p>Insert the Ubuntu bootable USB disk into the target system.</p></li>
@@ -874,13 +854,22 @@ updates requires the target to have an Internet connection).</p>
 <img alt="../_images/gsg_ubuntu_install_01.png" class="align-center" src="../_images/gsg_ubuntu_install_01.png" />
 </li>
 <li><p>Use the check boxes to choose whether you’d like to install Ubuntu alongside
-another operating system, or delete your existing operating system and
+another operating system (if one already exists), or delete your existing operating system and
 replace it with Ubuntu:</p>
 <img alt="../_images/gsg_ubuntu_install_02.png" class="align-center" src="../_images/gsg_ubuntu_install_02.png" />
 </li>
-<li><p>Complete the Ubuntu installation and create a new user account <code class="docutils literal notranslate"><span class="pre">acrn</span></code> and
-set a password.</p></li>
-<li><p>The next section shows how to configure BIOS settings.</p></li>
+<li><p>Complete the Ubuntu installation by choosing your geographical location,
+and creating your login details. We use <code class="docutils literal notranslate"><span class="pre">acrn</span></code> as the username in this guide.</p>
+<p>If you choose a username other than <code class="docutils literal notranslate"><span class="pre">acrn</span></code>, be sure to use
+that username in the command examples and paths shown in this guide.</p>
+</li>
+<li><p>After the Ubuntu installation completes on the target and you reboot the
+system, don’t forget to update the system software (as Ubuntu recommends):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt update
+sudo apt upgrade -y
+</pre></div>
+</div>
+</li>
 </ol>
 </div>
 <div class="section" id="configure-target-bios-settings">
@@ -889,7 +878,8 @@ set a password.</p></li>
 <li><p>Boot your target and enter the BIOS configuration editor.</p>
 <p>Tip: When you are booting your target, you’ll see an option (quickly) to
 enter the BIOS configuration editor, typically by pressing <kbd class="kbd docutils literal notranslate">F2</kbd> during
-the boot and before the GRUB menu (or Ubuntu login screen) appears.</p>
+the boot and before the GRUB menu (or Ubuntu login screen) appears.  If you
+are not quick enough, you can reboot the system to try again.</p>
 </li>
 <li><p>Configure these BIOS settings:</p>
 <ul class="simple">
@@ -919,7 +909,7 @@ hardware and BIOS version.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make clean <span class="o">&amp;&amp;</span> make board_inspector
 </pre></div>
 </div>
-<p>When done, the build generates a Debian package in the <code class="docutils literal notranslate"><span class="pre">./build</span></code>
+<p>In a few seconds, the build generates a board_inspector Debian package in the <code class="docutils literal notranslate"><span class="pre">./build</span></code>
 directory.</p>
 </li>
 </ol>
@@ -944,7 +934,7 @@ sync <span class="o">&amp;&amp;</span> sudo umount <span class="s2">&quot;</span
 </pre></div>
 </div>
 </li>
-<li><p>Insert the USB disk into the target system.</p></li>
+<li><p>Remove the USB stick from the development computer and insert it into the target system.</p></li>
 <li><p>Copy the Board Inspector Debian package from the USB disk to the target:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir -p ~/acrn-work
 <span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls /media/<span class="nv">$USER</span><span class="k">)</span>
@@ -966,7 +956,9 @@ sudo apt install -y ./acrn-board-inspector*.deb
 </div>
 </li>
 <li><p>Run the Board Inspector to generate the board configuration file. This
-example uses the parameter <code class="docutils literal notranslate"><span class="pre">my_board</span></code> as the file name.</p>
+example uses the parameter <code class="docutils literal notranslate"><span class="pre">my_board</span></code> as the file name. The Board Inspector
+can take a few minutes to scan your target system and create the board XML
+file with your target system’s information.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
 sudo board_inspector.py my_board
 </pre></div>
@@ -1051,7 +1043,8 @@ file</strong>.</p></li>
 </ol>
 <img alt="../_images/configurator-board01.png" class="drop-shadow align-center" src="../_images/configurator-board01.png" />
 <p>The ACRN Configurator makes a copy of your board file, changes the file
-extension to <code class="docutils literal notranslate"><span class="pre">.board.xml</span></code>, and saves the file to the working folder.</p>
+extension to <code class="docutils literal notranslate"><span class="pre">.board.xml</span></code>, and saves the file to the working folder as
+<code class="docutils literal notranslate"><span class="pre">my_board.board.xml</span></code>.</p>
 </li>
 <li><p>Create a new scenario as follows:</p>
 <ol class="loweralpha">
@@ -1095,7 +1088,7 @@ to <code class="docutils literal notranslate"><span class="pre">ACRN_Service_VM<
 <img alt="../_images/configurator-servicevm.png" class="drop-shadow align-center" src="../_images/configurator-servicevm.png" />
 </li>
 <li><p>Configure the post-launched VM as follows:</p>
-<ol class="arabic simple">
+<ol class="loweralpha simple">
 <li><p>Click the <strong>VM1 Post-launched &gt; Basic Parameters</strong> tab and change the VM
 name to <code class="docutils literal notranslate"><span class="pre">POST_STD_VM1</span></code> for this example.</p></li>
 <li><p>Confirm that the <strong>VM type</strong> is <code class="docutils literal notranslate"><span class="pre">Standard</span></code>. In the previous step,
@@ -1105,14 +1098,16 @@ this example, we will use Ubuntu 20.04 to boot the post-launched VM.
 Ubuntu 20.04 needs at least 1024 MB to boot.</p></li>
 <li><p>For <strong>Physical CPU affinity</strong>, select pCPU ID <code class="docutils literal notranslate"><span class="pre">0</span></code>, then click <strong>+</strong> and
 select pCPU ID <code class="docutils literal notranslate"><span class="pre">1</span></code> to affine (or pin) the VM to CPU cores 0 and 1. (That will
-resolve the initial physical CPU affinity assignment error.)</p></li>
+resolve the missing physical CPU affinity assignment error.)</p></li>
 <li><p>For <strong>Virtio console device</strong>, click <strong>+</strong> to add a device and keep the
 default options. This parameter specifies the console that you will use to
 log in to the User VM later in this guide.</p></li>
 <li><p>For <strong>Virtio block device</strong>, click <strong>+</strong> and enter
 <code class="docutils literal notranslate"><span class="pre">/home/acrn/acrn-work/ubuntu-20.04.4-desktop-amd64.iso</span></code>. This parameter
 specifies the VM’s OS image and its location on the target system. Later
-in this guide, you will save the ISO file to that directory.</p></li>
+in this guide, you will save the ISO file to that directory. (If you used
+a different username when installing Ubuntu on the target system, here’s
+where you’ll need to change the <code class="docutils literal notranslate"><span class="pre">acrn</span></code> username to the username you used.)</p></li>
 </ol>
 <img alt="../_images/configurator-postvm.png" class="drop-shadow align-center" src="../_images/configurator-postvm.png" />
 </li>
@@ -1146,7 +1141,7 @@ make clean <span class="o">&amp;&amp;</span> make <span class="nv">BOARD</span><
 Debian package in the <code class="docutils literal notranslate"><span class="pre">./build</span></code> directory:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ./build
 ls *.deb
-   acrn-my_board-MyConfiguration*.deb
+   acrn-my_board-MyConfiguration-3.0.deb
 </pre></div>
 </div>
 <p>The Debian package contains the ACRN hypervisor and tools to ease installing
@@ -1173,7 +1168,7 @@ make -j <span class="k">$(</span>nproc<span class="k">)</span> deb-pkg
 </li>
 </ol>
 <p>The kernel build can take 15 minutes or less on a fast computer, but could
-take an hour or more depending on the performance of your development
+take two hours or more depending on the performance of your development
 computer. When done, the build generates four Debian packages in the
 directory above the build root directory:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ..
@@ -1238,8 +1233,8 @@ will boot with this option automatically in 5 seconds.)</p>
 <span class="go">Ubuntu</span>
 <span class="go">Advanced options for Ubuntu</span>
 <span class="go">UEFI Firmware Settings</span>
-<span class="go">*ACRN multiboot2</span>
-</pre></div>
+<span class="hll"><span class="go">*ACRN multiboot2</span>
+</span></pre></div>
 </div>
 </li>
 </ol>
@@ -1248,8 +1243,8 @@ will boot with this option automatically in 5 seconds.)</p>
 <span id="gsg-run-acrn"></span><h2>Run ACRN and the Service VM<a class="headerlink" href="#run-acrn-and-the-service-vm" title="Permalink to this headline">¶</a></h2>
 <p>The ACRN hypervisor boots the Ubuntu Service VM automatically.</p>
 <ol class="arabic">
-<li><p>On the target, log in to the Service VM. (It will look like a normal Ubuntu
-session.)</p></li>
+<li><p>On the target, log in to the Service VM. (It will look like a normal
+graphical Ubuntu session.)</p></li>
 <li><p>Verify that the hypervisor is running by checking <code class="docutils literal notranslate"><span class="pre">dmesg</span></code> in the Service
 VM:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>dmesg <span class="p">|</span> grep -i hypervisor
@@ -1273,18 +1268,27 @@ wired network access:</p>
 <div class="numbered-step section" id="launch-the-user-vm">
 <span id="gsg-user-vm"></span><h2>Launch the User VM<a class="headerlink" href="#launch-the-user-vm" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
-<li><p>Go to the <a class="reference external" href="https://releases.ubuntu.com/focal/">official Ubuntu website</a> to
+<li><p>On the target system, use the web browser to go to the <a class="reference external" href="https://releases.ubuntu.com/focal/">official Ubuntu website</a> to
 get the Ubuntu Desktop 20.04 LTS ISO image
 <code class="docutils literal notranslate"><span class="pre">ubuntu-20.04.4-desktop-amd64.iso</span></code> for the User VM. (The same image you
-specified earlier in the ACRN Configurator UI.)</p></li>
-<li><p>Put the ISO file in the path <code class="docutils literal notranslate"><span class="pre">~/acrn-work/</span></code> on the target system.</p></li>
+specified earlier in the ACRN Configurator UI.  (Alternatively, instead of
+downloading it again, you can use a USB drive or <code class="docutils literal notranslate"><span class="pre">scp</span></code> to copy the ISO
+image file to the <code class="docutils literal notranslate"><span class="pre">~/acrn-work</span></code> directory on the target system.)</p></li>
+<li><p>If you downloaded the ISO file on the target system, copy it from the
+Downloads directory to the <code class="docutils literal notranslate"><span class="pre">~/acrn-work/</span></code> directory (the location we said
+in the ACRN Configurator for the scenario configuration for the VM), for
+example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cp ~/Downloads/ubuntu-20.04.4-desktop-amd64.iso ~/acrn-work
+</pre></div>
+</div>
+</li>
 <li><p>Launch the User VM:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo chmod +x ~/acrn-work/launch_user_vm_id1.sh
 sudo ~/acrn-work/launch_user_vm_id1.sh
 </pre></div>
 </div>
 </li>
-<li><p>It may take about one minute for the User VM to boot and start running the
+<li><p>It may take about a minute for the User VM to boot and start running the
 Ubuntu image. You will see a lot of output, then the console of the User VM
 will appear as follows:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Ubuntu 20.04.4 LTS ubuntu hvc0</span>
@@ -1364,7 +1368,7 @@ additional details.</p>
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Aug 10, 2022. Published on Aug 10, 2022</span>
+<span class="lastupdated">Last updated on Aug 11, 2022. Published on Aug 12, 2022</span>
 
   </div>
 
