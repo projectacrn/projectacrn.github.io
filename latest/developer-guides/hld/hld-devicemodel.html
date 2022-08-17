@@ -859,59 +859,59 @@ The DM defines its VM e820 table according to this configuration:</p>
 <span class="cm"> * 4:   lowmem part2 -  0x80000000      (reserved)      0x0</span>
 <span class="cm"> * 5:     0xE0000000 -  0x100000000     MCFG, MMIO      512MB</span>
 <span class="cm"> * 6:  HIGHRAM_START_ADDR -  mmio64 start  RAM          ctx-&gt;highmem</span>
-<span class="cm"> */</span>
+<span class="cm"> */</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
 <li><p><strong>VM Loop Thread</strong>: DM kicks this VM loop thread to create an I/O
 request client for the DM, runs the VM, and enters the I/O request
 handling loop:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vm_loop</span><span class="p">(</span><span class="k">struct</span> <span class="nc">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="kt">int</span> <span class="n">error</span><span class="p">;</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">vm_loop</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vmctx</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">error</span><span class="p">;</span><span class="w"></span>
 
-    <span class="n">ctx</span><span class="o">-&gt;</span><span class="n">ioreq_client</span> <span class="o">=</span> <span class="n">vm_create_ioreq_client</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">ioreq_client</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;%s, failed to create IOREQ.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">__func__</span><span class="p">);</span>
-        <span class="k">return</span><span class="p">;</span>
-    <span class="p">}</span>
+<span class="w">    </span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">ioreq_client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm_create_ioreq_client</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ctx</span><span class="o">-&gt;</span><span class="n">ioreq_client</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;%s, failed to create IOREQ.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">__func__</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">vm_run</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;%s, failed to run VM.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">__func__</span><span class="p">);</span>
-        <span class="k">return</span><span class="p">;</span>
-    <span class="p">}</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vm_run</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;%s, failed to run VM.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">__func__</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
 
-    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-        <span class="kt">int</span> <span class="n">vcpu_id</span><span class="p">;</span>
-        <span class="k">struct</span> <span class="nc">acrn_io_request</span> <span class="o">*</span><span class="n">io_req</span><span class="p">;</span>
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">vcpu_id</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_io_request</span><span class="w"> </span><span class="o">*</span><span class="n">io_req</span><span class="p">;</span><span class="w"></span>
 
-        <span class="n">error</span> <span class="o">=</span> <span class="n">vm_attach_ioreq_client</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span>
-            <span class="k">break</span><span class="p">;</span>
+<span class="w">        </span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm_attach_ioreq_client</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="w"></span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
 
-        <span class="k">for</span> <span class="p">(</span><span class="n">vcpu_id</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">vcpu_id</span> <span class="o">&lt;</span> <span class="n">guest_ncpus</span><span class="p">;</span> <span class="n">vcpu_id</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">io_req</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">ioreq_buf</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">];</span>
-            <span class="k">if</span> <span class="p">((</span><span class="n">atomic_load</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io_req</span><span class="o">-&gt;</span><span class="n">processed</span><span class="p">)</span> <span class="o">==</span> <span class="n">ACRN_IOREQ_STATE_PROCESSING</span><span class="p">)</span>
-                <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">io_req</span><span class="o">-&gt;</span><span class="n">kernel_handled</span><span class="p">)</span>
-                <span class="n">handle_vmexit</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">io_req</span><span class="p">,</span> <span class="n">vcpu_id</span><span class="p">);</span>
-        <span class="p">}</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">vcpu_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">vcpu_id</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">guest_ncpus</span><span class="p">;</span><span class="w"> </span><span class="n">vcpu_id</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">io_req</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ioreq_buf</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">];</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">atomic_load</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io_req</span><span class="o">-&gt;</span><span class="n">processed</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ACRN_IOREQ_STATE_PROCESSING</span><span class="p">)</span><span class="w"></span>
+<span class="w">                </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">io_req</span><span class="o">-&gt;</span><span class="n">kernel_handled</span><span class="p">)</span><span class="w"></span>
+<span class="w">                </span><span class="n">handle_vmexit</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">io_req</span><span class="p">,</span><span class="w"> </span><span class="n">vcpu_id</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">VM_SUSPEND_FULL_RESET</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">()</span> <span class="o">||</span>
-            <span class="n">VM_SUSPEND_POWEROFF</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="p">{</span>
-            <span class="k">break</span><span class="p">;</span>
-        <span class="p">}</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">VM_SUSPEND_FULL_RESET</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">vm_get_suspend_mode</span><span class="p">()</span><span class="w"> </span><span class="o">||</span><span class="w"></span>
+<span class="w">            </span><span class="n">VM_SUSPEND_POWEROFF</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">vm_get_suspend_mode</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="k">break</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
 
-        <span class="cm">/* RTVM can&#39;t be reset */</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">VM_SUSPEND_SYSTEM_RESET</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="o">!</span><span class="n">is_rtvm</span><span class="p">))</span> <span class="p">{</span>
-            <span class="n">vm_system_reset</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
-        <span class="p">}</span>
+<span class="w">        </span><span class="cm">/* RTVM can&#39;t be reset */</span><span class="w"></span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">VM_SUSPEND_SYSTEM_RESET</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">vm_get_suspend_mode</span><span class="p">())</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">is_rtvm</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">vm_system_reset</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">VM_SUSPEND_SUSPEND</span> <span class="o">==</span> <span class="n">vm_get_suspend_mode</span><span class="p">())</span> <span class="p">{</span>
-            <span class="n">vm_suspend_resume</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-    <span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;VM loop exit</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-<span class="p">}</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">VM_SUSPEND_SUSPEND</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">vm_get_suspend_mode</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="n">vm_suspend_resume</span><span class="p">(</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;VM loop exit</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </li>
@@ -1151,21 +1151,21 @@ register a PIO handler for a special PIO range:</p>
 <p>This should be references to API documentation in
 <code class="docutils literal notranslate"><span class="pre">devicemodel/include/inout.h</span></code>.</p>
 </div>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">inout_port</span> <span class="p">{</span>
-        <span class="k">const</span> <span class="kt">char</span>      <span class="o">*</span><span class="n">name</span><span class="p">;</span>
-        <span class="kt">int</span>             <span class="n">port</span><span class="p">;</span>
-        <span class="kt">int</span>             <span class="n">size</span><span class="p">;</span>
-        <span class="kt">int</span>             <span class="n">flags</span><span class="p">;</span>
-        <span class="n">inout_func_t</span>    <span class="n">handler</span><span class="p">;</span>
-        <span class="kt">void</span>            <span class="o">*</span><span class="n">arg</span><span class="p">;</span>
-<span class="p">};</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">inout_port</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">      </span><span class="o">*</span><span class="n">name</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w">             </span><span class="n">port</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w">             </span><span class="n">size</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w">             </span><span class="n">flags</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">inout_func_t</span><span class="w">    </span><span class="n">handler</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w">            </span><span class="o">*</span><span class="n">arg</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
 <p>A PIO emulation handler is defined as:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
 <span class="cm"> * inout emulation handlers return 0 on success and -1 on failure.</span>
-<span class="cm"> */</span>
-<span class="k">typedef</span> <span class="nf">int</span> <span class="p">(</span><span class="o">*</span><span class="n">inout_func_t</span><span class="p">)(</span><span class="k">struct</span> <span class="nc">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span> <span class="kt">int</span> <span class="n">vcpu</span><span class="p">,</span> <span class="kt">int</span> <span class="n">in</span><span class="p">,</span> <span class="kt">int</span> <span class="n">port</span><span class="p">,</span> <span class="kt">int</span> <span class="n">bytes</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">eax</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">);</span>
+<span class="cm"> */</span><span class="w"></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">inout_func_t</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vmctx</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">vcpu</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">port</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bytes</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="n">eax</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The DM pre-registers the PIO emulation handlers through the macro
@@ -1182,8 +1182,8 @@ register a PIO handler for a special PIO range:</p>
 <span class="cp">        };                                                              \</span>
 <span class="cp">        DATA_SET(inout_port_set, __CONCAT(__inout_port, __LINE__))</span>
 
-<span class="kt">int</span> <span class="nf">register_inout</span><span class="p">(</span><span class="k">struct</span> <span class="nc">inout_port</span> <span class="o">*</span><span class="n">iop</span><span class="p">);</span>
-<span class="kt">int</span> <span class="nf">unregister_inout</span><span class="p">(</span><span class="k">struct</span> <span class="nc">inout_port</span> <span class="o">*</span><span class="n">iop</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">register_inout</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inout_port</span><span class="w"> </span><span class="o">*</span><span class="n">iop</span><span class="p">);</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">unregister_inout</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">inout_port</span><span class="w"> </span><span class="o">*</span><span class="n">iop</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 </div>
@@ -1191,26 +1191,26 @@ register a PIO handler for a special PIO range:</p>
 <h4>MMIO Handler Register<a class="headerlink" href="#mmio-handler-register" title="Permalink to this headline">¶</a></h4>
 <p>An MMIO range structure is defined below. As with PIO, it’s the
 parameter needed to register a MMIO handler for a special MMIO range:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span> <span class="nc">mem_range</span> <span class="p">{</span>
-        <span class="k">const</span> <span class="kt">char</span>      <span class="o">*</span><span class="n">name</span><span class="p">;</span>
-        <span class="kt">int</span>             <span class="n">flags</span><span class="p">;</span>
-        <span class="n">mem_func_t</span>      <span class="n">handler</span><span class="p">;</span>
-        <span class="kt">void</span>            <span class="o">*</span><span class="n">arg1</span><span class="p">;</span>
-        <span class="kt">long</span>            <span class="n">arg2</span><span class="p">;</span>
-        <span class="kt">uint64_t</span>        <span class="n">base</span><span class="p">;</span>
-        <span class="kt">uint64_t</span>        <span class="n">size</span><span class="p">;</span>
-<span class="p">};</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">struct</span><span class="w"> </span><span class="nc">mem_range</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w">      </span><span class="o">*</span><span class="n">name</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w">             </span><span class="n">flags</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">mem_func_t</span><span class="w">      </span><span class="n">handler</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">void</span><span class="w">            </span><span class="o">*</span><span class="n">arg1</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">long</span><span class="w">            </span><span class="n">arg2</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">uint64_t</span><span class="w">        </span><span class="n">base</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="kt">uint64_t</span><span class="w">        </span><span class="n">size</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
 <p>An MMIO emulation handler is defined as:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="nf">int</span> <span class="p">(</span><span class="o">*</span><span class="n">mem_func_t</span><span class="p">)(</span><span class="k">struct</span> <span class="nc">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span> <span class="kt">int</span> <span class="n">vcpu</span><span class="p">,</span> <span class="kt">int</span> <span class="n">dir</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="n">addr</span><span class="p">,</span>
-                          <span class="kt">int</span> <span class="n">size</span><span class="p">,</span> <span class="kt">uint64_t</span> <span class="o">*</span><span class="n">val</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">arg1</span><span class="p">,</span> <span class="kt">long</span> <span class="n">arg2</span><span class="p">);</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">mem_func_t</span><span class="p">)(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vmctx</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">vcpu</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">dir</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"></span>
+<span class="w">                          </span><span class="kt">int</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="o">*</span><span class="n">val</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">arg1</span><span class="p">,</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">arg2</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The DM needs to call the <code class="docutils literal notranslate"><span class="pre">register_mem()</span></code> function to register its emulated
 device’s MMIO handler:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">register_mem</span><span class="p">(</span><span class="k">struct</span> <span class="nc">mem_range</span> <span class="o">*</span><span class="n">memp</span><span class="p">);</span>
-<span class="kt">int</span> <span class="nf">unregister_mem</span><span class="p">(</span><span class="k">struct</span> <span class="nc">mem_range</span> <span class="o">*</span><span class="n">memp</span><span class="p">);</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">register_mem</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mem_range</span><span class="w"> </span><span class="o">*</span><span class="n">memp</span><span class="p">);</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">unregister_mem</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">mem_range</span><span class="w"> </span><span class="o">*</span><span class="n">memp</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 </div>
@@ -1220,13 +1220,13 @@ device’s MMIO handler:</p>
 needs to provide CFG SPACE read/write handlers directly. Such handlers
 are defined as shown below. Normally, a device emulation developer
 has no need to update this function.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">emulate_pci_cfgrw</span><span class="p">(</span><span class="k">struct</span> <span class="nc">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span> <span class="kt">int</span> <span class="n">vcpu</span><span class="p">,</span> <span class="kt">int</span> <span class="n">in</span><span class="p">,</span> <span class="kt">int</span> <span class="n">bus</span><span class="p">,</span> <span class="kt">int</span> <span class="n">slot</span><span class="p">,</span>
-        <span class="kt">int</span> <span class="n">func</span><span class="p">,</span> <span class="kt">int</span> <span class="n">reg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">bytes</span><span class="p">,</span> <span class="kt">int</span> <span class="o">*</span><span class="n">value</span><span class="p">)</span>
-<span class="p">{</span>
-        <span class="n">pci_cfgrw</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">vcpu</span><span class="p">,</span> <span class="n">in</span><span class="p">,</span> <span class="n">bus</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">reg</span><span class="p">,</span>
-                        <span class="n">bytes</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint32_t</span> <span class="o">*</span><span class="p">)</span><span class="n">value</span><span class="p">);</span>
-        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">emulate_pci_cfgrw</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vmctx</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">vcpu</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bus</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">slot</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">func</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">reg</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bytes</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">value</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">pci_cfgrw</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">vcpu</span><span class="p">,</span><span class="w"> </span><span class="n">in</span><span class="p">,</span><span class="w"> </span><span class="n">bus</span><span class="p">,</span><span class="w"> </span><span class="n">slot</span><span class="p">,</span><span class="w"> </span><span class="n">func</span><span class="p">,</span><span class="w"> </span><span class="n">reg</span><span class="p">,</span><span class="w"></span>
+<span class="w">                        </span><span class="n">bytes</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">value</span><span class="p">);</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </div>
@@ -1236,22 +1236,22 @@ has no need to update this function.</p>
 <p>The DM calls these interrupt functions to send a level, edge, or MSI interrupt
 to destination emulated devices:</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* Generate one msi interrupt to User VM, the index parameter indicates</span>
-<span class="cm"> * the msi number from its PCI msi capability. */</span>
-<span class="kt">void</span>    <span class="nf">pci_generate_msi</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">pi</span><span class="p">,</span> <span class="kt">int</span> <span class="n">index</span><span class="p">);</span>
+<span class="cm"> * the msi number from its PCI msi capability. */</span><span class="w"></span>
+<span class="kt">void</span><span class="w">    </span><span class="nf">pci_generate_msi</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">pi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">);</span><span class="w"></span>
 
 <span class="cm">/* Generate one msix interrupt to User VM, the index parameter indicates</span>
-<span class="cm"> * the msix number from its PCI msix bar. */</span>
-<span class="kt">void</span>    <span class="nf">pci_generate_msix</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">pi</span><span class="p">,</span> <span class="kt">int</span> <span class="n">index</span><span class="p">);</span>
+<span class="cm"> * the msix number from its PCI msix bar. */</span><span class="w"></span>
+<span class="kt">void</span><span class="w">    </span><span class="nf">pci_generate_msix</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">pi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">);</span><span class="w"></span>
 
-<span class="cm">/* Assert INTx interrupt line to high or low. */</span>
-<span class="kt">void</span>    <span class="nf">pci_lintr_assert</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">pi</span><span class="p">);</span>
-<span class="kt">void</span>    <span class="nf">pci_lintr_deassert</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">pi</span><span class="p">);</span>
+<span class="cm">/* Assert INTx interrupt line to high or low. */</span><span class="w"></span>
+<span class="kt">void</span><span class="w">    </span><span class="nf">pci_lintr_assert</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">pi</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w">    </span><span class="nf">pci_lintr_deassert</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">pi</span><span class="p">);</span><span class="w"></span>
 
 <span class="cm">/* Request and release the INTx interrupt resource.</span>
 <span class="cm"> * This API will try to find one best INTx pin of this PCI slot and</span>
-<span class="cm"> * set the &quot;Interrupt pin&quot; field of PCI config space. */</span>
-<span class="kt">void</span>    <span class="nf">pci_lintr_request</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">pi</span><span class="p">);</span>
-<span class="kt">void</span>    <span class="nf">pci_lintr_release</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">pi</span><span class="p">);</span>
+<span class="cm"> * set the &quot;Interrupt pin&quot; field of PCI config space. */</span><span class="w"></span>
+<span class="kt">void</span><span class="w">    </span><span class="nf">pci_lintr_request</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">pi</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w">    </span><span class="nf">pci_lintr_release</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">pi</span><span class="p">);</span><span class="w"></span>
 </pre></div>
 </div>
 </div>
@@ -1266,39 +1266,39 @@ mechanism to share IRQ pin resources between different PCI devices.</p>
 <p class="caption"><span class="caption-number">Figure 170 </span><span class="caption-text">PIRQ Routing</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 <p>The DM calls <code class="docutils literal notranslate"><span class="pre">pci_lintr_route()</span></code> to emulate this PIRQ routing:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span>
-<span class="n">pci_lintr_route</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">dev</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">struct</span> <span class="nc">businfo</span> <span class="o">*</span><span class="n">bi</span><span class="p">;</span>
-    <span class="k">struct</span> <span class="nc">intxinfo</span> <span class="o">*</span><span class="n">ii</span><span class="p">;</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="nf">pci_lintr_route</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">businfo</span><span class="w"> </span><span class="o">*</span><span class="n">bi</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">intxinfo</span><span class="w"> </span><span class="o">*</span><span class="n">ii</span><span class="p">;</span><span class="w"></span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">lintr</span><span class="p">.</span><span class="n">pin</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">lintr</span><span class="p">.</span><span class="n">pin</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
 
-    <span class="n">bi</span> <span class="o">=</span> <span class="n">pci_businfo</span><span class="p">[</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">bus</span><span class="p">];</span>
-    <span class="n">assert</span><span class="p">(</span><span class="n">bi</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">);</span>
-    <span class="n">ii</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">bi</span><span class="o">-&gt;</span><span class="n">slotinfo</span><span class="p">[</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">].</span><span class="n">si_intpins</span><span class="p">[</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">lintr</span><span class="p">.</span><span class="n">pin</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="n">bi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pci_businfo</span><span class="p">[</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">bus</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">bi</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">ii</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">bi</span><span class="o">-&gt;</span><span class="n">slotinfo</span><span class="p">[</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">].</span><span class="n">si_intpins</span><span class="p">[</span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">lintr</span><span class="p">.</span><span class="n">pin</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">];</span><span class="w"></span>
 
-    <span class="cm">/*</span>
+<span class="w">    </span><span class="cm">/*</span>
 <span class="cm">     * Attempt to allocate an I/O APIC pin for this intpin if one</span>
 <span class="cm">     * is not yet assigned.</span>
-<span class="cm">     */</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_ioapic_irq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_ioapic_irq</span> <span class="o">=</span> <span class="n">ioapic_pci_alloc_irq</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
-    <span class="n">assert</span><span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_ioapic_irq</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+<span class="cm">     */</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_ioapic_irq</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_ioapic_irq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ioapic_pci_alloc_irq</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_ioapic_irq</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
 
-    <span class="cm">/*</span>
+<span class="w">    </span><span class="cm">/*</span>
 <span class="cm">     * Attempt to allocate a PIRQ pin for this intpin if one is</span>
 <span class="cm">     * not yet assigned.</span>
-<span class="cm">     */</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span> <span class="o">=</span> <span class="n">pirq_alloc_pin</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
-    <span class="n">assert</span><span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+<span class="cm">     */</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pirq_alloc_pin</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">assert</span><span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span><span class="w"></span>
 
-    <span class="n">dev</span><span class="o">-&gt;</span><span class="n">lintr</span><span class="p">.</span><span class="n">ioapic_irq</span> <span class="o">=</span> <span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_ioapic_irq</span><span class="p">;</span>
-    <span class="n">dev</span><span class="o">-&gt;</span><span class="n">lintr</span><span class="p">.</span><span class="n">pirq_pin</span> <span class="o">=</span> <span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span><span class="p">;</span>
-    <span class="n">pci_set_cfgdata8</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span> <span class="n">PCIR_INTLINE</span><span class="p">,</span> <span class="n">pirq_irq</span><span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span><span class="p">));</span>
-<span class="p">}</span>
+<span class="w">    </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">lintr</span><span class="p">.</span><span class="n">ioapic_irq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_ioapic_irq</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">lintr</span><span class="p">.</span><span class="n">pirq_pin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">pci_set_cfgdata8</span><span class="p">(</span><span class="n">dev</span><span class="p">,</span><span class="w"> </span><span class="n">PCIR_INTLINE</span><span class="p">,</span><span class="w"> </span><span class="n">pirq_irq</span><span class="p">(</span><span class="n">ii</span><span class="o">-&gt;</span><span class="n">ii_pirq_pin</span><span class="p">));</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The PIRQ routing for IOAPIC and PIC is dealt with differently.</p>
@@ -1384,7 +1384,7 @@ example:</p>
 </pre></div>
 </div>
 <p>the bus hierarchy would be:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> lspci
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>lspci
 <span class="go">00:00.0 Host bridge: Network Appliance Corporation Device 1275</span>
 <span class="go">00:01.0 ISA bridge: Intel Corporation 82371SB PIIX3 ISA [Natoma/Triton II]</span>
 <span class="go">00:03.0 SCSI storage controller: Red Hat, Inc. Virtio block device</span>
@@ -1413,7 +1413,7 @@ monitoring status and putting unused components to sleep.</p>
 </ul>
 <p>All critical functions depend on ACPI tables.
 On an Apollo Lake platform with Linux installed, we can see these tables using:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> ls /sys/firmware/acpi/tables/
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>ls /sys/firmware/acpi/tables/
 <span class="go">APIC data DMAR DSDT dynamic FACP FACS HPET MCFG NHLT TPM2</span>
 </pre></div>
 </div>
@@ -1435,8 +1435,8 @@ stored in the ACPI tables. To make use of these tables, Linux implements
 an interpreter for the AML bytecode. When the BIOS is built, AML
 bytecode is compiled from the ASL (ACPI Source Language) code. To
 disassemble the ACPI table, use the <code class="docutils literal notranslate"><span class="pre">iasl</span></code> tool:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">root@:Dom0 ~ $</span> cp /sys/firmware/acpi/tables/DMAR .
-<span class="gp">root@:Dom0 ~ $</span> iasl -d DMAR
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">root@:Dom0 ~ $ </span>cp /sys/firmware/acpi/tables/DMAR .
+<span class="gp">root@:Dom0 ~ $ </span>iasl -d DMAR
 
 <span class="go">Intel ACPI Component Architecture</span>
 <span class="go">ASL+ Optimizing Compiler/Disassembler version 20170728</span>
@@ -1446,7 +1446,7 @@ disassemble the ACPI table, use the <code class="docutils literal notranslate"><
 <span class="go">Acpi Data Table [DMAR] decoded</span>
 <span class="go">Formatted output:  DMAR.dsl - 5286 bytes</span>
 
-<span class="gp">root@:Dom0 ~ $</span> cat DMAR.dsl
+<span class="gp">root@:Dom0 ~ $ </span>cat DMAR.dsl
 <span class="go">[000h 0000   4]                    Signature : &quot;DMAR&quot;    [DMA Remapping table]</span>
 <span class="go">[004h 0004   4]                 Table Length : 000000B0</span>
 <span class="go">[008h 0008   1]                     Revision : 01</span>
@@ -1463,7 +1463,7 @@ disassemble the ACPI table, use the <code class="docutils literal notranslate"><
 version info, and one VT-d remapping engine description with FED64000 as
 base address.</p>
 <p>We can modify <code class="docutils literal notranslate"><span class="pre">DMAR.dsl</span></code> and assemble it again to AML:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">root@:Dom0 ~ $</span> iasl DMAR.dsl
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">root@:Dom0 ~ $ </span>iasl DMAR.dsl
 <span class="go">Intel ACPI Component Architecture</span>
 <span class="go">ASL+ Optimizing Compiler/Disassembler version 20170728</span>
 <span class="go">Copyright (c) 2000 - 2017 Intel Corporation</span>
@@ -1605,24 +1605,24 @@ specific file</p></li>
 <li><p>offset - related ACPI table offset in the memory</p></li>
 <li><p>valid - dynamically indicate if this table is needed</p></li>
 </ul>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="k">struct</span> <span class="p">{</span>
-    <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">wsect</span><span class="p">)(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">fp</span><span class="p">,</span> <span class="k">struct</span> <span class="nc">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">);</span>
-    <span class="kt">uint64_t</span>  <span class="n">offset</span><span class="p">;</span>
-    <span class="kt">bool</span>    <span class="n">valid</span><span class="p">;</span>
-<span class="p">}</span> <span class="n">basl_ftables</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_rsdp</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>       <span class="nb">true</span>  <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_rsdt</span><span class="p">,</span> <span class="n">RSDT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_xsdt</span><span class="p">,</span> <span class="n">XSDT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_madt</span><span class="p">,</span> <span class="n">MADT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_fadt</span><span class="p">,</span> <span class="n">FADT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_hpet</span><span class="p">,</span> <span class="n">HPET_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_mcfg</span><span class="p">,</span> <span class="n">MCFG_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_facs</span><span class="p">,</span> <span class="n">FACS_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_nhlt</span><span class="p">,</span> <span class="n">NHLT_OFFSET</span><span class="p">,</span> <span class="nb">false</span> <span class="p">},</span> <span class="cm">/*valid with audio ptdev*/</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_tpm2</span><span class="p">,</span> <span class="n">TPM2_OFFSET</span><span class="p">,</span> <span class="nb">false</span> <span class="p">},</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_psds</span><span class="p">,</span> <span class="n">PSDS_OFFSET</span><span class="p">,</span> <span class="nb">false</span> <span class="p">},</span> <span class="cm">/*valid when psds present in Service VM */</span>
-    <span class="p">{</span> <span class="n">basl_fwrite_dsdt</span><span class="p">,</span> <span class="n">DSDT_OFFSET</span><span class="p">,</span> <span class="nb">true</span>  <span class="p">}</span>
-<span class="p">};</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">wsect</span><span class="p">)(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="n">fp</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">vmctx</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint64_t</span><span class="w">  </span><span class="n">offset</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">bool</span><span class="w">    </span><span class="n">valid</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">basl_ftables</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_rsdp</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">       </span><span class="nb">true</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_rsdt</span><span class="p">,</span><span class="w"> </span><span class="n">RSDT_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_xsdt</span><span class="p">,</span><span class="w"> </span><span class="n">XSDT_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_madt</span><span class="p">,</span><span class="w"> </span><span class="n">MADT_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_fadt</span><span class="p">,</span><span class="w"> </span><span class="n">FADT_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_hpet</span><span class="p">,</span><span class="w"> </span><span class="n">HPET_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_mcfg</span><span class="p">,</span><span class="w"> </span><span class="n">MCFG_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_facs</span><span class="p">,</span><span class="w"> </span><span class="n">FACS_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_nhlt</span><span class="p">,</span><span class="w"> </span><span class="n">NHLT_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="cm">/*valid with audio ptdev*/</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_tpm2</span><span class="p">,</span><span class="w"> </span><span class="n">TPM2_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_psds</span><span class="p">,</span><span class="w"> </span><span class="n">PSDS_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="cm">/*valid when psds present in Service VM */</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">basl_fwrite_dsdt</span><span class="p">,</span><span class="w"> </span><span class="n">DSDT_OFFSET</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
 </pre></div>
 </div>
 <p>The main function to create virtual ACPI tables is <code class="docutils literal notranslate"><span class="pre">acpi_build</span></code> that calls
@@ -1633,51 +1633,51 @@ specific file</p></li>
 <li><p>use <code class="docutils literal notranslate"><span class="pre">iasl</span></code> tool to assemble <code class="docutils literal notranslate"><span class="pre">infile</span></code> into <code class="docutils literal notranslate"><span class="pre">outfile</span></code></p></li>
 <li><p>load <code class="docutils literal notranslate"><span class="pre">outfile</span></code> contents to the required memory offset</p></li>
 </ol>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">int</span>
-<span class="n">basl_compile</span><span class="p">(</span><span class="k">struct</span> <span class="nc">vmctx</span> <span class="o">*</span><span class="n">ctx</span><span class="p">,</span>
-        <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="n">fwrite_section</span><span class="p">)(</span><span class="kt">FILE</span> <span class="o">*</span><span class="p">,</span> <span class="k">struct</span> <span class="nc">vmctx</span> <span class="o">*</span><span class="p">),</span>
-        <span class="kt">uint64_t</span> <span class="n">offset</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">struct</span> <span class="nc">basl_fio</span> <span class="n">io</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-    <span class="k">static</span> <span class="kt">char</span> <span class="n">iaslbuf</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">MAXPATHLEN</span> <span class="o">+</span> <span class="mi">10</span><span class="p">];</span>
-    <span class="kt">int</span> <span class="n">err</span><span class="p">;</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">int</span><span class="w"></span>
+<span class="nf">basl_compile</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vmctx</span><span class="w"> </span><span class="o">*</span><span class="n">ctx</span><span class="p">,</span><span class="w"></span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">fwrite_section</span><span class="p">)(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">vmctx</span><span class="w"> </span><span class="o">*</span><span class="p">),</span><span class="w"></span>
+<span class="w">        </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">offset</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">basl_fio</span><span class="w"> </span><span class="n">io</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">iaslbuf</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">MAXPATHLEN</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">10</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">err</span><span class="p">;</span><span class="w"></span>
 
-    <span class="n">err</span> <span class="o">=</span> <span class="n">basl_start</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">fwrite_section</span><span class="p">)(</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">fp</span><span class="p">,</span> <span class="n">ctx</span><span class="p">);</span>
+<span class="w">    </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">basl_start</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">fwrite_section</span><span class="p">)(</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">fp</span><span class="p">,</span><span class="w"> </span><span class="n">ctx</span><span class="p">);</span><span class="w"></span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span> <span class="p">{</span>
-            <span class="cm">/*</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="cm">/*</span>
 <span class="cm">             * iasl sends the results of the compilation to</span>
 <span class="cm">             * stdout. Shut this down by using the shell to</span>
 <span class="cm">             * redirect stdout to /dev/null, unless the user</span>
 <span class="cm">             * has requested verbose output for debugging</span>
 <span class="cm">             * purposes</span>
-<span class="cm">             */</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">basl_verbose_iasl</span><span class="p">)</span>
-                <span class="n">snprintf</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">),</span>
-                     <span class="s">&quot;%s -p %s %s&quot;</span><span class="p">,</span>
-                     <span class="n">ASL_COMPILER</span><span class="p">,</span>
-                     <span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">f_name</span><span class="p">,</span> <span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">f_name</span><span class="p">);</span>
-            <span class="k">else</span>
-                <span class="nf">snprintf</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">),</span>
-                     <span class="s">&quot;/bin/sh -c </span><span class="se">\&quot;</span><span class="s">%s -p %s %s</span><span class="se">\&quot;</span><span class="s"> 1&gt; /dev/null&quot;</span><span class="p">,</span>
-                     <span class="n">ASL_COMPILER</span><span class="p">,</span>
-                     <span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">f_name</span><span class="p">,</span> <span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">f_name</span><span class="p">);</span>
+<span class="cm">             */</span><span class="w"></span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">basl_verbose_iasl</span><span class="p">)</span><span class="w"></span>
+<span class="w">                </span><span class="n">snprintf</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">),</span><span class="w"></span>
+<span class="w">                     </span><span class="s">&quot;%s -p %s %s&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">ASL_COMPILER</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">f_name</span><span class="p">,</span><span class="w"> </span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">f_name</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="k">else</span><span class="w"></span>
+<span class="w">                </span><span class="n">snprintf</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">),</span><span class="w"></span>
+<span class="w">                     </span><span class="s">&quot;/bin/sh -c </span><span class="se">\&quot;</span><span class="s">%s -p %s %s</span><span class="se">\&quot;</span><span class="s"> 1&gt; /dev/null&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">ASL_COMPILER</span><span class="p">,</span><span class="w"></span>
+<span class="w">                     </span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">f_name</span><span class="p">,</span><span class="w"> </span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">f_name</span><span class="p">);</span><span class="w"></span>
 
-            <span class="n">err</span> <span class="o">=</span> <span class="n">system</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">);</span>
+<span class="w">            </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">system</span><span class="p">(</span><span class="n">iaslbuf</span><span class="p">);</span><span class="w"></span>
 
-            <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span> <span class="p">{</span>
-                <span class="cm">/*</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">                </span><span class="cm">/*</span>
 <span class="cm">                 * Copy the aml output file into guest</span>
 <span class="cm">                 * memory at the specified location</span>
-<span class="cm">                 */</span>
-                <span class="n">err</span> <span class="o">=</span> <span class="n">basl_load</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">fd</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
-            <span class="p">}</span> <span class="k">else</span>
-                <span class="n">err</span> <span class="o">=</span> <span class="mi">-1</span><span class="p">;</span>
-        <span class="p">}</span>
-        <span class="n">basl_end</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
-    <span class="p">}</span>
+<span class="cm">                 */</span><span class="w"></span>
+<span class="w">                </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">basl_load</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w"> </span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">offset</span><span class="p">);</span><span class="w"></span>
+<span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"></span>
+<span class="w">                </span><span class="n">err</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="n">basl_end</span><span class="p">(</span><span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="o">&amp;</span><span class="n">io</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>After handling each entry, virtual ACPI tables are present in User VM
@@ -1687,67 +1687,67 @@ in the virtual DSDT table. There is one hook (<code class="docutils literal notr
 <code class="docutils literal notranslate"><span class="pre">hw/pci/passthrough.c</span></code> for this.  The following source code
 calls different functions to add different contents for each vendor and
 device id:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span>
-<span class="n">passthru_write_dsdt</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">dev</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="k">struct</span> <span class="nc">passthru_dev</span> <span class="o">*</span><span class="n">ptdev</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="nc">passthru_dev</span> <span class="o">*</span><span class="p">)</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">arg</span><span class="p">;</span>
-    <span class="kt">uint32_t</span> <span class="n">vendor</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">device</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="nf">passthru_write_dsdt</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">passthru_dev</span><span class="w"> </span><span class="o">*</span><span class="n">ptdev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">passthru_dev</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">arg</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">vendor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">device</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
 
-    <span class="n">vendor</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">ptdev</span><span class="o">-&gt;</span><span class="n">phys_dev</span><span class="p">,</span> <span class="n">PCIR_VENDOR</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">vendor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_config</span><span class="p">(</span><span class="n">ptdev</span><span class="o">-&gt;</span><span class="n">phys_dev</span><span class="p">,</span><span class="w"> </span><span class="n">PCIR_VENDOR</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span><span class="w"></span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">vendor</span> <span class="o">!=</span> <span class="mh">0x8086</span><span class="p">)</span>
-        <span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vendor</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mh">0x8086</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span><span class="w"></span>
 
-    <span class="n">device</span> <span class="o">=</span> <span class="n">read_config</span><span class="p">(</span><span class="n">ptdev</span><span class="o">-&gt;</span><span class="n">phys_dev</span><span class="p">,</span> <span class="n">PCIR_DEVICE</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+<span class="w">    </span><span class="n">device</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_config</span><span class="p">(</span><span class="n">ptdev</span><span class="o">-&gt;</span><span class="n">phys_dev</span><span class="p">,</span><span class="w"> </span><span class="n">PCIR_DEVICE</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span><span class="w"></span>
 
-    <span class="cm">/* Provides ACPI extra info */</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5aaa</span><span class="p">)</span>
-        <span class="cm">/* XDCI @ 00:15.1 to enable ADB */</span>
-        <span class="n">write_dsdt_xhci</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
-    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5ab4</span><span class="p">)</span>
-        <span class="cm">/* HDAC @ 00:17.0 as codec */</span>
-        <span class="n">write_dsdt_hdac</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
-    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5a98</span><span class="p">)</span>
-        <span class="cm">/* HDAS @ 00:e.0 */</span>
-        <span class="n">write_dsdt_hdas</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
-    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5aac</span><span class="p">)</span>
-        <span class="cm">/* i2c @ 00:16.0 for ipu */</span>
-        <span class="n">write_dsdt_ipu_i2c</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
-    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5abc</span><span class="p">)</span>
-        <span class="cm">/* URT1 @ 00:18.0 for bluetooth*/</span>
-        <span class="n">write_dsdt_urt1</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
-    <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">device</span> <span class="o">==</span> <span class="mh">0x5aca</span><span class="p">)</span>
-        <span class="cm">/* SDC @ 00:1b.0 */</span>
-        <span class="n">write_dsdt_sdc</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span>
+<span class="w">    </span><span class="cm">/* Provides ACPI extra info */</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">device</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0x5aaa</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/* XDCI @ 00:15.1 to enable ADB */</span><span class="w"></span>
+<span class="w">        </span><span class="n">write_dsdt_xhci</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">device</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0x5ab4</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/* HDAC @ 00:17.0 as codec */</span><span class="w"></span>
+<span class="w">        </span><span class="n">write_dsdt_hdac</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">device</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0x5a98</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/* HDAS @ 00:e.0 */</span><span class="w"></span>
+<span class="w">        </span><span class="n">write_dsdt_hdas</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">device</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0x5aac</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/* i2c @ 00:16.0 for ipu */</span><span class="w"></span>
+<span class="w">        </span><span class="n">write_dsdt_ipu_i2c</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">device</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0x5abc</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/* URT1 @ 00:18.0 for bluetooth*/</span><span class="w"></span>
+<span class="w">        </span><span class="n">write_dsdt_urt1</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">device</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0x5aca</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="cm">/* SDC @ 00:1b.0 */</span><span class="w"></span>
+<span class="w">        </span><span class="n">write_dsdt_sdc</span><span class="p">(</span><span class="n">dev</span><span class="p">);</span><span class="w"></span>
 
-<span class="p">}</span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>For instance, <code class="docutils literal notranslate"><span class="pre">write_dsdt_urt1</span></code> provides ACPI contents for a Bluetooth
 UART device when passed through to the User VM. It provides the virtual PCI
 device/function as <code class="docutils literal notranslate"><span class="pre">_ADR</span></code>. With another description, it could be used for
 Bluetooth UART enumeration.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span> <span class="kt">void</span>
-<span class="n">write_dsdt_urt1</span><span class="p">(</span><span class="k">struct</span> <span class="nc">pci_vdev</span> <span class="o">*</span><span class="n">dev</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;write virt-%x:%x.%x in dsdt for URT1 @ 00:18.0</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
-           <span class="n">dev</span><span class="o">-&gt;</span><span class="n">bus</span><span class="p">,</span>
-           <span class="n">dev</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">,</span>
-           <span class="n">dev</span><span class="o">-&gt;</span><span class="n">func</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;Device (URT1)&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;{&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_ADR, 0x%04X%04X)&quot;</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">,</span> <span class="n">dev</span><span class="o">-&gt;</span><span class="n">func</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_DDN, </span><span class="se">\&quot;</span><span class="s">Intel(R) HS-UART Controller #1</span><span class="se">\&quot;</span><span class="s">)&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_UID, One)&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (RBUF, ResourceTemplate ()&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    {&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    })&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Method (_CRS, 0, NotSerialized)&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    {&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;        Return (RBUF)&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    }&quot;</span><span class="p">);</span>
-    <span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;}&quot;</span><span class="p">);</span>
-<span class="p">}</span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"></span>
+<span class="nf">write_dsdt_urt1</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">dev</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;write virt-%x:%x.%x in dsdt for URT1 @ 00:18.0</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">bus</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">,</span><span class="w"></span>
+<span class="w">           </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">func</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;Device (URT1)&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;{&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_ADR, 0x%04X%04X)&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">slot</span><span class="p">,</span><span class="w"> </span><span class="n">dev</span><span class="o">-&gt;</span><span class="n">func</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_DDN, </span><span class="se">\&quot;</span><span class="s">Intel(R) HS-UART Controller #1</span><span class="se">\&quot;</span><span class="s">)&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (_UID, One)&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Name (RBUF, ResourceTemplate ()&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    {&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    })&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    Method (_CRS, 0, NotSerialized)&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    {&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;        Return (RBUF)&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;    }&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dsdt_line</span><span class="p">(</span><span class="s">&quot;}&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 </div>
