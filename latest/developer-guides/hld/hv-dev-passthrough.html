@@ -162,6 +162,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#build-the-acrn-hypervisor-and-service-vm-images">Build the ACRN Hypervisor and Service VM images</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#copy-files-from-the-development-system-to-your-target-system">Copy files from the development system to your target system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#install-and-run-acrn-on-the-target-system">Install and Run ACRN on the Target System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#congratulations">Congratulations</a></li>
 </ul>
 </li>
 </ul>
@@ -1151,7 +1152,7 @@ sudo lspci -vv <span class="c1"># (Only relevant output is shown)</span>
                   PTMClockGranularity: 4ns
                   PTMControl: Enabled:+ RootSelected:+
                   PTMEffectiveGranularity: 4ns
-          Kernel driver in use: pcieport
+          Kernel driver <span class="k">in</span> use: pcieport
   <span class="m">01</span>:00.0 Ethernet controller: Intel Corporation Device 15f2 <span class="o">(</span>rev <span class="m">01</span><span class="o">)</span>
   . . .
 <span class="hll">          Capabilities: <span class="o">[</span>1f0 v1<span class="o">]</span> Precision Time Measurement
@@ -1159,7 +1160,7 @@ sudo lspci -vv <span class="c1"># (Only relevant output is shown)</span>
                   PTMClockGranularity: 4ns
                   PTMControl: Enabled:+ RootSelected:-
                   PTMEffectiveGranularity: 4ns
-          Kernel driver in use: igc
+          Kernel driver <span class="k">in</span> use: igc
 </pre></div>
 </div>
 </li>
@@ -1176,7 +1177,20 @@ VMs:</p>
 <dd><p>INTx remapping for passthrough device. </p>
 <p>Set up the remapping of the given virtual pin for the given vm. This is the main entry for PCI/Legacy device assignment with INTx, calling from vIOAPIC or vPIC.</p>
 <p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p><ul class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm</strong> – <strong>[in]</strong> pointer to acrn_vm </p></li>
+<li><p><strong>virt_gsi</strong> – <strong>[in]</strong> virtual GSI number associated with the passthrough device </p></li>
+<li><p><strong>vgsi_ctlr</strong> – <strong>[in]</strong> INTX_CTLR_IOAPIC or INTX_CTLR_PIC</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
 <li><p>0: on success</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-ENODEV:</span></code> <ul>
 <li><p>for Service VM, the entry already be held by others</p></li>
@@ -1186,16 +1200,7 @@ VMs:</p>
 </ul>
 </p>
 </dd>
-<dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: pointer to acrn_vm </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">virt_gsi</span></code>: virtual GSI number associated with the passthrough device </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vgsi_ctlr</span></code>: INTX_CTLR_IOAPIC or INTX_CTLR_PIC</p></li>
-</ul>
-</dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
@@ -1204,7 +1209,25 @@ VMs:</p>
 <dd><p>MSI/MSI-x remapping for passthrough device. </p>
 <p>Main entry for PCI device assignment with MSI and MSI-X. MSI can up to 8 vectors and MSI-X can up to 1024 Vectors.</p>
 <p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p><ul class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
+</dd>
+<dt><strong>Preconditions</strong></dt><dd><p>info != NULL </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm</strong> – <strong>[in]</strong> pointer to acrn_vm </p></li>
+<li><p><strong>virt_bdf</strong> – <strong>[in]</strong> virtual bdf associated with the passthrough device </p></li>
+<li><p><strong>phys_bdf</strong> – <strong>[in]</strong> virtual bdf associated with the passthrough device </p></li>
+<li><p><strong>entry_nr</strong> – <strong>[in]</strong> indicate coming vectors, entry_nr = 0 means first vector </p></li>
+<li><p><strong>info</strong> – <strong>[in]</strong> structure used for MSI/MSI-x remapping </p></li>
+<li><p><strong>irte_idx</strong> – <strong>[in]</strong> caller can pass a valid IRTE index, otherwise, use INVALID_IRTE_ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
 <li><p>0: on success</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-ENODEV:</span></code> <ul>
 <li><p>for Service VM, the entry already be held by others</p></li>
@@ -1214,21 +1237,7 @@ VMs:</p>
 </ul>
 </p>
 </dd>
-<dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
-</dd>
-<dt><strong>Preconditions</strong></dt><dd><p>info != NULL </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: pointer to acrn_vm </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">virt_bdf</span></code>: virtual bdf associated with the passthrough device </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">phys_bdf</span></code>: virtual bdf associated with the passthrough device </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">entry_nr</span></code>: indicate coming vectors, entry_nr = 0 means first vector </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">info</span></code>: structure used for MSI/MSI-x remapping </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">irte_idx</span></code>: caller can pass a valid IRTE index, otherwise, use INVALID_IRTE_ID</p></li>
-</ul>
-</dd>
 </dl>
-</p>
 </dd></dl>
 
 <p>Post-launched VMs need to pre-allocate interrupt entries during VM
@@ -1241,24 +1250,28 @@ interrupt entries for post-launched VMs:</p>
 <dd><p>Add an interrupt remapping entry for INTx as pre-hold mapping. </p>
 <p>Except Service VM, Device Model should call this function to pre-hold ptdev intx The entry is identified by phys_pin, one entry vs. one phys_pin. Currently, one phys_pin can only be held by one pin source (vPIC or vIOAPIC).</p>
 <p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p><ul class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm</strong> – <strong>[in]</strong> pointer to acrn_vm </p></li>
+<li><p><strong>virt_gsi</strong> – <strong>[in]</strong> virtual pin number associated with the passthrough device </p></li>
+<li><p><strong>phys_gsi</strong> – <strong>[in]</strong> physical pin number associated with the passthrough device </p></li>
+<li><p><strong>pic_pin</strong> – <strong>[in]</strong> true for pic, false for ioapic</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
 <li><p>0: on success</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-EINVAL:</span></code> invalid virt_pin value</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-ENODEV:</span></code> failed to add the remapping entry</p></li>
 </ul>
 </p>
 </dd>
-<dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: pointer to acrn_vm </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">virt_gsi</span></code>: virtual pin number associated with the passthrough device </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">phys_gsi</span></code>: physical pin number associated with the passthrough device </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">pic_pin</span></code>: true for pic, false for ioapic</p></li>
-</ul>
-</dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
@@ -1267,18 +1280,22 @@ interrupt entries for post-launched VMs:</p>
 <dd><p>Remove an interrupt remapping entry for INTx. </p>
 <p>Deactivate &amp; remove mapping entry of the given virt_pin for given vm.</p>
 <p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>None</p>
-</dd>
 <dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: pointer to acrn_vm </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">virt_gsi</span></code>: virtual pin number associated with the passthrough device </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">pic_pin</span></code>: true for pic, false for ioapic</p></li>
-</ul>
 </dd>
 </dl>
 </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm</strong> – <strong>[in]</strong> pointer to acrn_vm </p></li>
+<li><p><strong>virt_gsi</strong> – <strong>[in]</strong> virtual pin number associated with the passthrough device </p></li>
+<li><p><strong>pic_pin</strong> – <strong>[in]</strong> true for pic, false for ioapic</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="c function">
@@ -1287,18 +1304,22 @@ interrupt entries for post-launched VMs:</p>
 <dd><p>Remove interrupt remapping entry/entries for MSI/MSI-x. </p>
 <p>Remove the mapping of given number of vectors of the given virtual BDF for the given vm.</p>
 <p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>None</p>
-</dd>
 <dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: pointer to acrn_vm </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">phys_bdf</span></code>: physical bdf associated with the passthrough device </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vector_count</span></code>: number of vectors</p></li>
-</ul>
 </dd>
 </dl>
 </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm</strong> – <strong>[in]</strong> pointer to acrn_vm </p></li>
+<li><p><strong>phys_bdf</strong> – <strong>[in]</strong> physical bdf associated with the passthrough device </p></li>
+<li><p><strong>vector_count</strong> – <strong>[in]</strong> number of vectors</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <p>The following APIs are provided to acknowledge a virtual interrupt:</p>
@@ -1308,18 +1329,22 @@ interrupt entries for post-launched VMs:</p>
 <dd><p>Acknowledge a virtual interrupt for passthrough device. </p>
 <p>Acknowledge a virtual legacy interrupt for a passthrough device.</p>
 <p><dl class="simple">
-<dt><strong>Return</strong></dt><dd><p>None</p>
-</dd>
 <dt><strong>Preconditions</strong></dt><dd><p>vm != NULL </p>
-</dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: pointer to acrn_vm </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">virt_gsi</span></code>: virtual GSI number associated with the passthrough device </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vgsi_ctlr</span></code>: INTX_CTLR_IOAPIC or INTX_CTLR_PIC</p></li>
-</ul>
 </dd>
 </dl>
 </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm</strong> – <strong>[in]</strong> pointer to acrn_vm </p></li>
+<li><p><strong>virt_gsi</strong> – <strong>[in]</strong> virtual GSI number associated with the passthrough device </p></li>
+<li><p><strong>vgsi_ctlr</strong> – <strong>[in]</strong> INTX_CTLR_IOAPIC or INTX_CTLR_PIC</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 <p>The following APIs are provided to handle a ptdev interrupt:</p>
@@ -1340,13 +1365,13 @@ interrupt entries for post-launched VMs:</p>
 <span class="target" id="group__acrn__passthrough_gaefcabcb82488fce2a18f6b5ab9dacd2c_1gaefcabcb82488fce2a18f6b5ab9dacd2c"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ptirq_softirq</span></code><span class="sig-paren">(</span><span class="pre">uint16_t</span> <em><span class="pre">pcpu_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ptirq_softirq" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Handler of softirq for passthrough device. </p>
 <p>When hypervisor receive a physical interrupt from passthrough device, it will enqueue a ptirq entry and raise softirq SOFTIRQ_PTDEV. This function is the handler of the softirq, it handles the interrupt and injects the virtual into VM. The handler is registered by calling <a class="reference internal" href="#group__acrn__passthrough_ga17303a9f08f5090e75d4fbafb2ced67a_1ga17303a9f08f5090e75d4fbafb2ced67a"><span class="std std-ref">ptdev_init</span></a> during hypervisor initialization.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">pcpu_id</span></code>: physical cpu id of the soft irq </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pcpu_id</strong> – <strong>[in]</strong> physical cpu id of the soft irq </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
@@ -1354,32 +1379,34 @@ interrupt entries for post-launched VMs:</p>
 <span class="target" id="group__acrn__passthrough_ga4aa69d188bfee801e4f26f1611bc7b54_1ga4aa69d188bfee801e4f26f1611bc7b54"></span><em class="property"><span class="pre">struct</span></em> <span class="pre">ptirq_remapping_info</span> <span class="pre">*</span><code class="sig-name descname"><span class="pre">ptirq_alloc_entry</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vm</span> <span class="pre">*</span><em><span class="pre">vm</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">intr_type</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ptirq_alloc_entry" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Allocate a ptirq_remapping_info entry. </p>
 <p>Allocate a ptirq_remapping_info entry for hypervisor to store the remapping information. The total number of the entries is statically defined as CONFIG_MAX_PT_IRQ_ENTRIES. Appropriate number should be configured on different platforms.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: acrn_vm that the entry allocated for. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">intr_type</span></code>: interrupt type: PTDEV_INTR_MSI or PTDEV_INTR_INTX</p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm</strong> – <strong>[in]</strong> acrn_vm that the entry allocated for. </p></li>
+<li><p><strong>intr_type</strong> – <strong>[in]</strong> interrupt type: PTDEV_INTR_MSI or PTDEV_INTR_INTX</p></li>
 </ul>
 </dd>
-<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">NULL</span></code>: when the number of entries allocated is CONFIG_MAX_PT_IRQ_ENTRIES </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">!NULL</span></code>: when the number of entries allocated is less than CONFIG_MAX_PT_IRQ_ENTRIES </p></li>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>NULL</strong> – when the number of entries allocated is CONFIG_MAX_PT_IRQ_ENTRIES </p></li>
+<li><p><strong>!NULL</strong> – when the number of entries allocated is less than CONFIG_MAX_PT_IRQ_ENTRIES </p></li>
 </ul>
+</p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
 <dt id="c.ptirq_release_entry">
 <span class="target" id="group__acrn__passthrough_ga7431bb466468ae111721e6bac26b2870_1ga7431bb466468ae111721e6bac26b2870"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ptirq_release_entry</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">ptirq_remapping_info</span> <span class="pre">*</span><em><span class="pre">entry</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ptirq_release_entry" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Release a ptirq_remapping_info entry. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">entry</span></code>: the ptirq_remapping_info entry to release. </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entry</strong> – <strong>[in]</strong> the ptirq_remapping_info entry to release. </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
@@ -1390,12 +1417,15 @@ interrupt entries for post-launched VMs:</p>
 <p><dl class="simple">
 <dt><strong>Preconditions</strong></dt><dd><p>VM is already down </p>
 </dd>
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">vm</span></code>: acrn_vm on which the ptirq entries will be released</p></li>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vm</strong> – <strong>[in]</strong> acrn_vm on which the ptirq entries will be released</p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
@@ -1403,32 +1433,34 @@ interrupt entries for post-launched VMs:</p>
 <span class="target" id="group__acrn__passthrough_gaf47f3d6caec01ed87bba0b3b7b2bc729_1gaf47f3d6caec01ed87bba0b3b7b2bc729"></span><span class="pre">int32_t</span> <code class="sig-name descname"><span class="pre">ptirq_activate_entry</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">ptirq_remapping_info</span> <span class="pre">*</span><em><span class="pre">entry</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">phys_irq</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ptirq_activate_entry" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Activate a irq for the associated passthrough device. </p>
 <p>After activating the ptirq entry, the physical interrupt irq of passthrough device will be handled by the handler ptirq_interrupt_handler.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">entry</span></code>: the ptirq_remapping_info entry that will be associated with the physical irq. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">phys_irq</span></code>: physical interrupt irq for the entry</p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entry</strong> – <strong>[in]</strong> the ptirq_remapping_info entry that will be associated with the physical irq. </p></li>
+<li><p><strong>phys_irq</strong> – <strong>[in]</strong> physical interrupt irq for the entry</p></li>
 </ul>
 </dd>
-<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">success</span></code>: when return value &gt;=0 </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">failure</span></code>: when return value &lt; 0 </p></li>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>success</strong> – when return value &gt;=0 </p></li>
+<li><p><strong>failure</strong> – when return value &lt; 0 </p></li>
 </ul>
+</p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
 <dt id="c.ptirq_deactivate_entry">
 <span class="target" id="group__acrn__passthrough_ga2af2abdb38dac5c73d3b4158ee302bbe_1ga2af2abdb38dac5c73d3b4158ee302bbe"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">ptirq_deactivate_entry</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">struct</span></em> <span class="pre">ptirq_remapping_info</span> <span class="pre">*</span><em><span class="pre">entry</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ptirq_deactivate_entry" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>De-activate a irq for the associated passthrough device. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">entry</span></code>: the ptirq_remapping_info entry that will be de-activated. </p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entry</strong> – <strong>[in]</strong> the ptirq_remapping_info entry that will be de-activated. </p></li>
 </ul>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
@@ -1436,37 +1468,38 @@ interrupt entries for post-launched VMs:</p>
 <span class="target" id="group__acrn__passthrough_gaf6878738c1ab8a47232b05fd05d7f61b_1gaf6878738c1ab8a47232b05fd05d7f61b"></span><em class="property"><span class="pre">struct</span></em> <span class="pre">ptirq_remapping_info</span> <span class="pre">*</span><code class="sig-name descname"><span class="pre">ptirq_dequeue_softirq</span></code><span class="sig-paren">(</span><span class="pre">uint16_t</span> <em><span class="pre">pcpu_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ptirq_dequeue_softirq" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Dequeue an entry from per cpu ptdev softirq queue. </p>
 <p>Dequeue an entry from the ptdev softirq queue on the specific physical cpu.</p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">pcpu_id</span></code>: physical cpu id</p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pcpu_id</strong> – <strong>[in]</strong> physical cpu id</p></li>
 </ul>
 </dd>
-<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">NULL</span></code>: when the queue is empty </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">!NULL</span></code>: when there is available ptirq_remapping_info entry in the queue </p></li>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>NULL</strong> – when the queue is empty </p></li>
+<li><p><strong>!NULL</strong> – when there is available ptirq_remapping_info entry in the queue </p></li>
 </ul>
+</p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 <dl class="c function">
 <dt id="c.ptirq_get_intr_data">
 <span class="target" id="group__acrn__passthrough_gad6dce35a7aa78b0a2e02fae7f3594cfd_1gad6dce35a7aa78b0a2e02fae7f3594cfd"></span><span class="pre">uint32_t</span> <code class="sig-name descname"><span class="pre">ptirq_get_intr_data</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <em class="property"><span class="pre">struct</span></em> <span class="pre">acrn_vm</span> <span class="pre">*</span><em><span class="pre">target_vm</span></em>, <span class="pre">uint64_t</span> <span class="pre">*</span><em><span class="pre">buffer</span></em>, <span class="pre">uint32_t</span> <em><span class="pre">buffer_cnt</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.ptirq_get_intr_data" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the interrupt information and store to the buffer provided. </p>
-<p><dl class="simple">
-<dt><strong>Parameters</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">target_vm</span></code>: the VM to get the interrupt information. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[out]</span> <span class="pre">buffer</span></code>: where interrupt information is stored. </p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[in]</span> <span class="pre">buffer_cnt</span></code>: the size of the buffer.</p></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_vm</strong> – <strong>[in]</strong> the VM to get the interrupt information. </p></li>
+<li><p><strong>buffer</strong> – <strong>[out]</strong> where interrupt information is stored. </p></li>
+<li><p><strong>buffer_cnt</strong> – <strong>[in]</strong> the size of the buffer.</p></li>
 </ul>
 </dd>
-<dt><strong>Return Value</strong></dt><dd><ul class="breatheparameterlist simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">the</span></code>: actual size the buffer filled with the interrupt information </p></li>
-</ul>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>the</strong> – actual size the buffer filled with the interrupt information </p>
 </dd>
 </dl>
-</p>
 </dd></dl>
 
 </div>
@@ -1486,7 +1519,7 @@ interrupt entries for post-launched VMs:</p>
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Mar 20, 2022. Published on Aug 19, 2022</span>
+<span class="lastupdated">Last updated on Mar 20, 2022. Published on Aug 22, 2022</span>
 
   </div>
 
