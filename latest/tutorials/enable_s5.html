@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Enable S5 in ACRN &mdash; Project ACRN™ 3.1-unstable documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <title>Enable S5 &mdash; Project ACRN™ 3.1-unstable documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
       <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
@@ -320,12 +320,10 @@
 <li class="toctree-l4"><a class="reference internal" href="waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to Inject Secure Boot Keys Into OVMF</a></li>
 </ul>
 </li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Enable S5 in ACRN</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#s5-architecture">S5 Architecture</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id2">Enable S5</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#how-to-test">How to Test</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#system-shutdown">System Shutdown</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Enable S5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#about-system-s5-support">About System S5 Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-configuration">Example Configuration</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cpu_sharing.html">Enable CPU Sharing</a><ul>
@@ -606,7 +604,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.1.html">ACRN v3.1 (Sep 2022) Draft</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.1.html">ACRN v3.1 (Sep 2022)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.1.html#what-s-new-in-v3-1">What’s New in v3.1</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.1.html#upgrading-to-v3-1-from-previous-releases">Upgrading to v3.1 from Previous Releases</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.1.html#generate-new-board-xml">Generate New Board XML</a></li>
@@ -675,7 +673,7 @@
   
      <li><a href="../develop.html">Advanced Guides</a> &raquo;</li>
   
-  <li>Enable S5 in ACRN</li>
+  <li>Enable S5</li>
 
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/tutorials/enable_s5.rst.txt" rel="nofollow"> View page source</a>
@@ -696,391 +694,126 @@
   
            <div itemprop="articleBody">
              
-  <div class="section" id="enable-s5-in-acrn">
-<span id="enable-s5"></span><h1>Enable S5 in ACRN<a class="headerlink" href="#enable-s5-in-acrn" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>S5 is one of the <a class="reference external" href="http://acpi.sourceforge.net/documentation/sleep.html">ACPI sleep states</a>
-that refers to the system being shut down (although some power may still be
-supplied to certain devices). In this document, S5 means the function to
-shut down the <strong>User VMs</strong>, <strong>Service VM</strong>, the hypervisor, and the
-hardware. In most cases, directly powering off a computer
-system is not advisable because it can damage some components. It can cause
-corruption and put the system in an unknown or unstable state. On ACRN, the
-User VM must be shut down before powering off the Service VM. Especially for
-some use cases, where User VMs could be used in industrial control or other
-high safety requirement environment, a graceful system shutdown such as the
-ACRN S5 function is required.</p>
+  <div class="section" id="enable-s5">
+<span id="id1"></span><h1>Enable S5<a class="headerlink" href="#enable-s5" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="about-system-s5-support">
+<h2>About System S5 Support<a class="headerlink" href="#about-system-s5-support" title="Permalink to this headline">¶</a></h2>
+<p>S5 refers to the ACPI “soft off” system state. ACRN system S5 support enables
+you to gracefully shut down or reset the whole system when multiple VMs are
+running. This is done by requesting and waiting for all pre-launched and
+post-launched VMs to gracefully shut themselves down before the Service VM
+triggers a system-wide shutdown or reset.</p>
+<p>We recommend using ACRN system S5 support to shut down or reset a system unless
+you have other mechanisms in place to protect external storage from being
+corrupted by a mechanical off.</p>
 </div>
-<div class="section" id="s5-architecture">
-<h2>S5 Architecture<a class="headerlink" href="#s5-architecture" title="Permalink to this headline">¶</a></h2>
-<p>ACRN provides a mechanism to trigger the S5 state transition throughout the
-system. It uses a vUART channel to communicate between the Service VM and User
-VMs. The diagram below shows the overall architecture:</p>
-<div class="figure align-center" id="id1">
-<img alt="../_images/s5_overall_architecture.png" src="../_images/s5_overall_architecture.png" />
-<p class="caption"><span class="caption-number">Figure 20 </span><span class="caption-text">S5 Overall Architecture</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+<div class="section" id="dependencies-and-constraints">
+<h2>Dependencies and Constraints<a class="headerlink" href="#dependencies-and-constraints" title="Permalink to this headline">¶</a></h2>
+<p>Consider the following dependencies and constraints:</p>
+<ul class="simple">
+<li><p>ACRN system S5 support is hardware neutral but requires the deployment of a
+daemon (named Lifecycle Manager) in all VMs. The Lifecycle Manager manages
+power state transitions.</p></li>
+<li><p>The COM2 port is reserved for the Lifecycle Manager to communicate requests
+and responses. Console vUARTs and inter-VM UART connections should avoid using
+COM2 as an interface.</p></li>
+<li><p>The S5 feature needs a communication vUART to control a User VM. However, you
+don’t need to configure a vUART connection for S5 via the ACRN Configurator,
+because ACRN code already has a vUART connection between the Service VM and
+User VMs by default.</p></li>
+</ul>
 </div>
-<p><strong>vUART channel</strong>:</p>
-<p>The User VM’s serial port device (<code class="docutils literal notranslate"><span class="pre">/dev/ttySn</span></code>) is emulated in the
-hypervisor. The channel from the Service VM to the User VM:</p>
-<div class="graphviz"><img src="../_images/graphviz-05e883f8b8e2ee49ea6e8c5059b34078354b1ece.png" alt="digraph G {
-   node [shape=plaintext fontsize=12];
-   rankdir=LR;
-   bgcolor=&quot;transparent&quot;;
-   &quot;Service VM:/dev/ttyS8&quot; -&gt; &quot;ACRN hypervisor&quot; -&gt; &quot;User VM:/dev/ttyS1&quot; [arrowsize=.5];
-}" class="graphviz" /></div>
-<div class="section" id="lifecycle-manager-overview">
-<h3>Lifecycle Manager Overview<a class="headerlink" href="#lifecycle-manager-overview" title="Permalink to this headline">¶</a></h3>
-<p>As part of the S5 reference design, a Lifecycle Manager daemon (<code class="docutils literal notranslate"><span class="pre">life_mngr</span></code> in
-Linux, <code class="docutils literal notranslate"><span class="pre">life_mngr_win.exe</span></code> in Windows) runs in the Service VM and User VMs to
-implement S5. You can use the <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code> or
-<code class="docutils literal notranslate"><span class="pre">s5_trigger_win.py</span></code> script to initialize a system S5 in the Service VM or User
-VMs. The Lifecycle Manager in the Service VM and User VMs wait for the system S5
-request on the local socket port.</p>
-</div>
-<div class="section" id="initiate-a-system-s5-from-within-a-user-vm-e-g-hmi">
-<h3>Initiate a System S5 from within a User VM (e.g., HMI)<a class="headerlink" href="#initiate-a-system-s5-from-within-a-user-vm-e-g-hmi" title="Permalink to this headline">¶</a></h3>
-<p>As shown in <a class="reference internal" href="#id1"><span class="std std-numref">Figure 20</span></a>, a request to the Service VM initiates the
-shutdown flow. This request could come from a User VM, most likely the human
-machine interface (HMI) running Windows or Linux. When a human operator
-initiates the flow by running <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code> or <code class="docutils literal notranslate"><span class="pre">s5_trigger_win.py</span></code>,
-the Lifecycle Manager (<code class="docutils literal notranslate"><span class="pre">life_mngr</span></code>) running in that User VM sends the system
-S5 request via the vUART to the Lifecycle Manager in the Service VM which in
-turn acknowledges the request. The Lifecycle Manager in the Service VM sends a
-<code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request to each User VM. When the Lifecycle Manager in a User
-VM receives the <code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request, it sends <code class="docutils literal notranslate"><span class="pre">ack_poweroff</span></code> to the
-Service VM; then it shuts down the User VM. If a User VM is not ready to shut
-down, it can ignore the <code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The User VM needs to be authorized to be able to request a system S5.
-This is achieved by configuring  <code class="docutils literal notranslate"><span class="pre">ALLOW_TRIGGER_S5</span></code> in the Lifecycle
-Manager service configuration <code class="file docutils literal notranslate"><span class="pre">/etc/life_mngr.conf</span></code> in the Service VM.
-Only one User VM in the system can be configured to request a shutdown. If
-this configuration is wrong, the Lifecycle Manager of the Service VM rejects
-the system S5 request from the User VM. The following error message is
-recorded in the Lifecycle Manager log <code class="file docutils literal notranslate"><span class="pre">/var/log/life_mngr.log</span></code> of the
-Service VM: <code class="docutils literal notranslate"><span class="pre">The</span> <span class="pre">user</span> <span class="pre">VM</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">allowed</span> <span class="pre">to</span> <span class="pre">trigger</span> <span class="pre">system</span> <span class="pre">shutdown</span></code>.</p>
-</div>
-</div>
-<div class="section" id="initiate-a-system-s5-within-the-service-vm">
-<h3>Initiate a System S5 within the Service VM<a class="headerlink" href="#initiate-a-system-s5-within-the-service-vm" title="Permalink to this headline">¶</a></h3>
-<p>On the Service VM side, it uses the <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code> to trigger the
-system S5 flow. Then, the Lifecycle Manager in the Service VM sends a
-<code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request to the Lifecycle Manager in each User VM through the
-vUART channel. When the User VM receives this request, it sends an
-<code class="docutils literal notranslate"><span class="pre">ack_poweroff</span></code> to the Lifecycle Manager in the Service VM. The Service VM
-checks whether the User VMs shut down successfully or not, and decides when to
-shut itself down.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The Service VM is always allowed to trigger system S5 by default.</p>
-</div>
-</div>
-</div>
-<div class="section" id="id2">
-<span id="id3"></span><h2>Enable S5<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="example-configuration">
+<h2>Example Configuration<a class="headerlink" href="#example-configuration" title="Permalink to this headline">¶</a></h2>
+<p>The following steps show how to enable S5 by extending the information provided
+in the <a class="reference internal" href="../getting-started/getting-started.html#gsg"><span class="std std-ref">Getting Started Guide</span></a>. The scenario has a Service VM and one Ubuntu post-launched
+User VM.</p>
 <ol class="arabic">
-<li><p>Configure communication vUARTs for the Service VM and User VMs:</p>
-<p>Add these lines in the hypervisor scenario XML file manually:</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">VM0</span> <span class="o">*/</span>
-<span class="o">&lt;</span><span class="n">vm_type</span><span class="o">&gt;</span><span class="n">SERVICE_VM</span><span class="o">&lt;/</span><span class="n">vm_type</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="o">&lt;</span><span class="n">legacy_vuart</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">VUART_LEGACY_PIO</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">base</span><span class="o">&gt;</span><span class="n">CONFIG_COM_BASE</span><span class="o">&lt;/</span><span class="n">base</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">irq</span><span class="o">&gt;</span><span class="mi">0</span><span class="o">&lt;/</span><span class="n">irq</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">target_vm_id</span><span class="o">&gt;</span><span class="mi">1</span><span class="o">&lt;/</span><span class="n">target_vm_id</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">target_uart_id</span><span class="o">&gt;</span><span class="mi">1</span><span class="o">&lt;/</span><span class="n">target_uart_id</span><span class="o">&gt;</span>
-<span class="o">&lt;/</span><span class="n">legacy_vuart</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">legacy_vuart</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">VUART_LEGACY_PIO</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">base</span><span class="o">&gt;</span><span class="n">CONFIG_COM_BASE</span><span class="o">&lt;/</span><span class="n">base</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">irq</span><span class="o">&gt;</span><span class="mi">0</span><span class="o">&lt;/</span><span class="n">irq</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">target_vm_id</span><span class="o">&gt;</span><span class="mi">2</span><span class="o">&lt;/</span><span class="n">target_vm_id</span><span class="o">&gt;</span>
-  <span class="o">&lt;</span><span class="n">target_uart_id</span><span class="o">&gt;</span><span class="mi">2</span><span class="o">&lt;/</span><span class="n">target_uart_id</span><span class="o">&gt;</span>
-<span class="o">&lt;/</span><span class="n">legacy_vuart</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="o">/*</span> <span class="n">VM1</span> <span class="o">*/</span>
-<span class="o">&lt;</span><span class="n">vm_type</span><span class="o">&gt;</span><span class="n">POST_STD_VM</span><span class="o">&lt;/</span><span class="n">vm_type</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="o">&lt;</span><span class="n">legacy_vuart</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">VUART_LEGACY_PIO</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">base</span><span class="o">&gt;</span><span class="n">COM2_BASE</span><span class="o">&lt;/</span><span class="n">base</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">irq</span><span class="o">&gt;</span><span class="n">COM2_IRQ</span><span class="o">&lt;/</span><span class="n">irq</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">target_vm_id</span><span class="o">&gt;</span><span class="mi">0</span><span class="o">&lt;/</span><span class="n">target_vm_id</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">target_uart_id</span><span class="o">&gt;</span><span class="mi">1</span><span class="o">&lt;/</span><span class="n">target_uart_id</span><span class="o">&gt;</span>
-<span class="o">&lt;/</span><span class="n">legacy_vuart</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="o">/*</span> <span class="n">VM2</span> <span class="o">*/</span>
-<span class="o">&lt;</span><span class="n">vm_type</span><span class="o">&gt;</span><span class="n">POST_STD_VM</span><span class="o">&lt;/</span><span class="n">vm_type</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="o">&lt;</span><span class="n">legacy_vuart</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">VUART_LEGACY_PIO</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">base</span><span class="o">&gt;</span><span class="n">INVALID_COM_BASE</span><span class="o">&lt;/</span><span class="n">base</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">irq</span><span class="o">&gt;</span><span class="n">COM2_IRQ</span><span class="o">&lt;/</span><span class="n">irq</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">target_vm_id</span><span class="o">&gt;</span><span class="mi">0</span><span class="o">&lt;/</span><span class="n">target_vm_id</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">target_uart_id</span><span class="o">&gt;</span><span class="mi">2</span><span class="o">&lt;/</span><span class="n">target_uart_id</span><span class="o">&gt;</span>
-<span class="o">&lt;/</span><span class="n">legacy_vuart</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">legacy_vuart</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;2&quot;</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span><span class="n">VUART_LEGACY_PIO</span><span class="o">&lt;/</span><span class="nb">type</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">base</span><span class="o">&gt;</span><span class="n">COM2_BASE</span><span class="o">&lt;/</span><span class="n">base</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">irq</span><span class="o">&gt;</span><span class="n">COM2_IRQ</span><span class="o">&lt;/</span><span class="n">irq</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">target_vm_id</span><span class="o">&gt;</span><span class="mi">0</span><span class="o">&lt;/</span><span class="n">target_vm_id</span><span class="o">&gt;</span>
-   <span class="o">&lt;</span><span class="n">target_uart_id</span><span class="o">&gt;</span><span class="mi">2</span><span class="o">&lt;/</span><span class="n">target_uart_id</span><span class="o">&gt;</span>
-<span class="o">&lt;/</span><span class="n">legacy_vuart</span><span class="o">&gt;</span>
-<span class="o">...</span>
-<span class="o">/*</span> <span class="n">VM3</span> <span class="o">*/</span>
-<span class="o">...</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>These vUARTs are emulated in the hypervisor; expose the node as
-<code class="docutils literal notranslate"><span class="pre">/dev/ttySn</span></code>. For the User VM with the lowest VM ID, the communication
-vUART id should be 1. For other User VMs, the vUART (id is 1) should be
-configured as invalid; the communication vUART id should be 2 or higher.</p>
-</div>
-</li>
-<li><p>Build the Lifecycle Manager daemon, <code class="docutils literal notranslate"><span class="pre">life_mngr</span></code>:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd acrn-hypervisor
-make life_mngr
-</pre></div>
-</div>
-</li>
-<li><p>For the Service VM, LaaG VM, and RT-Linux VM, run the Lifecycle Manager
-daemon:</p>
-<ol class="loweralpha">
-<li><p>Copy <code class="docutils literal notranslate"><span class="pre">life_mngr.conf</span></code>, <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code>, <code class="docutils literal notranslate"><span class="pre">life_mngr</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">life_mngr.service</span></code> into the Service VM and User VMs. These commands
-assume you have a network connection between the development computer and
-target. You can also use a USB stick to transfer files.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>scp build/misc/services/s5_trigger_linux.py root@&lt;target board address&gt;:~/
-scp build/misc/services/life_mngr root@&lt;target board address&gt;:/usr/bin/
-scp build/misc/services/life_mngr.conf root@&lt;target board address&gt;:/etc/life_mngr/
-scp build/misc/services/life_mngr.service root@&lt;target board address&gt;:/lib/systemd/system/
-</pre></div>
-</div>
-</li>
-<li><p>Copy <code class="docutils literal notranslate"><span class="pre">user_vm_shutdown.py</span></code> into the Service VM.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>scp misc/services/life_mngr/user_vm_shutdown.py root@&lt;target board address&gt;:~/
-</pre></div>
-</div>
-</li>
-<li><p>Edit options in <code class="docutils literal notranslate"><span class="pre">/etc/life_mngr/life_mngr.conf</span></code> in the Service VM.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>VM_TYPE=service_vm
-VM_NAME=Service_VM
-DEV_NAME=tty:/dev/ttyS8,/dev/ttyS9,/dev/ttyS10,/dev/ttyS11,/dev/ttyS12,/dev/ttyS13,/dev/ttyS14
-ALLOW_TRIGGER_S5=/dev/ttySn
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The mapping between User VM ID and communication serial device
-name (<code class="docutils literal notranslate"><span class="pre">/dev/ttySn</span></code>) is in the <code class="file docutils literal notranslate"><span class="pre">/etc/serial.conf</span></code>. If
-<code class="docutils literal notranslate"><span class="pre">/dev/ttySn</span></code> is configured in the  <code class="docutils literal notranslate"><span class="pre">ALLOW_TRIGGER_S5</span></code>, this means
-system shutdown is allowed to be triggered in the corresponding User
-VM.</p>
-</div>
-</li>
-<li><p>Edit options in <code class="docutils literal notranslate"><span class="pre">/etc/life_mngr/life_mngr.conf</span></code> in the User VM.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>VM_TYPE=user_vm
-VM_NAME=&lt;User VM name&gt;
-DEV_NAME=tty:/dev/ttyS1
-#ALLOW_TRIGGER_S5=/dev/ttySn
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The User VM name in this configuration file should be
-consistent with the VM name in the launch script for the Post-launched
-User VM or the VM name which is specified in the hypervisor scenario
-XML for the Pre-launched User VM.</p>
-</div>
-</li>
-<li><p>Use the following commands to enable <code class="docutils literal notranslate"><span class="pre">life_mngr.service</span></code> and restart the Service VM and User VMs.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo chmod +x /usr/bin/life_mngr
-sudo systemctl enable life_mngr.service
-sudo reboot
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For the Pre-launched User VM, restart the Lifecycle Manager
-service manually after the Lifecycle Manager in the Service VM starts.</p>
-</div>
-</li>
-</ol>
-</li>
-<li><p>For the WaaG VM, run the Lifecycle Manager daemon:</p>
-<ol class="loweralpha">
-<li><p>Build the <code class="docutils literal notranslate"><span class="pre">life_mngr_win.exe</span></code> application and <code class="docutils literal notranslate"><span class="pre">s5_trigger_win.py</span></code>:</p>
+<li><p>On the development computer, build the Lifecycle Manager daemon:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span>
 <span class="n">make</span> <span class="n">life_mngr</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If there is no <code class="docutils literal notranslate"><span class="pre">x86_64-w64-mingw32-gcc</span></code> compiler, you can run
-<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">apt</span> <span class="pre">install</span> <span class="pre">gcc-mingw-w64-x86-64</span></code> on Ubuntu to install it.</p>
-</div>
+<p>The build generates files in the <code class="docutils literal notranslate"><span class="pre">build/misc/services/life_mngr</span></code> directory.</p>
 </li>
-<li><p>Copy <code class="docutils literal notranslate"><span class="pre">s5_trigger_win.py</span></code> into the WaaG VM.</p></li>
-<li><p>Set up a Windows environment:</p>
-<ol class="arabic">
-<li><p>Download the Python3 from <a class="reference external" href="https://www.python.org/downloads/release/python-3810/">https://www.python.org/downloads/release/python-3810/</a>, install
-“Python 3.8.10” in WaaG.</p></li>
-<li><p>If the Lifecycle Manager for WaaG will be built in Windows,
-download the Visual Studio 2019 tool from
-<a class="reference external" href="https://visualstudio.microsoft.com/downloads/">https://visualstudio.microsoft.com/downloads/</a>, and choose the two
-options in the below screenshots to install “Microsoft Visual C++
-Redistributable for Visual Studio 2015, 2017 and 2019 (x86 or X64)” in
-WaaG:</p>
-<div class="figure align-default">
-<img alt="../_images/Microsoft-Visual-C-install-option-1.png" src="../_images/Microsoft-Visual-C-install-option-1.png" />
-</div>
-<div class="figure align-default">
-<img alt="../_images/Microsoft-Visual-C-install-option-2.png" src="../_images/Microsoft-Visual-C-install-option-2.png" />
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If the Lifecycle Manager for WaaG is built in Linux, the
-Visual Studio 2019 tool is not needed for WaaG.</p>
-</div>
-</li>
-<li><p>In WaaG, use the <kbd class="kbd docutils literal notranslate">Windows</kbd> + <kbd class="kbd docutils literal notranslate">R</kbd> shortcut key, input
-<code class="docutils literal notranslate"><span class="pre">shell:startup</span></code>, click <kbd class="kbd docutils literal notranslate">OK</kbd> and then copy the
-<code class="docutils literal notranslate"><span class="pre">life_mngr_win.exe</span></code> application into this directory.</p>
-<div class="figure align-default">
-<img alt="../_images/run-shell-startup.png" src="../_images/run-shell-startup.png" />
-</div>
-<div class="figure align-default">
-<img alt="../_images/launch-startup.png" src="../_images/launch-startup.png" />
-</div>
-</li>
-</ol>
-</li>
-<li><p>Restart the WaaG VM. The COM2 window will automatically open after reboot.</p>
-<div class="figure align-default">
-<img alt="../_images/open-com-success.png" src="../_images/open-com-success.png" />
-</div>
-</li>
-</ol>
-</li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code> is run in the Service VM, the Service VM shuts
-down (transitioning to the S5 state) and sends a poweroff request to shut down the User VMs.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>S5 state is not automatically triggered by a Service VM shutdown;
-you need to run <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code> in the Service VM.</p>
-</div>
-</li>
-</ol>
-</div>
-<div class="section" id="how-to-test">
-<h2>How to Test<a class="headerlink" href="#how-to-test" title="Permalink to this headline">¶</a></h2>
-<p>As described in <a class="reference internal" href="vuart_configuration.html#vuart-config"><span class="std std-ref">Enable vUART Configurations</span></a>, two vUARTs are defined for a User VM in
-pre-defined ACRN scenarios: <code class="docutils literal notranslate"><span class="pre">vUART0/ttyS0</span></code> for the console and
-<code class="docutils literal notranslate"><span class="pre">vUART1/ttyS1</span></code> for S5-related communication (as shown in
-<a class="reference internal" href="#id1"><span class="std std-ref">S5 Overall Architecture</span></a>).</p>
-<p>For Yocto Project (Poky) or Ubuntu rootfs, the <code class="docutils literal notranslate"><span class="pre">serial-getty</span></code>
-service for <code class="docutils literal notranslate"><span class="pre">ttyS1</span></code> conflicts with the S5-related communication
-use of <code class="docutils literal notranslate"><span class="pre">vUART1</span></code>. We can eliminate the conflict by preventing
-that service from being started
-either automatically or manually, by masking the service
-using this command:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">systemctl</span> <span class="n">mask</span> <span class="n">serial</span><span class="o">-</span><span class="n">getty</span><span class="nd">@ttyS1</span><span class="o">.</span><span class="n">service</span>
+<li><p>Copy <code class="docutils literal notranslate"><span class="pre">life_mngr.conf</span></code>, <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code>, <code class="docutils literal notranslate"><span class="pre">life_mngr</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">life_mngr.service</span></code> into the Service VM and User VM.</p>
+<p>These commands assume you have a network connection between the development
+computer and target system. You can also use a USB stick to transfer files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scp build/misc/services/s5_trigger_linux.py acrn@&lt;target board address&gt;:~/
+scp build/misc/services/life_mngr acrn@&lt;target board address&gt;:~/
+scp build/misc/services/life_mngr.service acrn@&lt;target board address&gt;:~/
+scp build/misc/services/life_mngr.conf acrn@&lt;target board address&gt;:~/
 </pre></div>
 </div>
-<ol class="arabic">
-<li><p>Refer to the <a class="reference internal" href="#id2"><span class="std std-ref">Enable S5</span></a> section to set up the S5 environment for the
-User VMs.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Use the <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">status</span> <span class="pre">life_mngr.service</span></code> command to ensure
-the service is working on the LaaG or RT-Linux:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">* life_mngr.service - ACRN lifemngr daemon</span>
-<span class="go">Loaded: loaded (/lib/systemd/system/life_mngr.service; enabled; vendor preset: enabled)</span>
-<span class="go">Active: active (running) since Thu 2021-11-11 12:43:53 CST; 36s ago</span>
-<span class="go">Main PID: 197397 (life_mngr)</span>
+<p>Log in to the target system and run the following commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">mkdir</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">life_mngr</span>
+<span class="n">sudo</span> <span class="n">mv</span> <span class="o">~/</span><span class="n">life_mngr</span><span class="o">.</span><span class="n">conf</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">life_mngr</span><span class="o">/</span>
+<span class="n">sudo</span> <span class="n">mv</span> <span class="o">~/</span><span class="n">life_mngr</span><span class="o">.</span><span class="n">service</span> <span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">systemd</span><span class="o">/</span><span class="n">system</span><span class="o">/</span>
+<span class="n">sudo</span> <span class="n">mv</span> <span class="o">~/</span><span class="n">life_mngr</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span>
 </pre></div>
-</div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For WaaG, you need to close <code class="docutils literal notranslate"><span class="pre">windbg</span></code> by using the
-<code class="docutils literal notranslate"><span class="pre">bcdedit</span> <span class="pre">/set</span> <span class="pre">debug</span> <span class="pre">off</span></code> command IF you executed the <code class="docutils literal notranslate"><span class="pre">bcdedit</span> <span class="pre">/set</span>
-<span class="pre">debug</span> <span class="pre">on</span></code> command when you set up the WaaG, because it occupies the
-<code class="docutils literal notranslate"><span class="pre">COM2</span></code>.</p>
 </div>
 </li>
-<li><p>Run <code class="docutils literal notranslate"><span class="pre">user_vm_shutdown.py</span></code> in the Service VM to shut down the User VMs:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo python3 ~/user_vm_shutdown.py &lt;User VM name&gt;
+<li><p>Copy <code class="docutils literal notranslate"><span class="pre">user_vm_shutdown.py</span></code> from the development computer into the Service
+VM:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scp</span> <span class="n">misc</span><span class="o">/</span><span class="n">services</span><span class="o">/</span><span class="n">life_mngr</span><span class="o">/</span><span class="n">user_vm_shutdown</span><span class="o">.</span><span class="n">py</span> <span class="n">acrn</span><span class="o">@&lt;</span><span class="n">target</span> <span class="n">board</span> <span class="n">address</span><span class="o">&gt;</span><span class="p">:</span><span class="o">~/</span>
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The User VM name is configured in the <code class="file docutils literal notranslate"><span class="pre">life_mngr.conf</span></code> of
-the User VM. For the WaaG VM, the User VM name is “windows”.</p>
 </div>
 </li>
-<li><p>Run the <code class="docutils literal notranslate"><span class="pre">acrnctl</span> <span class="pre">list</span></code> command to check the User VM status.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sudo acrnctl list
+<li><p>ACRN code sets the COM2 (<code class="docutils literal notranslate"><span class="pre">/dev/ttyS1</span></code>) as the default communication port of
+the User VM, so we need only check the S5 vUART of the Service VM. Use the
+following steps to get the Service VM S5 connection information.</p>
+<p>Log in to the Service VM and run the command <code class="docutils literal notranslate"><span class="pre">cat</span> <span class="pre">/etc/serial.conf</span></code> to get
+the connection information between the Service VM and User VM. Output
+example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp"># </span>User_VM_id: <span class="m">1</span>
+<span class="go">/dev/ttyS8 port 0X9008 irq 0 uart 16550A baud_base 115200</span>
 </pre></div>
 </div>
-<p>Output example:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">&lt;User VM name&gt;            stopped</span>
+<p>This example means the Service VM uses the <code class="docutils literal notranslate"><span class="pre">/dev/ttyS8</span></code> connection to the
+User VM’s <code class="docutils literal notranslate"><span class="pre">/dev/ttyS1</span></code>.</p>
+</li>
+<li><p>Configure the S5 feature:</p>
+<ol class="loweralpha">
+<li><p>In the Service VM, edit the following options in
+<code class="docutils literal notranslate"><span class="pre">/etc/life_mngr/life_mngr.conf</span></code>. Make sure <code class="docutils literal notranslate"><span class="pre">VM_NAME</span></code> is the Service VM
+name specified in the ACRN Configurator. Replace <code class="docutils literal notranslate"><span class="pre">/dev/ttyS8</span></code> with your
+Service VM’s S5 vUART, if it was different from the example in the
+previous step.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">VM_TYPE</span><span class="o">=</span>service_vm
+<span class="nv">VM_NAME</span><span class="o">=</span> ACRN_Service_VM
+<span class="nv">DEV_NAME</span><span class="o">=</span>tty:/dev/ttyS8
+<span class="nv">ALLOW_TRIGGER_S5</span><span class="o">=</span>/dev/ttySn
+</pre></div>
+</div>
+</li>
+<li><p>In the User VM, edit the following options in
+<code class="docutils literal notranslate"><span class="pre">/etc/life_mngr/life_mngr.conf</span></code>. Replace <code class="docutils literal notranslate"><span class="pre">&lt;User</span> <span class="pre">VM</span> <span class="pre">name&gt;</span></code> with the
+VM name specified in the ACRN Configurator.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">VM_TYPE</span><span class="o">=</span>user_vm
+<span class="nv">VM_NAME</span><span class="o">=</span>&lt;User VM name&gt;
+<span class="nv">DEV_NAME</span><span class="o">=</span>tty:/dev/ttyS1
+<span class="nv">ALLOW_TRIGGER_S5</span><span class="o">=</span>/dev/ttySn
 </pre></div>
 </div>
 </li>
 </ol>
+</li>
+<li><p>Enable <code class="docutils literal notranslate"><span class="pre">life_mngr.service</span></code> and restart the Service VM and User VM:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">chmod</span> <span class="o">+</span><span class="n">x</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">life_mngr</span>
+<span class="n">sudo</span> <span class="n">systemctl</span> <span class="n">enable</span> <span class="n">life_mngr</span><span class="o">.</span><span class="n">service</span>
+<span class="n">sudo</span> <span class="n">reboot</span>
+</pre></div>
 </div>
-<div class="section" id="system-shutdown">
-<h2>System Shutdown<a class="headerlink" href="#system-shutdown" title="Permalink to this headline">¶</a></h2>
-<p>Using a coordinating script, <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code> or <code class="docutils literal notranslate"><span class="pre">s5_trigger_win.py</span></code>,
-in conjunction with the Lifecycle Manager in each VM, graceful system shutdown
-can be performed.</p>
-<p>In the <code class="docutils literal notranslate"><span class="pre">hybrid_rt</span></code> scenario, operator can use the script to send a system
-shutdown request via <code class="docutils literal notranslate"><span class="pre">/var/lib/life_mngr/monitor.sock</span></code> to a User VM that is
-configured to be allowed to trigger system S5. This system shutdown request is
-forwarded to the Service VM. The Service VM sends a poweroff request to each
-User VM (Pre-launched VM or Post-launched VM) through vUART. The Lifecycle
-Manager in the User VM receives the poweroff request, sends an ack message, and
-proceeds to shut itself down accordingly.</p>
-<div class="figure align-center" id="id4">
-<img alt="../_images/system_shutdown.png" src="../_images/system_shutdown.png" />
-<p class="caption"><span class="caption-number">Figure 21 </span><span class="caption-text">Graceful System Shutdown Flow</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
-</div>
-<ol class="arabic simple">
-<li><p>The HMI in the Windows User VM uses <code class="docutils literal notranslate"><span class="pre">s5_trigger_win.py</span></code> to send a
-system shutdown request to the Lifecycle Manager. The Lifecycle Manager
-forwards this request to the Lifecycle Manager in the Service VM.</p></li>
-<li><p>The Lifecycle Manager in the Service VM responds with an ack message and
-sends a <code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request to the Windows User VM.</p></li>
-<li><p>After receiving the <code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request, the Lifecycle Manager in the
-Windows User VM responds with an ack message, then shuts down the VM.</p></li>
-<li><p>The Lifecycle Manager in the Service VM sends a <code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request to
-the Linux User VM.</p></li>
-<li><p>After receiving the <code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request, the Lifecycle Manager in the
-Linux User VM responds with an ack message, then shuts down the VM.</p></li>
-<li><p>The Lifecycle Manager in the Service VM sends a <code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request to
-the Pre-launched RTVM.</p></li>
-<li><p>After receiving the <code class="docutils literal notranslate"><span class="pre">poweroff_cmd</span></code> request, the Lifecycle Manager in
-the Pre-launched RTVM responds with an ack message.</p></li>
-<li><p>The Lifecycle Manager in the Pre-launched RTVM shuts down the VM using
-ACPI PM registers.</p></li>
-<li><p>After receiving the ack message from all User VMs, the Lifecycle Manager
-in the Service VM shuts down the VM.</p></li>
-<li><p>The hypervisor shuts down the system after all VMs have shut down.</p></li>
+</li>
+<li><p>To trigger a system S5, run <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code> in the Service VM.
+The Service VM shuts down (transitioning to the S5 state) and sends a
+poweroff request to shut down the User VM.</p></li>
 </ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If one or more virtual functions (VFs) of a SR-IOV device, e.g., GPU
-on Alder Lake platform, are assigned to User VMs, take extra steps to disable
-all VFs before the Service VM shuts down. Otherwise, the Service VM may fail
-to shut down due to some enabled VFs.</p>
+<p>The S5 state is not automatically triggered by a Service VM shutdown; you
+need to run <code class="docutils literal notranslate"><span class="pre">s5_trigger_linux.py</span></code> in the Service VM.</p>
 </div>
 </div>
 </div>
@@ -1099,7 +832,7 @@ to shut down due to some enabled VFs.</p>
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Feb 28, 2022. Published on Sep 21, 2022</span>
+<span class="lastupdated">Last updated on Sep 23, 2022. Published on Sep 23, 2022</span>
 
   </div>
 
