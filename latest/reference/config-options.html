@@ -270,6 +270,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#sgx-enclave-page-cache">SGX Enclave Page Cache</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#os-configuration">OS Configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#mmio-resources">MMIO Resources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#virtio-gpu-device">Virtio GPU device</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#virtio-console-device">Virtio console device</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#virtio-network-device">Virtio network device</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#virtio-input-device">Virtio input device</a></li>
@@ -739,9 +740,14 @@ ACRN-based application.  This document describes these option settings.</p>
 <li><p><a class="reference internal" href="#sgx-enclave-page-cache" id="id17">SGX Enclave Page Cache</a></p></li>
 <li><p><a class="reference internal" href="#os-configuration" id="id18">OS Configuration</a></p></li>
 <li><p><a class="reference internal" href="#mmio-resources" id="id19">MMIO Resources</a></p></li>
-<li><p><a class="reference internal" href="#virtio-console-device" id="id20">Virtio console device</a></p></li>
-<li><p><a class="reference internal" href="#virtio-network-device" id="id21">Virtio network device</a></p></li>
-<li><p><a class="reference internal" href="#virtio-input-device" id="id22">Virtio input device</a></p></li>
+<li><p><a class="reference internal" href="#virtio-gpu-device" id="id20">Virtio GPU device</a></p>
+<ul>
+<li><p><a class="reference internal" href="#displays" id="id21">displays</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#virtio-console-device" id="id22">Virtio console device</a></p></li>
+<li><p><a class="reference internal" href="#virtio-network-device" id="id23">Virtio network device</a></p></li>
+<li><p><a class="reference internal" href="#virtio-input-device" id="id24">Virtio input device</a></p></li>
 </ul>
 </div>
 <section id="common-option-value-types">
@@ -925,19 +931,19 @@ SMBIOS to a pre-launched security VM.</p></li>
 <span id="hypervisor-options-inter-vm-shared-memory-ivshmem-region"></span><h4>IVSHMEM_REGION<a class="headerlink" href="#ivshmem-region" title="Permalink to this heading">¶</a></h4>
 <p>Create a memory region for VMs to share: specify its name, size, and associated VMs.</p>
 <dl class="glossary simple">
-<dt id="term-Region-Name">Region Name<a class="headerlink" href="#term-Region-Name" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Region-Name">Region Name<a class="headerlink" href="#term-Region-Name" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Name of the shared memory region. The name must be between 1-27 characters and contain only letters, digits and “_”.</p></li>
 <li><p>Must be 1-27 characters and only letters, digits and “_”.</p></li>
 </ul>
 </dd>
-<dt id="term-Emulated-by">Emulated by<a class="headerlink" href="#term-Emulated-by" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Emulated-by">Emulated by<a class="headerlink" href="#term-Emulated-by" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Whether the shared memory region is emulated by the hypervisor or Device Model. (Default value is <code class="docutils literal notranslate"><span class="pre">Hypervisor</span></code>)</p></li>
 <li><p>A string with value <code class="docutils literal notranslate"><span class="pre">Hypervisor</span></code> or <code class="docutils literal notranslate"><span class="pre">Device</span> <span class="pre">Model</span></code>.</p></li>
 </ul>
 </dd>
-<dt id="term-Region-Size-MB">Region Size (MB)<a class="headerlink" href="#term-Region-Size-MB" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Region-Size-MB">Region Size (MB)<a class="headerlink" href="#term-Region-Size-MB" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Select the size of the shared memory region
 in megabytes. The value should be a power of 2
@@ -945,13 +951,13 @@ and no more than 512. (Default value is <code class="docutils literal notranslat
 <li><p>An Integer with value a power of 2 between 2 and 512.</p></li>
 </ul>
 </dd>
-<dt id="term-Shared-VMs">Shared VMs<a class="headerlink" href="#term-Shared-VMs" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Shared-VMs">Shared VMs<a class="headerlink" href="#term-Shared-VMs" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Name of the VM that uses this shared memory region.</p></li>
 <li><p>A string of up to 15 letters, digits, <code class="docutils literal notranslate"><span class="pre">_</span></code>, or <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p></li>
 </ul>
 </dd>
-<dt id="term-Virtual-BDF">Virtual BDF<a class="headerlink" href="#term-Virtual-BDF" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Virtual-BDF">Virtual BDF<a class="headerlink" href="#term-Virtual-BDF" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Virtual BDF (Bus Device Function) is automatically assigned and can be changed if needed. Set in Hex.</p></li>
 <li><p>A string with up to two hex digits, a <code class="docutils literal notranslate"><span class="pre">:</span></code>, two hex digits, a <code class="docutils literal notranslate"><span class="pre">.</span></code>, and one digit between 0-7.</p></li>
@@ -986,13 +992,13 @@ and no more than 512. (Default value is <code class="docutils literal notranslat
 <section id="vuart-connection">
 <span id="hypervisor-options-inter-vm-virtual-uart-connection-vuart-connection"></span><h3><a class="toc-backref" href="#id7">vuart_connection</a><a class="headerlink" href="#vuart-connection" title="Permalink to this heading">¶</a></h3>
 <dl class="glossary simple">
-<dt id="term-vUART-name">vUART name<a class="headerlink" href="#term-vUART-name" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-vUART-name">vUART name<a class="headerlink" href="#term-vUART-name" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Specify the vUART name.</p></li>
 <li><p>String value</p></li>
 </ul>
 </dd>
-<dt id="term-vUART-Type">vUART Type<a class="headerlink" href="#term-vUART-Type" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-vUART-Type">vUART Type<a class="headerlink" href="#term-vUART-Type" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Select the communication virtual UART (vUART) type. (Default value is <code class="docutils literal notranslate"><span class="pre">pci</span></code>)</p></li>
 <li><p>A string with value: <code class="docutils literal notranslate"><span class="pre">legacy</span></code> or <code class="docutils literal notranslate"><span class="pre">pci</span></code>.</p></li>
@@ -1002,19 +1008,19 @@ and no more than 512. (Default value is <code class="docutils literal notranslat
 <section id="virtual-uart-port">
 <span id="hypervisor-options-inter-vm-virtual-uart-connection-vuart-connection-virtual-uart-port"></span><h4>Virtual UART port<a class="headerlink" href="#virtual-uart-port" title="Permalink to this heading">¶</a></h4>
 <dl class="glossary simple">
-<dt id="term-vUART-VM-name">vUART VM name<a class="headerlink" href="#term-vUART-VM-name" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-vUART-VM-name">vUART VM name<a class="headerlink" href="#term-vUART-VM-name" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Specify the VM name of one end point for this vUART connection.</p></li>
 <li><p>String value</p></li>
 </ul>
 </dd>
-<dt id="term-Virtual-I-O-address">Virtual I/O address<a class="headerlink" href="#term-Virtual-I-O-address" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Virtual-I-O-address">Virtual I/O address<a class="headerlink" href="#term-Virtual-I-O-address" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Specify the COM base for each legacy virtual UART.</p></li>
 <li><p>An Integer value in hexadecimal format (with a leading <code class="docutils literal notranslate"><span class="pre">0x</span></code>).</p></li>
 </ul>
 </dd>
-<dt id="term-Virtual-UART-BDF">Virtual UART BDF<a class="headerlink" href="#term-Virtual-UART-BDF" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Virtual-UART-BDF">Virtual UART BDF<a class="headerlink" href="#term-Virtual-UART-BDF" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Specify the virtual Bus:Device.Function (BDF) for each PCI virtual UART. Virtual BDF is automatically assigned when the configuration is saved and can be changed if needed.</p></li>
 <li><p>A string with up to two hex digits, a <code class="docutils literal notranslate"><span class="pre">:</span></code>, two hex digits, a <code class="docutils literal notranslate"><span class="pre">.</span></code>, and one digit between 0-7.</p></li>
@@ -1138,13 +1144,13 @@ higher value (lower severity) are discarded.</p>
 <section id="cache-allocation">
 <span id="hypervisor-options-cache-region-cache-allocation"></span><h3><a class="toc-backref" href="#id12">CACHE_ALLOCATION</a><a class="headerlink" href="#cache-allocation" title="Permalink to this heading">¶</a></h3>
 <dl class="glossary simple">
-<dt id="term-Cache-ID">Cache ID<a class="headerlink" href="#term-Cache-ID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Cache-ID">Cache ID<a class="headerlink" href="#term-Cache-ID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
 <ul class="simple">
 <li><p>The Cache Region index</p></li>
 <li><p>An Integer value in hexadecimal format (with a leading <code class="docutils literal notranslate"><span class="pre">0x</span></code>).</p></li>
 </ul>
 </dd>
-<dt id="term-Cache-Level">Cache Level<a class="headerlink" href="#term-Cache-Level" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Cache-Level">Cache Level<a class="headerlink" href="#term-Cache-Level" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
 <ul class="simple">
 <li><p>The Cache Region Level</p></li>
 <li><p>Integer value</p></li>
@@ -1154,25 +1160,25 @@ higher value (lower severity) are discarded.</p>
 <section id="policy">
 <span id="hypervisor-options-cache-region-cache-allocation-policy"></span><h4>POLICY<a class="headerlink" href="#policy" title="Permalink to this heading">¶</a></h4>
 <dl class="glossary simple">
-<dt id="term-VM-Name">VM Name<a class="headerlink" href="#term-VM-Name" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-VM-Name">VM Name<a class="headerlink" href="#term-VM-Name" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
 <ul class="simple">
 <li><p>The Name of VM</p></li>
 <li><p>String value</p></li>
 </ul>
 </dd>
-<dt id="term-Virtual-CPU-ID">Virtual CPU ID<a class="headerlink" href="#term-Virtual-CPU-ID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Virtual-CPU-ID">Virtual CPU ID<a class="headerlink" href="#term-Virtual-CPU-ID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
 <ul class="simple">
 <li><p>The Virtual CPU index of VM</p></li>
 <li><p>Integer value</p></li>
 </ul>
 </dd>
-<dt id="term-Cache-Type">Cache Type<a class="headerlink" href="#term-Cache-Type" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Cache-Type">Cache Type<a class="headerlink" href="#term-Cache-Type" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
 <ul class="simple">
 <li><p>The Type of Cache Region</p></li>
 <li><p>Option: Unified, Code, Data</p></li>
 </ul>
 </dd>
-<dt id="term-Cache-CLOS-Mask">Cache CLOS Mask<a class="headerlink" href="#term-Cache-CLOS-Mask" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Cache-CLOS-Mask">Cache CLOS Mask<a class="headerlink" href="#term-Cache-CLOS-Mask" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on the Configurator's Hypervisor Global Settings tab" src="../_images/Hypervisor.png" /> / <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
 <ul class="simple">
 <li><p>The Cache Region Mask</p></li>
 <li><p>An Integer value in hexadecimal format (with a leading <code class="docutils literal notranslate"><span class="pre">0x</span></code>).</p></li>
@@ -1269,13 +1275,13 @@ The size is a subset of the VM’s total memory size specified on the Basic tab.
 <span id="virtual-machine-options-physical-cpu-affinity-pcpu-list"></span><h3><a class="toc-backref" href="#id16">pCPU list</a><a class="headerlink" href="#pcpu-list" title="Permalink to this heading">¶</a></h3>
 <p>List of pCPU affinities.</p>
 <dl class="glossary">
-<dt id="term-pCPU-ID">pCPU ID<a class="headerlink" href="#term-pCPU-ID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-pCPU-ID">pCPU ID<a class="headerlink" href="#term-pCPU-ID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>ID of the pCPU that this VM’s vCPU is allowed to pin to.</p></li>
 <li><p>Integer value</p></li>
 </ul>
 </dd>
-<dt id="term-Real-time-vCPU">Real-time vCPU<a class="headerlink" href="#term-Real-time-vCPU" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /> <img alt="Find this option on the Configurator's Advanced Parameters tab" src="../_images/Advanced.png" /></p>
+<dt id="term-Real-time-vCPU">Real-time vCPU<a class="headerlink" href="#term-Real-time-vCPU" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul>
 <li><p>Check “Real-time vCPU” for each vCPU used for real-time workloads. Then configure cache usage in the Hypervisor/Advanced/Cache Allocation Technology (CAT) configuration option. There you’ll see Real-time vCPUs separated from vCPUs you allocate to other tasks. (Default value is <code class="docutils literal notranslate"><span class="pre">n</span></code>)</p>
 <p>See <a class="reference internal" href="../tutorials/rdt_configuration.html#rdt-configuration"><span class="std std-ref">Enable Intel Resource Director Technology (RDT) Configurations</span></a> for more details.</p>
@@ -1406,17 +1412,57 @@ argument and memory.</p>
 <li><p>String value</p></li>
 </ul>
 </dd>
-<dt id="term-Virtio-GPU-device">Virtio GPU device<a class="headerlink" href="#term-Virtio-GPU-device" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
+</dl>
+</section>
+<section id="virtio-gpu-device">
+<span id="virtual-machine-options-virtio-gpu-device"></span><h2><a class="toc-backref" href="#id20">Virtio GPU device</a><a class="headerlink" href="#virtio-gpu-device" title="Permalink to this heading">¶</a></h2>
+<p>The virtio GPU device presents a GPU device to the VM.
+This feature enables you to view the VM’s GPU output in the Service VM.</p>
+<dl class="glossary simple">
+<dt id="term-Display-type">Display type<a class="headerlink" href="#term-Display-type" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
-<li><p>The virtio GPU device presents a GPU device to the VM.
-This feature enables you to view the VM’s GPU output in the Service VM.</p></li>
-<li><p>String value</p></li>
+<li><p>Display type provide virtual display for user vm with either full screen mode or virtual window mode.</p></li>
+<li><p>A string with value: <code class="docutils literal notranslate"><span class="pre">Window</span></code> and <code class="docutils literal notranslate"><span class="pre">Full</span> <span class="pre">screen</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<section id="displays">
+<span id="virtual-machine-options-virtio-gpu-device-displays"></span><h3><a class="toc-backref" href="#id21">displays</a><a class="headerlink" href="#displays" title="Permalink to this heading">¶</a></h3>
+<dl class="glossary simple">
+</dl>
+<section id="display">
+<span id="virtual-machine-options-virtio-gpu-device-displays-display"></span><h4>display<a class="headerlink" href="#display" title="Permalink to this heading">¶</a></h4>
+<dl class="glossary simple">
+<dt id="term-Monitor-ID">Monitor ID<a class="headerlink" href="#term-Monitor-ID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
+<ul class="simple">
+<li><p>Monitor id specifies which physical monitor the virtual display locates in full screen mode.</p></li>
+<li><p>Integer value</p></li>
+</ul>
+</dd>
+<dt id="term-Window-resolutions">Window resolutions<a class="headerlink" href="#term-Window-resolutions" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
+<ul class="simple">
+<li><p>Windows resolution specifies the virtual window size of user vm.</p></li>
+<li><p>Values of display window resolutions.</p></li>
+</ul>
+</dd>
+<dt id="term-Horizontal-offset-pixels">Horizontal offset (pixels)<a class="headerlink" href="#term-Horizontal-offset-pixels" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
+<ul class="simple">
+<li><p>The abscissa (x-axis coordinate) of the left top point of the virtual window.</p></li>
+<li><p>Integer value</p></li>
+</ul>
+</dd>
+<dt id="term-Vertical-offset-pixels">Vertical offset (pixels)<a class="headerlink" href="#term-Vertical-offset-pixels" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
+<ul class="simple">
+<li><p>The ordinate (x-axis coordinate) of the left top point of the virtual window.</p></li>
+<li><p>Integer value</p></li>
 </ul>
 </dd>
 </dl>
 </section>
+</section>
+</section>
 <section id="virtio-console-device">
-<span id="virtual-machine-options-virtio-console-device"></span><h2><a class="toc-backref" href="#id20">Virtio console device</a><a class="headerlink" href="#virtio-console-device" title="Permalink to this heading">¶</a></h2>
+<span id="virtual-machine-options-virtio-console-device"></span><h2><a class="toc-backref" href="#id22">Virtio console device</a><a class="headerlink" href="#virtio-console-device" title="Permalink to this heading">¶</a></h2>
 <p>Virtio console device for data input and output.
 The virtio console BE driver copies data from the frontend’s transmitting virtqueue when it receives a kick on virtqueue (implemented as a vmexit).
 The BE driver then writes the data to backend, and can be implemented as a PTY, TTY, STDIO, or regular file.</p>
@@ -1456,7 +1502,7 @@ device file when user config it as virtio serial port, which can be read and wri
 </dl>
 </section>
 <section id="virtio-network-device">
-<span id="virtual-machine-options-virtio-network-device"></span><h2><a class="toc-backref" href="#id21">Virtio network device</a><a class="headerlink" href="#virtio-network-device" title="Permalink to this heading">¶</a></h2>
+<span id="virtual-machine-options-virtio-network-device"></span><h2><a class="toc-backref" href="#id23">Virtio network device</a><a class="headerlink" href="#virtio-network-device" title="Permalink to this heading">¶</a></h2>
 <p>The virtio network device emulates a virtual network interface card (NIC) for the VM.  The frontend
 is the virtio network driver, simulating the virtual NIC. The backend could be: <code class="docutils literal notranslate"><span class="pre">tap</span></code> device /dev/net/tun,
 <code class="docutils literal notranslate"><span class="pre">MacVTap</span></code> device /dev/tapx, or <code class="docutils literal notranslate"><span class="pre">vhost</span></code> device /dev/vhost-net</p>
@@ -1476,7 +1522,7 @@ is the virtio network driver, simulating the virtual NIC. The backend could be: 
 </dl>
 </section>
 <section id="virtio-input-device">
-<span id="virtual-machine-options-virtio-input-device"></span><h2><a class="toc-backref" href="#id22">Virtio input device</a><a class="headerlink" href="#virtio-input-device" title="Permalink to this heading">¶</a></h2>
+<span id="virtual-machine-options-virtio-input-device"></span><h2><a class="toc-backref" href="#id24">Virtio input device</a><a class="headerlink" href="#virtio-input-device" title="Permalink to this heading">¶</a></h2>
 <p>The virtio input device creates a virtual human interface device such as a keyboard,
 mouse, or tablet.  The device sends Linux input layer events over virtio.</p>
 <dl class="glossary simple">
@@ -1492,13 +1538,13 @@ mouse, or tablet.  The device sends Linux input layer events over virtio.</p>
 <li><p>A string with letters, digits, <code class="docutils literal notranslate"><span class="pre">_</span></code>, or <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p></li>
 </ul>
 </dd>
-<dt id="term-Virtio-block-device">Virtio block device<a class="headerlink" href="#term-Virtio-block-device" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
+<dt id="term-Virtio-block-device">Virtio block device<a class="headerlink" href="#term-Virtio-block-device" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>The virtio-blk device presents a block device to the VM. Each virtio-blk device appears as a disk inside the VM.</p></li>
 <li><p>String value</p></li>
 </ul>
 </dd>
-<dt id="term-Virtio-vsock-Context-ID-CID">Virtio vsock Context ID (CID)<a class="headerlink" href="#term-Virtio-vsock-Context-ID-CID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
+<dt id="term-Virtio-vsock-Context-ID-CID">Virtio vsock Context ID (CID)<a class="headerlink" href="#term-Virtio-vsock-Context-ID-CID" title="Permalink to this term">¶</a></dt><dd><p><img alt="Find this option on a Configurator Pre-launched VM tab" src="../_images/Pre-launched-VM.png" /> <img alt="Find this option on a Configurator Post-launched VM tab" src="../_images/Post-launched-VM.png" /> <img alt="Find this option on the Configurator Service VM tab" src="../_images/Service-VM.png" /> / <img alt="Find this option on the Configurator's Basic Parameters tab" src="../_images/Basic.png" /></p>
 <ul class="simple">
 <li><p>Specify the post-launched VM’s unique Context ID (CID) used by vsock (integer greater than 2).
 vsock provides a way for the host system and applications running in a user VM to communicate with each other using the standard socket interface.
@@ -1524,7 +1570,7 @@ vsock uses a (context id, port) pair of integers for identifying processes. The 
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Jun 01, 2022. Published on Oct 20, 2022</span>
+<span class="lastupdated">Last updated on Jun 01, 2022. Published on Oct 26, 2022</span>
 
   </div>
 
