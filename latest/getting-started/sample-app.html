@@ -772,7 +772,7 @@ application.</p>
 <section id="preparing-the-target-system">
 <h3>Preparing the Target System<a class="headerlink" href="#preparing-the-target-system" title="Permalink to this heading">¶</a></h3>
 <p>On the target system, reboot and choose the regular Ubuntu image (not the
-Multiboot2 choice created when following the Getting Started Guide).</p>
+Ubuntu-ACRN Board Inspector choice created when following the Getting Started Guide).</p>
 <ol class="arabic">
 <li><p>Log in as the <strong>acrn</strong> user. We’ll be making ssh connections to the target system
 later in these steps, so install the ssh server on the target system using:</p>
@@ -812,7 +812,7 @@ specific version of the hypervisor that you should use for the sample app’s
 HMI VM:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span><span class="o">/</span><span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span>
 <span class="n">git</span> <span class="n">fetch</span> <span class="o">--</span><span class="nb">all</span>
-<span class="n">git</span> <span class="n">checkout</span> <span class="n">master</span>
+<span class="n">git</span> <span class="n">checkout</span> <span class="n">release_3</span><span class="mf">.2</span>
 </pre></div>
 </div>
 </li>
@@ -881,10 +881,10 @@ directory above the build root directory, as shown by this command:</p>
 <p>You will see rtvm Debian packages for linux-headers, linux-image
 (normal and debug), and linux-libc-dev (your file names might look a
 bit different):</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">linux-headers-5.15.44-rt46-acrn-kernel-rtvm+_5.15.44-rt46-acrn-kernel-rtvm+-1_amd64.deb</span>
-<span class="go">linux-image-5.15.44-rt46-acrn-kernel-rtvm+-dbg_5.15.44-rt46-acrn-kernel-rtvm+-1_amd64.deb</span>
-<span class="go">linux-image-5.15.44-rt46-acrn-kernel-rtvm+_5.15.44-rt46-acrn-kernel-rtvm+-1_amd64.deb</span>
-<span class="go">linux-libc-dev_5.15.44-rt46-acrn-kernel-rtvm+-1_amd64.deb</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">linux-headers-5.15.71-rt46-acrn-kernel-rtvm+_5.15.71-rt46-acrn-kernel-rtvm+-1_amd64.deb</span>
+<span class="go">linux-image-5.15.71-rt46-acrn-kernel-rtvm+-dbg_5.15.71-rt46-acrn-kernel-rtvm+-1_amd64.deb</span>
+<span class="go">linux-image-5.15.71-rt46-acrn-kernel-rtvm+_5.15.71-rt46-acrn-kernel-rtvm+-1_amd64.deb</span>
+<span class="go">linux-libc-dev_5.15.71-rt46-acrn-kernel-rtvm+-1_amd64.deb</span>
 </pre></div>
 </div>
 </li>
@@ -1027,43 +1027,21 @@ board XML and the scenario XML file we just generated:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span><span class="o">/</span><span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span>
 
 <span class="n">make</span> <span class="n">clean</span>
-<span class="n">make</span> <span class="n">BOARD</span><span class="o">=~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span><span class="o">/</span><span class="n">MyConfiguration</span><span class="o">/</span><span class="n">my_board</span><span class="o">.</span><span class="n">board</span><span class="o">.</span><span class="n">xml</span> <span class="n">SCENARIO</span><span class="o">=~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span><span class="o">/</span><span class="n">MyConfiguration</span><span class="o">/</span><span class="n">scenario</span><span class="o">.</span><span class="n">xml</span>
+<span class="n">debian</span><span class="o">/</span><span class="n">debian_build</span><span class="o">.</span><span class="n">sh</span> <span class="n">clean</span> <span class="o">&amp;&amp;</span> <span class="n">debian</span><span class="o">/</span><span class="n">debian_build</span><span class="o">.</span><span class="n">sh</span> <span class="o">-</span><span class="n">c</span> <span class="o">~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span><span class="o">/</span><span class="n">MyConfiguration</span>
 </pre></div>
 </div>
 <p>The build typically takes about a minute. When done, the build
-generates a Debian package in the build directory with your board and
-working folder name.</p>
+generates several Debian packages in the build directory. Only one
+with your board and working folder name among these Debian packages
+is different from genetated in the Getting Started Guide. So we only
+need to copy and reinstall one Debian package to the target system.</p>
 <p>This Debian package contains the ACRN hypervisor and tools for
 installing ACRN on the target.</p>
 </li>
-<li><p>Build the ACRN kernel for the Service VM (the sample application
-requires a newer version of the Service VM than generated in the
-Getting Started Guide, so we’ll need to generate it again) using a tagged
-version of the <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd ~/acrn-work/acrn-kernel
-git fetch --all
-
-git checkout acrn-v3.1
-
-make distclean
-cp kernel_config_service_vm .config
-make olddefconfig
-make -j $(nproc) deb-pkg
-</pre></div>
-</div>
-<p>The kernel build can take 15 minutes or less on a fast computer, but
-could take one to two hours depending on the performance of your development
-computer. When done, the build generates four Debian packages in the
-directory above the build root directory:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>ls ../*acrn-service*.deb
-
-<span class="go">linux-headers-5.15.44-acrn-service-vm_5.15.44-acrn-service-vm-1_amd64.deb</span>
-<span class="go">linux-image-5.15.44-acrn-service-vm_5.15.44-acrn-service-vm-1_amd64.deb</span>
-<span class="go">linux-image-5.15.44-acrn-service-vm-dbg_5.15.44-acrn-service-vm-1_amd64.deb</span>
-<span class="go">linux-libc-dev_5.15.44-acrn-service-vm-1_amd64.deb</span>
-</pre></div>
-</div>
-</li>
+<li><p>Use the ACRN kernel for the Service VM already on your development computer
+when you followed the Getting Started Guide (the sample application
+requires the same version of the Service VM as generated in the
+Getting Started Guide, so no need to generate it again).</p></li>
 </ol>
 </section>
 <section class="numbered-step" id="copy-files-from-the-development-computer-to-your-target-system">
@@ -1071,70 +1049,34 @@ directory above the build root directory:</p>
 <ol class="arabic">
 <li><p>Copy all the files generated on the development computer to the
 target system. This includes the sample application executable files,
-HMI_VM and RT_VM images, Debian packages for the Service VM and
-Hypervisor, launch scripts, and the iasl tool built following the
-Getting Started Guide. You can use <code class="docutils literal notranslate"><span class="pre">scp</span></code> to copy across the local network,
-or use a USB stick:</p>
-<dl>
-<dt>Option 1: use <code class="docutils literal notranslate"><span class="pre">scp</span></code> to copy files over the local network</dt><dd><p>Use <code class="docutils literal notranslate"><span class="pre">scp</span></code> to copy files from your development computer to the
+HMI_VM and RT_VM images, Debian packages for ACRN Hypervisor,
+and the launch scripts.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">scp</span></code> to copy files from your development computer to the
 <code class="docutils literal notranslate"><span class="pre">~/acrn-work</span></code> directory on the target (replace the IP address used in
 this example with the target system’s IP address you found earlier):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span>
 
 <span class="n">scp</span> <span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">/</span><span class="n">misc</span><span class="o">/</span><span class="n">sample_application</span><span class="o">/</span><span class="n">image_builder</span><span class="o">/</span><span class="n">build</span><span class="o">/*</span><span class="n">_vm</span><span class="o">.</span><span class="n">img</span> \
-    <span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">acrn</span><span class="o">-</span><span class="n">my_board</span><span class="o">-</span><span class="n">MyConfiguration</span><span class="o">*.</span><span class="n">deb</span> \
-    <span class="o">*</span><span class="n">acrn</span><span class="o">-</span><span class="n">service</span><span class="o">-</span><span class="n">vm</span><span class="o">*.</span><span class="n">deb</span> <span class="n">MyConfiguration</span><span class="o">/</span><span class="n">launch_user_vm_id</span><span class="o">*.</span><span class="n">sh</span> \
-    <span class="n">acpica</span><span class="o">-</span><span class="n">unix</span><span class="o">-</span><span class="mi">20210105</span><span class="o">/</span><span class="n">generate</span><span class="o">/</span><span class="n">unix</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">iasl</span> \
+    <span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">*.</span><span class="n">deb</span> \
+    <span class="n">MyConfiguration</span><span class="o">/</span><span class="n">launch_user_vm_id</span><span class="o">*.</span><span class="n">sh</span> \
     <span class="n">acrn</span><span class="o">@</span><span class="mf">10.0.0.200</span><span class="p">:</span><span class="o">~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span>
 </pre></div>
 </div>
-<p>Then on the target system, run these commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">cp</span> <span class="o">~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span><span class="o">/</span><span class="n">iasl</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">sbin</span>
-<span class="n">sudo</span> <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">sbin</span><span class="o">/</span><span class="n">iasl</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">iasl</span>
-</pre></div>
-</div>
-</dd>
-<dt>Option 2: use a USB stick to copy files</dt><dd><p>Because the VM image files are large, format your USB stick with a file
-system that supports files greater than 4GB: extFAT or NTFS, but not FAT32.</p>
-<p>Insert a USB stick into the development computer and run these commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>disk=&quot;/media/$USER/&quot;$(ls /media/$USER)
-
-cd ~/acrn-work
-cp acrn-hypervisor/misc/sample_application/image_builder/build/*_vm.img rt_vm.img &quot;$disk&quot;
-cp acrn-hypervisor/build/acrn-my_board-MyConfiguration*.deb &quot;$disk&quot;
-cp *acrn-service-vm*.deb &quot;$disk&quot;
-cp MyConfiguration/launch_user_vm_id*.sh &quot;$disk&quot;
-cp acpica-unix-20210105/generate/unix/bin/iasl &quot;$disk&quot;
-sync &amp;&amp; sudo umount &quot;$disk&quot;
-</pre></div>
-</div>
-<p>Move the USB stick you just used to the target system and run
-these commands to copy the files locally:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>disk=&quot;/media/$USER/&quot;$(ls /media/$USER)
-
-cp &quot;$disk&quot;/*_vm.img ~/acrn-work
-cp &quot;$disk&quot;/acrn-my_board-MyConfiguration*.deb ~/acrn-work
-cp &quot;$disk&quot;/*acrn-service-vm*.deb ~/acrn-work
-cp &quot;$disk&quot;/launch_user_vm_id*.sh ~/acrn-work
-sudo cp &quot;$disk&quot;/iasl /usr/sbin/
-sudo ln -s /usr/sbin/iasl /usr/bin/iasl
-sync &amp;&amp; sudo umount &quot;$disk&quot;
-</pre></div>
-</div>
-</dd>
-</dl>
 </li>
 </ol>
 </section>
 <section class="numbered-step" id="install-and-run-acrn-on-the-target-system">
 <h2>Install and Run ACRN on the Target System<a class="headerlink" href="#install-and-run-acrn-on-the-target-system" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic">
+<li><p>On the target system, configure your network according to instruction of below link:</p>
+<p><a class="reference external" href="https://www.ubuntupit.com/how-to-configure-and-use-network-bridge-in-ubuntu-linux/">https://www.ubuntupit.com/how-to-configure-and-use-network-bridge-in-ubuntu-linux/</a></p>
+</li>
 <li><p>On your target system, install the ACRN Debian package and ACRN
 kernel Debian packages using these commands:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">acrn</span><span class="o">-</span><span class="n">work</span>
+<span class="n">cp</span> <span class="o">./</span><span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">*.</span><span class="n">deb</span> <span class="o">./*</span><span class="n">acrn</span><span class="o">-</span><span class="n">service</span><span class="o">-</span><span class="n">vm</span><span class="o">*.</span><span class="n">deb</span> <span class="o">/</span><span class="n">tmp</span>
 <span class="n">sudo</span> <span class="n">apt</span> <span class="n">purge</span> <span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span>
-<span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="o">./</span><span class="n">acrn</span><span class="o">-</span><span class="n">my_board</span><span class="o">-</span><span class="n">MyConfiguration</span><span class="o">*.</span><span class="n">deb</span>
-<span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="o">./*</span><span class="n">acrn</span><span class="o">-</span><span class="n">service</span><span class="o">-</span><span class="n">vm</span><span class="o">*.</span><span class="n">deb</span>
+<span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">acrn</span><span class="o">-</span><span class="n">hypervisor</span><span class="o">*.</span><span class="n">deb</span>  <span class="o">/</span><span class="n">tmp</span><span class="o">/*</span><span class="n">acrn</span><span class="o">-</span><span class="n">service</span><span class="o">-</span><span class="n">vm</span><span class="o">*.</span><span class="n">deb</span>
 </pre></div>
 </div>
 </li>
@@ -1148,15 +1090,11 @@ kernel Debian packages using these commands:</p>
 </pre></div>
 </div>
 </li>
-<li><p>Confirm that you see the GRUB menu with the “ACRN multiboot2” entry.  Select
-it and press <kbd class="kbd docutils literal notranslate">Enter</kbd> to proceed to booting ACRN. (It may be
-auto-selected, in which case it will boot with this option automatically in 5
-seconds.)</p>
-<img alt="../_images/samp-image016.png" class="drop-shadow align-center" src="../_images/samp-image016.png" />
-<p>This will boot the ACRN hypervisor and launch the Service VM.</p>
+<li><p>The target system will boot automatically into the ACRN hypervisor and
+launch the Service VM.</p>
+<p>Log in to the Service VM (using the target’s keyboard and HDMI monitor) using
+the <code class="docutils literal notranslate"><span class="pre">acrn</span></code> username.</p>
 </li>
-<li><p>Log in to the Service VM (using the target’s keyboard and HDMI monitor) using
-the <code class="docutils literal notranslate"><span class="pre">acrn</span></code> username.</p></li>
 <li><p>Find the Service VM’s IP address (the first IP address shown by this command):</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>hostname -I <span class="p">|</span> cut -d <span class="s1">&#39; &#39;</span> -f <span class="m">1</span>
 <span class="go">10.0.0.200</span>
@@ -1231,7 +1169,7 @@ by and end with an Ubuntu login prompt.</p>
 <p>Log in to the RT_VM as <strong>root</strong> user (not <strong>acrn</strong>) in this ssh session:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="go">ubuntu login: root</span>
 </span><span class="go">Password:</span>
-<span class="go">Welcome to Ubuntu 22.04.1 LTS (GNU/Linux 5.15.44-rt46-acrn-kernel-rtvm+ x86_64)</span>
+<span class="go">Welcome to Ubuntu 22.04.1 LTS (GNU/Linux 5.15.71-rt46-acrn-kernel-rtvm+ x86_64)</span>
 
 <span class="go">. . .</span>
 
@@ -1310,7 +1248,7 @@ best real-time performance.</p>
   <div role="contentinfo">
     <p>&#169; Copyright 2018-2022 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Nov 02, 2022. Published on Nov 29, 2022</span>
+<span class="lastupdated">Last updated on Dec 12, 2022. Published on Dec 12, 2022</span>
 
   </div>
 
