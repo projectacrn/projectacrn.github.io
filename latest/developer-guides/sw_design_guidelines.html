@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Software Design Guidelines &mdash; Project ACRN™ 3.2-unstable documentation</title>
+  <title>Software Design Guidelines &mdash; Project ACRN™ 3.4-unstable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -60,6 +60,8 @@
         <dt>Document Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/3.3/">3.3</a></dd>
         
           <dd><a href="/3.2/">3.2</a></dd>
         
@@ -224,6 +226,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User RTVM OS</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_celadon_as_user_vm.html">Run Celadon as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_celadon_as_user_vm.html#introduction-to-celadon">Introduction to Celadon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_celadon_as_user_vm.html#build-celadon-image-from-source">Build Celadon Image from Source</a></li>
 </ul>
 </li>
 </ul>
@@ -616,6 +623,18 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.3.html">ACRN v3.3 (Aug 2024)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#what-s-new-in-v3-3">What’s New in v3.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#upgrading-to-v3-3-from-previous-releases">Upgrading to v3.3 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.3.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.3.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.2.html">ACRN v3.2 (Aug 2023)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.2.html#what-s-new-in-v3-2">What’s New in v3.2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.2.html#upgrading-to-v3-2-from-previous-releases">Upgrading to v3.2 from Previous Releases</a><ul>
@@ -954,11 +973,11 @@ it’s the caller’s responsibility to guarantee these pre-conditions.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
 <span class="cm"> * @pre vcpu_id &lt; CONFIG_MAX_VCPUS_PER_VM</span>
 <span class="cm"> * @pre &amp;(vm-&gt;hw.vcpu_array[vcpu_id])-&gt;state != VCPU_OFFLINE</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vcpu</span><span class="w"> </span><span class="o">*</span><span class="n">vcpu_from_vid</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm</span><span class="w"> </span><span class="o">*</span><span class="n">vm</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">vcpu_id</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">hw</span><span class="p">.</span><span class="n">vcpu_array</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">]);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vcpu</span><span class="w"> </span><span class="o">*</span><span class="n">vcpu_from_vid</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm</span><span class="w"> </span><span class="o">*</span><span class="n">vm</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">vcpu_id</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">hw</span><span class="p">.</span><span class="n">vcpu_array</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">]);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">vcpu_from_vid</span></code> is called by <code class="docutils literal notranslate"><span class="pre">hcall_set_vcpu_regs</span></code>, which is a hypercall.
@@ -967,20 +986,20 @@ by the VM. In this case, we shall add the error checking codes before calling
 <code class="docutils literal notranslate"><span class="pre">vcpu_from_vid</span></code> to make sure that the passed parameters are valid and the
 pre-conditions are guaranteed.</p>
 <p>Here is the sample code for error checking before calling <code class="docutils literal notranslate"><span class="pre">vcpu_from_vid</span></code>:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
 
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vcpu_id</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">CONFIG_MAX_VCPUS_PER_VM</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;vcpu id is out of range </span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">hw</span><span class="p">.</span><span class="n">vcpu_array</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">]))</span><span class="o">-&gt;</span><span class="n">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">VCPU_OFFLINE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;vcpu is offline </span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vcpu_id</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">CONFIG_MAX_VCPUS_PER_VM</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;vcpu id is out of range </span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span>
+<span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">hw</span><span class="p">.</span><span class="n">vcpu_array</span><span class="p">[</span><span class="n">vcpu_id</span><span class="p">]))</span><span class="o">-&gt;</span><span class="n">state</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">VCPU_OFFLINE</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;vcpu is offline </span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">EINVAL</span><span class="p">;</span>
+<span class="p">}</span>
 
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="n">vcpu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vcpu_from_vid</span><span class="p">(</span><span class="n">vm</span><span class="p">,</span><span class="w"> </span><span class="n">vcpu_id</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="p">...</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">status</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">vcpu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vcpu_from_vid</span><span class="p">(</span><span class="n">vm</span><span class="p">,</span><span class="w"> </span><span class="n">vcpu_id</span><span class="p">);</span>
+<span class="w">        </span><span class="p">...</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
@@ -1109,40 +1128,40 @@ a module level.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
 <span class="cm"> * @pre vm != NULL</span>
 <span class="cm"> * @pre vm-&gt;vpci-&gt;pci_vdev_cnt &lt;= CONFIG_MAX_PCI_DEV_NUM</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kt">int32_t</span><span class="w"> </span><span class="nf">partition_mode_vpci_init</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm</span><span class="w"> </span><span class="o">*</span><span class="n">vm</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vpci</span><span class="w"> </span><span class="o">*</span><span class="n">vpci</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vpci</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">vdev</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm_config</span><span class="w"> </span><span class="o">*</span><span class="n">vm_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_vm_config</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vm_id</span><span class="p">);</span><span class="w"></span>
-<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm_pci_dev_config</span><span class="w"> </span><span class="o">*</span><span class="n">pci_dev_config</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">int32_t</span><span class="w"> </span><span class="nf">partition_mode_vpci_init</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm</span><span class="w"> </span><span class="o">*</span><span class="n">vm</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vpci</span><span class="w"> </span><span class="o">*</span><span class="n">vpci</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vpci</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">);</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">vdev</span><span class="p">;</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm_config</span><span class="w"> </span><span class="o">*</span><span class="n">vm_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_vm_config</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vm_id</span><span class="p">);</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm_pci_dev_config</span><span class="w"> </span><span class="o">*</span><span class="n">pci_dev_config</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
 
-<span class="w">        </span><span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_dev_num</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_dev_num</span><span class="p">;</span>
 
-<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0U</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">vdev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdevs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
-<span class="w">                </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vpci</span><span class="p">;</span><span class="w"></span>
-<span class="w">                </span><span class="n">pci_dev_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_devs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span><span class="w"></span>
-<span class="w">                </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pci_dev_config</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0U</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdev_cnt</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">vdev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vpci</span><span class="o">-&gt;</span><span class="n">pci_vdevs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">                </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vpci</span><span class="p">;</span>
+<span class="w">                </span><span class="n">pci_dev_config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vm_config</span><span class="o">-&gt;</span><span class="n">pci_devs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">                </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pci_dev_config</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="p">;</span>
 
-<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0U</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                        </span><span class="n">partition_mode_pdev_init</span><span class="p">(</span><span class="n">vdev</span><span class="p">,</span><span class="w"> </span><span class="n">pci_dev_config</span><span class="o">-&gt;</span><span class="n">pbdf</span><span class="p">);</span><span class="w"></span>
-<span class="w">                        </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">pci_ops_vdev_pt</span><span class="p">;</span><span class="w"></span>
-<span class="w">                </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                        </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">pci_ops_vdev_hostbridge</span><span class="p">;</span><span class="w"></span>
-<span class="w">                </span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">.</span><span class="n">value</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0U</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">partition_mode_pdev_init</span><span class="p">(</span><span class="n">vdev</span><span class="p">,</span><span class="w"> </span><span class="n">pci_dev_config</span><span class="o">-&gt;</span><span class="n">pbdf</span><span class="p">);</span>
+<span class="w">                        </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">pci_ops_vdev_pt</span><span class="p">;</span>
+<span class="w">                </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">pci_ops_vdev_hostbridge</span><span class="p">;</span>
+<span class="w">                </span><span class="p">}</span>
 
-<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">init</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">init</span><span class="p">(</span><span class="n">vdev</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                                </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;%s() failed at PCI device (vbdf %x)!&quot;</span><span class="p">,</span><span class="w"></span>
-<span class="w">                                        </span><span class="n">__func__</span><span class="p">,</span><span class="w"> </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">);</span><span class="w"></span>
-<span class="w">                        </span><span class="p">}</span><span class="w"></span>
-<span class="w">                </span><span class="p">}</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">init</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">init</span><span class="p">(</span><span class="n">vdev</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;%s() failed at PCI device (vbdf %x)!&quot;</span><span class="p">,</span>
+<span class="w">                                        </span><span class="n">__func__</span><span class="p">,</span><span class="w"> </span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">vbdf</span><span class="p">);</span>
+<span class="w">                        </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
 
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">get_vm_config</span></code> is called by <code class="docutils literal notranslate"><span class="pre">partition_mode_vpci_init</span></code>.
@@ -1153,11 +1172,11 @@ pre-conditions and <code class="docutils literal notranslate"><span class="pre">
 <span class="cm"> * @pre vm_id &lt; CONFIG_MAX_VM_NUM</span>
 <span class="cm"> * @post retval != NULL</span>
 <span class="cm"> * @post retval-&gt;pci_dev_num &lt;= MAX_PCI_DEV_NUM</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm_config</span><span class="w"> </span><span class="o">*</span><span class="n">get_vm_config</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">vm_id</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vm_configs</span><span class="p">[</span><span class="n">vm_id</span><span class="p">];</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm_config</span><span class="w"> </span><span class="o">*</span><span class="n">get_vm_config</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">vm_id</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vm_configs</span><span class="p">[</span><span class="n">vm_id</span><span class="p">];</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p><strong>Question_1: Is error checking required for ``vm_config``?</strong></p>
@@ -1202,22 +1221,22 @@ boot information.</p>
 <div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
 <span class="cm"> * @pre vdev != NULL</span>
 <span class="cm"> * @pre vm-&gt;vpci-&gt;pci_vdev_cnt &lt;= CONFIG_MAX_PCI_DEV_NUM</span>
-<span class="cm"> */</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">partition_mode_vpci_deinit</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm</span><span class="w"> </span><span class="o">*</span><span class="n">vm</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">vdev</span><span class="p">;</span><span class="w"></span>
-<span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">i</span><span class="p">;</span><span class="w"></span>
+<span class="cm"> */</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">partition_mode_vpci_deinit</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">acrn_vm</span><span class="w"> </span><span class="o">*</span><span class="n">vm</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">        </span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="n">vdev</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
 
-<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0U</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">.</span><span class="n">pci_vdev_cnt</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                </span><span class="n">vdev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">.</span><span class="n">pci_vdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
-<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">deinit</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">deinit</span><span class="p">(</span><span class="n">vdev</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">                                </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;vdev-&gt;ops-&gt;deinit failed!&quot;</span><span class="p">);</span><span class="w"></span>
-<span class="w">                        </span><span class="p">}</span><span class="w"></span>
-<span class="w">                </span><span class="p">}</span><span class="w"></span>
-<span class="w">                </span><span class="cm">/* TODO: implement the deinit of &#39;vdev-&gt;ops&#39; */</span><span class="w"></span>
-<span class="w">        </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0U</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">.</span><span class="n">pci_vdev_cnt</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">vdev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">pci_vdev</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="p">(</span><span class="n">vm</span><span class="o">-&gt;</span><span class="n">vpci</span><span class="p">.</span><span class="n">pci_vdevs</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">deinit</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vdev</span><span class="o">-&gt;</span><span class="n">ops</span><span class="o">-&gt;</span><span class="n">deinit</span><span class="p">(</span><span class="n">vdev</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                                </span><span class="n">pr_err</span><span class="p">(</span><span class="s">&quot;vdev-&gt;ops-&gt;deinit failed!&quot;</span><span class="p">);</span>
+<span class="w">                        </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="cm">/* TODO: implement the deinit of &#39;vdev-&gt;ops&#39; */</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p><strong>Question_6: Is error checking required for ``vdev-&gt;ops`` and ``vdev-&gt;ops-&gt;init``?</strong></p>
@@ -1398,9 +1417,9 @@ configuration is dereferenced after it has been instantiated.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2023 Project ACRN™, a Series of LF Projects, LLC.
+    <p>&#169; Copyright 2018-2024 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Nov 12, 2021. Published on Aug 10, 2023</span>
+<span class="lastupdated">Last updated on 11月 12, 2021. Published on 8月 05, 2024</span>
 
   </div>
 

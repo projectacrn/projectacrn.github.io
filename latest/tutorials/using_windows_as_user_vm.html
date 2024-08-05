@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Run Windows as the User VM OS &mdash; Project ACRN™ 3.2-unstable documentation</title>
+  <title>Run Windows as the User VM OS &mdash; Project ACRN™ 3.4-unstable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -60,6 +60,8 @@
         <dt>Document Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/3.3/">3.3</a></dd>
         
           <dd><a href="/3.2/">3.2</a></dd>
         
@@ -224,6 +226,11 @@
 <li class="toctree-l3"><a class="reference internal" href="using_zephyr_as_user_vm.html">Run Zephyr as the User RTVM OS</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="using_celadon_as_user_vm.html">Run Celadon as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="using_celadon_as_user_vm.html#introduction-to-celadon">Introduction to Celadon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="using_celadon_as_user_vm.html#build-celadon-image-from-source">Build Celadon Image from Source</a></li>
 </ul>
 </li>
 </ul>
@@ -616,6 +623,18 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.3.html">ACRN v3.3 (Aug 2024)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#what-s-new-in-v3-3">What’s New in v3.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#upgrading-to-v3-3-from-previous-releases">Upgrading to v3.3 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.3.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.3.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.2.html">ACRN v3.2 (Aug 2023)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.2.html#what-s-new-in-v3-2">What’s New in v3.2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.2.html#upgrading-to-v3-2-from-previous-releases">Upgrading to v3.2 from Previous Releases</a><ul>
@@ -817,52 +836,52 @@ $ qemu-img create -f raw win10-ltsc.img 30G
 <li><p>Prepare WaaG install script, a <strong>/home/acrn/work/install_win.sh</strong> file should be created with the following content.</p></li>
 </ol>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
-<span class="k">function</span> launch_win<span class="o">()</span>
+<span class="k">function</span><span class="w"> </span>launch_win<span class="o">()</span>
 <span class="o">{</span>
 <span class="nv">vm_name</span><span class="o">=</span>win_vm<span class="nv">$1</span>
 <span class="c1">#check if the vm is running or not</span>
-<span class="nv">vm_ps</span><span class="o">=</span><span class="k">$(</span>pgrep -a -f acrn-dm<span class="k">)</span>
-<span class="nv">result</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span> <span class="nv">$vm_ps</span> <span class="p">|</span> grep <span class="s2">&quot;</span><span class="si">${</span><span class="nv">vm_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span>
-<span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="nv">$result</span><span class="s2">&quot;</span> !<span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
-  <span class="nb">echo</span> <span class="s2">&quot;</span><span class="nv">$vm_name</span><span class="s2"> is running, can&#39;t create twice!&quot;</span>
-  <span class="nb">exit</span>
+<span class="nv">vm_ps</span><span class="o">=</span><span class="k">$(</span>pgrep<span class="w"> </span>-a<span class="w"> </span>-f<span class="w"> </span>acrn-dm<span class="k">)</span>
+<span class="nv">result</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$vm_ps</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">vm_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$result</span><span class="s2">&quot;</span><span class="w"> </span>!<span class="o">=</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$vm_name</span><span class="s2"> is running, can&#39;t create twice!&quot;</span>
+<span class="w">  </span><span class="nb">exit</span>
 <span class="k">fi</span>
-<span class="nb">echo</span> <span class="s2">&quot;8086 9ded&quot;</span> &gt; /sys/bus/pci/drivers/pci-stub/new_id
-<span class="nb">echo</span> <span class="s2">&quot;0000:00:14.0&quot;</span> &gt; /sys/bus/pci/devices/0000:00:14.0/driver/unbind
-<span class="nb">echo</span> <span class="s2">&quot;0000:00:14.0&quot;</span> &gt; /sys/bus/pci/drivers/pci-stub/bind
-<span class="nb">echo</span> <span class="s2">&quot;8086 3ea0&quot;</span> &gt; /sys/bus/pci/drivers/pci-stub/new_id
-<span class="nb">echo</span> <span class="s2">&quot;0000:00:02.0&quot;</span> &gt; /sys/bus/pci/devices/0000:00:02.0/driver/unbind
-<span class="nb">echo</span> <span class="s2">&quot;0000:00:02.0&quot;</span> &gt; /sys/bus/pci/drivers/pci-stub/bind
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;8086 9ded&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/drivers/pci-stub/new_id
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0000:00:14.0&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/devices/0000:00:14.0/driver/unbind
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0000:00:14.0&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/drivers/pci-stub/bind
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;8086 3ea0&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/drivers/pci-stub/new_id
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0000:00:02.0&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/devices/0000:00:02.0/driver/unbind
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0000:00:02.0&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/drivers/pci-stub/bind
 <span class="c1">#for memsize setting</span>
 <span class="nv">mem_size</span><span class="o">=</span>4096M
-acrn-dm -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,hostbridge -s <span class="m">1</span>:0,lpc -l com1,stdio <span class="se">\</span>
-  -s <span class="m">2</span>,passthru,0/2/0 <span class="se">\</span>
-  -s <span class="m">8</span>,virtio-net,tap<span class="o">=</span>tap0 <span class="se">\</span>
-  -s <span class="m">4</span>,virtio-blk,/home/acrn/work/win10-ltsc.img
-  -s <span class="m">5</span>,ahci,cd:/home/acrn/work/Windows10.iso <span class="se">\</span>
-  -s <span class="m">6</span>,ahci,cd:/home/acrn/work/winvirtio.iso <span class="se">\</span>
-  -s <span class="m">7</span>,passthru,0/14/0,d3hot_reset <span class="se">\</span>
-  --ovmf /home/acrn/work/OVMF.fd <span class="se">\</span>
-  --windows <span class="se">\</span>
-  <span class="nv">$vm_name</span>
+acrn-dm<span class="w"> </span>-m<span class="w"> </span><span class="nv">$mem_size</span><span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>:0,hostbridge<span class="w"> </span>-s<span class="w"> </span><span class="m">1</span>:0,lpc<span class="w"> </span>-l<span class="w"> </span>com1,stdio<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span><span class="m">2</span>,passthru,0/2/0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span><span class="m">8</span>,virtio-net,tap<span class="o">=</span>tap0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span><span class="m">4</span>,virtio-blk,/home/acrn/work/win10-ltsc.img
+<span class="w">  </span>-s<span class="w"> </span><span class="m">5</span>,ahci,cd:/home/acrn/work/Windows10.iso<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span><span class="m">6</span>,ahci,cd:/home/acrn/work/winvirtio.iso<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-s<span class="w"> </span><span class="m">7</span>,passthru,0/14/0,d3hot_reset<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ovmf<span class="w"> </span>/home/acrn/work/OVMF.fd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--windows<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">$vm_name</span>
 <span class="o">}</span>
 <span class="c1"># offline Service VM CPUs except BSP before launching User VM</span>
-<span class="k">for</span> i <span class="k">in</span> <span class="sb">`</span>ls -d /sys/devices/system/cpu/cpu<span class="o">[</span><span class="m">1</span>-99<span class="o">]</span><span class="sb">`</span><span class="p">;</span> <span class="k">do</span>
-        <span class="nv">online</span><span class="o">=</span><span class="sb">`</span>cat <span class="nv">$i</span>/online<span class="sb">`</span>
-        <span class="nv">idx</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="nv">$i</span> <span class="p">|</span> tr -cd <span class="s2">&quot;[1-99]&quot;</span><span class="sb">`</span>
-        <span class="nb">echo</span> cpu<span class="nv">$idx</span> <span class="nv">online</span><span class="o">=</span><span class="nv">$online</span>
-        <span class="k">if</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$online</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-                <span class="nb">echo</span> <span class="m">0</span> &gt; <span class="nv">$i</span>/online
-                <span class="c1"># during boot time, cpu hotplug may be disabled by pci_device_probe during a pci module insmod</span>
-               <span class="k">while</span> <span class="o">[</span> <span class="s2">&quot;</span><span class="nv">$online</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span> <span class="o">]</span><span class="p">;</span> <span class="k">do</span>
-                        sleep <span class="m">1</span>
-                        <span class="nb">echo</span> <span class="m">0</span> &gt; <span class="nv">$i</span>/online
-                        <span class="nv">online</span><span class="o">=</span><span class="sb">`</span>cat <span class="nv">$i</span>/online<span class="sb">`</span>
-                <span class="k">done</span>
-                <span class="nb">echo</span> <span class="nv">$idx</span> &gt; /sys/devices/virtual/misc/acrn_hsm/remove_cpu
-        <span class="k">fi</span>
+<span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="sb">`</span>ls<span class="w"> </span>-d<span class="w"> </span>/sys/devices/system/cpu/cpu<span class="o">[</span><span class="m">1</span>-99<span class="o">]</span><span class="sb">`</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">        </span><span class="nv">online</span><span class="o">=</span><span class="sb">`</span>cat<span class="w"> </span><span class="nv">$i</span>/online<span class="sb">`</span>
+<span class="w">        </span><span class="nv">idx</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span><span class="w"> </span><span class="nv">$i</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tr<span class="w"> </span>-cd<span class="w"> </span><span class="s2">&quot;[1-99]&quot;</span><span class="sb">`</span>
+<span class="w">        </span><span class="nb">echo</span><span class="w"> </span>cpu<span class="nv">$idx</span><span class="w"> </span><span class="nv">online</span><span class="o">=</span><span class="nv">$online</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$online</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">                </span><span class="nb">echo</span><span class="w"> </span><span class="m">0</span><span class="w"> </span>&gt;<span class="w"> </span><span class="nv">$i</span>/online
+<span class="w">                </span><span class="c1"># during boot time, cpu hotplug may be disabled by pci_device_probe during a pci module insmod</span>
+<span class="w">               </span><span class="k">while</span><span class="w"> </span><span class="o">[</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$online</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<span class="w">                        </span>sleep<span class="w"> </span><span class="m">1</span>
+<span class="w">                        </span><span class="nb">echo</span><span class="w"> </span><span class="m">0</span><span class="w"> </span>&gt;<span class="w"> </span><span class="nv">$i</span>/online
+<span class="w">                        </span><span class="nv">online</span><span class="o">=</span><span class="sb">`</span>cat<span class="w"> </span><span class="nv">$i</span>/online<span class="sb">`</span>
+<span class="w">                </span><span class="k">done</span>
+<span class="w">                </span><span class="nb">echo</span><span class="w"> </span><span class="nv">$idx</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/devices/virtual/misc/acrn_hsm/remove_cpu
+<span class="w">        </span><span class="k">fi</span>
 <span class="k">done</span>
-launch_win <span class="m">1</span>
+launch_win<span class="w"> </span><span class="m">1</span>
 </pre></div>
 </div>
 </section>
@@ -870,9 +889,9 @@ launch_win <span class="m">1</span>
 <h4>Install Windows 10 by GVT-d<a class="headerlink" href="#install-windows-10-by-gvt-d" title="Permalink to this heading">¶</a></h4>
 <ol class="arabic">
 <li><p>Run <strong>install_win.sh</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> /home/acrn/work/
-sudo chmod +x install_win.sh
-sudo ./install_win.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/home/acrn/work/
+sudo<span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>install_win.sh
+sudo<span class="w"> </span>./install_win.sh
 </pre></div>
 </div>
 </li>
@@ -957,14 +976,14 @@ Version 27.20.100.9030 was verified on WHL. You should use the same version as t
 </pre></div>
 </div>
 <p>Remove following lines in launch_win.sh</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-s <span class="m">5</span>,ahci,cd:/home/acrn/work/Windows10.iso <span class="se">\</span>
--s <span class="m">6</span>,ahci,cd:/home/acrn/work/winvirtio.iso <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-s<span class="w"> </span><span class="m">5</span>,ahci,cd:/home/acrn/work/Windows10.iso<span class="w"> </span><span class="se">\</span>
+-s<span class="w"> </span><span class="m">6</span>,ahci,cd:/home/acrn/work/winvirtio.iso<span class="w"> </span><span class="se">\</span>
 </pre></div>
 </div>
 </li>
 <li><p>Launch WaaG</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> /home/acrn/work/
-sudo ./launch_win.sh
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>/home/acrn/work/
+sudo<span class="w"> </span>./launch_win.sh
 </pre></div>
 </div>
 </li>
@@ -1111,9 +1130,9 @@ obtain a licensed version of Windows.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2023 Project ACRN™, a Series of LF Projects, LLC.
+    <p>&#169; Copyright 2018-2024 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Jun 28, 2022. Published on Aug 10, 2023</span>
+<span class="lastupdated">Last updated on 6月 28, 2022. Published on 8月 05, 2024</span>
 
   </div>
 

@@ -117,10 +117,11 @@ To set up the ACRN build environment on the development computer:
            python3 python3-pip libblkid-dev e2fslibs-dev \
            pkg-config libnuma-dev libcjson-dev liblz4-tool flex bison \
            xsltproc clang-format bc libpixman-1-dev libsdl2-dev libegl-dev \
-           libgles-dev libdrm-dev gnu-efi libelf-dev \
+           libgles-dev libdrm-dev gnu-efi libelf-dev liburing-dev \
            build-essential git-buildpackage devscripts dpkg-dev equivs lintian \
-           apt-utils pristine-tar dh-python python3-lxml python3-defusedxml \
-           python3-tqdm python3-xmlschema python3-elementpath acpica-tools
+           apt-utils pristine-tar dh-python acpica-tools python3-tqdm \
+           python3-elementpath python3-lxml python3-xmlschema python3-defusedxml
+      
 
 #. Get the ACRN hypervisor and ACRN kernel source code, and check out the
    current release branch.
@@ -130,12 +131,12 @@ To set up the ACRN build environment on the development computer:
       cd ~/acrn-work
       git clone https://github.com/projectacrn/acrn-hypervisor.git
       cd acrn-hypervisor
-      git checkout release_3.2
+      git checkout release_3.3
 
       cd ..
       git clone https://github.com/projectacrn/acrn-kernel.git
       cd acrn-kernel
-      git checkout release_3.2
+      git checkout release_3.3
 
 .. _gsg-board-setup:
 
@@ -171,11 +172,11 @@ To set up the target hardware environment:
 
 #. Connect the monitor and power supply cable.
 
-#. Connect the target system to the LAN with the Ethernet cable.
+#. Connect the target system to the LAN with the Ethernet cable or wifi.
 
 Example of a target system with cables connected:
 
-.. image:: ./images/gsg_vecow.png
+.. image:: ./images/gsg_asus_minipc64.png
    :align: center
 
 Install OS on the Target
@@ -247,9 +248,10 @@ Configure Target BIOS Settings
 #. Boot your target and enter the BIOS configuration editor.
 
    Tip: When you are booting your target, you'll see an option (quickly) to
-   enter the BIOS configuration editor, typically by pressing :kbd:`F2` during
-   the boot and before the GRUB menu (or Ubuntu login screen) appears.  If you
-   are not quick enough, you can reboot the system to try again.
+   enter the BIOS configuration editor, typically by pressing :kbd:`F2` 
+   or :kbd:`DEL` during the boot and before the GRUB menu (or Ubuntu login
+   screen) appears. If you are not quick enough, you can still choose
+   ``UEFI settings`` in the GRUB menu or just reboot the system to try again.
 
 #. Configure these BIOS settings:
 
@@ -339,7 +341,7 @@ Generate a Scenario Configuration File and Launch Script
 ********************************************************
 
 In this step, you will download, install, and use the `ACRN Configurator
-<https://github.com/projectacrn/acrn-hypervisor/releases/download/v3.2/acrn-configurator-3.2.deb>`__
+<https://github.com/projectacrn/acrn-hypervisor/releases/download/v3.3/acrn-configurator-3.3.deb>`__
 to generate a scenario configuration file and launch script.
 
 A **scenario configuration file** is an XML file that holds the parameters of
@@ -355,7 +357,7 @@ post-launched User VM. Each User VM has its own launch script.
    .. code-block:: bash
 
       cd ~/acrn-work
-      wget https://github.com/projectacrn/acrn-hypervisor/releases/download/v3.2/acrn-configurator-3.2.deb -P /tmp
+      wget https://github.com/projectacrn/acrn-hypervisor/releases/download/v3.3/acrn-configurator-3.3.deb -P /tmp
 
    If you already have a previous version of the acrn-configurator installed,
    you should first remove it:
@@ -368,7 +370,7 @@ post-launched User VM. Each User VM has its own launch script.
 
    .. code-block:: bash
 
-      sudo apt install -y /tmp/acrn-configurator-3.2.deb
+      sudo apt install -y /tmp/acrn-configurator-3.3.deb
 
 #. Launch the ACRN Configurator:
 
@@ -433,7 +435,7 @@ post-launched User VM. Each User VM has its own launch script.
       :class: drop-shadow
 
    The Configurator does consistency and validation checks when you load or save
-   a scenario.  Notice the Hypervisor and VM1 tabs both have an error icon,
+   a scenario. Notice the Hypervisor and VM1 tabs both have an error icon,
    meaning there are issues with configuration options in two areas.  Since the
    Hypervisor tab is currently highlighted, we're seeing an issue we can resolve
    on the Hypervisor settings.  Once we resolve all the errors and save the
@@ -475,11 +477,10 @@ post-launched User VM. Each User VM has its own launch script.
       resolve the missing physical CPU affinity assignment error.)
 
    #. For **Virtio console device**, click **+** to add a device and keep the
-      default options. This parameter specifies the console that you will use to
-      log in to the User VM later in this guide.
+      default options. 
 
    #. For **Virtio block device**, click **+** and enter
-      ``/home/acrn/acrn-work/ubuntu-22.04.2-desktop-amd64.iso``. This parameter
+      ``/home/acrn/acrn-work/ubuntu-22.04.4-desktop-amd64.iso``. This parameter
       specifies the VM's OS image and its location on the target system. Later
       in this guide, you will save the ISO file to that directory. (If you used
       a different username when installing Ubuntu on the target system, here's
@@ -489,7 +490,7 @@ post-launched User VM. Each User VM has its own launch script.
       :align: center
       :class: drop-shadow
 
-   .. image:: images/configurator-postvm02.png
+   .. image:: images/configurator_postvm02.png
       :align: center
       :class: drop-shadow
 
@@ -572,10 +573,9 @@ Build ACRN
 
       cd ..
       ls *acrn-service-vm*.deb  
-         linux-headers-5.15.71-acrn-service-vm_5.15.71-acrn-service-vm-1_amd64.deb
-         linux-image-5.15.71-acrn-service-vm_5.15.71-acrn-service-vm-1_amd64.deb
-         linux-image-5.15.71-acrn-service-vm-dbg_5.15.71-acrn-service-vm-1_amd64.deb
-         linux-libc-dev_5.15.71-acrn-service-vm-1_amd64.deb
+         linux-headers-6.1.80-acrn-service-vm_6.1.80-acrn-service-vm-1_amd64.deb
+         linux-image-6.1.80-acrn-service-vm_6.1.80-acrn-service-vm-1_amd64.deb
+         linux-libc-dev_6.1.80-acrn-service-vm-1_amd64.deb
 
 #. Use the ``scp`` command to copy files from your development computer to the
    target system.  Replace ``10.0.0.200`` with the target system's IP address
@@ -622,7 +622,7 @@ Install ACRN
    The target system will reboot into the ACRN hypervisor and
    start the Ubuntu Service VM.
 
-#. Confirm that you see the GRUB menu with "Ubuntu with ACRN hypervisor, with Linux 5.15.71-acrn-service-vm (ACRN 3.2)"
+#. Confirm that you see the GRUB menu with "Ubuntu with ACRN hypervisor, with Linux 6.1.80-acrn-service-vm (ACRN 3.3)"
    entry. Select it and proceed to booting ACRN. (It may be auto-selected, in which case it
    will boot with this option automatically in 5 seconds.)
 
@@ -634,10 +634,12 @@ Install ACRN
       ────────────────────────────────────────────────────────────────────────────────
       Ubuntu
       Advanced options for Ubuntu
-      Ubuntu-ACRN Board Inspector, with Linux 5.15.71-acrn-service-vm
-      Ubuntu-ACRN Board Inspector, with Linux 5.15.0-56-generic
-      *Ubuntu with ACRN hypervisor, with Linux 5.15.71-acrn-service-vm (ACRN 3.2)
-      Ubuntu with ACRN hypervisor, with Linux 5.15.0-56-generic (ACRN 3.2)
+      Ubuntu-ACRN Board Inspector, with Linux 6.5.0-18-generic
+      Ubuntu-ACRN Board Inspector, with Linux 6.1.80-acrn-service-vm
+      Memory test (memtest86+x64.efi)
+      Memory test (memtest86+x64.efi, serial console)
+      Ubuntu with ACRN hypervisor, with Linux 6.5.0-18-generic (ACRN 3.3)
+      *Ubuntu with ACRN hypervisor, with Linux 6.1.80-acrn-service-vm (ACRN 3.3)
       UEFI Firmware Settings
 
 .. _gsg-run-acrn:
@@ -688,7 +690,7 @@ Launch the User VM
 
 #. On the target system, use the web browser to visit the `official Ubuntu website <https://releases.ubuntu.com/jammy/>`__ and
    get the Ubuntu Desktop 22.04 LTS ISO image
-   ``ubuntu-22.04.2-desktop-amd64.iso`` for the User VM. (The same image you
+   ``ubuntu-22.04.4-desktop-amd64.iso`` for the User VM. (The same image you
    specified earlier in the ACRN Configurator UI.) Alternatively, instead of
    downloading it again, you could use ``scp`` to copy the ISO
    image file from the development system to the ``~/acrn-work`` directory on the target system.
@@ -700,7 +702,7 @@ Launch the User VM
 
    .. code-block:: bash
 
-      cp ~/Downloads/ubuntu-22.04.2-desktop-amd64.iso ~/acrn-work
+      cp ~/Downloads/ubuntu-22.04.4-desktop-amd64.iso ~/acrn-work
 
 #. Launch the User VM:
 
@@ -710,23 +712,12 @@ Launch the User VM
       sudo ~/acrn-work/launch_user_vm_id1.sh
 
 #. It may take about a minute for the User VM to boot and start running the
-   Ubuntu image. You will see a lot of output, then the console of the User VM
+   Ubuntu image. You will see a lot of output, then the console of the User VM 
    will appear as follows:
-
+   
    .. code-block:: console
 
-      Ubuntu 22.04.2 LTS ubuntu hvc0
-
-      ubuntu login:
-
-#. Log in to the User VM. For the Ubuntu 22.04 ISO, the user is ``ubuntu``, and
-   there's no password.
-
-#. Confirm that you see output similar to this example:
-
-   .. code-block:: console
-
-      Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.19.0-32-generic x86_64)
+      Welcome to Ubuntu 22.04.4 LTS (GNU/Linux 6.5.0-18-generic x86_64)
 
       * Documentation:  https://help.ubuntu.com
       * Management:     https://landscape.canonical.com
@@ -756,20 +747,20 @@ Launch the User VM
       ubuntu@ubuntu:~$
 
 #. This User VM and the Service VM are running different Ubuntu images. Use this
-   command to see that the User VM is running the downloaded Ubuntu ISO image:
+   command to see that the User VM is running the downloaded Ubuntu image:
 
    .. code-block:: console
 
-      ubuntu@ubuntu:~$ uname -r
-      5.19.0-32-generic
+      acrn@ubuntu:~$ uname -r
+      6.5.0-18-generic
 
    Then open a new terminal window and use the command to see that the Service
    VM is running the ``acrn-kernel`` Service VM image:
 
    .. code-block:: console
 
-      acrn@vecow:~$ uname -r
-      5.15.71-acrn-service-vm
+      acrn@asus-MINIPC-PN64:~$ uname -r
+      6.1.80-acrn-service-vm
 
    The User VM has launched successfully. You have completed this ACRN setup.
 

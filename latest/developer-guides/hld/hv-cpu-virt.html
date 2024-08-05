@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CPU Virtualization &mdash; Project ACRN™ 3.2-unstable documentation</title>
+  <title>CPU Virtualization &mdash; Project ACRN™ 3.4-unstable documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -60,6 +60,8 @@
         <dt>Document Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/3.3/">3.3</a></dd>
         
           <dd><a href="/3.2/">3.2</a></dd>
         
@@ -224,6 +226,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User RTVM OS</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html">Run Celadon as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html#introduction-to-celadon">Introduction to Celadon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html#build-celadon-image-from-source">Build Celadon Image from Source</a></li>
 </ul>
 </li>
 </ul>
@@ -616,6 +623,18 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.3.html">ACRN v3.3 (Aug 2024)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#what-s-new-in-v3-3">What’s New in v3.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#upgrading-to-v3-3-from-previous-releases">Upgrading to v3.3 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.2.html">ACRN v3.2 (Aug 2023)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#what-s-new-in-v3-2">What’s New in v3.2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#upgrading-to-v3-2-from-previous-releases">Upgrading to v3.2 from Previous Releases</a><ul>
@@ -1426,18 +1445,18 @@ requests before VM entry in <em>vcpu_thread</em>.</p>
 <span class="cp">#define ACRN_REQUEST_EOI_EXIT_BITMAP_UPDATE 4U</span>
 <span class="cp">#define ACRN_REQUEST_EPT_FLUSH 5U</span>
 <span class="cp">#define ACRN_REQUEST_TRP_FAULT 6U</span>
-<span class="cp">#define ACRN_REQUEST_VPID_FLUSH 7U </span><span class="cm">/* flush vpid tlb */</span><span class="cp"></span>
+<span class="cp">#define ACRN_REQUEST_VPID_FLUSH 7U </span><span class="cm">/* flush vpid tlb */</span>
 </pre></div>
 </div>
 <p>ACRN provides the function <em>vcpu_make_request</em> to make different
 requests, set the bitmap of the corresponding request, and notify the target
 vCPU through the IPI if necessary (when the target vCPU is not
 running). See <a class="reference internal" href="hv-virt-interrupt.html#vcpu-request-interrupt-injection"><span class="std std-ref">vCPU Request for Interrupt Injection</span></a> for details.</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">vcpu_make_request</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vcpu</span><span class="w"> </span><span class="o">*</span><span class="n">vcpu</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">eventid</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">   </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">pcpu_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pcpuid_from_vcpu</span><span class="p">(</span><span class="n">vcpu</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">vcpu_make_request</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">vcpu</span><span class="w"> </span><span class="o">*</span><span class="n">vcpu</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">eventid</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">pcpu_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pcpuid_from_vcpu</span><span class="p">(</span><span class="n">vcpu</span><span class="p">);</span>
 
-<span class="w">   </span><span class="n">bitmap_set_lock</span><span class="p">(</span><span class="n">eventid</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vcpu</span><span class="o">-&gt;</span><span class="n">arch_vcpu</span><span class="p">.</span><span class="n">pending_req</span><span class="p">);</span><span class="w"></span>
+<span class="w">   </span><span class="n">bitmap_set_lock</span><span class="p">(</span><span class="n">eventid</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">vcpu</span><span class="o">-&gt;</span><span class="n">arch_vcpu</span><span class="p">.</span><span class="n">pending_req</span><span class="p">);</span>
 <span class="w">   </span><span class="cm">/*</span>
 <span class="cm">    * if current hostcpu is not the target vcpu&#39;s hostcpu, we need</span>
 <span class="cm">    * to invoke IPI to wake up target vcpu</span>
@@ -1446,11 +1465,11 @@ running). See <a class="reference internal" href="hv-virt-interrupt.html#vcpu-re
 <span class="cm">    *  global under pCPU / vCPU 1:1 mapping. If later we enabled vcpu</span>
 <span class="cm">    *  scheduling, we need change here to determine it target vcpu is</span>
 <span class="cm">    *  VMX non-root or root mode</span>
-<span class="cm">    */</span><span class="w"></span>
-<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">get_cpu_id</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">pcpu_id</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">           </span><span class="n">send_single_ipi</span><span class="p">(</span><span class="n">pcpu_id</span><span class="p">,</span><span class="w"> </span><span class="n">VECTOR_NOTIFY_VCPU</span><span class="p">);</span><span class="w"></span>
-<span class="w">   </span><span class="p">}</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="cm">    */</span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">get_cpu_id</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">pcpu_id</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">           </span><span class="n">send_single_ipi</span><span class="p">(</span><span class="n">pcpu_id</span><span class="p">,</span><span class="w"> </span><span class="n">VECTOR_NOTIFY_VCPU</span><span class="p">);</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>The function <em>acrn_handle_pending_request</em> handles each
@@ -2311,9 +2330,9 @@ non-root mode.</p></li>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2023 Project ACRN™, a Series of LF Projects, LLC.
+    <p>&#169; Copyright 2018-2024 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Oct 20, 2022. Published on Aug 10, 2023</span>
+<span class="lastupdated">Last updated on 10月 20, 2022. Published on 8月 05, 2024</span>
 
   </div>
 

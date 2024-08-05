@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hypercall APIs &mdash; Project ACRN™ 3.2-unstable documentation</title>
+  <title>Hypercall APIs &mdash; Project ACRN™ 3.4-unstable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -60,6 +60,8 @@
         <dt>Document Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/3.3/">3.3</a></dd>
         
           <dd><a href="/3.2/">3.2</a></dd>
         
@@ -224,6 +226,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User RTVM OS</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials/using_celadon_as_user_vm.html">Run Celadon as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_celadon_as_user_vm.html#introduction-to-celadon">Introduction to Celadon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../tutorials/using_celadon_as_user_vm.html#build-celadon-image-from-source">Build Celadon Image from Source</a></li>
 </ul>
 </li>
 </ul>
@@ -616,6 +623,18 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.3.html">ACRN v3.3 (Aug 2024)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#what-s-new-in-v3-3">What’s New in v3.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#upgrading-to-v3-3-from-previous-releases">Upgrading to v3.3 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.3.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.3.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.2.html">ACRN v3.2 (Aug 2023)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.2.html#what-s-new-in-v3-2">What’s New in v3.2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.2.html#upgrading-to-v3-2-from-previous-releases">Upgrading to v3.2 from Previous Releases</a><ul>
@@ -909,6 +928,52 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd></dd></dl>
 
 <dl class="c macro">
+<dt class="sig sig-object c" id="c.VM_EVENT_RTC_CHG">
+<span class="target" id="group__acrn__hypercall_1gaf9f6e685cafad5af472386c267aa20e1"></span><span class="sig-name descname"><span class="n"><span class="pre">VM_EVENT_RTC_CHG</span></span></span><a class="headerlink" href="#c.VM_EVENT_RTC_CHG" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>VM event architecture: +—————————————————&amp;#8212;+ | Service VM | | +————————-&amp;#8212;+ | | | DM +—————–&amp;#8212;+ | | | | | [ event source ] | | | | | +-+———&amp;#8212;+–&amp;#8212;+ | | | | | (eventfd) |(sbuf) | | | | v v | | | | +———————&amp;#8212;+ | (socket) +——&amp;#8212;+ | | | | [event deliver logic] |-+——-&amp;#8212;&gt;| Libvirt | | | | +———————&amp;#8212;+ | +——&amp;#8212;+ | | | ^ ^ | | | +—-&amp;#8212;|———&amp;#8212;|—-&amp;#8212;+ | | | (eventfd) | (sbuf) | +——&amp;#8212;|———&amp;#8212;|—————————-&amp;#8212;+ +——&amp;#8212;|———&amp;#8212;|—————————-&amp;#8212;+ | kernel [HSM] | | | ^ | | +——&amp;#8212;|———&amp;#8212;|—————————-&amp;#8212;+ |upcall | +——&amp;#8212;+———&amp;#8212;+—————————-&amp;#8212;+ | HV [ event source ] | +—————————————————&amp;#8212;+</p>
+<p>For event sources in HV<ul class="simple">
+<li><p>HV puts the event in the shared ring sbuf.</p></li>
+<li><p>The hypervisor notifies the service VM via upcall.</p></li>
+<li><p>HSM in the service VM notifies device model via eventfd.</p></li>
+<li><p>The device model fetches and handles events from the shared ring sbuf. For event sources in DM</p></li>
+<li><p>DM puts the event in the DM event ring sbuf.</p></li>
+<li><p>DM notifies event delivery logic via eventfd.</p></li>
+<li><p>The event delivery logic fetches and handles events from the DM event ring sbuf. </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.VM_EVENT_POWEROFF">
+<span class="target" id="group__acrn__hypercall_1ga779226d0f58060c2c120633493bbd5be"></span><span class="sig-name descname"><span class="n"><span class="pre">VM_EVENT_POWEROFF</span></span></span><a class="headerlink" href="#c.VM_EVENT_POWEROFF" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.VM_EVENT_TRIPLE_FAULT">
+<span class="target" id="group__acrn__hypercall_1gad837a401fe1514b82b2a9ce8a166b86d"></span><span class="sig-name descname"><span class="n"><span class="pre">VM_EVENT_TRIPLE_FAULT</span></span></span><a class="headerlink" href="#c.VM_EVENT_TRIPLE_FAULT" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.VM_EVENT_COUNT">
+<span class="target" id="group__acrn__hypercall_1ga926a3a7c339f49f8874e0091a36ce8b7"></span><span class="sig-name descname"><span class="n"><span class="pre">VM_EVENT_COUNT</span></span></span><a class="headerlink" href="#c.VM_EVENT_COUNT" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.VM_EVENT_DATA_LEN">
+<span class="target" id="group__acrn__hypercall_1ga20d91367f979e27716fd21ade59fe446"></span><span class="sig-name descname"><span class="n"><span class="pre">VM_EVENT_DATA_LEN</span></span></span><a class="headerlink" href="#c.VM_EVENT_DATA_LEN" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.RTC_CHG_RELATIVE_PHYSICAL_RTC">
+<span class="target" id="group__acrn__hypercall_1gabd5c3d521a5d76e0f440afa59d4fe035"></span><span class="sig-name descname"><span class="n"><span class="pre">RTC_CHG_RELATIVE_PHYSICAL_RTC</span></span></span><a class="headerlink" href="#c.RTC_CHG_RELATIVE_PHYSICAL_RTC" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.RTC_CHG_RELATIVE_SERVICE_VM_SYS_TIME">
+<span class="target" id="group__acrn__hypercall_1gacf2c21327c3d40f37820a943b74a1e7c"></span><span class="sig-name descname"><span class="n"><span class="pre">RTC_CHG_RELATIVE_SERVICE_VM_SYS_TIME</span></span></span><a class="headerlink" href="#c.RTC_CHG_RELATIVE_SERVICE_VM_SYS_TIME" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c macro">
 <dt class="sig sig-object c" id="c.ACRN_PLATFORM_LAPIC_IDS_MAX">
 <span class="target" id="group__acrn__hypercall_1gaebfdd24663a5083a186c54f44912163f"></span><span class="sig-name descname"><span class="n"><span class="pre">ACRN_PLATFORM_LAPIC_IDS_MAX</span></span></span><a class="headerlink" href="#c.ACRN_PLATFORM_LAPIC_IDS_MAX" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
@@ -1025,6 +1090,11 @@ for the Device Model are found in the <a class="reference external" href="https:
 <span class="target" id="group__acrn__hypercall_ga80155586fa275b28773c9b203f52caba_1gga80155586fa275b28773c9b203f52cabaa57c7f08be441f7b3defb8134b54da93f"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ACRN_ASYNCIO</span></span></span><a class="headerlink" href="#c.@17.ACRN_ASYNCIO" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.&#64;17.ACRN_VM_EVENT">
+<span class="target" id="group__acrn__hypercall_ga80155586fa275b28773c9b203f52caba_1gga80155586fa275b28773c9b203f52cabaa05bfce4f4afa22aec5efbfa59e2ca04c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ACRN_VM_EVENT</span></span></span><a class="headerlink" href="#c.@17.ACRN_VM_EVENT" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>
@@ -1095,7 +1165,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vcpu</strong> – Pointer to vCPU that initiates the hypercall </p></li>
 <li><p><strong>target_vm</strong> – Pointer to target VM data structure </p></li>
-<li><p><strong>param1</strong> – guest physical memory address. This gpa points to struct <a class="reference internal" href="#structacrn__vm__creation"><span class="std std-ref">acrn_vm_creation</span></a> </p></li>
+<li><p><strong>param1</strong> – guest physical memory address. This gpa points to struct <a class="reference internal" href="#structacrn__vm__creation"><span class="std std-ref">acrn_vm_creation</span></a></p></li>
 <li><p><strong>param2</strong> – not used</p></li>
 </ul>
 </dd>
@@ -1671,7 +1741,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vcpu</strong> – not used </p></li>
 <li><p><strong>target_vm</strong> – which VM the asyncio belongs. </p></li>
-<li><p><strong>param1</strong> – guest physical address. This gpa points to struct <a class="reference internal" href="#structacrn__asyncio__info"><span class="std std-ref">acrn_asyncio_info</span></a> </p></li>
+<li><p><strong>param1</strong> – guest physical address. This gpa points to struct <a class="reference internal" href="#structacrn__asyncio__info"><span class="std std-ref">acrn_asyncio_info</span></a></p></li>
 <li><p><strong>param2</strong> – not used</p></li>
 </ul>
 </dd>
@@ -1690,7 +1760,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vcpu</strong> – not used </p></li>
 <li><p><strong>target_vm</strong> – which VM the asyncio belongs. </p></li>
-<li><p><strong>param1</strong> – guest physical address. This gpa points to struct <a class="reference internal" href="#structacrn__asyncio__info"><span class="std std-ref">acrn_asyncio_info</span></a> </p></li>
+<li><p><strong>param1</strong> – guest physical address. This gpa points to struct <a class="reference internal" href="#structacrn__asyncio__info"><span class="std std-ref">acrn_asyncio_info</span></a></p></li>
 <li><p><strong>param2</strong> – not used</p></li>
 </ul>
 </dd>
@@ -1714,7 +1784,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vcpu</strong> – Pointer to vCPU that initiates the hypercall </p></li>
 <li><p><strong>target_vm</strong> – not used </p></li>
-<li><p><strong>param1</strong> – guest physical address. This gpa points to struct <a class="reference internal" href="#structhv__npk__log__param"><span class="std std-ref">hv_npk_log_param</span></a> </p></li>
+<li><p><strong>param1</strong> – guest physical address. This gpa points to struct <a class="reference internal" href="#structhv__npk__log__param"><span class="std std-ref">hv_npk_log_param</span></a></p></li>
 <li><p><strong>param2</strong> – not used</p></li>
 </ul>
 </dd>
@@ -1740,7 +1810,7 @@ for the Device Model are found in the <a class="reference external" href="https:
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>vcpu</strong> – Pointer to vCPU that initiates the hypercall </p></li>
 <li><p><strong>target_vm</strong> – not used </p></li>
-<li><p><strong>param1</strong> – Guest physical address pointing to struct <a class="reference internal" href="#structacrn__hw__info"><span class="std std-ref">acrn_hw_info</span></a> </p></li>
+<li><p><strong>param1</strong> – Guest physical address pointing to struct <a class="reference internal" href="#structacrn__hw__info"><span class="std std-ref">acrn_hw_info</span></a></p></li>
 <li><p><strong>param2</strong> – not used</p></li>
 </ul>
 </dd>
@@ -2077,6 +2147,20 @@ requests (d)</p></li>
 </dd></dl>
 
 <dl class="c struct">
+<dt class="sig sig-object c" id="c.vm_event">
+<span class="target" id="structvm__event"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vm_event</span></span></span><a class="headerlink" href="#c.vm_event" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;acrn_common.h&gt;</em></div>
+</dd></dl>
+
+<dl class="c struct">
+<dt class="sig sig-object c" id="c.rtc_change_event_data">
+<span class="target" id="structrtc__change__event__data"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">rtc_change_event_data</span></span></span><a class="headerlink" href="#c.rtc_change_event_data" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;acrn_common.h&gt;</em></div>
+</dd></dl>
+
+<dl class="c struct">
 <dt class="sig sig-object c" id="c.vm_memory_region">
 <span class="target" id="structvm__memory__region"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">vm_memory_region</span></span></span><a class="headerlink" href="#c.vm_memory_region" title="Permalink to this definition">¶</a><br /></dt>
 <dd><div class="docutils container">
@@ -2246,9 +2330,9 @@ requests (d)</p></li>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2023 Project ACRN™, a Series of LF Projects, LLC.
+    <p>&#169; Copyright 2018-2024 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Feb 27, 2022. Published on Aug 10, 2023</span>
+<span class="lastupdated">Last updated on 2月 27, 2022. Published on 8月 05, 2024</span>
 
   </div>
 

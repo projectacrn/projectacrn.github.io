@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Device Passthrough &mdash; Project ACRN™ 3.2-unstable documentation</title>
+  <title>Device Passthrough &mdash; Project ACRN™ 3.4-unstable documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -60,6 +60,8 @@
         <dt>Document Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/3.3/">3.3</a></dd>
         
           <dd><a href="/3.2/">3.2</a></dd>
         
@@ -224,6 +226,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User RTVM OS</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html">Run Celadon as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html#introduction-to-celadon">Introduction to Celadon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html#build-celadon-image-from-source">Build Celadon Image from Source</a></li>
 </ul>
 </li>
 </ul>
@@ -616,6 +623,18 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.3.html">ACRN v3.3 (Aug 2024)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#what-s-new-in-v3-3">What’s New in v3.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#upgrading-to-v3-3-from-previous-releases">Upgrading to v3.3 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.2.html">ACRN v3.2 (Aug 2023)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#what-s-new-in-v3-2">What’s New in v3.2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#upgrading-to-v3-2-from-previous-releases">Upgrading to v3.2 from Previous Releases</a><ul>
@@ -1122,24 +1141,24 @@ virtual root port instead of the host bridge.</p>
 in the scenario XML file that configures the VM.</p>
 <p>Here is an example launch script that configures a supported Ethernet card for
 passthrough and enables PTM on it:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">declare</span> -A passthru_vpid
-<span class="nb">declare</span> -A passthru_bdf
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">declare</span><span class="w"> </span>-A<span class="w"> </span>passthru_vpid
+<span class="nb">declare</span><span class="w"> </span>-A<span class="w"> </span>passthru_bdf
 <span class="nv">passthru_vpid</span><span class="o">=(</span>
- <span class="o">[</span><span class="s2">&quot;ethptm&quot;</span><span class="o">]=</span><span class="s2">&quot;8086 15f2&quot;</span>
- <span class="o">)</span>
+<span class="w"> </span><span class="o">[</span><span class="s2">&quot;ethptm&quot;</span><span class="o">]=</span><span class="s2">&quot;8086 15f2&quot;</span>
+<span class="w"> </span><span class="o">)</span>
 <span class="nv">passthru_bdf</span><span class="o">=(</span>
- <span class="o">[</span><span class="s2">&quot;ethptm&quot;</span><span class="o">]=</span><span class="s2">&quot;0000:aa:00.0&quot;</span>
- <span class="o">)</span>
-<span class="hll"><span class="nb">echo</span> <span class="si">${</span><span class="nv">passthru_vpid</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span> &gt; /sys/bus/pci/drivers/pci-stub/new_id
-</span><span class="hll"><span class="nb">echo</span> <span class="si">${</span><span class="nv">passthru_bdf</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span> &gt; /sys/bus/pci/devices/<span class="si">${</span><span class="nv">passthru_bdf</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span>/driver/unbind
-</span><span class="hll"><span class="nb">echo</span> <span class="si">${</span><span class="nv">passthru_bdf</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span> &gt; /sys/bus/pci/drivers/pci-stub/bind
+<span class="w"> </span><span class="o">[</span><span class="s2">&quot;ethptm&quot;</span><span class="o">]=</span><span class="s2">&quot;0000:aa:00.0&quot;</span>
+<span class="w"> </span><span class="o">)</span>
+<span class="hll"><span class="nb">echo</span><span class="w"> </span><span class="si">${</span><span class="nv">passthru_vpid</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/drivers/pci-stub/new_id
+</span><span class="hll"><span class="nb">echo</span><span class="w"> </span><span class="si">${</span><span class="nv">passthru_bdf</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/devices/<span class="si">${</span><span class="nv">passthru_bdf</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span>/driver/unbind
+</span><span class="hll"><span class="nb">echo</span><span class="w"> </span><span class="si">${</span><span class="nv">passthru_bdf</span><span class="p">[</span><span class="s2">&quot;ethptm&quot;</span><span class="p">]</span><span class="si">}</span><span class="w"> </span>&gt;<span class="w"> </span>/sys/bus/pci/drivers/pci-stub/bind
 </span>
-acrn-dm -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,hostbridge <span class="se">\</span>
-   -s <span class="m">3</span>,virtio-blk,user-vm-test.img <span class="se">\</span>
-   -s <span class="m">4</span>,virtio-net,tap<span class="o">=</span>tap0 <span class="se">\</span>
-   -s <span class="m">5</span>,virtio-console,@stdio:stdio_port <span class="se">\</span>
-<span class="hll">   -s <span class="m">6</span>,passthru,a9/00/0,enable_ptm <span class="se">\</span>
-</span>   --ovmf /usr/share/acrn/bios/OVMF.fd
+acrn-dm<span class="w"> </span>-m<span class="w"> </span><span class="nv">$mem_size</span><span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>:0,hostbridge<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-s<span class="w"> </span><span class="m">3</span>,virtio-blk,user-vm-test.img<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-s<span class="w"> </span><span class="m">4</span>,virtio-net,tap<span class="o">=</span>tap0<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-s<span class="w"> </span><span class="m">5</span>,virtio-console,@stdio:stdio_port<span class="w"> </span><span class="se">\</span>
+<span class="hll"><span class="w">   </span>-s<span class="w"> </span><span class="m">6</span>,passthru,a9/00/0,enable_ptm<span class="w"> </span><span class="se">\</span>
+</span><span class="w">   </span>--ovmf<span class="w"> </span>/usr/share/acrn/bios/OVMF.fd
 </pre></div>
 </div>
 <p>And here is the bus hierarchy from the User VM (as shown by the <code class="docutils literal notranslate"><span class="pre">lspci</span></code> command):</p>
@@ -1193,43 +1212,43 @@ make sure the post-launched VM uses a version of the IGC driver that supports
 PTM.</p></li>
 <li><p>In the Device Model launch script, add the <code class="docutils literal notranslate"><span class="pre">enable_ptm</span></code> option to the
 passthrough device.  For example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ acrn-dm -m <span class="nv">$mem_size</span> -s <span class="m">0</span>:0,hostbridge <span class="se">\</span>
-    -s <span class="m">3</span>,virtio-blk,user-vm-test.img <span class="se">\</span>
-    -s <span class="m">4</span>,virtio-net,tap<span class="o">=</span>tap0 <span class="se">\</span>
-    -s <span class="m">5</span>,virtio-console,@stdio:stdio_port <span class="se">\</span>
-<span class="hll">    -s <span class="m">6</span>,passthru,a9/00/0,enable_ptm <span class="se">\</span>
-</span>    --ovmf /usr/share/acrn/bios/OVMF.fd <span class="se">\</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>acrn-dm<span class="w"> </span>-m<span class="w"> </span><span class="nv">$mem_size</span><span class="w"> </span>-s<span class="w"> </span><span class="m">0</span>:0,hostbridge<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-s<span class="w"> </span><span class="m">3</span>,virtio-blk,user-vm-test.img<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-s<span class="w"> </span><span class="m">4</span>,virtio-net,tap<span class="o">=</span>tap0<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-s<span class="w"> </span><span class="m">5</span>,virtio-console,@stdio:stdio_port<span class="w"> </span><span class="se">\</span>
+<span class="hll"><span class="w">    </span>-s<span class="w"> </span><span class="m">6</span>,passthru,a9/00/0,enable_ptm<span class="w"> </span><span class="se">\</span>
+</span><span class="w">    </span>--ovmf<span class="w"> </span>/usr/share/acrn/bios/OVMF.fd<span class="w"> </span><span class="se">\</span>
 </pre></div>
 </div>
 </li>
 <li><p>You can check that PTM is correctly enabled on the post-launched VM by
 displaying the PCI bus hierarchy on the post-launched VM using the <code class="docutils literal notranslate"><span class="pre">lspci</span></code>
 command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lspci -tv
-  -<span class="o">[</span><span class="m">0000</span>:00<span class="o">]</span>-+-00.0  Network Appliance Corporation Device <span class="m">1275</span>
-   +-03.0  Red Hat, Inc. Virtio block device
-   +-04.0  Red Hat, Inc. Virtio network device
-   +-05.0  Red Hat, Inc. Virtio console
-   <span class="se">\-</span><span class="m">06</span>.0-<span class="o">[</span><span class="m">01</span><span class="o">]</span>----00.0  Intel Corporation Device 15f2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lspci<span class="w"> </span>-tv
+<span class="w">  </span>-<span class="o">[</span><span class="m">0000</span>:00<span class="o">]</span>-+-00.0<span class="w">  </span>Network<span class="w"> </span>Appliance<span class="w"> </span>Corporation<span class="w"> </span>Device<span class="w"> </span><span class="m">1275</span>
+<span class="w">   </span>+-03.0<span class="w">  </span>Red<span class="w"> </span>Hat,<span class="w"> </span>Inc.<span class="w"> </span>Virtio<span class="w"> </span>block<span class="w"> </span>device
+<span class="w">   </span>+-04.0<span class="w">  </span>Red<span class="w"> </span>Hat,<span class="w"> </span>Inc.<span class="w"> </span>Virtio<span class="w"> </span>network<span class="w"> </span>device
+<span class="w">   </span>+-05.0<span class="w">  </span>Red<span class="w"> </span>Hat,<span class="w"> </span>Inc.<span class="w"> </span>Virtio<span class="w"> </span>console
+<span class="w">   </span><span class="se">\-</span><span class="m">06</span>.0-<span class="o">[</span><span class="m">01</span><span class="o">]</span>----00.0<span class="w">  </span>Intel<span class="w"> </span>Corporation<span class="w"> </span>Device<span class="w"> </span>15f2
 
-sudo lspci -vv <span class="c1"># (Only relevant output is shown)</span>
-  <span class="m">00</span>:00.0 Host bridge: Network Appliance Corporation Device <span class="m">1275</span>
-  <span class="m">00</span>:06.0 PCI bridge: Intel Corporation Sunrise Point-LP PCI Express Root Port <span class="c1">#5 (rev 02) (prog-if 00 [Normal decode])</span>
-  . . .
-<span class="hll">          Capabilities: <span class="o">[</span><span class="m">100</span> v1<span class="o">]</span> Precision Time Measurement
-</span>                  PTMCap: Requester:- Responder:+ Root:+
-                  PTMClockGranularity: 4ns
-                  PTMControl: Enabled:+ RootSelected:+
-                  PTMEffectiveGranularity: 4ns
-          Kernel driver <span class="k">in</span> use: pcieport
-  <span class="m">01</span>:00.0 Ethernet controller: Intel Corporation Device 15f2 <span class="o">(</span>rev <span class="m">01</span><span class="o">)</span>
-  . . .
-<span class="hll">          Capabilities: <span class="o">[</span>1f0 v1<span class="o">]</span> Precision Time Measurement
-</span>                  PTMCap: Requester:+ Responder:- Root:-
-                  PTMClockGranularity: 4ns
-                  PTMControl: Enabled:+ RootSelected:-
-                  PTMEffectiveGranularity: 4ns
-          Kernel driver <span class="k">in</span> use: igc
+sudo<span class="w"> </span>lspci<span class="w"> </span>-vv<span class="w"> </span><span class="c1"># (Only relevant output is shown)</span>
+<span class="w">  </span><span class="m">00</span>:00.0<span class="w"> </span>Host<span class="w"> </span>bridge:<span class="w"> </span>Network<span class="w"> </span>Appliance<span class="w"> </span>Corporation<span class="w"> </span>Device<span class="w"> </span><span class="m">1275</span>
+<span class="w">  </span><span class="m">00</span>:06.0<span class="w"> </span>PCI<span class="w"> </span>bridge:<span class="w"> </span>Intel<span class="w"> </span>Corporation<span class="w"> </span>Sunrise<span class="w"> </span>Point-LP<span class="w"> </span>PCI<span class="w"> </span>Express<span class="w"> </span>Root<span class="w"> </span>Port<span class="w"> </span><span class="c1">#5 (rev 02) (prog-if 00 [Normal decode])</span>
+<span class="w">  </span>.<span class="w"> </span>.<span class="w"> </span>.
+<span class="hll"><span class="w">          </span>Capabilities:<span class="w"> </span><span class="o">[</span><span class="m">100</span><span class="w"> </span>v1<span class="o">]</span><span class="w"> </span>Precision<span class="w"> </span>Time<span class="w"> </span>Measurement
+</span><span class="w">                  </span>PTMCap:<span class="w"> </span>Requester:-<span class="w"> </span>Responder:+<span class="w"> </span>Root:+
+<span class="w">                  </span>PTMClockGranularity:<span class="w"> </span>4ns
+<span class="w">                  </span>PTMControl:<span class="w"> </span>Enabled:+<span class="w"> </span>RootSelected:+
+<span class="w">                  </span>PTMEffectiveGranularity:<span class="w"> </span>4ns
+<span class="w">          </span>Kernel<span class="w"> </span>driver<span class="w"> </span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>pcieport
+<span class="w">  </span><span class="m">01</span>:00.0<span class="w"> </span>Ethernet<span class="w"> </span>controller:<span class="w"> </span>Intel<span class="w"> </span>Corporation<span class="w"> </span>Device<span class="w"> </span>15f2<span class="w"> </span><span class="o">(</span>rev<span class="w"> </span><span class="m">01</span><span class="o">)</span>
+<span class="w">  </span>.<span class="w"> </span>.<span class="w"> </span>.
+<span class="hll"><span class="w">          </span>Capabilities:<span class="w"> </span><span class="o">[</span>1f0<span class="w"> </span>v1<span class="o">]</span><span class="w"> </span>Precision<span class="w"> </span>Time<span class="w"> </span>Measurement
+</span><span class="w">                  </span>PTMCap:<span class="w"> </span>Requester:+<span class="w"> </span>Responder:-<span class="w"> </span>Root:-
+<span class="w">                  </span>PTMClockGranularity:<span class="w"> </span>4ns
+<span class="w">                  </span>PTMControl:<span class="w"> </span>Enabled:+<span class="w"> </span>RootSelected:-
+<span class="w">                  </span>PTMEffectiveGranularity:<span class="w"> </span>4ns
+<span class="w">          </span>Kernel<span class="w"> </span>driver<span class="w"> </span><span class="k">in</span><span class="w"> </span>use:<span class="w"> </span>igc
 </pre></div>
 </div>
 </li>
@@ -1575,9 +1594,9 @@ interrupt entries for post-launched VMs:</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2023 Project ACRN™, a Series of LF Projects, LLC.
+    <p>&#169; Copyright 2018-2024 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Oct 26, 2022. Published on Aug 10, 2023</span>
+<span class="lastupdated">Last updated on 10月 26, 2022. Published on 8月 05, 2024</span>
 
   </div>
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Memory Management High-Level Design &mdash; Project ACRN™ 3.2-unstable documentation</title>
+  <title>Memory Management High-Level Design &mdash; Project ACRN™ 3.4-unstable documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
@@ -60,6 +60,8 @@
         <dt>Document Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/3.3/">3.3</a></dd>
         
           <dd><a href="/3.2/">3.2</a></dd>
         
@@ -224,6 +226,11 @@
 <li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User RTVM OS</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html">Run Celadon as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html#introduction-to-celadon">Introduction to Celadon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html#build-celadon-image-from-source">Build Celadon Image from Source</a></li>
 </ul>
 </li>
 </ul>
@@ -616,6 +623,18 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.3.html">ACRN v3.3 (Aug 2024)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#what-s-new-in-v3-3">What’s New in v3.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#upgrading-to-v3-3-from-previous-releases">Upgrading to v3.3 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.2.html">ACRN v3.2 (Aug 2023)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#what-s-new-in-v3-2">What’s New in v3.2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#upgrading-to-v3-2-from-previous-releases">Upgrading to v3.2 from Previous Releases</a><ul>
@@ -931,64 +950,132 @@ of physical memory management.</p>
 <h4>Address Space Translation<a class="headerlink" href="#address-space-translation" title="Permalink to this heading">¶</a></h4>
 <dl class="c function">
 <dt class="sig sig-object c" id="c.hpa2hva_early">
-<span class="target" id="group__acrn__mem_ga4b0bc3ae664b3185783805b8447b2685_1ga4b0bc3ae664b3185783805b8447b2685"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hpa2hva_early</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.hpa2hva_early" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Translate host-physical address to host-virtual address. </p>
+<span class="target" id="group__hwmgmt__page_ga4b0bc3ae664b3185783805b8447b2685_1ga4b0bc3ae664b3185783805b8447b2685"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hpa2hva_early</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.hpa2hva_early" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate a host physical address to a host virtual address before paging mode enabled. </p>
+<p>This function is used to translate a host physical address to a host virtual address before paging mode enabled. HPA is 1:1 mapping to HVA.</p>
+<p>It returns the host virtual address that corresponds to the given host physical address.</p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>This function is used before paging mode enabled. </p>
+</div>
+<dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>N/A</p>
+</dd>
+</dl>
+</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> – <strong>[in]</strong> The specified host-physical address</p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> The host physical address</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The translated host-virtual address </p>
+<dt class="field-even">Return values</dt>
+<dd class="field-even"><p><strong>NULL</strong> – if x == 0</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The translated host virtual address</p>
+</dd>
+<dt class="field-even">Post</dt>
+<dd class="field-even"><p>N/A</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.hva2hpa_early">
-<span class="target" id="group__acrn__mem_ga41826c8ec996f85cff4bafe892b6ef5e_1ga41826c8ec996f85cff4bafe892b6ef5e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hva2hpa_early</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.hva2hpa_early" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Translate host-virtual address to host-physical address. </p>
+<span class="target" id="group__hwmgmt__page_ga41826c8ec996f85cff4bafe892b6ef5e_1ga41826c8ec996f85cff4bafe892b6ef5e"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hva2hpa_early</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.hva2hpa_early" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate a host virtual address to a host physical address before paging mode enabled. </p>
+<p>This function is used to translate a host virtual address to a host physical address before paging mode enabled. HVA is 1:1 mapping to HPA.</p>
+<p>It returns the host physical address that corresponds to the given host virtual address.</p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>This function is used before paging mode enabled. </p>
+</div>
+<dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>N/A</p>
+</dd>
+</dl>
+</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> – <strong>[in]</strong> The specified host-virtual address</p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> The host virtual address to be translated</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The translated host-physical address </p>
+<dt class="field-even">Return values</dt>
+<dd class="field-even"><p><strong>0</strong> – if x == NULL</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The translated host physical address</p>
+</dd>
+<dt class="field-even">Post</dt>
+<dd class="field-even"><p>N/A</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.hpa2hva">
-<span class="target" id="group__acrn__mem_ga30c6f3439527ad05a3a70f384e14faf9_1ga30c6f3439527ad05a3a70f384e14faf9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hpa2hva</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.hpa2hva" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Translate host-physical address to host-virtual address. </p>
+<span class="target" id="group__hwmgmt__page_ga30c6f3439527ad05a3a70f384e14faf9_1ga30c6f3439527ad05a3a70f384e14faf9"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hpa2hva</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.hpa2hva" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate a host physical address to a host virtual address. </p>
+<p>This function is used to translate a host physical address to a host virtual address. HPA is 1:1 mapping to HVA.</p>
+<p>It returns the host virtual address that corresponds to the given host physical address.</p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>This function is used after paging mode enabled. </p>
+</div>
+<dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>N/A</p>
+</dd>
+</dl>
+</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> – <strong>[in]</strong> The specified host-physical address</p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> The host physical address to be translated.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The translated host-virtual address </p>
+<dt class="field-even">Return values</dt>
+<dd class="field-even"><p><strong>NULL</strong> – if x == 0</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The translated host virtual address</p>
+</dd>
+<dt class="field-even">Post</dt>
+<dd class="field-even"><p>N/A</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="c function">
 <dt class="sig sig-object c" id="c.hva2hpa">
-<span class="target" id="group__acrn__mem_gad0e9d97f969ab90789edd8b4ee7548ee_1gad0e9d97f969ab90789edd8b4ee7548ee"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hva2hpa</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.hva2hpa" title="Permalink to this definition">¶</a><br /></dt>
-<dd><p>Translate host-virtual address to host-physical address. </p>
+<span class="target" id="group__hwmgmt__page_gad0e9d97f969ab90789edd8b4ee7548ee_1gad0e9d97f969ab90789edd8b4ee7548ee"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">hva2hpa</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">x</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.hva2hpa" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Translate a host virtual address to a host physical address. </p>
+<p>This function is used to translate a host virtual address to a host physical address. HVA is 1:1 mapping to HPA.</p>
+<p>It returns the host physical address that corresponds to the given host virtual address.</p>
+<p><div class="remark admonition">
+<p class="admonition-title">Remark</p>
+<p>This function is used after paging mode enabled. </p>
+</div>
+<dl class="simple">
+<dt><strong>Preconditions</strong></dt><dd><p>N/A</p>
+</dd>
+</dl>
+</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> – <strong>[in]</strong> The specified host-virtual address</p></li>
+<li><p><strong>x</strong> – <strong>[in]</strong> The host virtual address to be translated.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The translated host-physical address </p>
+<dt class="field-even">Return values</dt>
+<dd class="field-even"><p><strong>0</strong> – if x == NULL</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The translated host physical address.</p>
+</dd>
+<dt class="field-even">Post</dt>
+<dd class="field-even"><p>N/A</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1310,7 +1397,7 @@ violation handling data flow is described in the
 </dd>
 <dt class="field-even">Return values</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>hpa</strong> – the host physical address mapping to the <code class="docutils literal notranslate"><span class="pre">gpa</span></code> </p></li>
+<li><p><strong>hpa</strong> – the host physical address mapping to the <code class="docutils literal notranslate"><span class="pre">gpa</span></code></p></li>
 <li><p><strong>INVALID_HPA</strong> – the HPA of parameter gpa is unmapping </p></li>
 </ul>
 </dd>
@@ -1625,9 +1712,9 @@ must not be accessible by the Service VM and User VM normal world.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2023 Project ACRN™, a Series of LF Projects, LLC.
+    <p>&#169; Copyright 2018-2024 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Nov 25, 2021. Published on Aug 10, 2023</span>
+<span class="lastupdated">Last updated on 11月 25, 2021. Published on 8月 05, 2024</span>
 
   </div>
 

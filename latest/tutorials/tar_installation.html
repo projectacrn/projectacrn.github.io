@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ACRN Installation via Tar Files &mdash; Project ACRN™ 3.2-unstable documentation</title>
+  <title>ACRN Installation via Tar Files &mdash; Project ACRN™ 3.4-unstable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -60,6 +60,8 @@
         <dt>Document Versions</dt>
         
           <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/3.3/">3.3</a></dd>
         
           <dd><a href="/3.2/">3.2</a></dd>
         
@@ -224,6 +226,11 @@
 <li class="toctree-l3"><a class="reference internal" href="using_zephyr_as_user_vm.html">Run Zephyr as the User RTVM OS</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
 <li class="toctree-l4"><a class="reference internal" href="using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="using_celadon_as_user_vm.html">Run Celadon as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="using_celadon_as_user_vm.html#introduction-to-celadon">Introduction to Celadon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="using_celadon_as_user_vm.html#build-celadon-image-from-source">Build Celadon Image from Source</a></li>
 </ul>
 </li>
 </ul>
@@ -616,6 +623,18 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.3.html">ACRN v3.3 (Aug 2024)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#what-s-new-in-v3-3">What’s New in v3.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#upgrading-to-v3-3-from-previous-releases">Upgrading to v3.3 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.3.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../release_notes/release_notes_3.3.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../release_notes/release_notes_3.2.html">ACRN v3.2 (Aug 2023)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.2.html#what-s-new-in-v3-2">What’s New in v3.2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../release_notes/release_notes_3.2.html#upgrading-to-v3-2-from-previous-releases">Upgrading to v3.2 from Previous Releases</a><ul>
@@ -761,9 +780,9 @@ code from the ACRN GitHub repository).</p></li>
 directory and build the ACRN hypervisor tar files. Replace
 <code class="docutils literal notranslate"><span class="pre">&lt;board.xml&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;scenario.xml&gt;</span></code> with the paths to your board
 configuration file and scenario configuration file.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work/acrn-hypervisor
-make -j <span class="k">$(</span>nproc<span class="k">)</span> <span class="nv">BOARD</span><span class="o">=</span>&lt;board.xml&gt; <span class="nv">SCENARIO</span><span class="o">=</span>&lt;scenario.xml&gt;
-make targz-pkg
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/acrn-work/acrn-hypervisor
+make<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span><span class="w"> </span><span class="nv">BOARD</span><span class="o">=</span>&lt;board.xml&gt;<span class="w"> </span><span class="nv">SCENARIO</span><span class="o">=</span>&lt;scenario.xml&gt;
+make<span class="w"> </span>targz-pkg
 </pre></div>
 </div>
 <p>The build typically takes a few minutes. By default, the build results are
@@ -771,10 +790,10 @@ found in the <code class="docutils literal notranslate"><span class="pre">build<
 </li>
 <li><p>Navigate to the <code class="docutils literal notranslate"><span class="pre">acrn-kernel</span></code> source code directory and build the ACRN
 kernel tar files for the Service VM:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work/acrn-kernel
-cp kernel_config_service_vm .config
-make olddefconfig
-make -j <span class="k">$(</span>nproc<span class="k">)</span> targz-pkg
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/acrn-work/acrn-kernel
+cp<span class="w"> </span>kernel_config_service_vm<span class="w"> </span>.config
+make<span class="w"> </span>olddefconfig
+make<span class="w"> </span>-j<span class="w"> </span><span class="k">$(</span>nproc<span class="k">)</span><span class="w"> </span>targz-pkg
 </pre></div>
 </div>
 <p>The kernel build can take 15 minutes or less on a fast computer, but could
@@ -794,47 +813,47 @@ to use a different method. Modify the file names in the following commands to
 match your files.</p>
 <ol class="loweralpha">
 <li><p>Insert the USB disk into the development computer and run these commands:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work/acrn-kernel
-<span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls /media/<span class="nv">$USER</span><span class="k">)</span>
-cp linux-5.10.90-acrn-service-vm-206626-g140f5035e1b1-x86.tar.gz <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
-cp ~/acrn-work/acpica-unix-20210105/generate/unix/bin/iasl <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
-cp ~/acrn-work/acrn-hypervisor/build/acrn-2.8-unstable.tar.gz <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
-sync <span class="o">&amp;&amp;</span> sudo umount <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/acrn-work/acrn-kernel
+<span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls<span class="w"> </span>/media/<span class="nv">$USER</span><span class="k">)</span>
+cp<span class="w"> </span>linux-5.10.90-acrn-service-vm-206626-g140f5035e1b1-x86.tar.gz<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
+cp<span class="w"> </span>~/acrn-work/acpica-unix-20210105/generate/unix/bin/iasl<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
+cp<span class="w"> </span>~/acrn-work/acrn-hypervisor/build/acrn-2.8-unstable.tar.gz<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
+sync<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>umount<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
 </pre></div>
 </div>
 </li>
 <li><p>Insert the USB disk you just used into the target system and run these
 commands to copy the files locally:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls /media/<span class="nv">$USER</span><span class="k">)</span>
-cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/linux-5.10.90-acrn-service-vm-206626-g140f5035e1b1-x86.tar.gz ~/acrn-work
-cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/acrn-2.8-unstable.tar.gz ~/acrn-work
-sudo cp <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/iasl /usr/sbin/
-sync <span class="o">&amp;&amp;</span> sudo umount <span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">disk</span><span class="o">=</span><span class="s2">&quot;/media/</span><span class="nv">$USER</span><span class="s2">/&quot;</span><span class="k">$(</span>ls<span class="w"> </span>/media/<span class="nv">$USER</span><span class="k">)</span>
+cp<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/linux-5.10.90-acrn-service-vm-206626-g140f5035e1b1-x86.tar.gz<span class="w"> </span>~/acrn-work
+cp<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/acrn-2.8-unstable.tar.gz<span class="w"> </span>~/acrn-work
+sudo<span class="w"> </span>cp<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/iasl<span class="w"> </span>/usr/sbin/
+sync<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>umount<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$disk</span><span class="s2">&quot;</span>/
 </pre></div>
 </div>
 </li>
 </ol>
 </li>
 <li><p>Extract the Service VM files onto the target system:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> ~/acrn-work
-sudo tar -zxvf linux-5.10.90-acrn-service-vm-206626-g140f5035e1b1-x86.tar.gz -C / --keep-directory-symlink
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>~/acrn-work
+sudo<span class="w"> </span>tar<span class="w"> </span>-zxvf<span class="w"> </span>linux-5.10.90-acrn-service-vm-206626-g140f5035e1b1-x86.tar.gz<span class="w"> </span>-C<span class="w"> </span>/<span class="w"> </span>--keep-directory-symlink
 </pre></div>
 </div>
 </li>
 <li><p>Extract the ACRN tools and images:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo tar -zxvf acrn-2.8-unstable.tar.gz -C / --keep-directory-symlink
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>tar<span class="w"> </span>-zxvf<span class="w"> </span>acrn-2.8-unstable.tar.gz<span class="w"> </span>-C<span class="w"> </span>/<span class="w"> </span>--keep-directory-symlink
 </pre></div>
 </div>
 </li>
 <li><p>Copy the ACRN bin file to the boot directory. Replace <code class="docutils literal notranslate"><span class="pre">&lt;board&gt;</span></code> and
 <code class="docutils literal notranslate"><span class="pre">&lt;scenario&gt;</span></code> to match your file.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo mkdir -p /boot/acrn/
-sudo cp /usr/lib64/acrn/acrn.&lt;board&gt;.&lt;scenario&gt;.bin /boot/acrn
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/boot/acrn/
+sudo<span class="w"> </span>cp<span class="w"> </span>/usr/lib64/acrn/acrn.&lt;board&gt;.&lt;scenario&gt;.bin<span class="w"> </span>/boot/acrn
 </pre></div>
 </div>
 </li>
 <li><p>Install the serial configuration tool in the target system as follows:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt install setserial
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>setserial
 </pre></div>
 </div>
 </li>
@@ -872,7 +891,7 @@ partition named <code class="docutils literal notranslate"><span class="pre">/</
 <li><p>Run the <code class="docutils literal notranslate"><span class="pre">blkid</span></code> command to get the UUID and PARTUUID for the rootfs device
 (replace the <code class="docutils literal notranslate"><span class="pre">nvme0n1p2</span></code> name with the name shown for the rootfs on your
 system):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo blkid /dev/nvme0n1p2
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>blkid<span class="w"> </span>/dev/nvme0n1p2
 </pre></div>
 </div>
 <p>In the output, look for the UUID and PARTUUID (example below). You will need
@@ -885,7 +904,7 @@ them in the next step.</p>
 <ol class="loweralpha">
 <li><p>Edit the GRUB <code class="docutils literal notranslate"><span class="pre">40_custom</span></code> file. The following command uses <code class="docutils literal notranslate"><span class="pre">vi</span></code>, but
 you can use any text editor.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo vi /etc/grub.d/40_custom
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>vi<span class="w"> </span>/etc/grub.d/40_custom
 </pre></div>
 </div>
 </li>
@@ -893,15 +912,15 @@ you can use any text editor.</p>
 <code class="docutils literal notranslate"><span class="pre">PARTUUID</span></code> with the output from the previous step. Replace <code class="docutils literal notranslate"><span class="pre">&lt;board&gt;</span></code>
 and <code class="docutils literal notranslate"><span class="pre">&lt;scenario&gt;</span></code> to match your bin file. Confirm the module2 file name
 matches the file in your <code class="docutils literal notranslate"><span class="pre">boot</span></code> directory.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>menuentry <span class="s2">&quot;ACRN Multiboot Ubuntu Service VM&quot;</span> --id ubuntu-service-vm <span class="o">{</span>
-  load_video
-  insmod gzio
-  insmod part_gpt
-  insmod ext2
-<span class="hll">  search --no-floppy --fs-uuid --set <span class="s2">&quot;UUID&quot;</span>
-</span>  <span class="nb">echo</span> <span class="s1">&#39;loading ACRN...&#39;</span>
-<span class="hll">  multiboot2 /boot/acrn/acrn.&lt;board&gt;.&lt;scenario&gt;.bin  <span class="nv">root</span><span class="o">=</span><span class="nv">PARTUUID</span><span class="o">=</span><span class="s2">&quot;PARTUUID&quot;</span>
-</span><span class="hll">  module2 /boot/vmlinuz-5.10.90-acrn-service-vm-206626-g140f5035e1b1 Linux_bzImage
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>menuentry<span class="w"> </span><span class="s2">&quot;ACRN Multiboot Ubuntu Service VM&quot;</span><span class="w"> </span>--id<span class="w"> </span>ubuntu-service-vm<span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>load_video
+<span class="w">  </span>insmod<span class="w"> </span>gzio
+<span class="w">  </span>insmod<span class="w"> </span>part_gpt
+<span class="w">  </span>insmod<span class="w"> </span>ext2
+<span class="hll"><span class="w">  </span>search<span class="w"> </span>--no-floppy<span class="w"> </span>--fs-uuid<span class="w"> </span>--set<span class="w"> </span><span class="s2">&quot;UUID&quot;</span>
+</span><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;loading ACRN...&#39;</span>
+<span class="hll"><span class="w">  </span>multiboot2<span class="w"> </span>/boot/acrn/acrn.&lt;board&gt;.&lt;scenario&gt;.bin<span class="w">  </span><span class="nv">root</span><span class="o">=</span><span class="nv">PARTUUID</span><span class="o">=</span><span class="s2">&quot;PARTUUID&quot;</span>
+</span><span class="hll"><span class="w">  </span>module2<span class="w"> </span>/boot/vmlinuz-5.10.90-acrn-service-vm-206626-g140f5035e1b1<span class="w"> </span>Linux_bzImage
 </span><span class="o">}</span>
 </pre></div>
 </div>
@@ -926,7 +945,7 @@ matches the file in your <code class="docutils literal notranslate"><span class=
 booting and make it load the Service VM kernel by default:</p>
 <ol class="loweralpha">
 <li><p>Edit the <code class="docutils literal notranslate"><span class="pre">grub</span></code> file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo vi /etc/default/grub
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>vi<span class="w"> </span>/etc/default/grub
 </pre></div>
 </div>
 </li>
@@ -942,7 +961,7 @@ line). Leave other lines as they are:</p>
 </ol>
 </li>
 <li><p>Update GRUB and reboot the system:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo update-grub
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>update-grub
 reboot
 </pre></div>
 </div>
@@ -975,9 +994,9 @@ which case it will boot with this option automatically in 5 seconds.)</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2018-2023 Project ACRN™, a Series of LF Projects, LLC.
+    <p>&#169; Copyright 2018-2024 Project ACRN™, a Series of LF Projects, LLC.
 
-<span class="lastupdated">Last updated on Feb 28, 2022. Published on Aug 10, 2023</span>
+<span class="lastupdated">Last updated on 2月 28, 2022. Published on 8月 05, 2024</span>
 
   </div>
 

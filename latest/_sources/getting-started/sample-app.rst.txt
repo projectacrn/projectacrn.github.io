@@ -117,7 +117,7 @@ As a normal (e.g., **acrn**) user, follow these steps:
 
      cd ~/acrn-work/acrn-hypervisor
      git fetch --all
-     git checkout release_3.2
+     git checkout release_3.3
 
 #. Build the ACRN sample application source code::
 
@@ -522,6 +522,7 @@ Install and Run ACRN on the Target System
 
    and then the ``histapp.py`` application::
 
+     pip install "numpy<2"
      sudo python3 /root/histapp.py
 
    At this point, the HMI_VM is running and we've started the HMI parts of
