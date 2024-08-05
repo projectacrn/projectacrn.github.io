@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security High-Level Design &mdash; Project ACRN™ 3.3 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/acrn-custom.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/tabs.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/ACRN-favicon-32x32.png"/>
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/acrn-custom.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Software Design Guidelines" href="../sw_design_guidelines.html" />
+    <link rel="prev" title="Tracing and Logging High-Level Design" href="hld-trace-log.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Project ACRN™
+            <img src="../../_static/ACRN_Logo_200w.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                3.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+  
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Project ACRN</span>
+      v: 3.3
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+      <dl>
+        <dt>Document Versions</dt>
+        
+          <dd><a href="/latest/">latest</a></dd>
+        
+          <dd><a href="/3.2/">3.2</a></dd>
+        
+          <dd><a href="/3.1/">3.1</a></dd>
+        
+          <dd><a href="/3.0/">3.0</a></dd>
+        
+          <dd><a href="/2.7/">2.7</a></dd>
+        
+          <dd><a href="/2.6/">2.6</a></dd>
+        
+          <dd><a href="/2.5/">2.5</a></dd>
+        
+          <dd><a href="/2.0/">2.0</a></dd>
+        
+          <dd><a href="/1.6.1/">1.6.1</a></dd>
+        
+          <dd><a href="/1.0/">1.0</a></dd>
+        
+      </dl>
+      <dl>
+        <dt>projectacrn.org links</dt>
+          <dd>
+            <a href="https://www.projectacrn.org/">Project Home</a>
+          </dd>
+          <dd>
+            <a href="https://github.com/projectacrn/acrn-hypervisor/wiki">Wiki</a>
+          </dd>
+      </dl>
+    </div>
+  </div>
+  
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Documentation Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction/index.html">What Is ACRN</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#id1">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#key-capabilities">Key Capabilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#community-support">Community Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#resources">Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#high-level-architecture">High-Level Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#static-configuration-based-on-scenarios">Static Configuration Based on Scenarios</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#scenario-types">Scenario Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#acrn-device-model-architecture">ACRN Device Model Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#device-passthrough">Device Passthrough</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hardware-support-for-device-passthrough">Hardware Support for Device Passthrough</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../introduction/index.html#hypervisor-support-for-device-passthrough">Hypervisor Support for Device Passthrough</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#boot-sequence">Boot Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../introduction/index.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../try.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/hardware.html">Supported Hardware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hardware.html#selecting-hardware">Selecting Hardware</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/overview_dev.html">Configuration and Development Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#development-environment">Development Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#general-process-for-building-an-acrn-hypervisor">General Process for Building an ACRN Hypervisor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-light-step-1-select-hardware-and-scenario"> Step 1: Select Hardware and Scenario</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#select-your-hardware">Select Your Hardware</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#select-your-scenario">Select Your Scenario</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-2-prepare-the-development-computer"> Step 2: Prepare the Development Computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-target-step-3-generate-a-board-configuration-file"> Step 3: Generate a Board Configuration File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#configure-bios-settings">Configure BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/overview_dev.html#use-the-board-inspector-to-generate-a-board-configuration-file">Use the Board Inspector to Generate a Board Configuration File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-4-generate-a-scenario-configuration-file-and-launch-scripts"> Step 4: Generate a Scenario Configuration File and Launch Scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-host-step-5-build-acrn"> Step 5: Build ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#icon-target-step-6-install-and-run-acrn"> Step 6: Install and Run ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/overview_dev.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/getting-started.html">Getting Started Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prepare-the-development-computer">Prepare the Development Computer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#prepare-the-target-and-generate-a-board-configuration-file">Prepare the Target and Generate a Board Configuration File</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#set-up-the-target-hardware">Set Up the Target Hardware</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#install-os-on-the-target">Install OS on the Target</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#configure-target-bios-settings">Configure Target BIOS Settings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/getting-started.html#generate-a-board-configuration-file">Generate a Board Configuration File</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#generate-a-scenario-configuration-file-and-launch-script">Generate a Scenario Configuration File and Launch Script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#build-acrn">Build ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#install-acrn">Install ACRN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#run-acrn-and-the-service-vm">Run ACRN and the Service VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#launch-the-user-vm">Launch the User VM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/getting-started.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../getting-started/sample-app.html">Sample Application User Guide</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#prerequisites-environment-and-images">Prerequisites Environment and Images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#prepare-the-acrn-development-and-target-environment">Prepare the ACRN Development and Target Environment</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../getting-started/sample-app.html#preparing-the-target-system">Preparing the Target System</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#make-the-sample-application">Make the Sample Application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#make-the-hmi-vm-image">Make the HMI_VM Image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#make-the-rt-vm-image">Make the RT_VM Image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#create-and-configure-the-acrn-scenario">Create and Configure the ACRN Scenario</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#build-the-acrn-hypervisor-and-service-vm-images">Build the ACRN Hypervisor and Service VM Images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#copy-files-from-the-development-computer-to-your-target-system">Copy Files from the Development Computer to Your Target System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#install-and-run-acrn-on-the-target-system">Install and Run ACRN on the Target System</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../getting-started/sample-app.html#congratulations">Congratulations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../develop.html">Advanced Guides</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-scenario-tutorials">Advanced Scenario Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html">Getting Started Guide for ACRN Hybrid Mode</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#set-up-base-installation">Set-up base installation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#prepare-the-zephyr-image">Prepare the Zephyr image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#set-up-acrn-on-your-device">Set-up ACRN on your device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#update-ubuntu-grub">Update Ubuntu GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_hybrid_mode_on_nuc.html#hybrid-scenario-startup-check">Hybrid Scenario Startup Check</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#user-vm-tutorials">User VM Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/user_vm_guide.html">User VM Guide</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/user_vm_guide.html#user-vm-os-choices">User VM OS Choices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/user_vm_guide.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/user_vm_guide.html#user-vm-persistence">User VM Persistence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/user_vm_guide.html#standard-vm-os-considerations">Standard VM OS Considerations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/user_vm_guide.html#real-time-vm-os-considerations">Real-time VM OS Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_ubuntu_as_user_vm.html">Run Ubuntu as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_ubuntu_as_user_vm.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_ubuntu_as_user_vm.html#build-the-ubuntu-kvm-image">Build the Ubuntu KVM Image</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_ubuntu_as_user_vm.html#launch-the-ubuntu-image-as-the-user-vm">Launch the Ubuntu Image as the User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html">Run Windows as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#acrn-service-vm-setup">ACRN Service VM Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#setup-for-using-windows-as-the-guest-vm">Setup for Using Windows as the Guest VM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#acrn-windows-verified-feature-list">ACRN Windows Verified Feature List</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#explanation-for-acrn-dm-popular-command-lines">Explanation for acrn-dm Popular Command Lines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#secure-boot-enabling">Secure Boot Enabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_windows_as_user_vm.html#activate-windows-10">Activate Windows 10</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html">Run Xenomai as the User RTVM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#build-the-xenomai-kernel">Build the Xenomai Kernel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#launch-the-rtvm">Launch the RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_xenomai_as_user_vm.html#install-the-xenomai-libraries-and-tools">Install the Xenomai Libraries and Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_vxworks_as_user_vm.html">Run VxWorks as the User RTVM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_vxworks_as_user_vm.html#steps-for-using-vxworks-as-user-vm">Steps for Using VxWorks as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html">Run Zephyr as the User RTVM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#introduction-to-zephyr">Introduction to Zephyr</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_zephyr_as_user_vm.html#steps-for-using-zephyr-as-user-vm">Steps for Using Zephyr as User VM</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html">Run Celadon as the User VM OS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html#introduction-to-celadon">Introduction to Celadon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_celadon_as_user_vm.html#build-celadon-image-from-source">Build Celadon Image from Source</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#configuration-tutorials">Configuration Tutorials</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html">Introduction to ACRN Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#types-of-configurations">Types of Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configuration_tool.html#using-acrn-configuration-toolset">Using ACRN Configuration Toolset</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/board_inspector_tool.html">Board Inspector Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#about-the-board-inspector-tool">About the Board Inspector Tool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#generate-a-board-configuration-file">Generate a Board Configuration File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/board_inspector_tool.html#command-line-options">Command-Line Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html">ACRN Configurator Tool</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#about-the-acrn-configurator-tool">About the ACRN Configurator Tool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#scenario-error-checking">Scenario Error Checking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#start-with-a-new-or-existing-configuration">Start with a New or Existing Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#navigate-the-configuration-screen">Navigate the Configuration Screen</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#import-a-board-configuration-file">Import a Board Configuration File</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#create-new-or-import-an-existing-scenario">Create New or Import an Existing Scenario</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#configure-settings-for-scenario-and-launch-scripts">Configure Settings for Scenario and Launch Scripts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_configurator_tool.html#build-acrn-configurator-from-source-code">Build ACRN Configurator from Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/upgrading_configuration.html">Upgrading ACRN Configurations to Recent Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#board-xml">Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#scenario-xml">Scenario XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/upgrading_configuration.html#launch-xml">Launch XML</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/config-options.html">Scenario Configuration Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#common-option-value-types">Common Option Value Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#hypervisor-options">Hypervisor Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#inter-vm-virtual-uart-connection">Inter-VM virtual UART connection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#debug-options">Debug options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#memory-options">Memory options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#hypervisor-capacities">Hypervisor capacities</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#cache-region">CACHE_REGION</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virtual-machine-options">Virtual Machine Options</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#physical-cpu-affinity">Physical CPU affinity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#sgx-enclave-page-cache">SGX Enclave Page Cache</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#os-configuration">OS Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#mmio-resources">MMIO Resources</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/config-options.html#virt-io-devices">Virt-IO devices</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../reference/hv-make-options.html">Hypervisor Makefile Options</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/hv-make-options.html#build-options-and-targets">Build Options and Targets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../reference/hv-make-options.html#makefile-targets-for-configuration">Makefile Targets for Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/hv-parameters.html">ACRN Hypervisor Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/hv-parameters.html#generic-hypervisor-parameters">Generic Hypervisor Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/kernel-parameters.html">ACRN Kernel Parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/kernel-parameters.html#generic-kernel-parameters">Generic Kernel Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html">Device Model Parameters and Launch Script</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html#device-model-parameters">Device Model Parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html#emulated-pci-device-types">Emulated PCI Device Types</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-dm-parameters.html#launch-script">Launch Script</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/packaging/README.html">ACRN Installation via Debian Packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/tar_installation.html">ACRN Installation via Tar Files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#build-the-tar-files">Build the Tar Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/tar_installation.html#install-and-run-acrn">Install and Run ACRN</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#advanced-features">Advanced Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/vuart_configuration.html">Enable vUART Configurations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#about-vuart">About vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#example-configuration">Example Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/vuart_configuration.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rdt_configuration.html">Enable Intel Resource Director Technology (RDT) Configurations</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#about-intel-resource-director-technology-rdt">About Intel Resource Director Technology (RDT)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rdt_configuration.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/waag-secure-boot.html">Enable Secure Boot in Windows</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#generate-platform-key-pk">Generate Platform Key (PK)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#download-kek-and-db-from-microsoft">Download KEK and DB From Microsoft</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#compile-ovmf-with-secure-boot-support">Compile OVMF With Secure Boot Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/waag-secure-boot.html#use-qemu-to-inject-secure-boot-keys-into-ovmf">Use QEMU to Inject Secure Boot Keys Into OVMF</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_s5.html">Enable S5</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#about-system-s5-support">About System S5 Support</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_s5.html#example-configuration">Example Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/cpu_sharing.html">Enable CPU Sharing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#about-cpu-sharing">About CPU Sharing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#example-configuration">Example Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/cpu_sharing.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/sriov_virtualization.html">Enable SR-IOV Virtualization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/sriov_virtualization.html#sr-iov-architectural-overview">SR-IOV Architectural Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/gpu-passthru.html">Enable GPU Passthrough (GVT-d)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#about-gvt-d">About GVT-d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#example-configuration">Example Configuration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/gpu-passthru.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_multiple_displays.html">Enable User VMs with Multiple Displays</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_multiple_displays.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_multiple_displays.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_multiple_displays.html#configuration-example">Configuration Example</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/run_kata_containers.html">Run Kata Containers on a Service VM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-docker">Install Docker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#install-kata-containers">Install Kata Containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/run_kata_containers.html#run-a-kata-container-with-acrn">Run a Kata Container With ACRN</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html">Real-Time VM Application Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#run-rtvm-with-dedicated-resources-devices">Run RTVM With Dedicated Resources/Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-virtio-pmd-polling-mode-driver-for-i-o-sharing">RTVM With Virtio PMD (Polling Mode Driver) for I/O Sharing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#rtvm-with-hv-emulated-device">RTVM With HV Emulated Device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_workload_design_guideline.html#dm-emulated-device-except-pmd">DM Emulated Device (Except PMD)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html">Enable ACRN Over QEMU/KVM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#prepare-service-vm-l1-guest">Prepare Service VM (L1 Guest)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#install-acrn-hypervisor">Install ACRN Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn_on_qemu.html#bring-up-user-vm-l2-guest">Bring Up User VM (L2 Guest)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_grub.html">Using GRUB to Boot ACRN</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#using-pre-installed-grub">Using Pre-Installed GRUB</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_grub.html#installing-self-built-grub">Installing Self-Built GRUB</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html">Enable ACRN Secure Boot With GRUB</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#acrn-secure-boot-sequence">ACRN Secure Boot Sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#generate-gpg-key">Generate GPG Key</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#setup-standalone-grub-efi-binary">Setup Standalone GRUB EFI Binary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-grub.html#enable-uefi-secure-boot">Enable UEFI Secure Boot</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html">Enable ACRN Secure Boot With EFI-Stub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#verified-configurations">Verified Configurations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#installing-without-sb-for-testing">Installing (without SB for testing)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/acrn-secure-boot-with-efi-stub.html#signing">Signing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/enable_ivshmem.html">Enable Inter-VM Shared Memory Communication (IVSHMEM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#about-inter-vm-shared-memory-communication-ivshmem">About Inter-VM Shared Memory Communication (IVSHMEM)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#dependencies-and-constraints">Dependencies and Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#configuration-overview">Configuration Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/enable_ivshmem.html#learn-more">Learn More</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/inter-vm_communication.html">ACRN Inter-VM Communication</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-vuart">Inter-VM vUART</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-network-communication">Inter-VM network communication</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#inter-vm-shared-memory-communication-ivshmem">Inter-VM shared memory communication (ivshmem)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/inter-vm_communication.html#how-to-implement-an-ivshmem-application-on-acrn">How to implement an Ivshmem application on ACRN</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../develop.html#debug">Debug</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/using_serial_port.html">Enable Serial Port on NUC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-1-using-the-serial-port-on-tgl-intel-nuc">Option 1: Using the Serial Port on TGL Intel NUC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/using_serial_port.html#option-2-enabling-pcie-serial-port-on-tgl-intel-nuc">Option 2: Enabling PCIe Serial Port on TGL Intel NUC</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/debug.html">ACRN Debugging Tools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-console-command">ACRN Console Command</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#an-example">An Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-log">ACRN Log</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/debug.html#acrn-trace">ACRN Trace</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html">ACRN Real-Time (RT) Performance Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#vmexit-analysis-for-acrn-rt-performance">vmexit Analysis for ACRN RT Performance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/realtime_performance_tuning.html#collecting-performance-monitoring-counters-data">Collecting Performance Monitoring Counters Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html">ACRN Real-Time VM Performance Tips</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#background">Background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#mandatory-options-for-an-rtvm">Mandatory Options for an RTVM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#avoid-vm-exit-latency">Avoid VM-exit Latency</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#isolating-the-impact-of-neighbor-vms">Isolating the Impact of Neighbor VMs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/rtvm_performance_tips.html#miscellaneous">Miscellaneous</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../user-guides/acrn-shell.html">ACRN Shell Commands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../user-guides/acrn-shell.html#command-examples">Command Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html">ACRN-Crashlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#building">Building</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#installing">Installing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#enabling-disabling">Enabling/Disabling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html">Acrnprobe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#source-files">Source Files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/README.html#configuration-files">Configuration Files</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html">Acrnprobe Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#layout">Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#properties-of-group-members">Properties of Group Members</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#crash-tree-in-acrnprobe">Crash Tree in Acrnprobe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/acrnprobe/conf.html#sections">Sections</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html">Usercrash</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#design">Design</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_crashlog/usercrash/README.html#source-code">Source Code</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html">Acrnlog</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_log/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html">Acrntrace</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#usage">Usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/debug_tools/acrn_trace/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../misc/services/acrn_manager/README.html">Acrnctl and Acrnd</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#description">Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#acrnd">Acrnd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../misc/services/acrn_manager/README.html#build-and-install">Build and Install</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../contribute.html">Developer Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../contribute.html#design-guides">Design Guides</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../modularity.html">ACRN Hypervisor: Modular Design</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#principles">Principles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#architecture">Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../modularity.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">High-Level Design Guides</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="hld-overview.html">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-hypervisor.html">Hypervisor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-devicemodel.html">Device Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-emulated-devices.html">Emulated Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-virtio-devices.html">Virtio Devices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-power-management.html">Power Management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hld-trace-log.html">Tracing and Logging</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Security</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../sw_design_guidelines.html">Software Design Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#error-detection-and-error-handling">Error Detection and Error Handling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#module-level-configuration-design-guidelines">Module Level Configuration Design Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../sw_design_guidelines.html#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../trusty.html">Trusty TEE</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-architecture">Trusty Architecture</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-specific-hypercalls">Trusty Specific Hypercalls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#trusty-boot-flow">Trusty Boot Flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../trusty.html#ept-hierarchy">EPT Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../l1tf.html">L1 Terminal Fault Mitigation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#overview">Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-problem-in-acrn">L1TF Problem in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#l1tf-mitigation-in-acrn">L1TF Mitigation in ACRN</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-recommendations">Mitigation Recommendations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../l1tf.html#mitigation-status">Mitigation Status</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#contribute-guides">Contribute Guides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contribute_guidelines.html">Contribution Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#technical-steering-committee-tsc">Technical Steering Committee (TSC)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#licensing">Licensing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#developer-certification-of-origin-dco">Developer Certification of Origin (DCO)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#repository-layout">Repository Layout</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#submitting-issues">Submitting Issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-tools-and-git-setup">Contribution Tools and Git Setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#coding-style">Coding Style</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#contribution-workflow">Contribution Workflow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../contribute_guidelines.html#commit-guidelines">Commit Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../coding_guidelines.html">Coding Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../c_coding_guidelines.html">C Programming Language Coding Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../asm_coding_guidelines.html">Assembly Language Coding Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../doc_guidelines.html">Documentation Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#headings">Headings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#content-highlighting">Content Highlighting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#lists">Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#multi-column-lists">Multi-Column Lists</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#file-names-and-commands">File Names and Commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#branch-specific-file-links">Branch-Specific File Links</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#internal-cross-reference-linking">Internal Cross-Reference Linking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#non-ascii-characters">Non-ASCII Characters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#code-and-command-examples">Code and Command Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#images">Images</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#tabs-spaces-and-indenting">Tabs, Spaces, and Indenting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#background-colors">Background Colors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#drawings">Drawings</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#alternative-tabbed-content">Alternative Tabbed Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#instruction-steps">Instruction Steps</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#first-instruction-step">First Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#second-instruction-step">Second Instruction Step</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#configuration-option-documentation">Configuration Option Documentation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../doc_guidelines.html#documentation-generation">Documentation Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../graphviz.html">Drawings Using Graphviz</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#simple-directed-graph">Simple Directed Graph</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#adding-edge-labels">Adding Edge Labels</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#tables">Tables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../graphviz.html#finite-state-machine">Finite-State Machine</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../tutorials/docbuild.html">ACRN Documentation Generation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-overview">Documentation Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#set-up-the-documentation-working-folders">Set Up the Documentation Working Folders</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#install-the-documentation-tools">Install the Documentation Tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#documentation-presentation-theme">Documentation Presentation Theme</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#run-the-documentation-processors">Run the Documentation Processors</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#publish-content">Publish Content</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#document-versioning">Document Versioning</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../tutorials/docbuild.html#filter-expected-warnings">Filter Expected Warnings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../contribute.html#api-documentation">API Documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api/index.html">API Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../api/hypercall_api.html">Hypercall APIs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/devicemodel_api.html">Device Model APIs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../release_notes/index.html">Release Notes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.3.html">ACRN v3.3 (Aug 2024)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#what-s-new-in-v3-3">What’s New in v3.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#upgrading-to-v3-3-from-previous-releases">Upgrading to v3.3 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.3.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.2.html">ACRN v3.2 (Aug 2023)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#what-s-new-in-v3-2">What’s New in v3.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#upgrading-to-v3-2-from-previous-releases">Upgrading to v3.2 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.2.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.1.html">ACRN v3.1 (Sep 2022)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.1.html#what-s-new-in-v3-1">What’s New in v3.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.1.html#upgrading-to-v3-1-from-previous-releases">Upgrading to v3.1 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.1.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.1.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.1.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.1.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.1.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.0.2.html">ACRN v3.0.2 (Nov 2022)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.2.html#what-s-new-in-v3-0-2">What’s New in v3.0.2</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.0.1.html">ACRN v3.0.1 (Jul 2022)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.1.html#what-s-new-in-v3-0-1">What’s New in v3.0.1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/release_notes_3.0.html">ACRN v3.0 (Jun 2022)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#what-s-new-in-v3-0">What’s New in v3.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#upgrading-to-v3-0-from-previous-releases">Upgrading to v3.0 from Previous Releases</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#generate-new-board-xml">Generate New Board XML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#update-configuration-options">Update Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#document-updates">Document Updates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#fixed-issues-details">Fixed Issues Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../release_notes/release_notes_3.0.html#known-issues">Known Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../release_notes/index.html#release-notes-archive">Release Notes Archive</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../asa.html">Security Advisory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v3-0-2">Addressed in ACRN v3.0.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v3-0-1">Addressed in ACRN v3.0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-7">Addressed in ACRN v2.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-6">Addressed in ACRN v2.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-5">Addressed in ACRN v2.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-3">Addressed in ACRN v2.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v2-1">Addressed in ACRN v2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6-1">Addressed in ACRN v1.6.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-6">Addressed in ACRN v1.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../asa.html#addressed-in-acrn-v1-4">Addressed in ACRN v1.4</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../projects/index.html">Projects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../projects/multi-arch-support.html">Hypervisor Multi-Architecture and RISC-V Support</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../projects/multi-arch-support.html#risc-v-support">RISC-V Support</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../projects/multi-arch-support.html#current-state">Current State</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../projects/multi-arch-support.html#license">License</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary.html">Glossary of Terms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Project ACRN™</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+  <!-- 3.3 -->
+  
+  
+
+  <li><a href="../../index.html">3.3</a> &raquo;</li>
+  
+     <li><a href="../../contribute.html">Developer Reference</a> &raquo;</li>
+  
+     <li><a href="index.html">High-Level Design Guides</a> &raquo;</li>
+  
+  <li>Security High-Level Design</li>
+
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/developer-guides/hld/hld-security.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+  
+  
+           <div itemprop="articleBody">
+             
+  <section id="security-high-level-design">
+<span id="hld-security"></span><h1>Security High-Level Design<a class="headerlink" href="#security-high-level-design" title="Permalink to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
+<p>This document describes the security high-level design in ACRN,
+including information about:</p>
+<ul class="simple">
+<li><p>Secure booting in ACRN</p></li>
+<li><p>Hypervisor security enhancement, including memory management, secure
+hypervisor interfaces, etc.</p></li>
+<li><p>Platform security features virtualization, such as the virtualization
+of TPM (vTPM) and SGX (vSGX)</p></li>
+</ul>
+<p>This document is for developers, validation teams, architects, and
+maintainers of ACRN.</p>
+<p>Readers should be familiar with the basic concepts of system
+virtualization and the ACRN hypervisor implementation.</p>
+</section>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Permalink to this heading">¶</a></h2>
+<p>The ACRN hypervisor is a type-1 hypervisor, built for running multiple
+guest OS instances, typical of an automotive infotainment system, on a
+single Apollo Lake-I SoC platform. See <a class="reference internal" href="#security-acrn"><span class="std std-numref">Figure 214</span></a>.</p>
+<figure class="align-center" id="security-acrn">
+<a class="reference internal image-reference" href="../../_images/security-image-HV-overview.png"><img alt="../../_images/security-image-HV-overview.png" src="../../_images/security-image-HV-overview.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 214 </span><span class="caption-text">ACRN Hypervisor Overview</span><a class="headerlink" href="#security-acrn" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>This document focuses only on the security part of the automotive
+system built on top of the ACRN hypervisor. This includes how to build a
+secure system as well as how to virtualize the security features that
+the system can provide.</p>
+<section id="usages">
+<h3>Usages<a class="headerlink" href="#usages" title="Permalink to this heading">¶</a></h3>
+<p>As shown in <a class="reference internal" href="#security-vehicle"><span class="std std-numref">Figure 215</span></a>, the ACRN hypervisor can be
+used to build a Software Defined Cockpit (SDC) or an In-Vehicle Experience
+(IVE) Solution that consolidates multiple VMs together on a single Intel
+SoC in-vehicle platform.</p>
+<figure class="align-center" id="security-vehicle">
+<a class="reference internal image-reference" href="../../_images/security-image13.png"><img alt="../../_images/security-image13.png" src="../../_images/security-image13.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 215 </span><span class="caption-text">SDC and IVE System In-Vehicle</span><a class="headerlink" href="#security-vehicle" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>In this system, the ACRN hypervisor is running at the most privileged
+level, VMX root mode, in virtualization technology terms. The hypervisor
+has full control of platform resources, including the processor, memory,
+devices, and in some cases, secrets of the guest OS. The ACRN
+hypervisor supports multiple guest VMs running in parallel in the less
+privileged level called VMX non-root mode.</p>
+<p>The Service VM is a special VM. While it runs as a guest VM in
+VMX non-root mode, it behaves as a privileged guest VM controlling the
+behavior of other guest VMs. The Service VM can create a guest VM, suspend and
+resume a guest VM, and provide device mediation services (Device
+Models) for other guest VMs it creates.</p>
+<p>In an SDC system, the Service VM also contains safety-critical IC (Instrument
+Cluster) applications. ACRN is designed to make sure the IC applications
+are well isolated from other applications in the Service VM such as Device
+Models (Mediators). A crash in other guest VM systems must not impact
+the IC applications, and must not cause any DoS (Deny of Service) attacks.
+Functional safety is out of scope of this document.</p>
+<p>In <a class="reference internal" href="#security-acrn"><span class="std std-numref">Figure 214</span></a>, the other guest VMs are referred to as User VM.
+These other VMs provide infotainment services (such as
+navigation, music, and FM/AM radio) for the front seat or rear seat.</p>
+<p>The User VM systems can be based on Linux (LaaG, Linux as a Guest) or
+Android (AaaG, Android as a Guest) depending on the customer’s needs
+and board configuration. It can also be a mix of Linux and Android
+systems.</p>
+<p>In each User VM, a “side-car” OS system can accompany the normal OS system. We
+call these two OS systems “secure world” and
+“non-secure world”, and they are isolated from each other by the
+hypervisor. The secure world has a higher “privilege level” than the non-secure
+world; for example, the secure world can access the non-secure world’s
+physical memory but not vice versa. This document discusses how this
+security works and why it is required.</p>
+<p>Careful consideration should be made when evaluating using the Service
+VM as the Trusted Computing Base (TCB). The Service VM may be a
+fairly large system running many lines of code; thus, treating it as a
+TCB doesn’t make sense from a security perspective. To achieve the
+design purpose of “defense in depth”, system security designers
+should always ask themselves, “What if the Service VM is compromised?” and
+“What’s the impact if this happens?” This HLD document discusses how to
+security-harden the Service VM system and mitigate attacks on the Service VM.</p>
+</section>
+</section>
+<section id="acrn-high-level-security-architecture">
+<h2>ACRN High-Level Security Architecture<a class="headerlink" href="#acrn-high-level-security-architecture" title="Permalink to this heading">¶</a></h2>
+<p>This chapter provides a high-level architecture design overview of ACRN
+security features and their development.</p>
+<section id="secure-verified-boot">
+<h3>Secure / Verified Boot<a class="headerlink" href="#secure-verified-boot" title="Permalink to this heading">¶</a></h3>
+<p>The security of the entire system built on top of the ACRN hypervisor
+depends on the security from platform boot to User VM launching. Each layer
+or module must verify the security of the next layer or module before
+transferring control to it. Verification can be checking a
+cryptographic signature on the executable of the next step before it is
+launched.</p>
+<p>Note that measured boot (as described well in this <a class="reference external" href="https://firmwaresecurity.com/2015/07/29/survey-of-boot-security-technologies/">boot security
+technologies document</a>)
+is not supported for ACRN and its guest VMs.</p>
+<section id="boot-flow">
+<h4>Boot Flow<a class="headerlink" href="#boot-flow" title="Permalink to this heading">¶</a></h4>
+<p>ACRN supports two verified boot sequences.</p>
+<section id="verified-boot-sequence-with-sbl">
+<h5>1) Verified Boot Sequence With SBL<a class="headerlink" href="#verified-boot-sequence-with-sbl" title="Permalink to this heading">¶</a></h5>
+<p>As shown in <a class="reference internal" href="#security-bootflow-sbl"><span class="std std-numref">Figure 216</span></a>, the Converged Security Engine
+Firmware (CSE FW) behaves as the root of trust in this platform boot
+flow. It authenticates and starts the BIOS (SBL), whereupon the SBL is
+responsible for authenticating and verifying the ACRN hypervisor image.
+The Service VM kernel is built together with the ACRN hypervisor as
+one image bundle, so this whole image signature is verified by SBL
+before launching.</p>
+<figure class="align-center" id="security-bootflow-sbl">
+<a class="reference internal image-reference" href="../../_images/security-image-bootflow-sbl.png"><img alt="../../_images/security-image-bootflow-sbl.png" src="../../_images/security-image-bootflow-sbl.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 216 </span><span class="caption-text">ACRN Boot Flow with SBL</span><a class="headerlink" href="#security-bootflow-sbl" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="verified-boot-sequence-with-uefi">
+<h5>2) Verified Boot Sequence With UEFI<a class="headerlink" href="#verified-boot-sequence-with-uefi" title="Permalink to this heading">¶</a></h5>
+<p>As shown in <a class="reference internal" href="#security-bootflow-uefi"><span class="std std-numref">Figure 217</span></a>, in this boot sequence, UEFI
+authenticates and starts the ACRN hypervisor. Then the hypervisor returns
+to the UEFI environment to authenticate and load the Service VM kernel
+bootloader.</p>
+<figure class="align-center" id="security-bootflow-uefi">
+<a class="reference internal image-reference" href="../../_images/security-image-bootflow-uefi.png"><img alt="../../_images/security-image-bootflow-uefi.png" src="../../_images/security-image-bootflow-uefi.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 217 </span><span class="caption-text">ACRN Boot Flow with UEFI</span><a class="headerlink" href="#security-bootflow-uefi" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>As long as the Service VM kernel starts, the Service VM kernel will load all its
+subsystems subsequently. In order to launch a User VM, a DM process is
+started to launch the virtual BIOS (OVMF). Eventually, the OVMF is
+responsible for verifying and launching the User VM kernel (or the
+Android OS loader for an Android User VM).</p>
+</section>
+</section>
+<section id="secure-boot">
+<h4>Secure Boot<a class="headerlink" href="#secure-boot" title="Permalink to this heading">¶</a></h4>
+<p>In the entire boot flow, the chain of trust must be unbroken. This is
+achieved by the secure boot mechanism. Each module in the boot flow must
+authenticate and verify the next module by using a cryptographic digital
+signature algorithm.</p>
+<p>The well-known image signing algorithm uses cryptographic hashing and
+public key cryptography with PKCS1.5 padding.</p>
+<p>The 2018 minimal requirements for cryptographic strength are:</p>
+<ol class="arabic simple">
+<li><p>SHA256 for image cryptographic hashing.</p></li>
+<li><p>RSA2048 for cryptographic digital signature signing and verification.</p></li>
+</ol>
+<p>We strongly recommend that SHA512 and RSA3072+ be used for a product shipped
+in 2018, especially for a product that has a long production life such as
+an automotive vehicle.</p>
+<p>The CSE FW image is signed with an Intel RSA private key. All other
+images should be signed by the responsible OEM. Our customers and
+partners are responsible for image signing, ensuring the key strength
+meets security requirements, and storing the secret RSA private key
+securely.</p>
+</section>
+<section id="guest-secure-boot-with-ovmf">
+<h4>Guest Secure Boot With OVMF<a class="headerlink" href="#guest-secure-boot-with-ovmf" title="Permalink to this heading">¶</a></h4>
+<p>Open Virtual Machine Firmware (OVMF) is an EDK II based project to enable UEFI
+support for virtual machines in a virtualized environment. In ACRN, OVMF is
+deployed to launch a User VM, as if the User VM is booted on a machine with
+UEFI firmware.</p>
+<p>UEFI Secure Boot defines how a platform’s firmware can authenticate a digitally
+signed UEFI image, such as an operating system loader or a UEFI driver stored
+in an option ROM. This provides the capability to ensure that those UEFI images
+are only loaded in an owner-authorized fashion and provides a common means to
+ensure the platform’s security and integrity over systems running UEFI-based
+firmware.
+UEFI Secure Boot is already supported by OVMF.</p>
+<p><a class="reference internal" href="#security-secure-boot-uefi"><span class="std std-numref">Figure 218</span></a> shows a Secure Boot overview in UEFI.</p>
+<figure class="align-center" id="security-secure-boot-uefi">
+<a class="reference internal image-reference" href="../../_images/security-image-secure-boot-uefi.png"><img alt="../../_images/security-image-secure-boot-uefi.png" src="../../_images/security-image-secure-boot-uefi.png" style="width: 500px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 218 </span><span class="caption-text">UEFI Secure Boot Overview</span><a class="headerlink" href="#security-secure-boot-uefi" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>UEFI Secure Boot is controlled by a set of UEFI Authenticated Variables that specify
+the UEFI Secure Boot Policy; the platform manufacturer or the platform owner enrolls the
+policy objects, which include the n-tuple of keys {PK, KEK, db,dbx} as step 1.
+During each successive boot, the UEFI secure boot implementation will assess the
+policy in order to verify the signed images that are discovered in a host-bus adapter
+or on a disk. If the images pass the policy, they are invoked.</p>
+<p>UEFI Secure Boot implementations use these keys:</p>
+<ol class="arabic simple">
+<li><p>Platform Key (PK) is the top-level key in Secure Boot; UEFI supports a single PK,
+which is generally provided by the manufacturer.</p></li>
+<li><p>Key Exchange Key (KEK) is used to sign Signature and Forbidden Signature Database updates.</p></li>
+<li><p>Signature Database (db) contains keys and/or hashes of allowed EFI binaries.</p></li>
+</ol>
+<p>And keys and certificates are in multiple formats:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.key</span></code>  PEM format private keys for EFI binary and EFI signature list signing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.crt</span></code>  PEM format certificates for sbsign.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.cer</span></code>  DER format certificates for firmware.</p></li>
+</ol>
+<p>In ACRN, User VM Secure Boot can be enabled as follows:</p>
+<ol class="arabic simple">
+<li><p>Generate keys (PK/KEK/DB) with a key generation tool such as Ubuntu
+KeyGeneration. <code class="docutils literal notranslate"><span class="pre">PK.der</span></code>, <code class="docutils literal notranslate"><span class="pre">KEK.der</span></code>, and <code class="docutils literal notranslate"><span class="pre">db.der</span></code> will be enrolled in UEFI
+BIOS. <code class="docutils literal notranslate"><span class="pre">db.key</span></code> and <code class="docutils literal notranslate"><span class="pre">db.crt</span></code> will be used to sign the User VM
+bootloader/kernel.</p></li>
+<li><p>Create a virtual disk to hold <code class="docutils literal notranslate"><span class="pre">PK.der</span></code>, <code class="docutils literal notranslate"><span class="pre">KEK.der</span></code>, and <code class="docutils literal notranslate"><span class="pre">db.der</span></code>, then launch
+the User VM with this virtual disk.</p></li>
+<li><p>Start the OVMF in writeback mode to ensure the keys are persistently stored
+in the OVMF image.</p></li>
+<li><p>Enroll the keys in the OVMF GUI by following the Secure Boot configuration
+flow and enable Secure Boot mode.</p></li>
+<li><p>Perform writeback via reset in OVMF.</p></li>
+<li><p>Sign the User VM images with <code class="docutils literal notranslate"><span class="pre">db.key</span></code> and <code class="docutils literal notranslate"><span class="pre">db.crt</span></code>.</p></li>
+<li><p>Boot the User VM with Secure Boot enabled.</p></li>
+</ol>
+</section>
+<section id="service-vm-hardening">
+<span id="id1"></span><h4>Service VM Hardening<a class="headerlink" href="#service-vm-hardening" title="Permalink to this heading">¶</a></h4>
+<p>In the ACRN project, the reference Service VM is based on Ubuntu.
+Customers may choose to use different open source OSes or their own
+proprietary OS systems. To minimize the attack surfaces and achieve the
+goal of “defense in depth”, there are many common guidelines to ensure the
+security of the Service VM system.</p>
+<p>As shown in <a class="reference internal" href="#security-bootflow-sbl"><span class="std std-numref">Figure 216</span></a> and
+<a class="reference internal" href="#security-bootflow-uefi"><span class="std std-numref">Figure 217</span></a> above, the integrity of the User VM
+depends on the integrity of the DM module and vBIOS/vOSloader in the
+Service VM. Hence, Service VM integrity is critical to the entire User VM security.
+If the Service VM  system is compromised, all the other User VMs may be
+jeopardized.</p>
+<p>In practice, the Service VM  designer and implementer should obey at least the
+following rules:</p>
+<ol class="arabic simple">
+<li><p>Verify that the Service VM is a closed system and doesn’t allow the user to
+install any unauthorized third-party software or components.</p></li>
+<li><p>Verify that external peripherals are constrained.</p></li>
+<li><p>Enable kernel-based hardening techniques, for example, dm-verity (to
+ensure the integrity of the DM and vBIOS/vOSloaders), and kernel module
+signing.</p></li>
+<li><p>Enable system level hardening such as MAC (Mandatory Access Control).</p></li>
+</ol>
+<p>Detailed configurations and policies are out of scope for this document.
+For good references on OS system security hardening and enhancement,
+see <a class="reference external" href="https://docs.automotivelinux.org/en/lamprey/#2_Architecture_Guides/2_Security_Blueprint/0_Overview/">AGL security</a>
+and <a class="reference external" href="https://source.android.com/security/">Android security</a>.</p>
+</section>
+</section>
+<section id="hypervisor-security-enhancement">
+<h3>Hypervisor Security Enhancement<a class="headerlink" href="#hypervisor-security-enhancement" title="Permalink to this heading">¶</a></h3>
+<p>This section describes the ACRN hypervisor security enhancement for
+memory boundary access and interfaces between VMs and the hypervisor,
+such as Hypercall APIs, I/O emulations, and EPT violation handling.</p>
+<p>The main security goal of the ACRN hypervisor design is to prevent
+Privilege Escalation and enforce Isolation, for example:</p>
+<ul class="simple">
+<li><p>VMM privilege escalation (VMX non-root -&gt; VMX root)</p></li>
+<li><p>Non-secure OS software (running in AaaG) accessing secure world TEE
+assets</p></li>
+<li><p>Unauthorized software from executing in the hypervisor</p></li>
+<li><p>Cross-guest VM attacks</p></li>
+<li><p>Hypervisor secret information leakage</p></li>
+</ul>
+<section id="memory-management-enhancement">
+<h4>Memory Management Enhancement<a class="headerlink" href="#memory-management-enhancement" title="Permalink to this heading">¶</a></h4>
+<section id="id2">
+<h5>Background<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h5>
+<p>The ACRN hypervisor has ultimate access control of all the platform
+memory spaces (see <a class="reference internal" href="hv-memmgt.html#memmgt-hld"><span class="std std-ref">Memory Management High-Level Design</span></a>). Note that on the APL platform,
+<a class="reference external" href="https://www.intel.com/content/www/us/en/developer/tools/software-guard-extensions/overview.html">SGX</a> and <a class="reference external" href="https://itpeernetwork.intel.com/memory-encryption/">TME</a>
+are not supported.</p>
+<p>The hypervisor can read and write any physical memory space allocated
+to any guest VM, and can even fetch instructions and execute the code in
+the memory space from any guest VM. If the hypervisor has MMU
+misconfiguration or is compromised by an attacker, it must be
+constrained in some manner to prevent the hypervisor from accessing
+guest memory space either maliciously or accidentally. As a best
+security practice, any memory content from a guest VM memory space must
+not be trusted by the hypervisor. In other words, there must be a trust
+boundary for memory space between the hypervisor and guest VMs.</p>
+<figure class="align-center" id="security-hgmem">
+<a class="reference internal image-reference" href="../../_images/security-image14.png"><img alt="../../_images/security-image14.png" src="../../_images/security-image14.png" style="width: 500px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 219 </span><span class="caption-text">Hypervisor and Guest Memory Layout</span><a class="headerlink" href="#security-hgmem" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>The hypervisor must appropriately configure the EPT tables to disallow
+any guest to access (read/write/execution) the memory space owned by
+the hypervisor.</p>
+</section>
+<section id="memory-access-restrictions">
+<h5>Memory Access Restrictions<a class="headerlink" href="#memory-access-restrictions" title="Permalink to this heading">¶</a></h5>
+<p>The fundamental rules of restricting hypervisor memory access are:</p>
+<ol class="arabic simple">
+<li><p>By default, prohibit any access to all guest VM memory. This means
+that when the hypervisor initially sets up its own MMU paging tables
+(HVA-&gt;HPA mapping), it only grants permissions for hypervisor memory
+space (excluding guest VM memory).</p></li>
+<li><p>Grant access permission for the hypervisor to read/write a specific guest
+VM memory region on demand. The hypervisor must never grant execution
+permission for itself to fetch any code instructions from guest
+memory space because there is no reason to do that.</p></li>
+</ol>
+<p>In addition to these rules, the hypervisor must also implement generic
+best-practice memory configurations for access to its own memory in host
+CR3 MMU paging tables, such as splitting hypervisor code and data
+(stack/heap) sections, and then applying W ⊕ X policy, which means if memory
+is Writable, then the hypervisor must make it non-eXecutable. The
+hypervisor must configure its code as read-only and executable, and
+configure its data as read/write. Optionally, if there are read-only
+data sections, it would be best if the hypervisor configures them as
+read-only.</p>
+<p>The following sections focus on the rules mentioned above for
+memory access restriction on guest VM memory (not restrictions on the
+hypervisor’s own memory access).</p>
+</section>
+<section id="smap-smep-enablement-in-the-hypervisor">
+<h5>SMAP/SMEP Enablement in the Hypervisor<a class="headerlink" href="#smap-smep-enablement-in-the-hypervisor" title="Permalink to this heading">¶</a></h5>
+<p>For the hypervisor to isolate access to the guest VM memory space,
+three typical solutions exist:</p>
+<ol class="arabic">
+<li><p><strong>Configure the hypervisor/VMM MMU CR3 paging tables by removing the
+execution permission (setting NX bit) or removing mapping completely
+(setting not-present) for the guest memory space.</strong></p>
+<p>In practice, this works very well for NX setting to disable
+instruction fetching from any guest memory space. However, it is not
+suitable for read/write access isolation. For example, if the
+hypervisor removes the mapping to a guest memory page in host CR3
+paging tables, when the hypervisor wants to access that specific
+guest memory page, the hypervisor must first add mapping back to its
+CR3 paging tables before accessing that page, and revert the mapping
+after accessing.</p>
+<p>This remapping causes code complexity and a performance penalty and
+may even require the hypervisor to flush the TLB. This solution won’t
+be used by the ACRN hypervisor.</p>
+</li>
+<li><p><strong>Use CR0.WP (write-protection) bit.</strong></p>
+<p>This processor feature allows
+pages to be protected from supervisor-mode write access.
+If the host/VMM CR0.WP = 0, supervisor-mode write access is
+allowed to linear addresses with read-only access rights. If CR0.WP =
+1, they are not allowed. User-mode write access is never allowed
+for linear addresses with read-only access rights, regardless of the
+value of CR0.WP.</p>
+<p>To implement this WP protection, the hypervisor must first configure
+all the guest memory space as “user-mode” accessible memory, and as
+read-only access. In other words, the corresponding paging table
+entry U/S bit and R/W bit must be set in host CR3 paging tables for
+all those guest memory pages.</p>
+<figure class="align-center" id="security-gmem">
+<a class="reference internal image-reference" href="../../_images/security-image3.png"><img alt="../../_images/security-image3.png" src="../../_images/security-image3.png" style="width: 500px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 220 </span><span class="caption-text">Configure Guest Memory as User-accessible</span><a class="headerlink" href="#security-gmem" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>This setting seems meaningless since all the code in the ACRN hypervisor
+is running in Ring 0 (supervisor-mode), and no code in the hypervisor
+will be executed in Ring 3 (no user-mode applications in the hypervisor /
+vmx-root).</p>
+<p>However, these settings are made in order to make use of the CR0.WP
+protection capability, because if CR0.WP = 1, if the hypervisor code is
+running in Ring 0 and maliciously attempts to write a user-accessible
+read-only memory page (in guest memory space), then this malicious
+behavior can be thwarted with a page fault (#PF) by the processor in the
+hypervisor. Whenever the hypervisor has a valid reason to have a write
+access to user-accessible read-only memory (guest memory), it can
+disable CR0.WP (clear CR0.WP) before writing, and then set CR0.WP
+back to 1.</p>
+<p>This solution is better than the 1st solution above because it doesn’t
+need to change the host CR3 paging tables to map or unmap guest memory
+pages and doesn’t need to flush the TLB.
+However, it cannot prevent the hypervisor (running in Ring 0 mode) from
+reading guest memory space because this CR0.WP bit doesn’t control read
+access behaviors. This read access protection is essentially required
+because sometimes there may be secrets in guest memory and if the
+hypervisor can be hacked to read those memory contents, then it may
+cause secret leaking to attackers.</p>
+</li>
+</ol>
+<ol class="arabic" start="3">
+<li><p><strong>Use processor SMEP and SMAP capabilities.</strong></p>
+<p>This solution is the best solution because SMAP can prevent the
+hypervisor from both reading and writing guest memory, and SMEP can
+prevent the hypervisor from fetching/executing code in guest memory. This
+solution also has minimal performance impact; like the CR0.WP
+protection, it doesn’t require TLB flush (incurring a performance
+penalty) and has less code complexity.</p>
+</li>
+</ol>
+<p>The following sections will focus on this SMEP/SMAP protection. SMEP
+and SMAP are widely used by all modern Operating System software such as
+Windows and Linux, for isolating kernel and user memory, and can
+mitigate many vulnerability exploits.</p>
+<section id="guest-memory-execution-prevention">
+<h6>Guest Memory Execution Prevention<a class="headerlink" href="#guest-memory-execution-prevention" title="Permalink to this heading">¶</a></h6>
+<p>SMEP is designed to prevent user memory malware (typically
+attacker-supplied) from being executed in the kernel (Ring 0) privilege
+level.  As long as the CR4.SMEP = 1, software operating in supervisor
+mode cannot fetch instructions from linear addresses that are accessible
+in user mode.</p>
+<p>In the ACRN hypervisor, the attacker-supplied memory could be any guest
+memory, because the hypervisor doesn’t trust all the data/code from guest
+memory by design.</p>
+<p>In order to activate SMEP protection, the ACRN hypervisor must:</p>
+<ol class="arabic simple">
+<li><p>Configure all the guest memory as user-accessible memory (U/S = 1).
+No matter what settings for NX bit and R/W bit in corresponding host
+CR3 paging tables.</p></li>
+<li><p>Set CR4.SMEP bit. In the entire life cycle of the hypervisor, this bit
+value always remains one.</p></li>
+</ol>
+<p>As an alternative, NX feature is used for this purpose by setting the
+corresponding NX (non-execution) bit for all the guest memory mapping
+in host CR3 paging tables.</p>
+<p>Since the hypervisor code never runs in Ring 3 mode, either of these two
+solutions works very well. Both solutions are enabled in the ACRN
+hypervisor.</p>
+</section>
+<section id="guest-memory-access-prevention">
+<h6>Guest Memory Access Prevention<a class="headerlink" href="#guest-memory-access-prevention" title="Permalink to this heading">¶</a></h6>
+<p>Supervisor Mode Access Prevention (SMAP) is yet another powerful
+processor feature that makes it harder for malware to
+“trick” the kernel into using instructions or data from a user-space
+application program.</p>
+<p>This feature is controlled by the CR4.SMAP bit. When that bit is set,
+any attempt to access user-accessible memory pages while running in a
+privileged or kernel mode will lead to a page fault.</p>
+<p>However, there are times when the kernel legitimately needs to work with
+user-accessible memory pages. The Intel processor defines a separate
+“AC” flag (in RFLAGS register) that control the SMAP feature. If the AC
+flag is clear, SMAP protection is in force when CR4.SMAP=1; otherwise
+access to user-accessible memory pages is allowed even if CR4.SMAP=1.
+The “AC” flag provides suppression for SMAP enforcement.</p>
+<p>To manipulate that flag relatively quickly, STAC (set AC flag) and CLAC
+(clear AC flag) instructions are introduced for this purpose. Note that
+STAC and CLAC can only be executed in kernel mode (CPL=0).</p>
+<p>To activate SMAP protection in the ACRN hypervisor:</p>
+<ol class="arabic simple">
+<li><p>Configure all the guest memory as user-writable memory (U/S bit = 1,
+and R/W bit = 1) in corresponding host CR3 paging table entries, as
+shown in <a class="reference internal" href="#security-smap"><span class="std std-numref">Figure 221</span></a> below.</p></li>
+<li><p>Set CR4.SMAP bit. In the entire life cycle of the hypervisor, this bit
+value always remains one.</p></li>
+<li><p>When needed, use STAC instruction to suppress SMAP protection, and
+use CLAC instruction to restore SMAP protection.</p></li>
+</ol>
+<figure class="align-center" id="security-smap">
+<a class="reference internal image-reference" href="../../_images/security-image5.png"><img alt="../../_images/security-image5.png" src="../../_images/security-image5.png" style="width: 500px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 221 </span><span class="caption-text">Setting SMAP and Configuring U/S=1, R/W=1 for All Guest Memory Pages</span><a class="headerlink" href="#security-smap" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>For example, <a class="reference internal" href="#security-smap"><span class="std std-numref">Figure 221</span></a> shows a module of the hypervisor code
+(running in Ring 0 mode) attempting to perform a legitimate read (or
+write) access to a data area in guest memory page.</p>
+<figure class="align-center" id="security-hagm">
+<a class="reference internal image-reference" href="../../_images/security-image4.png"><img alt="../../_images/security-image4.png" src="../../_images/security-image4.png" style="width: 500px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 222 </span><span class="caption-text">Hypervisor Access to Guest Memory</span><a class="headerlink" href="#security-hagm" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>The hypervisor can do these steps:</p>
+<ol class="arabic simple">
+<li><p>Execute STAC instruction to suppress SMAP protection.</p></li>
+<li><p>Perform read/write access on guest DATA area.</p></li>
+<li><p>Execute CLAC instruction to restore SMAP protection.</p></li>
+</ol>
+<p>The attack surface can be minimized because there is only a
+very small window between step 1 and step 3 in which the guest memory
+can be accessed by hypervisor code running in ring 0.</p>
+</section>
+</section>
+<section id="rules-to-access-guest-memory-in-the-hypervisor">
+<h5>Rules to Access Guest Memory in the Hypervisor<a class="headerlink" href="#rules-to-access-guest-memory-in-the-hypervisor" title="Permalink to this heading">¶</a></h5>
+<p>In the ACRN hypervisor, functions <code class="docutils literal notranslate"><span class="pre">stac()</span></code> and <code class="docutils literal notranslate"><span class="pre">clac()</span></code> wrap
+STAC and CLAC instructions respectively, and functions
+<code class="docutils literal notranslate"><span class="pre">copy_to_gpa()</span></code> and <code class="docutils literal notranslate"><span class="pre">copy_from_gpa()</span></code> can be used to copy
+an arbitrary amount of data to or from the VM memory area.</p>
+<p>Whenever the hypervisor needs to perform legitimate read/write access to
+guest memory pages, one of the functions above must be used. Otherwise, the
+#PF will be triggered by the processor to prevent malware or
+unintended access from or to the guest memory pages.</p>
+<p>These functions must also internally check the address availabilities,
+for example, ensuring the input address accessed by the hypervisor must have
+a valid mapping (GVA-&gt;GPA mapping, GPA-&gt;HPA EPT mapping and HVA-&gt;HPA
+host MMU mapping), and must not be in the range of the hypervisor memory.
+Details of these ordinary checks are out of scope in this document.</p>
+</section>
+</section>
+<section id="avoidance-of-memory-information-leakage">
+<h4>Avoidance of Memory Information Leakage<a class="headerlink" href="#avoidance-of-memory-information-leakage" title="Permalink to this heading">¶</a></h4>
+<p>Protecting the hypervisor’s memory is critical to the security of the
+entire platform. The hypervisor must prevent any memory content (e.g.,
+stack or heap) from leaking to guest VMs. Some of the hypervisor memory
+content may contain platform secrets such as SEEDs, which are used as
+the root key for its guest VMs. <a class="reference external" href="https://xenbits.xen.org/xsa/">Xen Advisories</a> have many examples of past hypervisor
+memory leaks, ACRN developers can refer to this link to understand how
+to avoid this in coding.</p>
+<p>Memory content from one guest VM might be leaked to another guest VM.
+In ACRN and Device Model design, when one guest VM is destroyed or
+crashes, its memory content should be scrubbed either by the hypervisor
+or the Service VM Device Model process, in case its memory content is
+re-allocated to another guest VM that could otherwise leave the
+previous guest VM secrets in memory.</p>
+</section>
+<section id="secure-hypervisor-interface">
+<span id="id3"></span><h4>Secure Hypervisor Interface<a class="headerlink" href="#secure-hypervisor-interface" title="Permalink to this heading">¶</a></h4>
+<section id="hypercall-api-interface-hardening">
+<h5>Hypercall API Interface Hardening<a class="headerlink" href="#hypercall-api-interface-hardening" title="Permalink to this heading">¶</a></h5>
+<p>The hypercall API is the primary interface between a guest VM and the
+hypervisor.</p>
+<figure class="align-center" id="security-hir">
+<a class="reference internal image-reference" href="../../_images/security-image-HC-interface-restriction.png"><img alt="../../_images/security-image-HC-interface-restriction.png" src="../../_images/security-image-HC-interface-restriction.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 223 </span><span class="caption-text">Hypercall Interface Restriction</span><a class="headerlink" href="#security-hir" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>As shown in <a class="reference internal" href="#security-hir"><span class="std std-numref">Figure 223</span></a>, there are some restrictions for
+hypercall invocation in the hypervisor design:</p>
+<ol class="arabic simple">
+<li><p>Hypercalls from ring 1~3 of any guest VM are not allowed. The
+hypervisor must discard such hypercalls and inject <code class="docutils literal notranslate"><span class="pre">#GP(0)</span></code> instead. Only ring-0
+hypercalls from the guest VM are handled by the hypervisor.</p></li>
+<li><p>All the hypercalls (except world_switch hypercall) must be called
+from the ring-0 driver of the Service VM.
+World_switch Hypercall is used by the TIPC (Trusty IPC) driver to
+switch guest VM context between secure world and non-secure world.
+Further details will be discussed in the <a class="reference internal" href="#secure-trusty"><span class="std std-ref">Secure Isolated World (Trusty)</span></a> section.
+When a vCPU issues an unpermitted hypercall, the hypervisor shall either
+inject <code class="docutils literal notranslate"><span class="pre">#UD</span></code> (if the VM cannot issue hypercalls at all) or return <code class="docutils literal notranslate"><span class="pre">-EINVAL</span></code>
+(if the VM is allowed to issue hypercalls but not this specific one).</p></li>
+<li><p>For those hypercalls that may result in data inconsistent intra hypervisor
+when they are executed concurrently, such as <code class="docutils literal notranslate"><span class="pre">hcall_create_vm()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">hcll_destroy_vm()</span></code>, spinlock is used to ensure these hypercalls
+are processed in the hypervisor in a serializing way.</p></li>
+</ol>
+<p>In addition to the above rules, there are other regular checks in the
+hypercall implementation to prevent hypercalls from being misused. For
+example, all the parameters must be sanitized, unexpected hypervisor
+memory overwrite must be avoided, any hypervisor memory content/secrets
+must not be leaked to guests, and any memory/code injection must be
+eliminated.</p>
+</section>
+<section id="i-o-emulation-handler">
+<h5>I/O Emulation Handler<a class="headerlink" href="#i-o-emulation-handler" title="Permalink to this heading">¶</a></h5>
+<p>I/O port monitoring is also widely used by the ACRN hypervisor to
+emulate legacy I/O access behaviors.</p>
+<p>Typically, the I/O instructions could be IN, INS/INSB/INSW/INSD, OUT,
+OUTS/OUTSB/OUTSW/OUTSD with arbitrary port (although not all the I/O
+ports are monitored by the hypervisor). As with other interfaces (e.g.,
+hypercalls), the hypervisor performs security checks for all the I/O
+access parameters to make sure the emulation behaviors are correct.</p>
+</section>
+<section id="ept-violation-handler">
+<h5>EPT Violation Handler<a class="headerlink" href="#ept-violation-handler" title="Permalink to this heading">¶</a></h5>
+<p>The Extended Page Table (EPT) is typically used by the hypervisor to
+monitor MMIO (or other types of ordinary memory access) operation from a
+guest VM. The hypervisor then emulates the MMIO instructions with design
+behaviors.</p>
+<p>As done for I/O emulation, this interface could also be manipulated by
+malware in a guest VM to compromise system security.</p>
+</section>
+<section id="other-vmexit-handlers">
+<h5>Other VMEXIT Handlers<a class="headerlink" href="#other-vmexit-handlers" title="Permalink to this heading">¶</a></h5>
+<p>There are some other VMEXIT handlers in the hypervisor that might take
+untrusted parameters and registers from a guest VM, for example, MSR write
+VMEXIT, APIC VMEXIT.</p>
+<p>Sanity checks are performed by the hypervisor to avoid security issues when
+handling those special VMEXIT.</p>
+</section>
+<section id="guest-instruction-emulation">
+<h5>Guest Instruction Emulation<a class="headerlink" href="#guest-instruction-emulation" title="Permalink to this heading">¶</a></h5>
+<p>Instruction emulation implemented by the hypervisor must also be checked
+securely. Emulating x86 instruction is complicated, and there are many
+known security CVEs reported by attackers in the KVM/XEN/QEMU
+community. This is a “hotspot” where the hypervisor may potentially
+have vulnerability bugs.</p>
+<p>Security validation process and secure code review must ensure all the
+instruction emulations behave as defined in the <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html">IA32 SDM
+document</a>.</p>
+</section>
+</section>
+<section id="virtual-power-life-cycle-management">
+<h4>Virtual Power Life Cycle Management<a class="headerlink" href="#virtual-power-life-cycle-management" title="Permalink to this heading">¶</a></h4>
+<p>In a virtualization environment, each User VM can have its
+virtual power managed just like native behavior. For example, if a User VM
+is required to enter S3 (Suspend to RAM) for power consumption saving,
+then the hypervisor and DM processor in the Service VM must handle it correctly.
+Similarly, virtual cold/warm reboot is also supported. How to implement
+virtual power life cycle management is out of scope in this document.</p>
+<p>This subsection is intended to describe the security issues for those
+power cycles.</p>
+<section id="user-vm-power-on-and-shutdown">
+<h5>User VM Power On and Shutdown<a class="headerlink" href="#user-vm-power-on-and-shutdown" title="Permalink to this heading">¶</a></h5>
+<p>The memory of the User VM is allocated dynamically by the DM
+process in the Service VM before the User VM is launched. When the User VM
+is shut down (or crashed), its memory will be freed to Service VM memory space.
+Later on, if there is a new User VM launch event occurring, DM may potentially allocate
+the same memory content (or some overlaps) for this new User VM.</p>
+<p>In the virtualization environment, a security goal is to ensure User VM
+isolation, not only for runtime memory isolation (e.g., with EPT),
+but also for data at rest isolation.</p>
+<p>Under this situation, if the memory content of a previous User VM is not
+scrubbed by either DM or the hypervisor, then the new launched User VM could
+access the previous User VM’s secrets by scanning the memory regions
+allocated for the new User VM.</p>
+<p>In ACRN, the memory content is scrubbed in the Device Model after the guest
+VM is shut down.</p>
+</section>
+<section id="user-vm-reboot">
+<h5>User VM Reboot<a class="headerlink" href="#user-vm-reboot" title="Permalink to this heading">¶</a></h5>
+<p>The behaviors of <strong>cold</strong> boot of virtual User VM reboot are the same as those of
+previous virtual power-on and shutdown events. There is a special case:
+virtual <strong>warm</strong> reboot.</p>
+<p>When a User VM encounters a panic, its kernel may trigger a warm reboot, so
+that in the next power cycle, a special purpose-built OS image is
+launched to dump the memory content for debugging analysis. In a warm
+reboot, the memory content must be preserved after a virtual power
+cycle. However, this violates the security rules above.</p>
+<p>This typically is fine in project ACRN, because in the next virtual
+power cycle, the same memory content won’t be re-allocated to another
+User VM.</p>
+<p>But there is a new issue when the secure world (TEE/Trusty) is considered,
+because the memory content of the secure world must not be dumped by a
+non-secure world User VM. More details will be discussed in
+the section on <a class="reference internal" href="#platform-root-of-trust"><span class="std std-ref">Platform Root of Trust Key/Seed Derivation</span></a>.</p>
+<p>Normally, this warm reboot (crashdump) feature is a debug feature, and
+must be disabled in a production release. Users who want to use this
+feature must possess the private signing key to re-sign the image after
+enabling the configuration.</p>
+</section>
+<section id="user-vm-suspend-resume">
+<span id="id4"></span><h5>User VM Suspend/Resume<a class="headerlink" href="#user-vm-suspend-resume" title="Permalink to this heading">¶</a></h5>
+<p>There are no special design considerations for normal User VMs without secure
+world supported, as long as the EPT/VT-d memory protection/isolation is
+active during the entire suspended time.</p>
+<p>The secure world (Trusty/TEE) is a special case for virtual suspend. Unlike
+the non-secure world of User VMs, whose memory content can be read/written by
+the Service VM, the memory content of the secure world of User VMs must not be
+visible to the Service VM. This is designed for security with defense in depth.</p>
+<p>During the entire process of User VM sleep/suspend, the memory protection
+for the secure world is preserved too. The physical memory region of the
+secure world is removed from EPT paging tables of any guest VM,
+even including the Service VM.</p>
+</section>
+</section>
+<section id="third-party-libraries">
+<h4>Third-Party Libraries<a class="headerlink" href="#third-party-libraries" title="Permalink to this heading">¶</a></h4>
+<p>All the third-party libraries must be examined before use to verify
+there are no known vulnerabilities in the library source code.
+Typically, the CVE site <a class="reference external" href="https://cve.mitre.org/cve/search_cve_list.html">https://cve.mitre.org/cve/search_cve_list.html</a>
+can be used to search for known vulnerabilities.</p>
+</section>
+</section>
+<section id="platform-root-of-trust-key-seed-derivation">
+<span id="platform-root-of-trust"></span><h3>Platform Root of Trust Key/Seed Derivation<a class="headerlink" href="#platform-root-of-trust-key-seed-derivation" title="Permalink to this heading">¶</a></h3>
+<p>For security reasons, each guest VM requires a root key, which is used to
+derive many other individual keys for different purposes, for example,
+secure storage encryption, keystore master key, and HMAC keys.</p>
+<p>In the APL platform, CSE FW will generate platform SEED (pSEED, 256bit)
+unique per device since it is derived from a unique chipset secret
+burned into the chip.</p>
+<p>Then on each boot, the SBL BIOS is responsible for retrieving the pSEED
+from CSE FW, and deriving two other derivatives (dSEED, and uSEED).</p>
+<figure class="align-center" id="security-seed">
+<a class="reference internal image-reference" href="../../_images/security-image-platform-seed-derivation.png"><img alt="../../_images/security-image-platform-seed-derivation.png" src="../../_images/security-image-platform-seed-derivation.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 224 </span><span class="caption-text">Platform SEED (pSEED) Derivation</span><a class="headerlink" href="#security-seed" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>As shown in <a class="reference internal" href="#security-seed"><span class="std std-numref">Figure 224</span></a> above, the hypervisor then derives
+multiple child SEEDs for multiple guest VMs. A guest VM must not be able
+to know the SEEDs of any other guest VMs.</p>
+<p>The algorithm used in the hypervisor to derive keys is HKDF (HMAC-based
+Extract-and-Expand Key Derivation Function), <a class="reference external" href="https://tools.ietf.org/html/rfc5869">RFC5869</a>.  The crypto library <a class="reference external" href="https://github.com/ARMmbed/mbedtls">mbedtls</a> has been chosen for project ACRN.</p>
+<p>The parameters of HKDF derivation in the hypervisor are:</p>
+<ol class="arabic">
+<li><p>VMInfo= vm name (from the hypervisor configuration file)</p></li>
+<li><p>theHash=SHA-256</p></li>
+<li><p>OutSeedLen = 64 in bytes</p></li>
+<li><p>Guest Dev and User SEED (dvSEED/uvSEED)</p>
+<p><code class="docutils literal notranslate"><span class="pre">dvSEED</span> <span class="pre">=</span> <span class="pre">HKDF(theHash,</span> <span class="pre">nil,</span> <span class="pre">dSEEd,</span> <span class="pre">VMInfo\|&quot;devseed&quot;,</span> <span class="pre">OutSeedLen)</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">uvSEED</span> <span class="pre">=</span> <span class="pre">HKDF(theHash,</span> <span class="pre">nil,</span> <span class="pre">uSEEd,</span> <span class="pre">VMInfo\|&quot;userseed&quot;,</span> <span class="pre">OutSeedLen)</span></code></p>
+</li>
+</ol>
+</section>
+<section id="secure-isolated-world-trusty">
+<span id="secure-trusty"></span><h3>Secure Isolated World (Trusty)<a class="headerlink" href="#secure-isolated-world-trusty" title="Permalink to this heading">¶</a></h3>
+<p>This section explains how to build a secure isolated world in a specific
+guest VM such as the Android User VM. (See <a class="reference internal" href="../trusty.html#trusty-tee"><span class="std std-ref">Trusty TEE</span></a> for more
+information.)</p>
+<p>On the APL platform, the secure world is used to run a
+virtualization-based Trusty TEE in an isolated world that serves
+Android as a Guest (AaaG) to get Google’s Android relevant certificates
+by fulfilling Android CDD requirements. Also as a plan, Trusty will be
+supported to provide security services for LaaG User VMs as well.</p>
+<p>Refer to this Google website for <a class="reference external" href="https://source.android.com/security/trusty/">Trusty details</a> and for <a class="reference external" href="https://source.android.com/compatibility/cdd">Android CCD
+documents</a>.</p>
+<section id="secure-world-architecture-design">
+<h4>Secure World Architecture Design<a class="headerlink" href="#secure-world-architecture-design" title="Permalink to this heading">¶</a></h4>
+<p>To support a VT-TEE (Virtualization Technology based TEE) Trusty on
+ACRN, the hypervisor creates an isolated secure world in a User VM.</p>
+<figure class="align-center" id="security-secure-world">
+<a class="reference internal image-reference" href="../../_images/security-image-secure-world.png"><img alt="../../_images/security-image-secure-world.png" src="../../_images/security-image-secure-world.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 225 </span><span class="caption-text">Secure World</span><a class="headerlink" href="#security-secure-world" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>In <a class="reference internal" href="#security-secure-world"><span class="std std-numref">Figure 225</span></a>, the Trusty OS runs in the User VM secure
+world and a Linux- or Android-based User VM runs in the non-secure world.</p>
+<p>By design, the secure world is able to read and write to all the non-secure
+world’s memory space. But non-secure world applications cannot have
+access to the secure world’s memory. This is guaranteed by switching
+different EPT tables when a world switch (WS) hypercall is invoked. The
+WS hypercall can have parameters to specify the services cmd ID
+requested from the non-secure world.</p>
+<p>To design the “one VM, two worlds” architecture, there is a single
+User VM structure per-User VM in the hypervisor, but two vCPU structures that
+save non-secure world and secure world virtual logical processor states
+respectively.</p>
+<p>Whenever there is a WS hypercall from the non-secure world, the hypervisor
+will copy non-secure world CPU contexts from Guest VMCS to the non-secure
+world-vCPU structure for saving contexts, and then copy secure-world CPU
+contexts from the secure-world-vCPU structure to Guest VMCS, then do
+VMRESUME to the secure-world, and vice versa. The EPTP pointer will also be
+updated accordingly in VMCS (not shown in
+<a class="reference internal" href="#security-secure-world"><span class="std std-numref">Figure 225</span></a>).</p>
+</section>
+<section id="trusty-secure-world-memory-mapping-view">
+<h4>Trusty (Secure World) Memory Mapping View<a class="headerlink" href="#trusty-secure-world-memory-mapping-view" title="Permalink to this heading">¶</a></h4>
+<p>As per the secure world design, Trusty can have read/write access to the
+non-secure world’s memory, but the non-secure world cannot access the Trusty
+secure world’s memory. In the hypervisor EPT configuration shown in
+<a class="reference internal" href="#security-mem-view"><span class="std std-numref">Figure 226</span></a> below, the secure world EPTP page table
+hierarchy must contain the non-secure world address space, while the Trusty
+world’s address space must be removed from the non-secure world EPTP
+page table hierarchy.</p>
+<p>Since there is no need to allow Trusty to execute memory from the non-secure
+world, for security reasons, the execution (X) permission must be removed
+for the non-secure world address space in the secure world EPT table
+configuration.</p>
+<p>To save page tables and share the mappings for the non-secure world address
+space, the hypervisor relocates the secure world’s GPA to a very high
+position: 511G-512G. Hence, the PML4 for Trusty World is separated from the
+non-secure world. PDPT/PD/PT for low memory (&lt;511G) are shared in both the
+Trusty World’s EPT and non-secure world’s EPT. PDPT/PD/PT for high
+memory (&gt;=511G) are valid for the Trusty World’s EPT only.</p>
+<figure class="align-center" id="security-mem-view">
+<a class="reference internal image-reference" href="../../_images/security-image8.png"><img alt="../../_images/security-image8.png" src="../../_images/security-image8.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 226 </span><span class="caption-text">Memory View for User VM Non-secure World and Secure World</span><a class="headerlink" href="#security-mem-view" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="trusty-tee-hypercalls">
+<h4>Trusty/Tee Hypercalls<a class="headerlink" href="#trusty-tee-hypercalls" title="Permalink to this heading">¶</a></h4>
+<p>Two hypercalls are introduced to assist in secure world (Trusty/TEE)
+execution on top of the hypervisor.</p>
+<section id="hypercall-trusty-initialization">
+<h5>Hypercall - Trusty Initialization<a class="headerlink" href="#hypercall-trusty-initialization" title="Permalink to this heading">¶</a></h5>
+<p>When a User VM is created by the DM in the Service VM, if this User VM
+supports a secure isolated world, then this hypercall will be invoked
+by OSLoader (it could be the Android OS loader in
+<a class="reference internal" href="#security-bootflow-sbl"><span class="std std-numref">Figure 216</span></a> and
+<a class="reference internal" href="#security-bootflow-uefi"><span class="std std-numref">Figure 217</span></a> above) to create or initialize the
+secure world (Trusty/TEE).</p>
+<figure class="align-center" id="security-start-flow">
+<a class="reference internal image-reference" href="../../_images/security-image9.png"><img alt="../../_images/security-image9.png" src="../../_images/security-image9.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 227 </span><span class="caption-text">Secure World Start Flow</span><a class="headerlink" href="#security-start-flow" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>In <a class="reference internal" href="#security-start-flow"><span class="std std-numref">Figure 227</span></a> above, the OSLoader is responsible for
+loading the TEE/Trusty image to a dedicated and reserved memory region, and
+locating its entry point of TEE/Trusty executable, then executes a
+hypercall that exits to the hypervisor handler.</p>
+<p>In the hypervisor, from a security perspective, it removes GPA-&gt;HPA
+mapping of the secure world from EPT paging tables of both the User VM
+non-secure world and even the Service VM. This is intended to disallow the
+non-secure world and Service VM to access the memory region of the secure world
+for security reasons as previously mentioned.</p>
+<p>After all is set up by the hypervisor, including vCPU context
+initialization, the hypervisor eventually does vmresume (step 4 in
+<a class="reference internal" href="#security-start-flow"><span class="std std-numref">Figure 227</span></a> above) to the entry point of the secure world
+TEE/Trusty, then the Trusty OS gets started in VMX non-root mode to
+initialize itself, and loads its TAs (Trusted Applications) so that the
+security services can be ready right before the non-secure OS gets started.</p>
+<p>After the Trusty OS completes its initialization, a world switching (WS, see
+subsection below) hypercall is invoked (step 5 in
+<a class="reference internal" href="#security-start-flow"><span class="std std-numref">Figure 227</span></a> above), and then the hypervisor takes
+control back, and resumes to the OSLoader (step 6 in
+<a class="reference internal" href="#security-start-flow"><span class="std std-numref">Figure 227</span></a> above) to continue execution in the guest
+VM non-secure world context.</p>
+<p>Note that this Trusty initialization hypercall can only be called once
+in the User VM life cycle.</p>
+</section>
+<section id="hypercall-trusty-switching">
+<h5>Hypercall - Trusty Switching<a class="headerlink" href="#hypercall-trusty-switching" title="Permalink to this heading">¶</a></h5>
+<p>There is another special hypercall introduced only for world switching
+between the non-secure world and secure world in a User VM.</p>
+<figure class="align-center" id="security-ws">
+<a class="reference internal image-reference" href="../../_images/security-image-world-switching-HC.png"><img alt="../../_images/security-image-world-switching-HC.png" src="../../_images/security-image-world-switching-HC.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 228 </span><span class="caption-text">World Switching Hypercall</span><a class="headerlink" href="#security-ws" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Whenever this hypercall is invoked in a User VM, the hypervisor will
+unconditionally switch to the other world. For example, if it is called
+in the non-secure world, the hypervisor will then switch context to the secure
+world. After the secure world completes its security tasks (or an external
+interrupt occurs), this hypercall will be called again, then the hypervisor
+will switch context back to the non-secure world.</p>
+<p>During the entire world switching process, the Service VM is not involved. This
+hypervisor is only available to a User VM with duo-worlds supported.</p>
+</section>
+</section>
+<section id="secure-storage-virtualization">
+<h4>Secure Storage Virtualization<a class="headerlink" href="#secure-storage-virtualization" title="Permalink to this heading">¶</a></h4>
+<p>Secure storage is one of the security services provided by the secure world
+(TEE/Trusty). In the current implementation, secure storage is built up
+on the RPMB partition in eMMC (or UFS, and NVMe storage). Details of how
+RPMB works are out of scope for this document.</p>
+<p>Since the eMMC in APL SoC platforms only has a single RPMB
+partition for tamper-resistant and anti-replay secure storage, the
+secure storage (RPMB) should be virtualized in order to support multiple
+guest User VMs. However, although future generations of flash storage
+(e.g., UFS 3.0 and NVMe) support multiple RPMB partitions, this
+document still only focuses on the virtualization solution for
+single-RPMB flash storage devices in APL SoC platforms.</p>
+<p>The following <a class="reference internal" href="#security-storage"><span class="std std-numref">Figure 229</span></a> illustrates the virtualization
+of secure storage high-level architecture overview.</p>
+<figure class="align-center" id="security-storage">
+<a class="reference internal image-reference" href="../../_images/security-image-secure-storage-virt.png"><img alt="../../_images/security-image-secure-storage-virt.png" src="../../_images/security-image-secure-storage-virt.png" style="width: 900px;" /></a>
+<figcaption>
+<p><span class="caption-number">Figure 229 </span><span class="caption-text">Secure Storage Virtualization</span><a class="headerlink" href="#security-storage" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>In <a class="reference internal" href="#security-storage"><span class="std std-numref">Figure 229</span></a>, the rKey is the physical RPMB
+authentication key used for data authenticated read/write access between
+the Service VM kernel and the physical RPMB controller in eMMC device.  The
+VrKey is the virtual RPMB authentication key used for authentication
+between the DM module in the Service VM and its corresponding User VM secure software.
+Each User VM (if secure storage is supported) has its own VrKey, generated
+randomly when the DM process starts, and is securely distributed to the User VM
+secure world for each reboot. The rKey is fixed on a specific platform
+unless the eMMC is replaced with another one.</p>
+<p>The details of physical RPMB key (rKey) provisioning are out of scope.  In
+the current project ACRN on APL platforms, the rKey is provisioned by
+BIOS (SBL) right after a production device ends its manufacturing process.</p>
+<p>For each reboot, the BIOS/SBL always retrieves the rKey from CSE FW
+(or generated from a special SEED that is retrieved from CSE FW, refer
+to <a class="reference internal" href="#platform-root-of-trust"><span class="std std-ref">Platform Root of Trust Key/Seed Derivation</span></a>). The SBL hands this over to the
+ACRN hypervisor, and the hypervisor in turn sends it to the Service VM kernel.</p>
+<p>As an example, secure storage virtualization workflow for data write
+access is like this:</p>
+<ol class="arabic simple">
+<li><p>User VM secure world (e.g., Trusty) packs the encrypted data and signs it
+with the vRPMB authentication key (VrKey), and sends the data along
+with its signature over the RPMB FE driver in the User VM non-secure world.</p></li>
+<li><p>After the DM process in the Service VM receives the data and signature, the
+vRPMB module in the DM verifies them with the shared secret (vRPMB
+authentication key, VrKey).</p></li>
+<li><p>If verification is successful, the vRPMB module does data address remap
+(remembering that the multiple User VMs share a single physical RPMB
+partition), and forwards the data to the Service VM kernel. The kernel packs
+the data and signs it with the physical RPMB authentication key
+(rKey). Eventually, the data and its signature will be sent to the
+physical eMMC device.</p></li>
+<li><p>If the verification is successful in the eMMC RPMB controller, the
+data will be written into the storage device.</p></li>
+</ol>
+<p>This workflow of authenticated data read is very similar to this flow
+above, but in reverse order.</p>
+<p>Note that there are some security considerations in this design:</p>
+<ol class="arabic simple">
+<li><p>The rKey protection is very critical in this system. If  it is
+leaked, an attacker can overwrite the data on RPMB, which
+violates the “tamper-resistant &amp; anti-replay” capability.</p></li>
+<li><p>Typically, the vRPMB module in the DM process of the Service VM system can
+filter
+data access, preventing one User VM from performing read/write access to the
+data from another User VM. If the vRPMB module in the DM process is
+compromised, one User VM may also change/overwrite the secure data of the
+other User VM.</p></li>
+</ol>
+<p>Keeping the Service VM system as secure as possible is a very important goal in
+the system security design. Follow the recommendations in
+<a class="reference internal" href="#service-vm-hardening"><span class="std std-ref">Service VM Hardening</span></a>.</p>
+</section>
+<section id="seed-derivation">
+<h4>SEED Derivation<a class="headerlink" href="#seed-derivation" title="Permalink to this heading">¶</a></h4>
+<p>Refer to the previous section: <a class="reference internal" href="#platform-root-of-trust"><span class="std std-ref">Platform Root of Trust Key/Seed Derivation</span></a>.</p>
+</section>
+<section id="trusty-tee-s3-suspend-to-ram">
+<h4>Trusty/TEE S3 (Suspend to RAM)<a class="headerlink" href="#trusty-tee-s3-suspend-to-ram" title="Permalink to this heading">¶</a></h4>
+<p>Secure world S3 design is not yet finalized. However, there is a
+temporary solution as explained below to make it work on top of ACRN.</p>
+<p>Two new hypercalls are introduced: one saves the secure world processor
+contexts/states; the other one restores the secure world processor
+contexts/states.</p>
+<p>The save state hypercall is called only in the secure world (Trusty/TEE OS)
+as long as the Trusty receives a signal when the entire system (actually
+the non-secure OS issues this power event) is about to enter S3. While
+the restore state hypercall is called only by vBIOS when the User VM is ready to
+resume from suspend state.</p>
+<p>For security design considerations of handling secure world S3,
+read the previous section: <a class="reference internal" href="#user-vm-suspend-resume"><span class="std std-ref">User VM Suspend/Resume</span></a>.</p>
+</section>
+</section>
+<section id="platform-security-feature-virtualization-and-enablement">
+<h3>Platform Security Feature Virtualization and Enablement<a class="headerlink" href="#platform-security-feature-virtualization-and-enablement" title="Permalink to this heading">¶</a></h3>
+<p>This section talks about how the hypervisor enables host CPU features
+(e.g., SGX) and enables platform features (e.g., HECI), to allow guest
+VMs the ability to use those features.</p>
+<section id="tpm-2-0-virtualization-vtpm">
+<h4>TPM 2.0 Virtualization (vTPM)<a class="headerlink" href="#tpm-2-0-virtualization-vtpm" title="Permalink to this heading">¶</a></h4>
+<p>On APL platforms, Intel® PTT (Platform Trust Technology) implements TPM
+functionalities based on the TCG TPM 2.0 industry standard specification.
+PTT exposes the TPM hardware interface as CRB (Command Response Buffer)
+defined in the TCG TPM 2.0 spec.</p>
+<p>However, in project ACRN, TPM virtualization doesn’t assume it is based
+on PTT or discrete TPM; both TPMs (2.0) are supported by design.
+Customers are free to use either PTT or discrete TPM (but not at the same
+time). PTT, however, is a built-in TPM 2.0 implementation in APL
+platforms and does not require extra BOM cost (unlike discrete TPM).</p>
+<p>Note that the underlying CSE FW/HW implements PTT functionalities;
+however, this TPM 2.0 feature does not rely on MEI/HECI virtualization.</p>
+<p>Unlike regular hardware, implementation of virtualizing a TPM must
+address both security and trust.</p>
+<p>The goal of virtualization is to provide TPM functionality to each guest
+VM, such as:</p>
+<ol class="arabic simple">
+<li><p>Allows programs to interact with a TPM in a virtual system the same
+way they interact with a TPM on the physical system.</p></li>
+<li><p>Each User VM gets its own unique, emulated, software TPM, for example,
+vPCR and vNVRAM.</p></li>
+<li><p>One-to-one mapping between running vTPM instances and logical vTPM in
+each VM.</p></li>
+</ol>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hld-trace-log.html" class="btn btn-neutral float-left" title="Tracing and Logging High-Level Design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../sw_design_guidelines.html" class="btn btn-neutral float-right" title="Software Design Guidelines" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2018-2024 Project ACRN™, a Series of LF Projects, LLC.
+
+<span class="lastupdated">Last updated on 10月 20, 2022. Published on 8月 05, 2024</span>
+
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+    <!-- Theme Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GTM-K4WWJZD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'GTM-K4WWJZD', {
+          'anonymize_ip': false,
+      });
+    </script> 
+
+</body>
+</html>
